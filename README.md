@@ -46,5 +46,5 @@ npm publish
 
 ## Deploy to GitHub Pages
 
-`deploy-pages.yml` builds and deploys on `main` branch push.  
-Target path is configured as `/onmyoji-flow/`.
+`deploy-pages.yml` only builds on `master` branch push and uploads `dist-app` as a workflow artifact.  
+You can choose the final GitHub Pages source/path in repository settings.
