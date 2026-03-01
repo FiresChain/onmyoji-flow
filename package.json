@@ -1,33 +1,31 @@
 {
-  "name": "yys-editor",
-  "version": "1.0.6",
-  "description": "阴阳师流程图编辑器 - 可嵌入式组件",
-  "author": "yys-editor team",
+  "name": "@fireschain/onmyoji-flow",
+  "version": "0.1.0",
+  "description": "Onmyoji flow editor - standalone and embeddable component",
+  "author": "fireschain",
   "license": "MIT",
   "type": "module",
-  "main": "./dist/yys-editor.umd.js",
-  "module": "./dist/yys-editor.es.js",
-  "types": "./dist/YysEditorEmbed.d.ts",
+  "main": "./dist/onmyoji-flow.umd.js",
+  "module": "./dist/onmyoji-flow.es.js",
   "exports": {
     ".": {
-      "import": "./dist/yys-editor.es.js",
-      "require": "./dist/yys-editor.umd.js",
-      "types": "./dist/YysEditorEmbed.d.ts"
+      "import": "./dist/onmyoji-flow.es.js",
+      "require": "./dist/onmyoji-flow.umd.js"
     },
-    "./style.css": "./dist/yys-editor.css"
+    "./style.css": "./dist/onmyoji-flow.css"
   },
   "files": [
-    "dist/yys-editor.css",
-    "dist/yys-editor.es.js",
-    "dist/yys-editor.es.js.map",
-    "dist/yys-editor.umd.js",
-    "dist/yys-editor.umd.js.map",
-    "dist/YysEditorEmbed.d.ts"
+    "dist/onmyoji-flow.css",
+    "dist/onmyoji-flow.es.js",
+    "dist/onmyoji-flow.es.js.map",
+    "dist/onmyoji-flow.umd.js",
+    "dist/onmyoji-flow.umd.js.map"
   ],
   "scripts": {
     "dev": "vite",
     "build": "vite build --config vite.config.lib.js",
-    "build:app": "vite build",
+    "build:app": "vite build --outDir dist-app",
+    "build:pages": "vite build --base /onmyoji-flow/ --outDir dist-app",
     "build:lib": "vite build --config vite.config.lib.js",
     "preview": "vite preview",
     "test": "vitest --run",
@@ -37,6 +35,9 @@
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path .gitignore",
     "format": "prettier --write src/",
     "precommit": "npm test && npm run lint"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "peerDependencies": {
     "vue": "^3.3.0",

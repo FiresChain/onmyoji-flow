@@ -177,7 +177,7 @@ export const useFilesStore = defineStore('files', () => {
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = 'yys-editor-files.json';
+            link.download = 'onmyoji-flow-files.json';
             link.click();
             URL.revokeObjectURL(url);
             showMessage('success', '数据导出成功');

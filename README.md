@@ -1,30 +1,50 @@
-# 阴阳师攻略编辑器
+# onmyoji-flow
 
-基于Vue3+ElementPlus实现的阴阳师攻略编辑器,旨在减少各大攻略博主和玩家的工作量。
+`onmyoji-flow` is a standalone flow editor and embeddable Vue component package.
 
-用户可以通过点击简单的操作,快速编辑阴阳师的攻略。
+## Package
 
+- npm name: `@fireschain/onmyoji-flow`
+- style entry: `@fireschain/onmyoji-flow/style.css`
 
-## Project Setup
+## Local Development
 
-```sh
+```bash
 npm install
-```
-
-### Compile and Hot-Reload for Development
-
-```sh
 npm run dev
 ```
 
-### Compile and Minify for Production
+## Build
 
-```sh
-npm run build
+```bash
+# library build for npm publish
+npm run build:lib
+
+# app build (output: dist-app)
+npm run build:app
+
+# app build for GitHub Pages (/onmyoji-flow/, output: dist-app)
+npm run build:pages
 ```
 
-### Lint with [ESLint](https://eslint.org/)
+## Use as Vue Component
 
-```sh
-npm run lint
+```ts
+import { YysEditorEmbed, YysEditorPreview } from '@fireschain/onmyoji-flow'
+import '@fireschain/onmyoji-flow/style.css'
 ```
+
+## Publish to npm
+
+```bash
+npm login
+npm run build:lib
+npm publish
+```
+
+`publish-npm.yml` can publish automatically on git tag `v*` if `NPM_TOKEN` is configured in repository secrets.
+
+## Deploy to GitHub Pages
+
+`deploy-pages.yml` builds and deploys on `main` branch push.  
+Target path is configured as `/onmyoji-flow/`.

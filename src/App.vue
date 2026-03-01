@@ -146,7 +146,7 @@ watch(
 <template>
   <div class="container">
     <!-- 工具栏 -->
-    <Toolbar title="yys-editor" username="示例用户"/>
+    <Toolbar title="onmyoji-flow" username="示例用户"/>
     <!-- 侧边栏和工作区 -->
     <div class="main-content">
       <!-- 侧边栏 -->

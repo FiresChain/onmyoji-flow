@@ -23,9 +23,9 @@ export default defineConfig({
     lib: {
       // 入口文件 - 创建一个入口文件而不是直接使用 .vue 文件
       entry: path.resolve(__dirname, 'src/index.js'),
-      name: 'YysEditor',
+      name: 'OnmyojiFlow',
       // 输出文件名
-      fileName: (format) => `yys-editor.${format}.js`,
+      fileName: (format) => `onmyoji-flow.${format}.js`,
       formats: ['es', 'umd']
     },
     rollupOptions: {
@@ -48,7 +48,7 @@ export default defineConfig({
         },
         // 导出 CSS
         assetFileNames: (assetInfo) => {
-          if (assetInfo.name === 'style.css') return 'yys-editor.css'
+          if (assetInfo.name === 'style.css') return 'onmyoji-flow.css'
           return assetInfo.name
         }
       }
