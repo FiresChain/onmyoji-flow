@@ -46,5 +46,5 @@ npm publish
 
 ## Deploy to GitHub Pages
 
-`deploy-pages.yml` only builds on `master` branch push and uploads `dist-app` as a workflow artifact.  
+`build-pages.yml` only builds on `master` branch push and uploads `dist-app` as a workflow artifact.  
 You can choose the final GitHub Pages source/path in repository settings.
