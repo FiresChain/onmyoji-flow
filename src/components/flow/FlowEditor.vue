@@ -1261,7 +1261,9 @@ onBeforeUnmount(() => {
   height: 100%;
   width: 100%;
   min-width: 0;
+  min-height: 0;
   flex: 1;
+  overflow: hidden;
 }
 .flow-container {
   flex: 1;
