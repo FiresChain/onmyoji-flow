@@ -134,7 +134,8 @@ const currentAssetLibrary = computed({
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .panel-header {
@@ -175,6 +176,7 @@ const currentAssetLibrary = computed({
 .property-content {
   padding: 10px;
   flex: 1;
+  min-height: 0;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -182,13 +184,19 @@ const currentAssetLibrary = computed({
 
 .property-tabs {
   flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
 }
 
 .property-tabs :deep(.el-tabs__content) {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
+}
+
+.property-tabs :deep(.el-tab-pane) {
+  min-height: 0;
 }
 
 .property-section {

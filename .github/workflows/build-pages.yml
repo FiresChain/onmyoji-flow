@@ -32,6 +32,8 @@ jobs:
         run: npm ci
 
       - name: Build for GitHub Pages
+        env:
+          VITE_TEAM_CODE_SERVICE_URL: ${{ vars.VITE_TEAM_CODE_SERVICE_URL }}
         run: npm run build:pages
 
       - name: Upload pages artifact
