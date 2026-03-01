@@ -42,9 +42,8 @@ npm run build:lib
 npm publish
 ```
 
-`publish-npm.yml` can publish automatically on git tag `v*` if `NPM_TOKEN` is configured in repository secrets.
-
 ## Deploy to GitHub Pages
 
-`build-pages.yml` only builds on `master` branch push and uploads `dist-app` as a workflow artifact.  
-You can choose the final GitHub Pages source/path in repository settings.
+`build-pages.yml` is the only workflow now.
+It builds on `master` branch push and deploys `dist-app` to GitHub Pages automatically.
+In repository settings, set Pages source to `GitHub Actions`.
