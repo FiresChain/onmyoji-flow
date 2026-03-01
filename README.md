@@ -47,3 +47,4 @@ npm publish
 `build-pages.yml` is the only workflow now.
 It builds on `master` branch push and deploys `dist-app` to GitHub Pages automatically.
 In repository settings, set Pages source to `GitHub Actions`.
+Deployment job runs only when repository variable `PAGES_DEPLOY_ENABLED=true`.
