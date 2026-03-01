@@ -40,7 +40,6 @@ jobs:
           path: ./dist-app
 
   deploy:
-    if: ${{ vars.PAGES_DEPLOY_ENABLED == 'true' }}
     needs: build
     runs-on: ubuntu-latest
     environment:
