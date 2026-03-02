@@ -22,6 +22,7 @@
 7. 接线行为回归：`toolbar-wiring.regression`
 8. workspace/dialog 边界分支回归：`useToolbarWorkspaceCommands` + `useToolbarDialogState`
 9. import/export 失败与边界分支回归：`useToolbarImportExportCommands`
+10. 导入对话框接线回归：`toolbar-wiring.regression`（json/teamCode/qr）
 
 ## Task 1 落地（导入/导出/预览）
 
@@ -160,3 +161,14 @@
 - 阵容码导入：补齐转换失败分支，保持 loading 回收与错误提示行为不变。
 - 二维码导入：补齐无文件 no-op 与识别失败分支，保持输入回填/清理语义不变。
 - 截图链路：补齐空快照与水印处理失败分支，保持错误提示与预览状态守卫不变。
+
+## Task 10 落地（Toolbar 导入对话框接线回归）
+
+增强：`src/__tests__/toolbar-wiring.regression.test.ts`
+
+回归目标：
+
+- 导入来源切换后，导入对话框按钮链路仍指向既有命令，不回退到 `Toolbar.vue` 内实现。
+- “选择 JSON 文件” 继续触发 `triggerJsonFileImport`。
+- “导入阵容码” 继续触发 `handleTeamCodeImport`。
+- “选择二维码图片” 继续触发 `triggerTeamCodeQrImport`。

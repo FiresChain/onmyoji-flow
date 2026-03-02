@@ -7,6 +7,9 @@ const wiringSpies = vi.hoisted(() => ({
   handleExport: vi.fn(),
   handlePreviewData: vi.fn(),
   openImportDialog: vi.fn(),
+  triggerJsonFileImport: vi.fn(),
+  handleTeamCodeImport: vi.fn(),
+  triggerTeamCodeQrImport: vi.fn(),
   prepareCapture: vi.fn(),
   openAssetManager: vi.fn(),
   openRuleManager: vi.fn(),
@@ -69,9 +72,9 @@ vi.mock('@/components/composables/useToolbarImportExportCommands', () => ({
     handlePreviewData: wiringSpies.handlePreviewData,
     copyDataToClipboard: vi.fn(),
     openImportDialog: wiringSpies.openImportDialog,
-    triggerJsonFileImport: vi.fn(),
-    triggerTeamCodeQrImport: vi.fn(),
-    handleTeamCodeImport: vi.fn(),
+    triggerJsonFileImport: wiringSpies.triggerJsonFileImport,
+    triggerTeamCodeQrImport: wiringSpies.triggerTeamCodeQrImport,
+    handleTeamCodeImport: wiringSpies.handleTeamCodeImport,
     handleTeamCodeQrImport: vi.fn(),
     prepareCapture: wiringSpies.prepareCapture,
     downloadImage: vi.fn(),
@@ -160,15 +163,36 @@ const ElButtonStub = defineComponent({
   },
 });
 
+const ElDialogStub = defineComponent({
+  name: 'ElDialog',
+  setup(_, { slots }) {
+    return () => h('div', [slots.default?.(), slots.footer?.()]);
+  },
+});
+
+const ElFormStub = defineComponent({
+  name: 'ElForm',
+  setup(_, { slots }) {
+    return () => h('div', slots.default?.());
+  },
+});
+
+const ElFormItemStub = defineComponent({
+  name: 'ElFormItem',
+  setup(_, { slots }) {
+    return () => h('div', slots.default?.());
+  },
+});
+
 const createWrapper = () => {
   return mount(Toolbar, {
     global: {
       stubs: {
         'el-button': ElButtonStub,
         'el-switch': true,
-        'el-dialog': true,
-        'el-form': true,
-        'el-form-item': true,
+        'el-dialog': ElDialogStub,
+        'el-form': ElFormStub,
+        'el-form-item': ElFormItemStub,
         'el-input': true,
         'el-input-number': true,
         'el-color-picker': true,
@@ -188,11 +212,18 @@ const createWrapper = () => {
   });
 };
 
+const findButtonByText = (wrapper: ReturnType<typeof createWrapper>, buttonText: string) => {
+  return wrapper
+    .findAll('button')
+    .find((item) => item.text().trim() === buttonText);
+};
+
 const clickButtonByText = async (buttonText: string) => {
   const wrapper = createWrapper();
-  const button = wrapper
-    .findAll('button')
-    .find((item) => item.text().includes(buttonText));
+  const button = findButtonByText(wrapper, buttonText)
+    ?? wrapper
+      .findAll('button')
+      .find((item) => item.text().includes(buttonText));
   expect(button).toBeTruthy();
   await button!.trigger('click');
   wrapper.unmount();
@@ -250,5 +281,34 @@ describe('toolbar wiring regression', () => {
 
     await clickButtonByText('清空画布');
     expect(wiringSpies.handleClearCanvas).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps import dialog command paths stable after source switch', async () => {
+    const wrapper = createWrapper();
+
+    const importButton = findButtonByText(wrapper, '导入');
+    expect(importButton).toBeTruthy();
+    await importButton!.trigger('click');
+    expect(wiringSpies.openImportDialog).toHaveBeenCalledTimes(1);
+
+    const jsonButton = findButtonByText(wrapper, '选择 JSON 文件');
+    expect(jsonButton).toBeTruthy();
+    await jsonButton!.trigger('click');
+    expect(wiringSpies.triggerJsonFileImport).toHaveBeenCalledTimes(1);
+
+    (wrapper.vm as unknown as Record<string, unknown>).importSource = 'teamCode';
+    await wrapper.vm.$nextTick();
+
+    const teamCodeButton = findButtonByText(wrapper, '导入阵容码');
+    expect(teamCodeButton).toBeTruthy();
+    await teamCodeButton!.trigger('click');
+    expect(wiringSpies.handleTeamCodeImport).toHaveBeenCalledTimes(1);
+
+    const qrButton = findButtonByText(wrapper, '选择二维码图片');
+    expect(qrButton).toBeTruthy();
+    await qrButton!.trigger('click');
+    expect(wiringSpies.triggerTeamCodeQrImport).toHaveBeenCalledTimes(1);
+
+    wrapper.unmount();
   });
 });

@@ -40,6 +40,36 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-03] Session 51 - Extend Toolbar Wiring Regression for Import Dialog Command Paths
+
+- Refactory Scope:
+  - Phase: Phase 2
+  - Task: 扩展 `toolbar-wiring.regression`，验证导入对话框 `json/teamCode/qr` 命令链路在来源切换后保持不变（仅测试补强）
+- In Scope Files:
+  - `src/__tests__/toolbar-wiring.regression.test.ts`
+  - `docs/2design/ToolbarArchitecture.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `FlowEditor` 新增重构任务
+  - `groupRules` 规则语义调整
+  - `docs/1management/plan.md` 进度更新
+  - Phase 1 / Phase 3 内容
+- Decisions:
+  - 在接线回归中新增导入对话框链路用例，覆盖“导入来源切换后按钮仍命中既有 composable 命令”。
+  - 为测试稳定性补齐 `el-dialog` / `el-form` / `el-form-item` slot 渲染 stub，避免 UI 组件 stub 吞掉对话框按钮节点。
+  - 新增并断言三条导入路径：`triggerJsonFileImport`、`handleTeamCodeImport`、`triggerTeamCodeQrImport`。
+  - 更新 `ToolbarArchitecture.md` Task 10，记录本次接线回归边界。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 该回归仍基于组件测试 stub 环境，后续若导入对话框结构变化较大，需同步维护 stub/文案匹配以避免误报。
+- Next Recommended Unit:
+  - Phase 2 下一原子任务：收紧 `toolbar-architecture.guard`，锁定 import/export 实现归属在 composable、Toolbar 仅保留接线和模板层。
+
 ## [2026-03-03] Session 50 - Harden Import/Export Failure and Edge Regression Coverage
 
 - Refactory Scope:
