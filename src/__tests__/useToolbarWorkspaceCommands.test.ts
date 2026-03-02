@@ -18,7 +18,7 @@ vi.mock('@/ts/useLogicFlow', async () => {
 });
 
 interface ToolbarWorkspaceTestContext {
-  activeFile: {
+  activeFile?: {
     graphRawData: unknown;
     transform: {
       SCALE_X: number;
@@ -39,8 +39,12 @@ interface ToolbarWorkspaceTestContext {
   commands: ReturnType<typeof useToolbarWorkspaceCommands>;
 }
 
-const createContext = (): ToolbarWorkspaceTestContext => {
-  const activeFile = {
+interface CreateWorkspaceContextOptions {
+  activeFile?: ToolbarWorkspaceTestContext['activeFile'] | null;
+}
+
+const createContext = (options: CreateWorkspaceContextOptions = {}): ToolbarWorkspaceTestContext => {
+  const defaultActiveFile = {
     graphRawData: { nodes: [{ id: 'n1' }], edges: [] },
     transform: {
       SCALE_X: 2,
@@ -49,6 +53,9 @@ const createContext = (): ToolbarWorkspaceTestContext => {
       TRANSLATE_Y: 24,
     },
   };
+  const activeFile = Object.prototype.hasOwnProperty.call(options, 'activeFile')
+    ? options.activeFile ?? undefined
+    : defaultActiveFile;
 
   const filesStore = {
     importData: vi.fn(),
@@ -150,14 +157,79 @@ describe('useToolbarWorkspaceCommands', () => {
     expect(lfInstance.clearData).toHaveBeenCalledTimes(1);
     expect(lfInstance.render).toHaveBeenCalledWith({ nodes: [], edges: [] });
     expect(lfInstance.zoom).toHaveBeenCalledWith(1, [0, 0]);
-    expect(context.activeFile.graphRawData).toEqual({ nodes: [], edges: [] });
-    expect(context.activeFile.transform).toEqual({
+    expect(context.activeFile).toBeDefined();
+    expect(context.activeFile?.graphRawData).toEqual({ nodes: [], edges: [] });
+    expect(context.activeFile?.transform).toEqual({
       SCALE_X: 1,
       SCALE_Y: 1,
       TRANSLATE_X: 0,
       TRANSLATE_Y: 0,
     });
     expect(context.filesStore.updateTab).toHaveBeenCalledWith('file-a');
+    expect(context.showMessage).toHaveBeenCalledWith('success', '当前画布已清空');
+  });
+
+  it('handleClearCanvas keeps cancel-noop behavior', async () => {
+    const context = createContext();
+    const lfInstance = {
+      clearData: vi.fn(),
+      render: vi.fn(),
+      zoom: vi.fn(),
+    };
+
+    vi.mocked(ElMessageBox.confirm).mockRejectedValue(new Error('cancel'));
+    vi.mocked(getLogicFlowInstance).mockReturnValue(lfInstance as never);
+
+    context.commands.handleClearCanvas();
+    await flushMicrotasks();
+
+    expect(lfInstance.clearData).not.toHaveBeenCalled();
+    expect(lfInstance.render).not.toHaveBeenCalled();
+    expect(lfInstance.zoom).not.toHaveBeenCalled();
+    expect(context.filesStore.updateTab).not.toHaveBeenCalled();
+    expect(context.showMessage).not.toHaveBeenCalledWith('success', '当前画布已清空');
+  });
+
+  it('handleClearCanvas keeps active-file reset behavior when LogicFlow instance is missing', async () => {
+    const context = createContext();
+
+    vi.mocked(ElMessageBox.confirm).mockResolvedValue('confirm' as never);
+    vi.mocked(getLogicFlowInstance).mockReturnValue(null as never);
+
+    context.commands.handleClearCanvas();
+    await flushMicrotasks();
+
+    expect(context.activeFile).toBeDefined();
+    expect(context.activeFile?.graphRawData).toEqual({ nodes: [], edges: [] });
+    expect(context.activeFile?.transform).toEqual({
+      SCALE_X: 1,
+      SCALE_Y: 1,
+      TRANSLATE_X: 0,
+      TRANSLATE_Y: 0,
+    });
+    expect(context.filesStore.updateTab).toHaveBeenCalledWith('file-a');
+    expect(context.showMessage).toHaveBeenCalledWith('success', '当前画布已清空');
+  });
+
+  it('handleClearCanvas keeps no-active-file guard behavior', async () => {
+    const context = createContext({ activeFile: null });
+    const lfInstance = {
+      clearData: vi.fn(),
+      render: vi.fn(),
+      zoom: vi.fn(),
+    };
+
+    vi.mocked(ElMessageBox.confirm).mockResolvedValue('confirm' as never);
+    vi.mocked(getLogicFlowInstance).mockReturnValue(lfInstance as never);
+
+    context.commands.handleClearCanvas();
+    await flushMicrotasks();
+
+    expect(context.activeFile).toBeUndefined();
+    expect(lfInstance.clearData).toHaveBeenCalledTimes(1);
+    expect(lfInstance.render).toHaveBeenCalledWith({ nodes: [], edges: [] });
+    expect(lfInstance.zoom).toHaveBeenCalledWith(1, [0, 0]);
+    expect(context.filesStore.updateTab).not.toHaveBeenCalled();
     expect(context.showMessage).toHaveBeenCalledWith('success', '当前画布已清空');
   });
 });

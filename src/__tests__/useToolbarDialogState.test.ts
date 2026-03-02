@@ -54,6 +54,16 @@ describe('useToolbarDialogState', () => {
     expect(localStorage.getItem('appVersion')).toBe('1.0.0');
   });
 
+  it('mountDialogState keeps same-version noop behavior', () => {
+    localStorage.setItem('appVersion', '2.0.0');
+    const context = createContext(false, '2.0.0');
+
+    context.composable.mountDialogState();
+
+    expect(context.state.showUpdateLogDialog).toBe(false);
+    expect(localStorage.getItem('appVersion')).toBe('2.0.0');
+  });
+
   it('showUpdateLog and showFeedbackForm keep toggle behavior', () => {
     const context = createContext();
 
@@ -90,5 +100,23 @@ describe('useToolbarDialogState', () => {
     expect(localStorage.getItem('watermark.rows')).toBe('2');
     expect(localStorage.getItem('watermark.cols')).toBe('3');
     expect(context.state.showWatermarkDialog).toBe(false);
+  });
+
+  it('watermark initialization keeps persisted values and numeric fallback behavior', () => {
+    localStorage.setItem('watermark.text', '已持久化水印');
+    localStorage.setItem('watermark.fontSize', 'invalid');
+    localStorage.setItem('watermark.color', 'rgba(11, 22, 33, 0.4)');
+    localStorage.setItem('watermark.angle', '-18');
+    localStorage.setItem('watermark.rows', 'NaN');
+    localStorage.setItem('watermark.cols', '4');
+
+    const context = createContext();
+
+    expect(context.composable.watermark.text).toBe('已持久化水印');
+    expect(context.composable.watermark.fontSize).toBe(30);
+    expect(context.composable.watermark.color).toBe('rgba(11, 22, 33, 0.4)');
+    expect(context.composable.watermark.angle).toBe(-18);
+    expect(context.composable.watermark.rows).toBe(1);
+    expect(context.composable.watermark.cols).toBe(4);
   });
 });

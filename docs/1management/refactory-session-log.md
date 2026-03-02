@@ -40,6 +40,36 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-03] Session 49 - Harden Workspace/Dialog Regression Coverage for Edge Branches
+
+- Refactory Scope:
+  - Phase: Phase 2
+  - Task: 补强 `useToolbarWorkspaceCommands` 与 `useToolbarDialogState` 的关键失败分支与边界分支回归（仅测试补强）
+- In Scope Files:
+  - `src/__tests__/useToolbarWorkspaceCommands.test.ts`
+  - `src/__tests__/useToolbarDialogState.test.ts`
+  - `docs/2design/ToolbarArchitecture.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `FlowEditor` 新增重构任务
+  - `groupRules` 规则语义调整
+  - `docs/1management/plan.md` 进度更新
+  - Phase 1 / Phase 3 内容
+- Decisions:
+  - `workspace` 新增 `handleClearCanvas` 三类分支回归：取消 no-op、无 LogicFlow 实例、无 active file 守卫。
+  - `dialog` 新增 `mountDialogState` 同版本 no-op 回归与水印初始化边界回归（持久化值读取 + 非数字回退默认值）。
+  - 更新 `ToolbarArchitecture.md` Task 8，记录本次仅测试补强边界，不改运行语义。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - `workspace` 回归仍以 store/logicflow mock 为主，若后续需要验证更深集成路径可增补与 `Toolbar.vue` 的端到端触发场景。
+- Next Recommended Unit:
+  - Phase 2 下一原子任务：为 `useToolbarImportExportCommands` 补失败分支回归（文件读取异常、二维码识别失败、快照空结果）在 `Toolbar` 级接线场景下的行为守卫。
+
 ## [2026-03-03] Session 48 - Add Toolbar Wiring Regression for Lifecycle and Command Bindings
 
 - Refactory Scope:

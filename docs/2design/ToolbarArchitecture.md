@@ -20,6 +20,7 @@
 5. 对话框状态编排：`useToolbarDialogState`
 6. 架构边界守卫回归：`toolbar-architecture.guard`
 7. 接线行为回归：`toolbar-wiring.regression`
+8. workspace/dialog 边界分支回归：`useToolbarWorkspaceCommands` + `useToolbarDialogState`
 
 ## Task 1 落地（导入/导出/预览）
 
@@ -133,3 +134,17 @@
 
 - 验证生命周期接线不回退：`onMounted` 仍调用 `mountAssetManagement` 与 `mountDialogState`，`onBeforeUnmount` 仍调用 `disposeAssetManagement`。
 - 验证顶栏关键按钮命令链路不回退：按钮点击继续触发对应 composable 命令（import/export、asset、rule、workspace、dialog）。
+
+## Task 8 落地（workspace/dialog 边界分支补强）
+
+增强：`src/__tests__/useToolbarWorkspaceCommands.test.ts`、`src/__tests__/useToolbarDialogState.test.ts`
+
+回归目标：
+
+- `workspace`：
+  - 补齐 `handleClearCanvas` 取消分支（确认取消后不触发画布操作与状态回写）。
+  - 补齐无 LogicFlow 实例分支（仍回写 active file 并提示成功）。
+  - 补齐无 active file 分支（仅执行画布清理，不回写 tab）。
+- `dialog`：
+  - 补齐 `mountDialogState` 同版本 no-op 分支。
+  - 补齐水印配置初始化边界（持久化值读取 + 非数字输入回退默认值）。
