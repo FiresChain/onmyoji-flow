@@ -286,6 +286,16 @@ export const useFilesStore = defineStore('files', () => {
         // updateTab();
     };
 
+    const persistState = () => {
+        const state: PersistedRoot = {
+            schemaVersion: CURRENT_SCHEMA_VERSION,
+            fileList: fileList.value as any,
+            activeFileId: activeFileId.value,
+            activeFile: findById(activeFileId.value)?.name || ''
+        };
+        saveStateToLocalStorage(state);
+    };
+
     // 更新指定 Tab - 内存操作即时，localStorage 操作防抖
     const updateTab = (fileId?: string) => {
         try {
@@ -295,13 +305,7 @@ export const useFilesStore = defineStore('files', () => {
             syncLogicFlowDataToStore(targetId);
 
             // 再保存到 localStorage（带防抖）
-            const state: PersistedRoot = {
-                schemaVersion: CURRENT_SCHEMA_VERSION,
-                fileList: fileList.value as any,
-                activeFileId: activeFileId.value,
-                activeFile: findById(activeFileId.value)?.name || ''
-            };
-            saveStateToLocalStorage(state);
+            persistState();
         } catch (error) {
             console.error('更新 Tab 失败:', error);
             showMessage('error', '数据更新失败');
@@ -328,11 +332,18 @@ export const useFilesStore = defineStore('files', () => {
         if (!targetId) return;
         const file = findById(targetId);
         if (!file) return;
+        const isTargetActive = activeFileId.value === targetId;
         file.visible = visible;
-        if (!visible && activeFileId.value === targetId) {
+        if (!visible && isTargetActive) {
             const fallback = visibleFiles.value.find((item) => item.id !== targetId)
                 || fileList.value.find((item) => item.id !== targetId);
             activeFileId.value = fallback?.id || '';
+        }
+
+        // 非活动文件仅更新元数据并持久化，避免把当前画布数据串写到目标文件
+        if (!isTargetActive) {
+            persistState();
+            return;
         }
         updateTab(targetId);
     };
@@ -341,7 +352,14 @@ export const useFilesStore = defineStore('files', () => {
     const deleteFile = (fileKey: string) => {
         const targetId = resolveFileId(fileKey);
         if (!targetId) return;
+        const isTargetActive = activeFileId.value === targetId;
         removeTab(targetId);
+
+        // 删除非活动文件时仅持久化文件列表变化，避免不必要的画布同步
+        if (!isTargetActive) {
+            persistState();
+            return;
+        }
         updateTab(activeFileId.value);
     };
 
@@ -352,8 +370,15 @@ export const useFilesStore = defineStore('files', () => {
         if (!targetId || !nextName) return;
         const file = findById(targetId);
         if (!file) return;
+        const isTargetActive = activeFileId.value === targetId;
         file.name = nextName;
         file.label = nextName;
+
+        // 非活动文件仅更新元数据并持久化，避免把当前画布数据串写到目标文件
+        if (!isTargetActive) {
+            persistState();
+            return;
+        }
         updateTab(targetId);
     };
 

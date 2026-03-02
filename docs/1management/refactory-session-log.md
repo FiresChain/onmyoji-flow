@@ -40,6 +40,35 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-02] Session 13 - Fix Cross-File Overwrite Risk for Non-Active File Operations
+
+- Refactory Scope:
+  - Phase: Phase 0/P1 bridge
+  - Task: 修复 `setVisible` / `renameFile` / `deleteFile` 在非活动文件操作时的潜在串写风险（避免将当前画布数据写入非活动目标文件）
+- In Scope Files:
+  - `src/ts/useStore.ts`
+  - `src/__tests__/useStore.test.ts`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - 其他 store/组件重构
+  - UI/交互改动
+  - `docs/1management/plan.md` 进度更新
+- Decisions:
+  - 抽取 `persistState()` 作为“仅持久化不做画布同步”的路径。
+  - `setVisible` / `renameFile`：当目标文件非活动时仅更新元数据并 `persistState()`，不再触发 `updateTab(targetId)`。
+  - `deleteFile`：当删除目标为非活动文件时，仅删除并 `persistState()`，不触发画布同步。
+  - 保持目标为活动文件时的原有 `updateTab(...)` 行为，避免扩大本次原子单元范围。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 当前 `deleteFile` 在“删除活动文件”分支仍会在 `removeTab` 后执行 `updateTab(activeFileId)`；是否需要进一步收敛为“显式保存来源文件”应作为独立原子单元评估。
+- Next Recommended Unit:
+  - Phase 1: 审计并收敛“活动文件删除/隐藏后的保存来源绑定”策略，避免切换时来源文件不明确。
+
 ## [2026-03-02] Session 12 - Fix Cross-File Overwrite Risk on Active File Switch
 
 - Refactory Scope:

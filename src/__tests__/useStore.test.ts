@@ -2,6 +2,50 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { useFilesStore } from '../ts/useStore'
 
+const logicFlowMocks = vi.hoisted(() => ({
+  getGraphRawData: vi.fn(() => ({
+    nodes: [{ id: 'lf-node', type: 'rect', x: 100, y: 100 }],
+    edges: []
+  })),
+  getTransform: vi.fn(() => ({
+    SCALE_X: 1,
+    SCALE_Y: 1,
+    TRANSLATE_X: 0,
+    TRANSLATE_Y: 0
+  })),
+  getNodeModelById: vi.fn(() => ({ zIndex: 1 }))
+}))
+
+const createSampleRootDocument = () => ({
+  schemaVersion: '1.0.0',
+  fileList: [
+    {
+      id: 'file-1',
+      name: 'File 1',
+      label: 'File 1',
+      visible: true,
+      type: 'FLOW',
+      graphRawData: {
+        nodes: [{ id: 'source-node', type: 'rect', x: 10, y: 10 }],
+        edges: []
+      }
+    },
+    {
+      id: 'file-2',
+      name: 'File 2',
+      label: 'File 2',
+      visible: true,
+      type: 'FLOW',
+      graphRawData: {
+        nodes: [{ id: 'target-node', type: 'rect', x: 20, y: 20 }],
+        edges: []
+      }
+    }
+  ],
+  activeFileId: 'file-1',
+  activeFile: 'File 1'
+})
+
 // Mock localStorage
 const localStorageMock = (() => {
   let store: Record<string, string> = {}
@@ -30,13 +74,9 @@ vi.mock('../ts/useGlobalMessage', () => ({
 
 vi.mock('../ts/useLogicFlow', () => ({
   getLogicFlowInstance: vi.fn(() => ({
-    getGraphRawData: vi.fn(() => ({ nodes: [], edges: [] })),
-    getTransform: vi.fn(() => ({
-      SCALE_X: 1,
-      SCALE_Y: 1,
-      TRANSLATE_X: 0,
-      TRANSLATE_Y: 0
-    }))
+    getGraphRawData: logicFlowMocks.getGraphRawData,
+    getTransform: logicFlowMocks.getTransform,
+    getNodeModelById: logicFlowMocks.getNodeModelById
   }))
 }))
 
@@ -44,6 +84,9 @@ describe('useFilesStore 数据操作测试', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
     localStorageMock.clear()
+    logicFlowMocks.getGraphRawData.mockClear()
+    logicFlowMocks.getTransform.mockClear()
+    logicFlowMocks.getNodeModelById.mockClear()
   })
 
   it('应该初始化默认文件列表', () => {
@@ -102,35 +145,7 @@ describe('useFilesStore 数据操作测试', () => {
   it('切换活动文件时不应将当前画布数据写入目标文件', () => {
     const store = useFilesStore()
 
-    store.importData({
-      schemaVersion: '1.0.0',
-      fileList: [
-        {
-          id: 'file-1',
-          name: 'File 1',
-          label: 'File 1',
-          visible: true,
-          type: 'FLOW',
-          graphRawData: {
-            nodes: [{ id: 'source-node', type: 'rect', x: 10, y: 10 }],
-            edges: []
-          }
-        },
-        {
-          id: 'file-2',
-          name: 'File 2',
-          label: 'File 2',
-          visible: true,
-          type: 'FLOW',
-          graphRawData: {
-            nodes: [{ id: 'target-node', type: 'rect', x: 20, y: 20 }],
-            edges: []
-          }
-        }
-      ],
-      activeFileId: 'file-1',
-      activeFile: 'File 1'
-    })
+    store.importData(createSampleRootDocument())
 
     const targetBefore = JSON.parse(JSON.stringify(store.getTab('file-2')?.graphRawData))
     store.setActiveFile('file-2')
@@ -138,6 +153,45 @@ describe('useFilesStore 数据操作测试', () => {
 
     expect(store.activeFileId).toBe('file-2')
     expect(targetAfter).toEqual(targetBefore)
+  })
+
+  it('对非活动文件 setVisible 不应串写目标文件 graphRawData', () => {
+    const store = useFilesStore()
+    store.importData(createSampleRootDocument())
+
+    const targetBefore = JSON.parse(JSON.stringify(store.getTab('file-2')?.graphRawData))
+    store.setVisible('file-2', false)
+    const targetAfter = store.getTab('file-2')?.graphRawData
+
+    expect(targetAfter).toEqual(targetBefore)
+    expect(store.getTab('file-2')?.visible).toBe(false)
+    expect(logicFlowMocks.getGraphRawData).not.toHaveBeenCalled()
+  })
+
+  it('对非活动文件 renameFile 不应串写目标文件 graphRawData', () => {
+    const store = useFilesStore()
+    store.importData(createSampleRootDocument())
+
+    const targetBefore = JSON.parse(JSON.stringify(store.getTab('file-2')?.graphRawData))
+    store.renameFile('file-2', 'Renamed File')
+    const targetAfter = store.getTab('file-2')?.graphRawData
+
+    expect(targetAfter).toEqual(targetBefore)
+    expect(store.getTab('file-2')?.name).toBe('Renamed File')
+    expect(logicFlowMocks.getGraphRawData).not.toHaveBeenCalled()
+  })
+
+  it('对非活动文件 deleteFile 不应触发画布同步串写', () => {
+    const store = useFilesStore()
+    store.importData(createSampleRootDocument())
+
+    const activeBefore = JSON.parse(JSON.stringify(store.getTab('file-1')?.graphRawData))
+    store.deleteFile('file-2')
+    const activeAfter = store.getTab('file-1')?.graphRawData
+
+    expect(store.getTab('file-2')).toBeUndefined()
+    expect(activeAfter).toEqual(activeBefore)
+    expect(logicFlowMocks.getGraphRawData).not.toHaveBeenCalled()
   })
 
   it('visibleFiles 应该只返回可见文件', async () => {
