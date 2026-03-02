@@ -1,4 +1,4 @@
-# FlowEditor Architecture（Phase 2 - Step 2）
+# FlowEditor Architecture（Phase 2 - Step 3）
 
 ## 1. 目标
 
@@ -6,6 +6,7 @@
 
 1. Step 1：LogicFlow 运行时接线抽离。
 2. Step 2：图层命令抽离（`bringToFront/sendToBack/bringForward/sendBackward`）。
+3. Step 3：group rule 校验编排抽离（刷新/调度/共享配置订阅/告警定位）。
 
 ## 2. 模块边界
 
@@ -19,6 +20,7 @@
   - `graph-data-change`
 - 通过 `mountFlowEditorRuntime(...)` 完成运行时初始化，不再内联大段 `onMounted` 接线实现。
 - 通过 `useFlowLayerCommands(...)` 复用图层命令实现，避免图层逻辑散落在组件主体内。
+- 通过 `useFlowGroupRuleOrchestrator(...)` 统一管理告警刷新调度与定位编排。
 
 ### `src/components/flow/composables/useFlowEditorRuntime.ts`
 
@@ -34,7 +36,6 @@
 - 返回 disposer，统一清理：
   - `resize` 监听
   - `ResizeObserver`
-  - 共享 group rule 订阅
   - 画布 DOM 事件监听
 
 ### `src/components/flow/composables/useFlowLayerCommands.ts`
@@ -46,6 +47,15 @@
   - `sendBackward`
 - 依赖注入仅限 `lf` 与 `selectedNode`，不引入额外全局状态。
 
+### `src/components/flow/composables/useFlowGroupRuleOrchestrator.ts`
+
+- 承担 group rule 校验编排（保持行为不变）：
+  - `refreshGroupRuleWarnings`
+  - `scheduleGroupRuleValidation`
+  - 共享配置订阅触发（`subscribeSharedGroupRulesConfig`）
+  - 告警定位（`locateProblemNode`）
+- 提供独立的 mount/dispose，统一清理 timer 与订阅。
+
 ## 3. 兼容性说明
 
 本次仅做实现位置迁移，不改变以下行为：
@@ -54,8 +64,8 @@
 2. `FlowEditor` 对外 props/events 语义不变。
 3. 关键 `graph-data-change` 触发路径不变（仅从组件内联迁移到 composable）。
 4. 图层命令执行语义不变（仅迁移实现位置）。
+5. group rule 告警刷新与定位语义不变（仅迁移实现位置）。
 
 ## 4. 后续建议（不在本次范围）
 
-1. 将分组规则校验编排继续拆分为独立 composable。
-2. 将画布交互运行时（右键拖动、contextmenu、resize 接线）继续拆分为独立 composable。
+1. 将画布交互运行时（右键拖动、contextmenu、resize 接线）继续拆分为独立 composable。

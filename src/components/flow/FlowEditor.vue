@@ -109,13 +109,12 @@ import '@logicflow/extension/es/index.css';
 
 import PropertyPanel from './PropertyPanel.vue';
 import { useFlowEditorRuntime } from './composables/useFlowEditorRuntime';
+import { useFlowGroupRuleOrchestrator } from './composables/useFlowGroupRuleOrchestrator';
 import { useFlowLayerCommands } from './composables/useFlowLayerCommands';
 import { useGlobalMessage } from '@/ts/useGlobalMessage';
 import { destroyLogicFlowInstance, useLogicFlowScope } from '@/ts/useLogicFlow';
 import { normalizePropertiesWithStyle, normalizeNodeStyle, styleEquals } from '@/ts/nodeStyle';
 import { destroyCanvasSettingsScope, useCanvasSettings } from '@/ts/useCanvasSettings';
-import { validateGraphGroupRules, type GroupRuleWarning } from '@/utils/groupRules';
-import { getProblemTargetCandidateIds } from '@/utils/problemTarget';
 
 type AlignType = 'left' | 'right' | 'top' | 'bottom' | 'hcenter' | 'vcenter';
 type DistributeType = 'horizontal' | 'vertical';
@@ -166,10 +165,8 @@ const { showMessage } = useGlobalMessage();
 
 // 当前选中节点
 const selectedNode = ref<any>(null);
-const groupRuleWarnings = ref<GroupRuleWarning[]>([]);
 const flowControlsCollapsed = ref(true);
 const problemsPanelOpen = ref(false);
-let groupRuleValidationTimer: ReturnType<typeof setTimeout> | null = null;
 let disposeFlowEditorRuntime: (() => void) | null = null;
 let isRightDragging = false;
 let rightDragMoved = false;
@@ -181,6 +178,17 @@ const { mountFlowEditorRuntime } = useFlowEditorRuntime();
 const { bringToFront, sendToBack, bringForward, sendBackward } = useFlowLayerCommands({
   lf,
   selectedNode
+});
+const {
+  groupRuleWarnings,
+  scheduleGroupRuleValidation,
+  locateProblemNode,
+  mountGroupRuleOrchestrator,
+  disposeGroupRuleOrchestrator
+} = useFlowGroupRuleOrchestrator({
+  lf,
+  selectedNode,
+  showMessage
 });
 
 function logClipboardDebug(stage: string, payload: Record<string, unknown> = {}) {
@@ -656,50 +664,6 @@ function updateSelectedCount(model?: GraphModel) {
   selectedCount.value = graphModel?.selectNodes.length ?? 0;
 }
 
-function refreshGroupRuleWarnings() {
-  const lfInstance = lf.value;
-  if (!lfInstance) {
-    groupRuleWarnings.value = [];
-    return;
-  }
-  const graphData = lfInstance.getGraphRawData() as GraphData;
-  groupRuleWarnings.value = validateGraphGroupRules(graphData);
-}
-
-function scheduleGroupRuleValidation(delay = 120) {
-  if (groupRuleValidationTimer) {
-    clearTimeout(groupRuleValidationTimer);
-  }
-  groupRuleValidationTimer = setTimeout(() => {
-    refreshGroupRuleWarnings();
-  }, delay);
-}
-
-function locateProblemNode(warning: GroupRuleWarning) {
-  const lfInstance = lf.value as any;
-  if (!lfInstance) return;
-
-  const candidateIds = getProblemTargetCandidateIds(warning);
-  const targetId = candidateIds.find((id) => !!lfInstance.getNodeModelById(id));
-  if (!targetId) {
-    showMessage('warning', '未找到告警对应节点，可能已被删除');
-    return;
-  }
-
-  try {
-    lfInstance.clearSelectElements?.();
-    lfInstance.selectElementById?.(targetId, false, false);
-    lfInstance.focusOn?.(targetId);
-    const nodeData = lfInstance.getNodeDataById?.(targetId);
-    if (nodeData) {
-      selectedNode.value = nodeData;
-    }
-  } catch (error) {
-    console.error('定位告警节点失败:', error);
-    showMessage('error', '定位节点失败');
-  }
-}
-
 function applySelectionSelect(enabled: boolean) {
   const lfInstance = lf.value as any;
   if (!lfInstance) return;
@@ -827,6 +791,7 @@ function distributeSelected(type: DistributeType) {
 }
 
 onMounted(() => {
+  mountGroupRuleOrchestrator();
   disposeFlowEditorRuntime = mountFlowEditorRuntime({
     lf,
     flowHostRef,
@@ -922,10 +887,7 @@ defineExpose({
 onBeforeUnmount(() => {
   disposeFlowEditorRuntime?.();
   disposeFlowEditorRuntime = null;
-  if (groupRuleValidationTimer) {
-    clearTimeout(groupRuleValidationTimer);
-    groupRuleValidationTimer = null;
-  }
+  disposeGroupRuleOrchestrator();
   stopRightDrag();
   destroyLogicFlowInstance(logicFlowScope);
   destroyCanvasSettingsScope(logicFlowScope);

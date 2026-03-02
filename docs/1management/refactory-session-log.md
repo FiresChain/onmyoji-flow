@@ -40,6 +40,39 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-02] Session 39 - Extract Flow Group-Rule Orchestration into useFlowGroupRuleOrchestrator
+
+- Refactory Scope:
+  - Phase: Phase 2
+  - Task: 将 `FlowEditor` 中 group rule 校验编排（refresh/schedule、共享配置订阅触发、告警定位）抽离到 composable，保持行为不变
+- In Scope Files:
+  - `src/components/flow/FlowEditor.vue`
+  - `src/components/flow/composables/useFlowGroupRuleOrchestrator.ts`
+  - `src/components/flow/composables/useFlowEditorRuntime.ts`
+  - `src/__tests__/useFlowGroupRuleOrchestrator.test.ts`
+  - `docs/2design/FlowEditorArchitecture.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `Toolbar` 拆分
+  - `groupRules` 规则语义调整
+  - `docs/1management/plan.md` 进度更新
+  - Phase 1 / Phase 3 内容
+- Decisions:
+  - 新增 `useFlowGroupRuleOrchestrator`，承接 `refreshGroupRuleWarnings`、`scheduleGroupRuleValidation`、`locateProblemNode` 与共享配置订阅编排。
+  - `FlowEditor` 改为通过 composable 获取 `groupRuleWarnings` 与相关编排方法，保留原有模板与命令调用点不变。
+  - 将 `subscribeSharedGroupRulesConfig` 从 `useFlowEditorRuntime` 中移除，避免运行时接线层与规则编排层职责混杂。
+  - 新增最小回归测试，覆盖“告警调度刷新”、“告警定位”、“共享配置订阅触发即时校验”三条关键行为路径。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 画布交互运行时（右键拖拽、contextmenu 抑制、resize 接线）仍在 `FlowEditor` 与 runtime 间分散，下一步需继续拆分以完成 Phase 2 既定边界。
+- Next Recommended Unit:
+  - Phase 2 下一原子任务：抽离画布交互运行时杂项到 `useFlowCanvasInteraction`（保持事件语义与清理行为不变）。
+
 ## [2026-03-02] Session 38 - Extract Flow Layer Commands into useFlowLayerCommands
 
 - Refactory Scope:

@@ -11,7 +11,6 @@ import TextNodeModel from '../nodes/common/TextNodeModel';
 import VectorNode from '../nodes/common/VectorNode.vue';
 import VectorNodeModel from '../nodes/common/VectorNodeModel';
 import { setLogicFlowInstance, type LogicFlowScope } from '@/ts/useLogicFlow';
-import { subscribeSharedGroupRulesConfig } from '@/utils/groupRulesConfigSource';
 
 type ShortcutHandler = (event?: KeyboardEvent) => boolean | void;
 
@@ -106,7 +105,6 @@ export function useFlowEditorRuntime() {
     } = options;
 
     let containerResizeObserver: ResizeObserver | null = null;
-    let unsubscribeSharedGroupRules: (() => void) | null = null;
 
     lf.value = new LogicFlow({
       container: containerRef.value,
@@ -445,16 +443,11 @@ export function useFlowEditorRuntime() {
       }
     }
     window.addEventListener('resize', handleWindowResize);
-    unsubscribeSharedGroupRules = subscribeSharedGroupRulesConfig(() => {
-      scheduleGroupRuleValidation(0);
-    });
 
     return () => {
       window.removeEventListener('resize', handleWindowResize);
       containerResizeObserver?.disconnect();
       containerResizeObserver = null;
-      unsubscribeSharedGroupRules?.();
-      unsubscribeSharedGroupRules = null;
       containerRef.value?.removeEventListener('mousedown', handleCanvasMouseDown);
       containerRef.value?.removeEventListener('contextmenu', handleCanvasContextMenu, true);
     };
