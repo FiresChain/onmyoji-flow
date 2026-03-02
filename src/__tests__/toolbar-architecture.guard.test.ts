@@ -53,8 +53,11 @@ describe('Toolbar architecture guard', () => {
 
   it('keeps import/export implementations in useToolbarImportExportCommands', () => {
     const toolbarWiringSnippets = [
+      '@click="openImportDialog"',
       '@click="handleExport"',
       '@click="handlePreviewData"',
+      '@click="triggerJsonFileImport"',
+      '@click="triggerTeamCodeQrImport"',
       '@click="prepareCapture"',
       '@click="handleTeamCodeImport"',
       '@change="handleTeamCodeQrImport"',
@@ -64,7 +67,14 @@ describe('Toolbar architecture guard', () => {
     });
 
     const toolbarShouldNotContainImportExportImplementations = [
+      'convertTeamCodeToRootDocument',
       'decodeTeamCodeFromQrImage',
+      'logicFlowInstance.getSnapshotBase64',
+      'withDynamicGroupsHiddenForSnapshot',
+      'addWatermarkToImage',
+      'JSON.parse(readerTarget.result as string)',
+      "showMessage('error', '文件格式错误');",
+      "showMessage('error', '未获取到截图数据');",
       "showMessage('error', '未找到 LogicFlow 实例，无法截图');",
       'const handleJsonImport = () => {',
       'const handleTeamCodeImport = async () => {',
@@ -74,9 +84,15 @@ describe('Toolbar architecture guard', () => {
     });
 
     const composableRequiredSnippets = [
+      'convertTeamCodeToRootDocument',
+      'const withDynamicGroupsHiddenForSnapshot = async <T>(',
+      'const addWatermarkToImage = (base64: string, watermark: WatermarkSettings) => {',
       'const handleJsonImport = () => {',
       'const handleTeamCodeImport = async () => {',
       'const handleTeamCodeQrImport = async (event: Event) => {',
+      'logicFlowInstance.getSnapshotBase64(',
+      "showMessage('error', '文件格式错误');",
+      "showMessage('error', '未获取到截图数据');",
       "showMessage('error', '未找到 LogicFlow 实例，无法截图');",
       'decodeTeamCodeFromQrImage',
     ];

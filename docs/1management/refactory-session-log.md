@@ -40,6 +40,36 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-03] Session 52 - Tighten Toolbar Architecture Guard for Import/Export Implementation Ownership
+
+- Refactory Scope:
+  - Phase: Phase 2
+  - Task: 加强 `toolbar-architecture.guard`，明确 import/export 具体实现归属在 composable，`Toolbar.vue` 仅保留接线与模板层（仅测试补强）
+- In Scope Files:
+  - `src/__tests__/toolbar-architecture.guard.test.ts`
+  - `docs/2design/ToolbarArchitecture.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `FlowEditor` 新增重构任务
+  - `groupRules` 规则语义调整
+  - `docs/1management/plan.md` 进度更新
+  - Phase 1 / Phase 3 内容
+- Decisions:
+  - 扩展 import/export 守卫的 `Toolbar` 禁止片段：teamCode 转换、QR 识别、快照/水印实现细节与关键错误处理语句。
+  - 扩展 composable 必须片段：`convertTeamCodeToRootDocument`、`decodeTeamCodeFromQrImage`、`getSnapshotBase64`、动态 group 快照隐藏与水印处理实现。
+  - 增补导入相关接线片段守卫（`openImportDialog`/`triggerJsonFileImport`/`triggerTeamCodeQrImport`），确保 `Toolbar` 仅做命令绑定。
+  - 更新 `ToolbarArchitecture.md` Task 11，记录 import/export 架构守卫补强目标。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 守卫仍以代码片段字符串匹配为主，后续重命名或重排实现时需同步更新守卫片段以避免误报。
+- Next Recommended Unit:
+  - Phase 2 下一原子任务：补强 import/export composable 的生命周期清理守卫（例如 DOM input/reset 约束）并保持行为不变。
+
 ## [2026-03-03] Session 51 - Extend Toolbar Wiring Regression for Import Dialog Command Paths
 
 - Refactory Scope:

@@ -23,6 +23,7 @@
 8. workspace/dialog 边界分支回归：`useToolbarWorkspaceCommands` + `useToolbarDialogState`
 9. import/export 失败与边界分支回归：`useToolbarImportExportCommands`
 10. 导入对话框接线回归：`toolbar-wiring.regression`（json/teamCode/qr）
+11. import/export 架构守卫补强：`toolbar-architecture.guard`
 
 ## Task 1 落地（导入/导出/预览）
 
@@ -172,3 +173,13 @@
 - “选择 JSON 文件” 继续触发 `triggerJsonFileImport`。
 - “导入阵容码” 继续触发 `handleTeamCodeImport`。
 - “选择二维码图片” 继续触发 `triggerTeamCodeQrImport`。
+
+## Task 11 落地（ImportExport 架构守卫补强）
+
+增强：`src/__tests__/toolbar-architecture.guard.test.ts`
+
+回归目标：
+
+- `Toolbar.vue` 不应包含 import/export 具体实现片段（teamCode 转换、QR 识别、截图/水印细节、关键错误处理）。
+- `useToolbarImportExportCommands.ts` 需保留对应实现片段与关键错误处理路径。
+- `Toolbar.vue` 仅保留命令接线与模板绑定，不承载实现逻辑。
