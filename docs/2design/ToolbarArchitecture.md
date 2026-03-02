@@ -19,6 +19,7 @@
 4. 工作区控制命令编排：`useToolbarWorkspaceCommands`
 5. 对话框状态编排：`useToolbarDialogState`
 6. 架构边界守卫回归：`toolbar-architecture.guard`
+7. 接线行为回归：`toolbar-wiring.regression`
 
 ## Task 1 落地（导入/导出/预览）
 
@@ -123,3 +124,12 @@
 - 约束规则管理实现留在 `useToolbarRuleManagement`，`Toolbar.vue` 仅保留规则管理模板与命令接线。
 - 约束工作区控制命令实现留在 `useToolbarWorkspaceCommands`，避免实现回流到 `Toolbar.vue`。
 - 约束更新日志/反馈/水印状态实现留在 `useToolbarDialogState`，`Toolbar.vue` 仅保留按钮与生命周期接线。
+
+## Task 7 落地（接线行为回归）
+
+新增：`src/__tests__/toolbar-wiring.regression.test.ts`
+
+回归目标：
+
+- 验证生命周期接线不回退：`onMounted` 仍调用 `mountAssetManagement` 与 `mountDialogState`，`onBeforeUnmount` 仍调用 `disposeAssetManagement`。
+- 验证顶栏关键按钮命令链路不回退：按钮点击继续触发对应 composable 命令（import/export、asset、rule、workspace、dialog）。

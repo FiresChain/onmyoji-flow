@@ -40,6 +40,35 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-03] Session 48 - Add Toolbar Wiring Regression for Lifecycle and Command Bindings
+
+- Refactory Scope:
+  - Phase: Phase 2
+  - Task: 新增 `Toolbar` 接线回归，验证生命周期接线与按钮命令链路行为不变
+- In Scope Files:
+  - `src/__tests__/toolbar-wiring.regression.test.ts`
+  - `docs/2design/ToolbarArchitecture.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `FlowEditor` 新增重构任务
+  - `groupRules` 规则语义调整
+  - `docs/1management/plan.md` 进度更新
+  - Phase 1 / Phase 3 内容
+- Decisions:
+  - 新增 `toolbar-wiring.regression`，通过 mock composables + 挂载 `Toolbar.vue` 验证 `onMounted/onBeforeUnmount` 接线不回退。
+  - 同一回归测试验证顶栏关键按钮点击继续触发对应 composable 命令（import/export、asset、rule、workspace、dialog）。
+  - 更新 `ToolbarArchitecture.md` 增补 Task 7，明确接线回归目标与覆盖点。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 该回归主要锁定“按钮 -> composable 方法”链路；若未来引入中间适配层，需补更细粒度断言避免链路断开但表面按钮仍可点击。
+- Next Recommended Unit:
+  - Phase 2 下一原子任务：补强 `useToolbarWorkspaceCommands` 与 `useToolbarDialogState` 的失败/边界分支回归（仅测试补强，不改语义）。
+
 ## [2026-03-03] Session 47 - Broaden Toolbar Architecture Guard Across All Composable Boundaries
 
 - Refactory Scope:
