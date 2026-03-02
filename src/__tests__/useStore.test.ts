@@ -78,7 +78,7 @@ const getEnclosingFunctionName = (node: ts.Node): string | null => {
   return null
 }
 
-const collectActiveFileIdWriteFunctions = (sourceFile: ts.SourceFile) => {
+const collectStateValueWriteFunctions = (sourceFile: ts.SourceFile, stateIdentifier: string) => {
   const functions = new Set<string>()
   const visit = (node: ts.Node) => {
     if (
@@ -87,7 +87,7 @@ const collectActiveFileIdWriteFunctions = (sourceFile: ts.SourceFile) => {
       ts.isPropertyAccessExpression(node.left) &&
       node.left.name.text === 'value' &&
       ts.isIdentifier(node.left.expression) &&
-      node.left.expression.text === 'activeFileId'
+      node.left.expression.text === stateIdentifier
     ) {
       const functionName = getEnclosingFunctionName(node)
       if (functionName) {
@@ -98,6 +98,14 @@ const collectActiveFileIdWriteFunctions = (sourceFile: ts.SourceFile) => {
   }
   visit(sourceFile)
   return functions
+}
+
+const collectActiveFileIdWriteFunctions = (sourceFile: ts.SourceFile) => {
+  return collectStateValueWriteFunctions(sourceFile, 'activeFileId')
+}
+
+const collectFileListWriteFunctions = (sourceFile: ts.SourceFile) => {
+  return collectStateValueWriteFunctions(sourceFile, 'fileList')
 }
 
 const collectCallers = (sourceFile: ts.SourceFile, calleeName: string) => {
@@ -470,6 +478,13 @@ describe('useFilesStore 数据操作测试', () => {
     expect(writeFunctions).toEqual(['setActiveFileForBootstrap', 'switchActiveFile'])
   })
 
+  it('fileList 写入边界应仅允许导入/初始化/重置入口（结构性防回归）', () => {
+    const sourceFile = parseUseStoreSource()
+    const writeFunctions = [...collectFileListWriteFunctions(sourceFile)].sort()
+
+    expect(writeFunctions).toEqual(['importData', 'initializeWithPrompt', 'resetWorkspace'])
+  })
+
   it('运行时切换入口应通过统一入口 switchActiveFile（结构性防回归）', () => {
     const sourceFile = parseUseStoreSource()
     const switchCallers = collectCallers(sourceFile, 'switchActiveFile')
@@ -487,5 +502,17 @@ describe('useFilesStore 数据操作测试', () => {
     expect(writeFunctions.has('removeTab')).toBe(false)
     expect(writeFunctions.has('setVisible')).toBe(false)
     expect(writeFunctions.has('deleteFile')).toBe(false)
+  })
+
+  it('运行时入口不应直接写 fileList.value（结构性防回归）', () => {
+    const sourceFile = parseUseStoreSource()
+    const writeFunctions = collectFileListWriteFunctions(sourceFile)
+
+    expect(writeFunctions.has('setActiveFile')).toBe(false)
+    expect(writeFunctions.has('addTab')).toBe(false)
+    expect(writeFunctions.has('removeTab')).toBe(false)
+    expect(writeFunctions.has('setVisible')).toBe(false)
+    expect(writeFunctions.has('deleteFile')).toBe(false)
+    expect(writeFunctions.has('renameFile')).toBe(false)
   })
 })

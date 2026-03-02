@@ -40,6 +40,39 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-02] Session 23 - Add fileList Write Boundary Rule via Reusable Factory
+
+- Refactory Scope:
+  - Phase: Phase 1
+  - Task: 基于已落地 `create-state-write-boundary-rule` 工厂新增并接线 `fileList.value` 写入边界规则（第二个状态字段示例），保持现有语义不变
+- In Scope Files:
+  - `eslint-rules/file-list-boundary.js`
+  - `.eslintrc.cjs`
+  - `src/__tests__/useStore.test.ts`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `src/ts/useStore.ts` 运行时逻辑改动
+  - `src/App.vue` 与 UI 交互改造
+  - 数据结构重设计
+  - 新业务功能
+  - `docs/1management/plan.md` 进度更新
+- Decisions:
+  - 新增 ESLint 本地规则 `file-list-boundary`，复用 `createStateWriteBoundaryRule`，仅约束 `fileList.value = ...` 赋值。
+  - 规则白名单写入入口限定为 `importData`、`initializeWithPrompt`、`resetWorkspace`；运行时禁写入口限定为 `setActiveFile`、`addTab`、`removeTab`、`setVisible`、`deleteFile`、`renameFile`。
+  - `.eslintrc.cjs` 在 `src/ts/useStore.ts` 覆盖中启用 `file-list-boundary:error`，与 `active-file-id-boundary` 并行生效。
+  - 新增结构性防回归测试，校验 `fileList.value` 写入函数集合与运行时入口禁写约束。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+  - `npx eslint eslint-rules/__file_list_boundary_probe__.js --no-eslintrc --rulesdir ./eslint-rules --rule "file-list-boundary:error"`: pass（探针验证语义，预期报错 7 条；白名单写入与 `push/splice` 无报错）
+- Risks / Follow-up:
+  - 规则当前依赖 `src/ts/useStore.ts` 与函数命名约定；后续若重命名入口函数或状态标识，需要同步更新规则配置与结构守卫测试。
+- Next Recommended Unit:
+  - Phase 1: 基于同一工厂为第三个高风险状态字段补齐写入边界规则，并将白名单/禁写入口映射集中到单一配置源。
+
 ## [2026-03-02] Session 22 - Extract Reusable State Write Boundary Rule Factory (activeFileId first)
 
 - Refactory Scope:

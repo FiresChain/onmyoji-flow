@@ -35,6 +35,7 @@ module.exports = {
       files: ["src/ts/useStore.ts"],
       rules: {
         "active-file-id-boundary": "error",
+        "file-list-boundary": "error",
       },
     },
     {
