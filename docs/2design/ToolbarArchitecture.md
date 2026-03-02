@@ -58,3 +58,21 @@
 
 - 保留模板绑定与生命周期调用点（`onMounted` / `onBeforeUnmount`）。
 - 通过 composable 暴露的 API 接线素材管理按钮与列表渲染。
+
+## Task 3 落地（规则管理）
+
+新增：`src/components/composables/useToolbarRuleManagement.ts`
+
+当前由该 composable 承接的编排：
+
+- 规则配置 draft 管理与重载
+- 规则/变量导入导出
+- 规则编辑器状态与保存校验
+- 新增/删除规则、新增/删除变量
+- 应用规则配置与恢复默认
+- 规则文档说明文本
+
+`Toolbar.vue` 调整为：
+
+- 继续保留视图层模板与按钮/弹窗绑定。
+- 通过 composable 返回的 refs/methods 接线规则管理 UI，不改外部行为与交互语义。

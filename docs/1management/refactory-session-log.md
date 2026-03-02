@@ -40,6 +40,38 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-02] Session 43 - Extract Toolbar Rule Management Orchestration into useToolbarRuleManagement
+
+- Refactory Scope:
+  - Phase: Phase 2
+  - Task: 将 `Toolbar` 中规则管理编排逻辑抽离到 composable，保持行为不变
+- In Scope Files:
+  - `src/components/Toolbar.vue`
+  - `src/components/composables/useToolbarRuleManagement.ts`
+  - `src/__tests__/useToolbarRuleManagement.test.ts`
+  - `docs/2design/ToolbarArchitecture.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `FlowEditor` 新增重构任务
+  - `groupRules` 规则语义调整
+  - `docs/1management/plan.md` 进度更新
+  - Phase 1 / Phase 3 内容
+- Decisions:
+  - 新增 `useToolbarRuleManagement`，承接规则管理 draft、规则/变量导入导出、规则编辑器状态与保存校验、应用与恢复默认等编排。
+  - `Toolbar.vue` 保留模板层，仅通过 composable 返回的 refs/methods 接线规则管理对话框与操作按钮。
+  - 新增最小回归测试，覆盖规则管理关键行为（打开重载、导入归一化、应用生效、恢复默认、编辑保存校验）。
+  - 更新 `ToolbarArchitecture.md`，补齐 Task 3 后 Toolbar 命令层拆分边界。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - `Toolbar` 仍包含工作区控制与截图水印设置逻辑，后续如继续 Phase 2 可按原子单元评估是否进一步拆分。
+- Next Recommended Unit:
+  - Phase 2 下一原子任务：为 `Toolbar` 剩余命令层（工作区重置/清空、示例加载）补结构守卫回归，防止编排回流到单文件。
+
 ## [2026-03-02] Session 42 - Extract Toolbar Asset Management Orchestration into useToolbarAssetManagement
 
 - Refactory Scope:
