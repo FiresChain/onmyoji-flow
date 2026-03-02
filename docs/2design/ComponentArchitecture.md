@@ -383,22 +383,41 @@ onMounted(() => {
 
 ### 2. 状态隔离策略
 
-**问题**：独立应用使用全局 Pinia store，嵌入式组件需要隔离状态
+**问题**：同页多实例嵌入时，若沿用模块级共享状态，会出现跨实例互相污染（画布实例、画布设置、store 写入目标串扰）。
 
-**方案**：使用 provide/inject 创建局部状态
+**已落地方案（Phase 1）**：以 `LogicFlowScope` 作为实例边界，三层隔离对齐到同一 scope。
 
 ```typescript
 // YysEditorEmbed.vue
-import { provide } from 'vue'
 import { createPinia } from 'pinia'
+import { useFilesStore } from '@/ts/useStore'
+import { createLogicFlowScope, provideLogicFlowScope } from '@/ts/useLogicFlow'
 
-// 创建局部 Pinia 实例
+// 1) 每个嵌入实例创建独立 Pinia
 const localPinia = createPinia()
-provide('pinia', localPinia)
 
-// 子组件使用局部 store
-const store = useFilesStore(localPinia)
+// 2) 每个嵌入实例创建并 provide 独立 LogicFlowScope
+const logicFlowScope = provideLogicFlowScope(createLogicFlowScope())
+
+// 3) store 显式绑定当前 scope，确保 updateTab/switch/save 读写本实例画布
+const filesStore = useFilesStore(localPinia)
+filesStore.bindLogicFlowScope(logicFlowScope)
 ```
+
+```typescript
+// FlowEditor.vue / useCanvasSettings.ts
+import { useLogicFlowScope, setLogicFlowInstance } from '@/ts/useLogicFlow'
+import { useCanvasSettings } from '@/ts/useCanvasSettings'
+
+const scope = useLogicFlowScope()
+setLogicFlowInstance(lfInstance, scope)
+const { selectionEnabled, snapGridEnabled, snaplineEnabled } = useCanvasSettings(scope)
+```
+
+实现要点：
+1. `useLogicFlow` 使用 `Map<LogicFlowScope, LogicFlow>` 管理实例，组件卸载时按 scope 销毁。
+2. `useCanvasSettings` 使用 `Map<LogicFlowScope, CanvasSettingsState>` 管理画布设置，跨实例不共享开关状态。
+3. `useStore` 通过 `bindLogicFlowScope(scope)` 显式绑定画布来源，避免切换文件时误写其他实例数据。
 
 ### 3. 样式隔离策略
 

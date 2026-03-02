@@ -40,6 +40,34 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-02] Session 31 - Document Instance Isolation Strategy with ADR-004
+
+- Refactory Scope:
+  - Phase: Phase 1
+  - Task: 将已落地的实例隔离策略（`LogicFlowScope` + `useCanvasSettings` scope + `bindLogicFlowScope`）同步到设计文档，消除文档/实现漂移
+- In Scope Files:
+  - `docs/2design/ComponentArchitecture.md`
+  - `docs/2design/ADR-004-instance-isolation.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `src/**` 运行时代码改动
+  - `docs/1management/plan.md` 进度更新
+  - Phase 2/3 重构任务
+- Decisions:
+  - 在 `ComponentArchitecture` 中将“状态隔离策略”从“局部 Pinia”升级为“以 `LogicFlowScope` 为中心的三层隔离（LogicFlow 实例 / CanvasSettings / filesStore 绑定）”。
+  - 新增 `ADR-004-instance-isolation`，固化实例边界、模块职责、后续约束，避免后续回退到隐式全局共享状态。
+  - 本任务仅做文档对齐，不修改任何运行时代码，保持语义不变。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 对外 Embed API 契约仍有漂移（`update:data` 与 `showPropertyPanel/config`），需在后续原子任务继续收敛。
+- Next Recommended Unit:
+  - Phase 1: 以最小接线方式补齐嵌入编辑模式 `update:data` 实时触发并新增最小契约测试。
+
 ## [2026-03-02] Session 30 - Add Multi-Instance Embed Isolation Regression Coverage
 
 - Refactory Scope:
