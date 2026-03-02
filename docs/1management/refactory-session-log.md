@@ -40,6 +40,35 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-02] Session 46 - Add Toolbar Architecture Guard Tests for Composable Wiring Boundaries
+
+- Refactory Scope:
+  - Phase: Phase 2
+  - Task: 新增 `Toolbar` 结构守卫回归，确保命令实现留在 composables、Toolbar 保持编排/模板层角色，行为不变
+- In Scope Files:
+  - `src/__tests__/toolbar-architecture.guard.test.ts`
+  - `docs/2design/ToolbarArchitecture.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `FlowEditor` 新增重构任务
+  - `groupRules` 规则语义调整
+  - `docs/1management/plan.md` 进度更新
+  - Phase 1 / Phase 3 内容
+- Decisions:
+  - 新增架构守卫测试，约束 `Toolbar.vue` 必须通过 composables 接线命令层，不直接承载工作区命令和对话框状态实现。
+  - 守卫覆盖工作区命令与对话框状态两条关键边界：`useToolbarWorkspaceCommands` 与 `useToolbarDialogState`。
+  - 文档补充 Task 6 边界说明，明确结构守卫目标与覆盖点。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 当前守卫基于关键代码片段匹配，后续若进行大规模重命名需同步更新守卫片段以维持有效性。
+- Next Recommended Unit:
+  - Phase 2 下一原子任务：为 `Toolbar` 命令编排层补充更细粒度的单测边界（例如 composable 入参契约守卫），继续保持行为不变。
+
 ## [2026-03-02] Session 45 - Extract Toolbar Dialog State Orchestration into useToolbarDialogState
 
 - Refactory Scope:

@@ -110,3 +110,13 @@
 - 水印按钮改为调用 `openWatermarkDialog` 接线方法。
 - `onMounted` 通过 `mountDialogState` 执行版本首开逻辑，不改 embed 模式行为。
 - 通过 composable 返回的 `watermark` 与命令接线既有水印设置弹窗，不改文案和 UI 结构。
+
+## Task 6 落地（架构边界守卫）
+
+新增：`src/__tests__/toolbar-architecture.guard.test.ts`
+
+守卫目标：
+
+- 约束 `Toolbar.vue` 必须通过 composables 接线（导入导出、素材、规则、工作区、对话框状态）。
+- 约束工作区控制命令实现留在 `useToolbarWorkspaceCommands`，避免实现回流到 `Toolbar.vue`。
+- 约束更新日志/反馈/水印状态实现留在 `useToolbarDialogState`，`Toolbar.vue` 仅保留按钮与生命周期接线。
