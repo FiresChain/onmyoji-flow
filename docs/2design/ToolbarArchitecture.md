@@ -118,5 +118,8 @@
 守卫目标：
 
 - 约束 `Toolbar.vue` 必须通过 composables 接线（导入导出、素材、规则、工作区、对话框状态）。
+- 约束导入导出实现留在 `useToolbarImportExportCommands`，`Toolbar.vue` 仅保留按钮/输入控件接线。
+- 约束素材管理实现留在 `useToolbarAssetManagement`，`Toolbar.vue` 仅保留弹窗与生命周期接线。
+- 约束规则管理实现留在 `useToolbarRuleManagement`，`Toolbar.vue` 仅保留规则管理模板与命令接线。
 - 约束工作区控制命令实现留在 `useToolbarWorkspaceCommands`，避免实现回流到 `Toolbar.vue`。
 - 约束更新日志/反馈/水印状态实现留在 `useToolbarDialogState`，`Toolbar.vue` 仅保留按钮与生命周期接线。

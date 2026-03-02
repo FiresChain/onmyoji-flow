@@ -40,6 +40,35 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-03] Session 47 - Broaden Toolbar Architecture Guard Across All Composable Boundaries
+
+- Refactory Scope:
+  - Phase: Phase 2
+  - Task: 扩展 `Toolbar` 架构守卫覆盖全部已拆分 composables（import/export、asset、rule、workspace、dialog），确保 `Toolbar.vue` 保持编排/模板层
+- In Scope Files:
+  - `src/__tests__/toolbar-architecture.guard.test.ts`
+  - `docs/2design/ToolbarArchitecture.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `FlowEditor` 新增重构任务
+  - `groupRules` 规则语义调整
+  - `docs/1management/plan.md` 进度更新
+  - Phase 1 / Phase 3 内容
+- Decisions:
+  - 在 `toolbar-architecture.guard` 中新增 import/export、asset、rule 三组边界守卫，统一采用“Toolbar 保留接线 + 实现停留 composable”断言模型。
+  - 保留既有 workspace/dialog 守卫并与新增守卫并行，形成 5 组 composable 全覆盖。
+  - 更新 `ToolbarArchitecture.md` Task 6，明确五类 composable 的守卫目标与边界说明。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 守卫仍基于关键片段字符串匹配，后续若重命名方法或文案需同步维护测试片段，避免出现“语义未变但守卫误报”。
+- Next Recommended Unit:
+  - Phase 2 下一原子任务：补充 `Toolbar` 生命周期与按钮命令接线回归测试，锁定 mount/dispose 与命令触发链路。
+
 ## [2026-03-02] Session 46 - Add Toolbar Architecture Guard Tests for Composable Wiring Boundaries
 
 - Refactory Scope:
