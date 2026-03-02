@@ -40,6 +40,38 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-02] Session 3 - Phase 0 Align Status/Priority Between plan.md and next.md
+
+- Refactory Scope:
+  - Phase: Phase 0
+  - Task: 4.0.1-4 对齐 `plan.md` 与 `next.md` 的状态与优先级一致性
+- In Scope Files:
+  - `docs/1management/plan.md`
+  - `docs/1management/next.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `src/**`
+  - CI/workflow/package.json changes
+  - `docs/2design/**` edits
+  - `plan.md` 进度数字更新
+- Decisions:
+  - Use `plan.md` as the single source of truth for current phase status/priority and update only conflicting parts in `next.md`.
+  - Replace outdated priorities in `next.md` with remaining work items that are explicitly marked as in-progress/todo in `plan.md`.
+  - Keep this session docs-only and avoid unrelated wording cleanup.
+- Checks:
+  - `git diff -- docs/1management/next.md`: pass (only status/priority section changed in `next.md`)
+  - `rg -n "阶段 3 进行中|优化加载性能|文档完善|Notion 块体验" docs/1management/next.md`: pass
+  - `legacy-priority-strings check`: pass (`撤销重做系统` / `textNode 富文本编辑` / `矢量节点 MVP、导出增强` no longer present)
+  - `npm test`: not-run (docs-only session)
+  - `npm run lint`: not-run (docs-only session)
+  - `npm run typecheck`: not-run (docs-only session)
+  - `prettier --check`: not-run (docs-only session)
+  - `npm run build:lib`: not-run (docs-only session)
+- Risks / Follow-up:
+  - `plan.md` currently has no dedicated "下一步行动计划" section; `next.md` now aligns to existing phase/milestone status and remaining items only.
+- Next Recommended Unit:
+  - Phase 0, task 4.0.2-1: 补齐并验证 ESLint 可执行配置（含 `.vue` 解析）。
+
 ## [2026-03-02] Session 2 - Phase 0 Naming Drift Cleanup in Management Docs
 
 - Refactory Scope:
