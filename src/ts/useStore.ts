@@ -242,50 +242,6 @@ export const useFilesStore = defineStore('files', () => {
         }, 30000); // 设置间隔时间为30秒
     };
 
-    // 添加新文件
-    const addTab = () => {
-        // 添加文件前先保存
-        updateTab();
-
-        requestAnimationFrame(() => {
-            const newFileName = `File ${fileList.value.length + 1}`;
-            const newFile: FlowFile = {
-                id: genId(),
-                label: newFileName,
-                name: newFileName,
-                visible: true,
-                type: 'FLOW',
-                graphRawData: {},
-                transform: {
-                    SCALE_X: 1,
-                    SCALE_Y: 1,
-                    TRANSLATE_X: 0,
-                    TRANSLATE_Y: 0
-                }
-            };
-            fileList.value.push(newFile);
-            activeFileId.value = newFile.id;
-        });
-    };
-
-    // 关闭文件标签
-    const removeTab = (fileId: string | undefined) => {
-        if (!fileId) return;
-
-        const index = fileList.value.findIndex(file => file.id === fileId);
-        if (index === -1) return;
-
-        fileList.value.splice(index, 1);
-
-        // 如果关闭的是当前活动文件，则切换到其他文件
-        if (activeFileId.value === fileId) {
-            activeFileId.value = fileList.value[Math.max(0, index - 1)]?.id || '';
-        }
-
-        // 关闭文件后立即更新
-        // updateTab();
-    };
-
     const persistState = () => {
         const state: PersistedRoot = {
             schemaVersion: CURRENT_SCHEMA_VERSION,
@@ -318,18 +274,91 @@ export const useFilesStore = defineStore('files', () => {
         return findById(targetId) || findByName(fileKey || '');
     };
 
+    type SwitchActiveFileOptions = {
+        saveSourceFileId?: string;
+        persistAfterSwitch?: boolean;
+        allowEmptyTarget?: boolean;
+    };
+
+    const switchActiveFile = (nextActiveId: string, options: SwitchActiveFileOptions = {}) => {
+        const {saveSourceFileId, persistAfterSwitch = false, allowEmptyTarget = false} = options;
+        if (!nextActiveId && !allowEmptyTarget) return false;
+        if (nextActiveId && !findById(nextActiveId)) return false;
+        if (activeFileId.value === nextActiveId) {
+            if (persistAfterSwitch) {
+                persistState();
+            }
+            return false;
+        }
+
+        activeFileId.value = nextActiveId;
+
+        if (saveSourceFileId && findById(saveSourceFileId)) {
+            updateTab(saveSourceFileId);
+            return true;
+        }
+
+        if (persistAfterSwitch || !!saveSourceFileId) {
+            persistState();
+        }
+        return true;
+    };
+
+    // 添加新文件
+    const addTab = () => {
+        // 添加文件前先保存
+        updateTab();
+
+        requestAnimationFrame(() => {
+            const newFileName = `File ${fileList.value.length + 1}`;
+            const newFile: FlowFile = {
+                id: genId(),
+                label: newFileName,
+                name: newFileName,
+                visible: true,
+                type: 'FLOW',
+                graphRawData: {},
+                transform: {
+                    SCALE_X: 1,
+                    SCALE_Y: 1,
+                    TRANSLATE_X: 0,
+                    TRANSLATE_Y: 0
+                }
+            };
+            fileList.value.push(newFile);
+            switchActiveFile(newFile.id);
+        });
+    };
+
+    // 关闭文件标签
+    const removeTab = (fileId: string | undefined) => {
+        if (!fileId) return;
+
+        const index = fileList.value.findIndex(file => file.id === fileId);
+        if (index === -1) return;
+
+        fileList.value.splice(index, 1);
+
+        // 如果关闭的是当前活动文件，则切换到其他文件
+        if (activeFileId.value === fileId) {
+            const fallbackId = fileList.value[Math.max(0, index - 1)]?.id || '';
+            switchActiveFile(fallbackId, {allowEmptyTarget: true});
+        }
+
+        // 关闭文件后立即更新
+        // updateTab();
+    };
+
     // 兼容旧组件 API：通过 id/name 设置活动文件
     const setActiveFile = (fileKey: string) => {
         const targetId = resolveFileId(fileKey);
         if (!targetId) return;
         const previousId = activeFileId.value;
         if (previousId === targetId) return;
-        activeFileId.value = targetId;
-        if (previousId) {
-            updateTab(previousId);
-            return;
-        }
-        persistState();
+        switchActiveFile(targetId, {
+            saveSourceFileId: previousId || undefined,
+            persistAfterSwitch: !previousId
+        });
     };
 
     // 兼容旧组件 API：通过 id/name 设置可见性
@@ -349,11 +378,12 @@ export const useFilesStore = defineStore('files', () => {
 
         if (!visible) {
             // 隐藏当前活动文件时，先将画布数据显式写回来源文件，再切换 activeFileId
-            updateTab(targetId);
             const fallback = visibleFiles.value.find((item) => item.id !== targetId)
                 || fileList.value.find((item) => item.id !== targetId);
-            activeFileId.value = fallback?.id || '';
-            persistState();
+            switchActiveFile(fallback?.id || '', {
+                saveSourceFileId: targetId,
+                allowEmptyTarget: true
+            });
             return;
         }
 

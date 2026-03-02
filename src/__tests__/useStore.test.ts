@@ -137,9 +137,28 @@ describe('useFilesStore 数据操作测试', () => {
     await new Promise(resolve => setTimeout(resolve, 50))
 
     const secondFile = store.fileList[1]
-    store.activeFileId = secondFile.id
+    store.setActiveFile(secondFile.id)
 
     expect(store.activeFileId).toBe(secondFile.id)
+  })
+
+  it('addTab 切换活动文件时应仅保存一次来源文件且不串写新文件 graphRawData', async () => {
+    const store = useFilesStore()
+    store.importData(createSampleRootDocument())
+
+    store.addTab()
+    await new Promise(resolve => setTimeout(resolve, 50))
+
+    const newActiveFile = store.fileList[store.fileList.length - 1]
+    const sourceAfter = store.getTab('file-1')?.graphRawData
+
+    expect(store.activeFileId).toBe(newActiveFile.id)
+    expect(sourceAfter).toMatchObject({
+      nodes: [{ id: 'lf-node', type: 'rect', x: 100, y: 100, zIndex: 1 }],
+      edges: []
+    })
+    expect(newActiveFile.graphRawData).toEqual({})
+    expect(logicFlowMocks.getGraphRawData).toHaveBeenCalledTimes(1)
   })
 
   it('切换活动文件时应只保存一次来源文件且不串写目标文件', () => {
@@ -202,6 +221,20 @@ describe('useFilesStore 数据操作测试', () => {
     expect(logicFlowMocks.getGraphRawData).toHaveBeenCalledTimes(1)
   })
 
+  it('removeTab 删除活动文件触发切换时不应重复保存或串写目标文件', () => {
+    const store = useFilesStore()
+    store.importData(createSampleRootDocument())
+
+    const fallbackBefore = JSON.parse(JSON.stringify(store.getTab('file-2')?.graphRawData))
+    store.removeTab('file-1')
+    const fallbackAfter = store.getTab('file-2')?.graphRawData
+
+    expect(store.activeFileId).toBe('file-2')
+    expect(store.getTab('file-1')).toBeUndefined()
+    expect(fallbackAfter).toEqual(fallbackBefore)
+    expect(logicFlowMocks.getGraphRawData).not.toHaveBeenCalled()
+  })
+
   it('对非活动文件 renameFile 不应串写目标文件 graphRawData', () => {
     const store = useFilesStore()
     store.importData(createSampleRootDocument())
@@ -228,7 +261,7 @@ describe('useFilesStore 数据操作测试', () => {
     expect(logicFlowMocks.getGraphRawData).not.toHaveBeenCalled()
   })
 
-  it('删除活动文件后不应将当前画布数据串写到新活动文件', () => {
+  it('deleteFile 删除活动文件触发切换时不应将当前画布数据串写到新活动文件', () => {
     const store = useFilesStore()
     store.importData(createSampleRootDocument())
 

@@ -40,6 +40,35 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-02] Session 16 - Extract switchActiveFile and Converge Active-File Switching Paths
+
+- Refactory Scope:
+  - Phase: Phase 1
+  - Task: 提炼并收敛 `useStore` 内部统一活动文件切换入口 `switchActiveFile`，统一 `addTab / setVisible / deleteFile / removeTab` 的切换写法，消除散落 `activeFileId` 写路径并保持无重复保存与无串写
+- In Scope Files:
+  - `src/ts/useStore.ts`
+  - `src/__tests__/useStore.test.ts`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `src/App.vue` 与 UI 交互改造
+  - 数据结构设计调整
+  - `docs/1management/plan.md` 进度更新
+- Decisions:
+  - 在 `useStore` 新增内部 `switchActiveFile(nextActiveId, options)`，封装切换、来源文件保存与必要持久化。
+  - `addTab / removeTab / setVisible(隐藏活动文件分支) / setActiveFile` 改为统一调用 `switchActiveFile`，移除这些路径中直接写 `activeFileId` 的散落语句。
+  - `setVisible` 隐藏活动文件切换时改为“先切换目标，再显式 `updateTab(sourceId)`”的一次性路径，避免重复保存和来源歧义。
+  - 新增回归测试覆盖 `addTab` 与 `removeTab` 切换场景，补齐四类操作（`addTab / setVisible / deleteFile / removeTab`）的切换保存次数与 `graphRawData` 防串写断言。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - `addTab` 仍保持“先保存旧文件、切换新文件不额外落盘”的既有策略；如需“新增后立即持久化新 active 选择”需独立原子单元评估。
+- Next Recommended Unit:
+  - Phase 1: 审计 `useStore` 其余 `activeFileId` 直接写入点（初始化/恢复路径除外）并评估是否继续收敛为统一入口。
+
 ## [2026-03-02] Session 15 - Converge App/useStore Save Boundary on Active File Switch
 
 - Refactory Scope:
