@@ -109,6 +109,7 @@ import '@logicflow/extension/es/index.css';
 
 import PropertyPanel from './PropertyPanel.vue';
 import { useFlowEditorRuntime } from './composables/useFlowEditorRuntime';
+import { useFlowLayerCommands } from './composables/useFlowLayerCommands';
 import { useGlobalMessage } from '@/ts/useGlobalMessage';
 import { destroyLogicFlowInstance, useLogicFlowScope } from '@/ts/useLogicFlow';
 import { normalizePropertiesWithStyle, normalizeNodeStyle, styleEquals } from '@/ts/nodeStyle';
@@ -177,6 +178,10 @@ let rightDragLastY = 0;
 let rightDragDistance = 0;
 let suppressContextMenuUntil = 0;
 const { mountFlowEditorRuntime } = useFlowEditorRuntime();
+const { bringToFront, sendToBack, bringForward, sendBackward } = useFlowLayerCommands({
+  lf,
+  selectedNode
+});
 
 function logClipboardDebug(stage: string, payload: Record<string, unknown> = {}) {
   if (!import.meta.env.DEV) return;
@@ -493,74 +498,6 @@ function moveSelectedNodes(deltaX: number, deltaY: number) {
   const targets = collectGroupNodeIds(getSelectedNodeModelsFiltered());
   if (!targets.length) return;
   graphModel.moveNodes(targets, deltaX, deltaY);
-}
-
-// ========== 图层命令 ==========
-function bringToFront(nodeId?: string) {
-  const lfInstance = lf.value;
-  if (!lfInstance) return;
-  const targetId = nodeId || selectedNode.value?.id;
-  if (!targetId) return;
-
-  // 诊断日志：查看所有节点的 zIndex
-  const allNodes = lfInstance.graphModel.nodes;
-  console.log('[置于顶层] 目标节点ID:', targetId);
-  console.log('[置于顶层] 所有节点的 zIndex:', allNodes.map(n => ({ id: n.id, zIndex: n.zIndex })));
-
-  lfInstance.setElementZIndex(targetId, 'top');
-
-  // 操作后再次查看
-  console.log('[置于顶层] 操作后所有节点的 zIndex:', allNodes.map(n => ({ id: n.id, zIndex: n.zIndex })));
-}
-
-function sendToBack(nodeId?: string) {
-  const lfInstance = lf.value;
-  if (!lfInstance) return;
-  const targetId = nodeId || selectedNode.value?.id;
-  if (!targetId) return;
-
-  const currentNode = lfInstance.getNodeModelById(targetId);
-  if (!currentNode) return;
-
-  const allNodes = lfInstance.graphModel.nodes;
-  console.log('[置于底层] 目标节点ID:', targetId);
-  console.log('[置于底层] 所有节点的 zIndex:', allNodes.map(n => ({ id: n.id, zIndex: n.zIndex })));
-
-  // 修复：找到所有节点中最小的 zIndex，然后设置为比它更小
-  const allZIndexes = allNodes.map(n => n.zIndex).filter(z => z !== undefined);
-  const minZIndex = allZIndexes.length > 0 ? Math.min(...allZIndexes) : 1;
-  const newZIndex = minZIndex - 1;
-
-  currentNode.setZIndex(newZIndex);
-
-  // 操作后再次查看
-  console.log('[置于底层] 操作后所有节点的 zIndex:', allNodes.map(n => ({ id: n.id, zIndex: n.zIndex })));
-}
-
-function bringForward(nodeId?: string) {
-  const lfInstance = lf.value;
-  if (!lfInstance) return;
-  const targetId = nodeId || selectedNode.value?.id;
-  if (!targetId) return;
-
-  const currentNode = lfInstance.getNodeModelById(targetId);
-  if (!currentNode) return;
-
-  const currentZIndex = currentNode.zIndex;
-  currentNode.setZIndex(currentZIndex + 1);
-}
-
-function sendBackward(nodeId?: string) {
-  const lfInstance = lf.value;
-  if (!lfInstance) return;
-  const targetId = nodeId || selectedNode.value?.id;
-  if (!targetId) return;
-
-  const currentNode = lfInstance.getNodeModelById(targetId);
-  if (!currentNode) return;
-
-  const currentZIndex = currentNode.zIndex;
-  currentNode.setZIndex(currentZIndex - 1);
 }
 
 // ========== 删除操作 ==========

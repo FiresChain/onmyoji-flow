@@ -40,6 +40,37 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-02] Session 38 - Extract Flow Layer Commands into useFlowLayerCommands
+
+- Refactory Scope:
+  - Phase: Phase 2
+  - Task: 将 `FlowEditor` 中图层命令逻辑（`bringToFront/sendToBack/bringForward/sendBackward`）抽离到 composable，保持行为不变
+- In Scope Files:
+  - `src/components/flow/FlowEditor.vue`
+  - `src/components/flow/composables/useFlowLayerCommands.ts`
+  - `src/__tests__/useFlowLayerCommands.test.ts`
+  - `docs/2design/FlowEditorArchitecture.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `Toolbar` 拆分
+  - `groupRules` 规则语义调整
+  - `docs/1management/plan.md` 进度更新
+  - Phase 1 / Phase 3 内容
+- Decisions:
+  - 新增 `useFlowLayerCommands`，将四个图层命令从 `FlowEditor` 迁移到 composable，并保持命令签名与执行路径不变。
+  - `FlowEditor` 仅替换为组合式接线：通过 `useFlowLayerCommands({ lf, selectedNode })` 获取并透传给 runtime，不改外部契约。
+  - 新增最小回归测试，覆盖四个命令的关键行为（置顶、置底、上移、下移）与 selectedNode 回退路径，确保迁移后行为一致。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 当前仅完成图层命令迁移；group rule 校验编排与画布交互运行时杂项仍在 `FlowEditor` 主体，需继续按 Phase 2 原子单元拆分。
+- Next Recommended Unit:
+  - Phase 2 下一原子任务：抽离 group rule 校验编排到 `useFlowGroupRuleOrchestrator`（保持告警刷新/定位行为不变）。
+
 ## [2026-03-02] Session 37 - Extract FlowEditor Runtime Wiring into useFlowEditorRuntime
 
 - Refactory Scope:
