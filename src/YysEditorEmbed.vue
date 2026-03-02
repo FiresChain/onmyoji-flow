@@ -28,6 +28,7 @@
           ref="flowEditorRef"
           :height="editorContentHeight"
           :enable-label="false"
+          @graph-data-change="handleGraphDataChange"
         />
       </div>
 
@@ -364,6 +365,10 @@ const handleSave = () => {
 
 const handleCancel = () => {
   emit('cancel')
+}
+
+const handleGraphDataChange = (graphData: GraphData) => {
+  emit('update:data', graphData)
 }
 
 // 公开方法（供父组件调用）

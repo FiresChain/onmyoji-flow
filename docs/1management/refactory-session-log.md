@@ -40,6 +40,35 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-02] Session 32 - Emit update:data in Embed Edit Mode via Minimal Wiring
+
+- Refactory Scope:
+  - Phase: Phase 1
+  - Task: 在嵌入编辑模式补齐 `update:data` 实时触发能力（最小事件透传/接线）
+- In Scope Files:
+  - `src/components/flow/FlowEditor.vue`
+  - `src/YysEditorEmbed.vue`
+  - `src/__tests__/embed-update-data.contract.test.ts`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - 新业务功能扩展
+  - `docs/1management/plan.md` 进度更新
+  - Phase 2/3 重构任务
+- Decisions:
+  - `FlowEditor` 新增 `graph-data-change` 事件，在已有图数据变更相关节点（`NODE_ADD/NODE_DELETE/EDGE_ADD/EDGE_DELETE/NODE_PROPERTIES_CHANGE` + `history:change`）发出当前 `getGraphRawData()`。
+  - `YysEditorEmbed` 在 edit 模式下接收 `graph-data-change` 并直接透传为对外 `update:data`，不改 `save/cancel` 行为。
+  - 新增最小契约测试，验证编辑模式下 FlowEditor 上报数据变更时会触发 `update:data`。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - `graph-data-change` 事件当前依赖 LogicFlow 事件覆盖面；如后续出现漏触发场景，可补充更细颗粒度事件映射回归。
+- Next Recommended Unit:
+  - Phase 1: 收敛 `showPropertyPanel/config` 的对外契约与运行时行为（实现最小能力或文档废弃声明）。
+
 ## [2026-03-02] Session 31 - Document Instance Isolation Strategy with ADR-004
 
 - Refactory Scope:

@@ -140,6 +140,9 @@ const props = withDefaults(defineProps<{
 }>(), {
   enableLabel: false
 });
+const emit = defineEmits<{
+  'graph-data-change': [data: GraphData];
+}>();
 
 const flowHostRef = ref<HTMLElement | null>(null);
 const containerRef = ref<HTMLElement | null>(null);
@@ -302,6 +305,12 @@ const queueCanvasResize = () => {
   if (typeof window === 'undefined') return;
   window.requestAnimationFrame(() => resizeCanvas());
   setTimeout(() => resizeCanvas(), 120);
+};
+
+const emitGraphDataChange = () => {
+  const lfInstance = lf.value;
+  if (!lfInstance) return;
+  emit('graph-data-change', lfInstance.getGraphRawData() as GraphData);
 };
 
 function ensureMeta(meta?: Record<string, any>) {
@@ -1113,6 +1122,7 @@ onMounted(() => {
       (model as any)._isNewNode = true;
     }
     scheduleGroupRuleValidation();
+    emitGraphDataChange();
   });
 
   // 监听 DND 添加节点事件
@@ -1126,6 +1136,7 @@ onMounted(() => {
       (model as any)._isNewNode = true;
     }
     scheduleGroupRuleValidation();
+    emitGraphDataChange();
   });
 
   lfInstance.on(EventType.GRAPH_RENDERED, () => {
@@ -1160,16 +1171,24 @@ onMounted(() => {
     const model = lfInstance.getNodeModelById(nodeId);
     if (model) normalizeNodeModel(model);
     scheduleGroupRuleValidation();
+    emitGraphDataChange();
   });
 
   lfInstance.on(EventType.NODE_DELETE, () => {
     scheduleGroupRuleValidation();
+    emitGraphDataChange();
   });
   lfInstance.on(EventType.EDGE_ADD, () => {
     scheduleGroupRuleValidation();
+    emitGraphDataChange();
   });
   lfInstance.on(EventType.EDGE_DELETE, () => {
     scheduleGroupRuleValidation();
+    emitGraphDataChange();
+  });
+
+  lfInstance.on('history:change', () => {
+    emitGraphDataChange();
   });
 
   lfInstance.on('selection:selected', () => {
