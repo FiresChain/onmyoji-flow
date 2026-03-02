@@ -1,0 +1,96 @@
+# Refactory Session Log
+
+Purpose:
+
+1. Keep cross-session continuity for refactor work.
+2. Ensure different Codex conversations follow the same execution standard.
+3. Provide a quick resume point for new sessions.
+
+---
+
+## Entry Template
+
+Copy this block and append at the top for each new refactor session.
+
+```md
+## [YYYY-MM-DD] Session N - <Short Goal>
+
+- Refactory Scope:
+  - Phase:
+  - Task:
+- In Scope Files:
+  - `<path>`
+- Out of Scope:
+  - `<explicitly not touched>`
+- Decisions:
+  - `<decision 1>`
+- Checks:
+  - `npm test`: pass/fail/not-run
+  - `npm run lint`: pass/fail/not-run
+  - `npm run typecheck`: pass/fail/not-run
+  - `prettier --check`: pass/fail/not-run
+  - `npm run build:lib`: pass/fail/not-run
+- Risks / Follow-up:
+  - `<risk or blocker>`
+- Next Recommended Unit:
+  - `<next atomic refactor unit>`
+```
+
+---
+
+## Log Entries
+
+## [2026-03-02] Session 1 - Create Project Baseline Document
+
+- Refactory Scope:
+  - Phase: Phase 0
+  - Task: 4.0.1-1 establish `docs/1management/project-baseline.md`
+- In Scope Files:
+  - `docs/1management/project-baseline.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - Any `src/` refactor
+  - `plan.md`/`next.md` status alignment updates
+  - CI workflow edits
+  - Broad historical naming replacement
+- Decisions:
+  - Use `onmyoji-flow` and `@rookie4show/onmyoji-flow` as canonical identifiers in baseline doc.
+  - Record current branch convention and workflow trigger branch side by side to avoid hidden drift.
+  - Keep this session docs-only as a single atomic unit.
+- Checks:
+  - `npm test`: not-run (docs-only session)
+  - `npm run lint`: not-run (docs-only session)
+  - `npm run typecheck`: not-run (`typecheck` script not yet defined; docs-only session)
+  - `prettier --check`: not-run (docs-only session)
+  - `npm run build:lib`: not-run (docs-only session)
+- Risks / Follow-up:
+  - `plan.md` still contains historical `yys-editor` naming drift and needs a dedicated naming-alignment unit.
+  - Branch convention (`develop`) and workflow trigger (`master`) remain inconsistent and need governance alignment.
+- Next Recommended Unit:
+  - Phase 0, task: naming drift cleanup in `docs/1management/plan.md` and `docs/1management/next.md` (scope-limited docs refactor).
+
+## [2026-03-02] Session 0 - Initialize Refactory Cross-Session Constraints
+
+- Refactory Scope:
+  - Phase: Governance bootstrap
+  - Task: Add Codex cross-session consistency rules and handoff log mechanism
+- In Scope Files:
+  - `AGENTS.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - Source code refactor in `src/`
+  - CI/tooling implementation changes
+- Decisions:
+  - Enforce one atomic refactor unit per session.
+  - Require mandatory handoff log update for each refactor session.
+  - Require first-response scope contract in future refactor sessions.
+- Checks:
+  - `npm test`: not-run (docs-only change)
+  - `npm run lint`: not-run (docs-only change)
+  - `npm run typecheck`: not-run (docs-only change)
+  - `prettier --check`: not-run (docs-only change)
+  - `npm run build:lib`: not-run (docs-only change)
+- Risks / Follow-up:
+  - Other tools (Cursor/Claude) will still need mirrored rule files to get equivalent behavior.
+- Next Recommended Unit:
+  - Phase 0, task: create `project-baseline.md` and align naming/link drift in docs.
