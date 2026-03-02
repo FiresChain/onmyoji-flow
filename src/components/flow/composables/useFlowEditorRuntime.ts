@@ -1,6 +1,6 @@
 import LogicFlow, { EventType } from '@logicflow/core';
 import type { BaseNodeModel, EdgeData, NodeData, Position } from '@logicflow/core';
-import { nextTick, type Ref } from 'vue';
+import type { Ref } from 'vue';
 import { Menu, Label, Snapshot, SelectionSelect, MiniMap, Control, DynamicGroup } from '@logicflow/extension';
 import { register } from '@logicflow/vue-node-registry';
 import PropertySelectNode from '../nodes/yys/PropertySelectNode.vue';
@@ -16,7 +16,6 @@ type ShortcutHandler = (event?: KeyboardEvent) => boolean | void;
 
 export interface FlowEditorRuntimeOptions {
   lf: Ref<LogicFlow | null>;
-  flowHostRef: Ref<HTMLElement | null>;
   containerRef: Ref<HTMLElement | null>;
   logicFlowScope: LogicFlowScope;
   enableLabel: boolean;
@@ -47,11 +46,6 @@ export interface FlowEditorRuntimeOptions {
   logClipboardDebug: (stage: string, payload?: Record<string, unknown>) => void;
   applyKeyboardEnabled: (enabled: boolean) => void;
   applySelectionSelect: (enabled: boolean) => void;
-  handleCanvasMouseDown: (event: MouseEvent) => void;
-  handleCanvasContextMenu: (event: MouseEvent) => void;
-  queueCanvasResize: () => void;
-  resizeCanvas: () => void;
-  handleWindowResize: () => void;
 }
 
 function registerNodes(lfInstance: LogicFlow) {
@@ -66,7 +60,6 @@ export function useFlowEditorRuntime() {
   const mountFlowEditorRuntime = (options: FlowEditorRuntimeOptions) => {
     const {
       lf,
-      flowHostRef,
       containerRef,
       logicFlowScope,
       enableLabel,
@@ -96,15 +89,8 @@ export function useFlowEditorRuntime() {
       normalizeAllNodes,
       logClipboardDebug,
       applyKeyboardEnabled,
-      applySelectionSelect,
-      handleCanvasMouseDown,
-      handleCanvasContextMenu,
-      queueCanvasResize,
-      resizeCanvas,
-      handleWindowResize
+      applySelectionSelect
     } = options;
-
-    let containerResizeObserver: ResizeObserver | null = null;
 
     lf.value = new LogicFlow({
       container: containerRef.value,
@@ -318,8 +304,6 @@ export function useFlowEditorRuntime() {
     snaplineEnabled.value = configSnaplineEnabled;
     applyKeyboardEnabled(configKeyboardEnabled);
     applySelectionSelect(selectionEnabled.value);
-    containerRef.value?.addEventListener('mousedown', handleCanvasMouseDown);
-    containerRef.value?.addEventListener('contextmenu', handleCanvasContextMenu, true);
 
     lfInstance.on(EventType.NODE_ADD, ({ data }) => {
       if (!data?.id) {
@@ -428,29 +412,7 @@ export function useFlowEditorRuntime() {
       logClipboardDebug('selection:drop');
     });
 
-    nextTick(() => {
-      queueCanvasResize();
-    });
-    if (typeof ResizeObserver !== 'undefined') {
-      containerResizeObserver = new ResizeObserver(() => {
-        resizeCanvas();
-      });
-      if (flowHostRef.value) {
-        containerResizeObserver.observe(flowHostRef.value);
-      }
-      if (containerRef.value && containerRef.value !== flowHostRef.value) {
-        containerResizeObserver.observe(containerRef.value);
-      }
-    }
-    window.addEventListener('resize', handleWindowResize);
-
-    return () => {
-      window.removeEventListener('resize', handleWindowResize);
-      containerResizeObserver?.disconnect();
-      containerResizeObserver = null;
-      containerRef.value?.removeEventListener('mousedown', handleCanvasMouseDown);
-      containerRef.value?.removeEventListener('contextmenu', handleCanvasContextMenu, true);
-    };
+    return () => {};
   };
 
   return {

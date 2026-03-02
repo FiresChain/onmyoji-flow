@@ -108,6 +108,7 @@ import '@logicflow/core/es/index.css';
 import '@logicflow/extension/es/index.css';
 
 import PropertyPanel from './PropertyPanel.vue';
+import { useFlowCanvasInteraction } from './composables/useFlowCanvasInteraction';
 import { useFlowEditorRuntime } from './composables/useFlowEditorRuntime';
 import { useFlowGroupRuleOrchestrator } from './composables/useFlowGroupRuleOrchestrator';
 import { useFlowLayerCommands } from './composables/useFlowLayerCommands';
@@ -121,9 +122,6 @@ type DistributeType = 'horizontal' | 'vertical';
 
 const MOVE_STEP = 2;
 const MOVE_STEP_LARGE = 10;
-const RIGHT_MOUSE_BUTTON = 2;
-const RIGHT_DRAG_THRESHOLD = 2;
-const RIGHT_DRAG_CONTEXTMENU_SUPPRESS_MS = 300;
 
 const props = withDefaults(defineProps<{
   height?: string;
@@ -168,12 +166,6 @@ const selectedNode = ref<any>(null);
 const flowControlsCollapsed = ref(true);
 const problemsPanelOpen = ref(false);
 let disposeFlowEditorRuntime: (() => void) | null = null;
-let isRightDragging = false;
-let rightDragMoved = false;
-let rightDragLastX = 0;
-let rightDragLastY = 0;
-let rightDragDistance = 0;
-let suppressContextMenuUntil = 0;
 const { mountFlowEditorRuntime } = useFlowEditorRuntime();
 const { bringToFront, sendToBack, bringForward, sendBackward } = useFlowLayerCommands({
   lf,
@@ -189,6 +181,11 @@ const {
   lf,
   selectedNode,
   showMessage
+});
+const { resizeCanvas, mountCanvasInteraction, disposeCanvasInteraction } = useFlowCanvasInteraction({
+  lf,
+  flowHostRef,
+  containerRef
 });
 
 function logClipboardDebug(stage: string, payload: Record<string, unknown> = {}) {
@@ -207,95 +204,6 @@ function logClipboardDebug(stage: string, payload: Record<string, unknown> = {})
   });
 }
 
-const resolveResizeHost = () => {
-  const container = containerRef.value;
-  if (!container) return null;
-  return flowHostRef.value ?? (container.parentElement as HTMLElement | null) ?? container;
-};
-
-const resizeCanvas = () => {
-  const lfInstance = lf.value as any;
-  const resizeHost = resolveResizeHost();
-  if (!lfInstance || !resizeHost || typeof lfInstance.resize !== 'function') {
-    return;
-  }
-  const width = resizeHost.clientWidth;
-  const height = resizeHost.clientHeight;
-  if (width > 0 && height > 0) {
-    lfInstance.resize(width, height);
-    return;
-  }
-};
-
-const handleWindowResize = () => {
-  resizeCanvas();
-};
-
-function handleRightDragMouseMove(event: MouseEvent) {
-  if (!isRightDragging) return;
-
-  const deltaX = event.clientX - rightDragLastX;
-  const deltaY = event.clientY - rightDragLastY;
-  rightDragLastX = event.clientX;
-  rightDragLastY = event.clientY;
-
-  if (deltaX === 0 && deltaY === 0) return;
-
-  rightDragDistance += Math.abs(deltaX) + Math.abs(deltaY);
-  if (!rightDragMoved && rightDragDistance >= RIGHT_DRAG_THRESHOLD) {
-    rightDragMoved = true;
-  }
-
-  if (rightDragMoved) {
-    lf.value?.translate(deltaX, deltaY);
-    event.preventDefault();
-  }
-}
-
-function stopRightDrag() {
-  if (!isRightDragging) return;
-
-  isRightDragging = false;
-  flowHostRef.value?.classList.remove('flow-container--panning');
-  window.removeEventListener('mousemove', handleRightDragMouseMove);
-  window.removeEventListener('mouseup', handleRightDragMouseUp);
-
-  if (rightDragMoved) {
-    suppressContextMenuUntil = Date.now() + RIGHT_DRAG_CONTEXTMENU_SUPPRESS_MS;
-  }
-}
-
-function handleRightDragMouseUp() {
-  stopRightDrag();
-}
-
-function handleCanvasMouseDown(event: MouseEvent) {
-  if (event.button !== RIGHT_MOUSE_BUTTON) return;
-
-  const target = event.target as HTMLElement | null;
-  if (target?.closest('.lf-menu')) return;
-  if (!containerRef.value?.contains(target)) return;
-
-  isRightDragging = true;
-  rightDragMoved = false;
-  rightDragDistance = 0;
-  rightDragLastX = event.clientX;
-  rightDragLastY = event.clientY;
-  suppressContextMenuUntil = 0;
-
-  flowHostRef.value?.classList.add('flow-container--panning');
-  window.addEventListener('mousemove', handleRightDragMouseMove);
-  window.addEventListener('mouseup', handleRightDragMouseUp);
-}
-
-function handleCanvasContextMenu(event: MouseEvent) {
-  if (Date.now() >= suppressContextMenuUntil) return;
-
-  event.preventDefault();
-  event.stopPropagation();
-  suppressContextMenuUntil = 0;
-}
-
 function isInputLike(event?: KeyboardEvent) {
   const target = event?.target as HTMLElement | null;
   if (!target) return false;
@@ -311,13 +219,6 @@ function shouldSkipShortcut(event?: KeyboardEvent) {
   if (isInputLike(event)) return true;
   return false;
 }
-
-const queueCanvasResize = () => {
-  resizeCanvas();
-  if (typeof window === 'undefined') return;
-  window.requestAnimationFrame(() => resizeCanvas());
-  setTimeout(() => resizeCanvas(), 120);
-};
 
 const emitGraphDataChange = () => {
   const lfInstance = lf.value;
@@ -794,7 +695,6 @@ onMounted(() => {
   mountGroupRuleOrchestrator();
   disposeFlowEditorRuntime = mountFlowEditorRuntime({
     lf,
-    flowHostRef,
     containerRef,
     logicFlowScope,
     enableLabel: props.enableLabel,
@@ -824,13 +724,9 @@ onMounted(() => {
     normalizeAllNodes,
     logClipboardDebug,
     applyKeyboardEnabled,
-    applySelectionSelect,
-    handleCanvasMouseDown,
-    handleCanvasContextMenu,
-    queueCanvasResize,
-    resizeCanvas,
-    handleWindowResize
+    applySelectionSelect
   });
+  mountCanvasInteraction();
 });
 
 watch(selectionEnabled, (enabled) => {
@@ -885,10 +781,10 @@ defineExpose({
 
 // 销毁 LogicFlow
 onBeforeUnmount(() => {
+  disposeCanvasInteraction();
   disposeFlowEditorRuntime?.();
   disposeFlowEditorRuntime = null;
   disposeGroupRuleOrchestrator();
-  stopRightDrag();
   destroyLogicFlowInstance(logicFlowScope);
   destroyCanvasSettingsScope(logicFlowScope);
   lf.value = null;

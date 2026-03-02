@@ -40,6 +40,39 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-02] Session 40 - Extract Flow Canvas Interaction Wiring into useFlowCanvasInteraction
+
+- Refactory Scope:
+  - Phase: Phase 2
+  - Task: 将 `FlowEditor` 画布交互运行时杂项（右键拖拽、contextmenu 抑制、ResizeObserver/window resize 接线与清理）抽离到 composable，保持行为不变
+- In Scope Files:
+  - `src/components/flow/FlowEditor.vue`
+  - `src/components/flow/composables/useFlowCanvasInteraction.ts`
+  - `src/components/flow/composables/useFlowEditorRuntime.ts`
+  - `src/__tests__/useFlowCanvasInteraction.test.ts`
+  - `docs/2design/FlowEditorArchitecture.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `Toolbar` 拆分
+  - `groupRules` 规则语义调整
+  - `docs/1management/plan.md` 进度更新
+  - Phase 1 / Phase 3 内容
+- Decisions:
+  - 新增 `useFlowCanvasInteraction`，承接 `FlowEditor` 中右键拖拽、contextmenu 抑制、`resizeCanvas` 与 resize 接线/清理逻辑。
+  - `FlowEditor` 改为在生命周期中调用 `mountCanvasInteraction/disposeCanvasInteraction`，并继续通过 `defineExpose` 暴露同名 `resizeCanvas`。
+  - `useFlowEditorRuntime` 移除画布交互 wiring，聚焦 LogicFlow 运行时初始化与事件编排，职责边界更清晰。
+  - 新增最小回归测试，覆盖关键交互事件（右键拖拽与 contextmenu 抑制）和 resize 接线清理行为不变。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 交互与 runtime 拆分后 composable 数量增加，后续需补结构守卫测试避免接口漂移导致接线遗漏。
+- Next Recommended Unit:
+  - Phase 2 下一原子任务：补 `FlowEditor` composables 组合边界的结构守卫回归（确保 runtime/layer/groupRule/canvas 关键接线片段不回退）。
+
 ## [2026-03-02] Session 39 - Extract Flow Group-Rule Orchestration into useFlowGroupRuleOrchestrator
 
 - Refactory Scope:
