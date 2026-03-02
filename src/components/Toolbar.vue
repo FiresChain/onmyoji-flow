@@ -515,7 +515,7 @@ const normalizeSeverity = (value: unknown): 'warning' | 'error' | 'info' => {
 const normalizeImportedExpressionRules = (value: unknown): ExpressionRuleDefinition[] => {
   if (!Array.isArray(value)) return [];
   return value
-    .map((item) => {
+    .map((item): ExpressionRuleDefinition | null => {
       if (!item || typeof item !== 'object') return null;
       const raw = item as Record<string, unknown>;
       const id = normalizeText(raw.id);
@@ -532,7 +532,7 @@ const normalizeImportedExpressionRules = (value: unknown): ExpressionRuleDefinit
         ...(code ? { code } : {})
       };
     })
-    .filter((item): item is ExpressionRuleDefinition => !!item);
+    .filter((item): item is ExpressionRuleDefinition => item !== null);
 };
 const normalizeImportedRuleVariables = (value: unknown): RuleVariableDefinition[] => {
   if (!Array.isArray(value)) return [];
@@ -1236,7 +1236,7 @@ const captureLogicFlowSnapshot = async () => {
     return null;
   }
 
-  const snapshotResult = await withDynamicGroupsHiddenForSnapshot(
+  const snapshotResult = await withDynamicGroupsHiddenForSnapshot<string | { data?: string }>(
     logicFlowInstance,
     () => logicFlowInstance.getSnapshotBase64(
       undefined,

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, inject, onMounted, onBeforeUnmount } from 'vue';
+import type { CSSProperties } from 'vue';
 import { toTextStyle } from '@/ts/nodeStyle';
 import { useNodeAppearance } from '@/ts/useNodeAppearance';
 import { resolveAssetUrl } from '@/utils/assetUrl';
@@ -47,7 +48,10 @@ const { containerStyle, textStyle } = useNodeAppearance({
   }
 });
 
-const mergedContainerStyle = computed(() => ({ ...containerStyle.value, boxSizing: 'border-box' }));
+const mergedContainerStyle = computed<CSSProperties>(() => ({
+  ...containerStyle.value,
+  boxSizing: 'border-box'
+}));
 const normalizedAvatar = computed(() => resolveAssetUrl(currentAsset.value.avatar) as string);
 </script>
 

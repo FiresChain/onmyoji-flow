@@ -12,6 +12,11 @@ const GROUP_RULES_UPDATED_EVENT = 'yys-editor.group-rules.updated'
 
 const isClient = () => typeof window !== 'undefined' && typeof localStorage !== 'undefined'
 const normalizeText = (value: unknown): string => (typeof value === 'string' ? value.trim() : '')
+type RuleSeverity = NonNullable<ExpressionRuleDefinition['severity']>
+const normalizeRuleSeverity = (value: unknown): RuleSeverity => {
+  const normalized = normalizeText(value)
+  return normalized === 'error' || normalized === 'info' ? normalized : 'warning'
+}
 const notifyGroupRulesUpdated = () => {
   if (!isClient()) {
     return
@@ -101,7 +106,7 @@ const normalizeExpressionRules = (
     return fallback.map((rule) => ({ ...rule }))
   }
   return value
-    .map((item) => {
+    .map((item): ExpressionRuleDefinition | null => {
       if (!item || typeof item !== 'object') {
         return null
       }
@@ -113,8 +118,7 @@ const normalizeExpressionRules = (
         return null
       }
       const enabled = raw.enabled !== false
-      const severityRaw = normalizeText(raw.severity)
-      const severity = severityRaw === 'error' || severityRaw === 'info' ? severityRaw : 'warning'
+      const severity = normalizeRuleSeverity(raw.severity)
       const code = normalizeText(raw.code)
       return {
         id,
@@ -125,7 +129,7 @@ const normalizeExpressionRules = (
         ...(code ? { code } : {})
       }
     })
-    .filter((item): item is ExpressionRuleDefinition => !!item)
+    .filter((item): item is ExpressionRuleDefinition => item !== null)
 }
 
 const normalizeRuleVariables = (

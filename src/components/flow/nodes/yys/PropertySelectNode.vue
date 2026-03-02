@@ -2,12 +2,42 @@
 import { ref } from 'vue';
 import { useNodeAppearance } from '@/ts/useNodeAppearance';
 
-const currentProperty = ref({ type: '未选择', priority: '可选' });
+type PropertyNodeData = {
+  type: string;
+  priority: string;
+  value?: string | number;
+  description?: string;
+  [key: string]: unknown;
+};
+
+const DEFAULT_PROPERTY: PropertyNodeData = {
+  type: '未选择',
+  priority: 'optional',
+  value: '',
+  description: ''
+};
+
+const normalizeProperty = (value: unknown): PropertyNodeData => {
+  if (!value || typeof value !== 'object') {
+    return { ...DEFAULT_PROPERTY };
+  }
+  const raw = value as Record<string, unknown>;
+  return {
+    ...DEFAULT_PROPERTY,
+    ...raw,
+    type: typeof raw.type === 'string' && raw.type.trim() ? raw.type : DEFAULT_PROPERTY.type,
+    priority: typeof raw.priority === 'string' && raw.priority.trim() ? raw.priority : DEFAULT_PROPERTY.priority,
+    value: typeof raw.value === 'number' || typeof raw.value === 'string' ? raw.value : DEFAULT_PROPERTY.value,
+    description: typeof raw.description === 'string' ? raw.description : DEFAULT_PROPERTY.description
+  };
+};
+
+const currentProperty = ref<PropertyNodeData>({ ...DEFAULT_PROPERTY });
 
 const { containerStyle, textStyle } = useNodeAppearance({
   onPropsChange(props) {
     if (props.property) {
-      currentProperty.value = props.property;
+      currentProperty.value = normalizeProperty(props.property);
     }
   }
 });

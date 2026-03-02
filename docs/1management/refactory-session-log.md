@@ -40,6 +40,39 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-02] Session 9 - Phase 0 Typecheck Baseline Batch 4 (Non-LogicFlow Remaining Types Convergence)
+
+- Refactory Scope:
+  - Phase: Phase 0
+  - Task: typecheck 基线收敛第四批：非 LogicFlow 剩余类型收敛（`AssetSelectorNode` 样式类型、`PropertySelectNode` 字段推断、规则配置类型契约）
+- In Scope Files:
+  - `src/components/flow/nodes/common/AssetSelectorNode.vue`
+  - `src/components/flow/nodes/yys/PropertySelectNode.vue`
+  - `src/utils/groupRulesConfigSource.ts`
+  - `src/components/Toolbar.vue`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `src/**` 其他业务逻辑重构
+  - LogicFlow 兼容声明层（`src/types/logicflow-*.d.ts`）
+  - CI 其他子任务
+  - `docs/1management/plan.md` 进度数字更新
+- Decisions:
+  - In `AssetSelectorNode`, type merged style as `CSSProperties` to satisfy Vue `:style` contract without runtime change.
+  - In `PropertySelectNode`, introduce `PropertyNodeData` and `normalizeProperty` to make `value/description` access type-safe while preserving permissive payload fields.
+  - In `groupRulesConfigSource` and `Toolbar`, normalize rule map/filter intermediate typing to `ExpressionRuleDefinition | null`, and normalize severity with union-safe helper to align with `ExpressionRuleDefinition` contract.
+  - In `Toolbar`, constrain snapshot result typing to `string | { data?: string }` before reading `.data`.
+- Checks:
+  - `npm run typecheck`: fail (in-scope errors resolved; remaining out-of-scope errors: `src/components/Yys.vue`, `src/components/YysRank.vue`, `src/ts/useSafeI18n.ts`)
+  - `npm test`: not-run (out of current atomic unit)
+  - `npm run lint`: not-run (out of current atomic unit)
+  - `prettier --check`: not-run (out of current atomic unit)
+  - `npm run build:lib`: not-run (out of current atomic unit)
+- Risks / Follow-up:
+  - `PropertySelectNode` now uses a normalized permissive shape with index signature; later schema-tightening should centralize a shared property payload type to avoid local duplication.
+  - Typecheck baseline is still non-green due out-of-scope modules.
+- Next Recommended Unit:
+  - Phase 0 / typecheck 基线收敛第五批：处理 `Yys.vue` 导入结果类型收窄、`YysRank.vue` store API 对齐、`useSafeI18n.ts` rest 参数推断。
+
 ## [2026-03-02] Session 8 - Phase 0 Typecheck Baseline Batch 3 (Non-LogicFlow Deterministic Typing Fixes)
 
 - Refactory Scope:
