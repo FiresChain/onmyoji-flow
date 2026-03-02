@@ -389,7 +389,6 @@
 import { reactive, onMounted, onBeforeUnmount, ref } from 'vue';
 import updateLogs from "../data/updateLog.json"
 import { useFilesStore } from "@/ts/useStore";
-import { ElMessageBox } from "element-plus";
 import { useGlobalMessage } from "@/ts/useGlobalMessage";
 import { getLogicFlowInstance, useLogicFlowScope } from '@/ts/useLogicFlow';
 import { useCanvasSettings } from '@/ts/useCanvasSettings';
@@ -399,6 +398,7 @@ import { resolveAssetUrl } from '@/utils/assetUrl';
 import { useToolbarImportExportCommands } from '@/components/composables/useToolbarImportExportCommands';
 import { useToolbarAssetManagement } from '@/components/composables/useToolbarAssetManagement';
 import { useToolbarRuleManagement } from '@/components/composables/useToolbarRuleManagement';
+import { useToolbarWorkspaceCommands } from '@/components/composables/useToolbarWorkspaceCommands';
 
 const props = withDefaults(defineProps<{
   isEmbed?: boolean;
@@ -506,45 +506,16 @@ const refreshLogicFlowCanvas = (message?: string) => {
   }, 100); // 延迟一点确保数据更新完成
 };
 
-const loadExample = () => {
-  ElMessageBox.confirm(
-      '加载样例会覆盖当前数据，是否覆盖？',
-      '提示',
-      {
-        confirmButtonText: '覆盖',
-        cancelButtonText: '取消',
-        type: 'warning',
-      }
-  ).then(() => {
-    // 使用默认状态作为示例
-    const defaultState = {
-      fileList: [{
-        "label": "示例文件",
-        "name": "example",
-        "visible": true,
-        "type": "FLOW",
-        "groups": [
-          {
-            "shortDescription": "示例组",
-            "groupInfo": [{}, {}, {}, {}, {}],
-            "details": "这是一个示例文件"
-          }
-        ],
-        "flowData": {
-          "nodes": [],
-          "edges": [],
-          "viewport": { "x": 0, "y": 0, "zoom": 1 }
-        }
-      }],
-      activeFile: "example"
-    };
-    filesStore.importData(defaultState);
-    refreshLogicFlowCanvas('LogicFlow 画布已重新渲染（示例数据）');
-    showMessage('success', '数据已恢复');
-  }).catch(() => {
-    showMessage('info', '选择了不恢复旧数据');
-  });
-}
+const {
+  loadExample,
+  handleResetWorkspace,
+  handleClearCanvas,
+} = useToolbarWorkspaceCommands({
+  filesStore,
+  logicFlowScope,
+  showMessage,
+  refreshLogicFlowCanvas,
+});
 
 const CURRENT_APP_VERSION = updateLogs[0].version;
 const showUpdateLog = () => {
@@ -575,51 +546,6 @@ onBeforeUnmount(() => {
 
 const showFeedbackForm = () => {
   state.showFeedbackFormDialog = !state.showFeedbackFormDialog;
-};
-
-const handleResetWorkspace = () => {
-  ElMessageBox.confirm('确定重置当前工作区？该操作不可撤销', '提示', {
-    confirmButtonText: '重置',
-    cancelButtonText: '取消',
-    type: 'warning',
-  }).then(() => {
-    filesStore.resetWorkspace();
-  }).catch(() => {
-    // 用户取消
-  });
-};
-
-const handleClearCanvas = () => {
-  ElMessageBox.confirm('仅清空当前画布，不影响其他文件，确定继续？', '提示', {
-    confirmButtonText: '清空',
-    cancelButtonText: '取消',
-    type: 'warning',
-  }).then(() => {
-    const lfInstance = getLogicFlowInstance(logicFlowScope);
-    const activeId = filesStore.activeFileId;
-    const activeFile = filesStore.getTab(activeId);
-
-    if (lfInstance) {
-      lfInstance.clearData();
-      lfInstance.render({ nodes: [], edges: [] });
-      lfInstance.zoom(1, [0, 0]);
-    }
-
-    if (activeFile) {
-      activeFile.graphRawData = { nodes: [], edges: [] };
-      activeFile.transform = {
-        SCALE_X: 1,
-        SCALE_Y: 1,
-        TRANSLATE_X: 0,
-        TRANSLATE_Y: 0
-      };
-      filesStore.updateTab(activeId);
-    }
-
-    showMessage('success', '当前画布已清空');
-  }).catch(() => {
-    // 用户取消
-  });
 };
 
 const watermark = reactive({

@@ -16,6 +16,9 @@
 1. 导入/导出/预览命令编排：`useToolbarImportExportCommands`
 2. 素材管理编排：`useToolbarAssetManagement`
 3. 规则管理编排：`useToolbarRuleManagement`
+4. 工作区控制命令编排：`useToolbarWorkspaceCommands`
+5. 对话框状态编排：`useToolbarDialogState`
+6. 架构边界守卫回归：`toolbar-architecture.guard`
 
 ## Task 1 落地（导入/导出/预览）
 
@@ -76,3 +79,18 @@
 
 - 继续保留视图层模板与按钮/弹窗绑定。
 - 通过 composable 返回的 refs/methods 接线规则管理 UI，不改外部行为与交互语义。
+
+## Task 4 落地（工作区控制命令）
+
+新增：`src/components/composables/useToolbarWorkspaceCommands.ts`
+
+当前由该 composable 承接的命令：
+
+- `loadExample`
+- `handleResetWorkspace`
+- `handleClearCanvas`
+
+`Toolbar.vue` 调整为：
+
+- 保留 `refreshLogicFlowCanvas` 与模板按钮绑定点。
+- 通过 composable 返回命令接线工作区按钮，不改确认弹窗文案与执行语义。

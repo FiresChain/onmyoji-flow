@@ -40,6 +40,38 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-02] Session 44 - Extract Toolbar Workspace Commands Orchestration into useToolbarWorkspaceCommands
+
+- Refactory Scope:
+  - Phase: Phase 2
+  - Task: 将 `Toolbar` 中工作区控制命令编排（`loadExample` / `handleResetWorkspace` / `handleClearCanvas`）抽离到 composable，保持行为不变
+- In Scope Files:
+  - `src/components/Toolbar.vue`
+  - `src/components/composables/useToolbarWorkspaceCommands.ts`
+  - `src/__tests__/useToolbarWorkspaceCommands.test.ts`
+  - `docs/2design/ToolbarArchitecture.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `FlowEditor` 新增重构任务
+  - `groupRules` 规则语义调整
+  - `docs/1management/plan.md` 进度更新
+  - Phase 1 / Phase 3 内容
+- Decisions:
+  - 新增 `useToolbarWorkspaceCommands`，承接 `loadExample`、`handleResetWorkspace`、`handleClearCanvas` 命令编排。
+  - `Toolbar.vue` 保持模板与命令接线角色，通过 composable 暴露命令接入既有按钮，不调整 UI 或交互文案。
+  - 新增最小回归测试，覆盖示例加载确认/取消、重置确认/取消、清空画布后 LogicFlow 与 active tab 状态回写行为。
+  - 更新 `ToolbarArchitecture.md`，补齐工作区控制命令拆分边界。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 更新日志/反馈/水印设置等对话框状态编排仍在 `Toolbar.vue`，下一原子单元需继续拆分以收敛职责边界。
+- Next Recommended Unit:
+  - Phase 2 下一原子任务：抽离 `Toolbar` 对话框状态编排到 `useToolbarDialogState`（保持行为不变）。
+
 ## [2026-03-02] Session 43 - Extract Toolbar Rule Management Orchestration into useToolbarRuleManagement
 
 - Refactory Scope:
