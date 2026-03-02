@@ -40,6 +40,37 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-02] Session 24 - Centralize State Write Boundary Mapping Config (No Semantic Change)
+
+- Refactory Scope:
+  - Phase: Phase 1
+  - Task: 将 `activeFileId` 与 `fileList` 的白名单/运行时禁写入口映射收敛到单一配置源，并让 `active-file-id-boundary` 与 `file-list-boundary` 统一从该配置创建规则
+- In Scope Files:
+  - `eslint-rules/state-write-boundaries.config.js`
+  - `eslint-rules/active-file-id-boundary.js`
+  - `eslint-rules/file-list-boundary.js`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `src/ts/useStore.ts` 运行时逻辑改动
+  - `src/App.vue` 与 UI 交互改造
+  - 数据结构重设计
+  - 新业务功能
+  - `docs/1management/plan.md` 进度更新
+- Decisions:
+  - 新增集中配置 `state-write-boundaries.config.js`，统一维护两个状态字段的 `allowedWriteFunctions` 与 `runtimeEntryFunctions` 映射。
+  - `active-file-id-boundary` 与 `file-list-boundary` 改为通过 `createStateWriteBoundaryOptions(...)` 读取同一配置源后传入既有工厂 `createStateWriteBoundaryRule`。
+  - 保持 lint 报错文案、白名单集合、运行时禁写集合与规则触发语义完全不变；不改动任何运行时代码。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 当前配置通过状态字段 key（`activeFileId`/`fileList`）查找；后续若新增边界规则，需在同一配置源补齐并保持命名一致。
+- Next Recommended Unit:
+  - Phase 1: 将集中配置扩展为“可枚举边界清单”并补一条轻量结构守卫，防止新增规则文件绕过集中配置源。
+
 ## [2026-03-02] Session 23 - Add fileList Write Boundary Rule via Reusable Factory
 
 - Refactory Scope:
