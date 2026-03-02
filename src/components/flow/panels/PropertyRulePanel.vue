@@ -1,15 +1,16 @@
 <script setup lang="ts">
 import { useDialogs } from '@/ts/useDialogs';
-import { getLogicFlowInstance } from '@/ts/useLogicFlow';
+import { getLogicFlowInstance, useLogicFlowScope } from '@/ts/useLogicFlow';
 
 const props = defineProps<{
   node: any;
 }>();
 
 const { openDialog } = useDialogs();
+const logicFlowScope = useLogicFlowScope();
 
 const handleOpenDialog = () => {
-  const lf = getLogicFlowInstance();
+  const lf = getLogicFlowInstance(logicFlowScope);
   const node = props.node;
   if (!lf || !node) return;
 

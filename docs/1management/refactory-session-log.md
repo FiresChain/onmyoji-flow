@@ -40,6 +40,50 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-02] Session 28 - Isolate useLogicFlow State by Editor Scope Context
+
+- Refactory Scope:
+  - Phase: Phase 1
+  - Task: 将 `useLogicFlow` 从模块级单例改为“实例级上下文作用域”，并完成最小接线，避免同页多编辑器实例互相污染
+- In Scope Files:
+  - `src/ts/useLogicFlow.ts`
+  - `src/components/flow/FlowEditor.vue`
+  - `src/App.vue`
+  - `src/YysEditorEmbed.vue`
+  - `src/components/Toolbar.vue`
+  - `src/components/flow/ComponentsPanel.vue`
+  - `src/components/flow/PropertyPanel.vue`
+  - `src/components/flow/panels/AssetSelectorPanel.vue`
+  - `src/components/flow/panels/DynamicGroupPanel.vue`
+  - `src/components/flow/panels/ImagePanel.vue`
+  - `src/components/flow/panels/PropertyRulePanel.vue`
+  - `src/components/flow/panels/StylePanel.vue`
+  - `src/components/flow/panels/TextPanel.vue`
+  - `src/components/flow/panels/VectorPanel.vue`
+  - `src/ts/useStore.ts`
+  - `src/__tests__/useLogicFlow.scope.test.ts`
+  - `src/__tests__/useStore.test.ts`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `docs/1management/plan.md` 进度更新
+  - `useCanvasSettings` 实例隔离（留在下一个原子任务）
+  - UI/业务功能扩展与 Phase 2/3 重构
+- Decisions:
+  - 在 `useLogicFlow` 中引入 `LogicFlowScope` 概念，使用 `Map<scope, LogicFlow>` 存储实例，保留 `set/get/destroy` 既有 API 形态并新增可选 `scope` 参数。
+  - 新增 `createLogicFlowScope`、`provideLogicFlowScope`、`useLogicFlowScope`，通过 provide/inject 在同一编辑器子树内绑定作用域。
+  - `App` 与 `YysEditorEmbed` 分别提供独立 scope，`FlowEditor` 在对应 scope 注册/销毁实例；Toolbar/组件面板/属性面板/store 读取时显式使用同一 scope。
+  - 补充 `useLogicFlow` 作用域隔离测试，并调整 `useStore` 相关 mock 以覆盖新增 scope 依赖。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 当前仅隔离 LogicFlow 实例，`useCanvasSettings` 仍是模块共享状态，仍存在多实例设置串扰风险。
+- Next Recommended Unit:
+  - Phase 1: 将 `useCanvasSettings` 改为实例级状态并与当前 `LogicFlowScope` 对齐。
+
 ## [2026-03-02] Session 27 - Enforce Lint Typecheck and Prettier Checks in CI
 
 - Refactory Scope:

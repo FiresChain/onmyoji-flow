@@ -11,10 +11,11 @@ import ShikigamiSelect from './components/flow/nodes/yys/ShikigamiSelect.vue';
 import YuhunSelect from './components/flow/nodes/yys/YuhunSelect.vue';
 import PropertySelect from './components/flow/nodes/yys/PropertySelect.vue';
 import DialogManager from './components/DialogManager.vue';
-import {getLogicFlowInstance} from "@/ts/useLogicFlow";
+import { createLogicFlowScope, getLogicFlowInstance, provideLogicFlowScope } from '@/ts/useLogicFlow';
 import { migrateGraphData, needsMigration } from '@/utils/nodeMigration';
 import { useGlobalMessage } from '@/ts/useGlobalMessage';
 
+const logicFlowScope = provideLogicFlowScope(createLogicFlowScope());
 const filesStore = useFilesStore();
 const { showMessage } = useGlobalMessage();
 const activeFileModel = computed({
@@ -71,7 +72,7 @@ watch(
   () => filesStore.activeFileId,
   (newId) => {
     if (newId) {
-      const logicFlowInstance = getLogicFlowInstance();
+      const logicFlowInstance = getLogicFlowInstance(logicFlowScope);
       const currentTab = filesStore.getTab(newId);
 
       if (logicFlowInstance && currentTab?.graphRawData) {
@@ -108,7 +109,7 @@ watch(
 watch(
   () => filesStore.fileList,
   () => {
-    const logicFlowInstance = getLogicFlowInstance();
+    const logicFlowInstance = getLogicFlowInstance(logicFlowScope);
     const currentTab = filesStore.getTab(filesStore.activeFileId);
 
     if (logicFlowInstance && currentTab?.graphRawData) {

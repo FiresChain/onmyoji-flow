@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { reactive, watch } from 'vue';
-import { getLogicFlowInstance } from '@/ts/useLogicFlow';
+import { getLogicFlowInstance, useLogicFlowScope } from '@/ts/useLogicFlow';
 
 const props = defineProps<{ node: any }>();
+const logicFlowScope = useLogicFlowScope();
 
 const form = reactive({
   kind: 'rect',
@@ -28,7 +29,7 @@ watch(
 
 // 应用更改
 const applyChanges = (partial: Record<string, any>) => {
-  const lf = getLogicFlowInstance();
+  const lf = getLogicFlowInstance(logicFlowScope);
   if (!lf || !props.node) return;
 
   const currentVector = props.node.properties?.vector || {};

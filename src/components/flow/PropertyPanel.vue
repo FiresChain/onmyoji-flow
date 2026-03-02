@@ -8,7 +8,9 @@ import AssetSelectorPanel from './panels/AssetSelectorPanel.vue';
 import VectorPanel from './panels/VectorPanel.vue';
 import DynamicGroupPanel from './panels/DynamicGroupPanel.vue';
 import { ASSET_LIBRARIES } from '@/types/nodeTypes';
-import { getLogicFlowInstance } from '@/ts/useLogicFlow';
+import { getLogicFlowInstance, useLogicFlowScope } from '@/ts/useLogicFlow';
+
+const logicFlowScope = useLogicFlowScope();
 
 const props = defineProps({
   height: {
@@ -49,7 +51,7 @@ const supportsTypeSwitch = computed(() => nodeType.value === 'assetSelector');
 const currentAssetLibrary = computed({
   get: () => selectedNode.value?.properties?.assetLibrary || 'shikigami',
   set: (value) => {
-    const lf = getLogicFlowInstance();
+    const lf = getLogicFlowInstance(logicFlowScope);
     if (!lf || !selectedNode.value) return;
 
     lf.setProperties(selectedNode.value.id, {

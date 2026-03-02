@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { reactive, watch } from 'vue';
-import { getLogicFlowInstance } from '@/ts/useLogicFlow';
+import { getLogicFlowInstance, useLogicFlowScope } from '@/ts/useLogicFlow';
 import { normalizeNodeStyle, type NodeStyle } from '@/ts/nodeStyle';
 
 const props = defineProps<{
   node: any;
 }>();
+const logicFlowScope = useLogicFlowScope();
 
 type StyleForm = {
   fill: string;
@@ -73,7 +74,7 @@ const getShadowFromForm = () => ({
 });
 
 const applyStyle = (partial: Partial<NodeStyle>) => {
-  const lf = getLogicFlowInstance();
+  const lf = getLogicFlowInstance(logicFlowScope);
   const node = props.node;
   if (!lf || !node) return;
 

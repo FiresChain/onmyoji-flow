@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { reactive, watch } from 'vue';
-import { getLogicFlowInstance } from '@/ts/useLogicFlow';
+import { getLogicFlowInstance, useLogicFlowScope } from '@/ts/useLogicFlow';
 import {
   GROUP_META_VERSION,
   normalizeDynamicGroupMeta
@@ -9,6 +9,7 @@ import {
 const props = defineProps<{
   node: any;
 }>();
+const logicFlowScope = useLogicFlowScope();
 
 type DynamicGroupMeta = {
   groupKind: 'team' | 'shikigami';
@@ -38,7 +39,7 @@ watch(
 );
 
 const applyGroupMeta = () => {
-  const lf = getLogicFlowInstance();
+  const lf = getLogicFlowInstance(logicFlowScope);
   const node = props.node;
   if (!lf || !node) return;
 

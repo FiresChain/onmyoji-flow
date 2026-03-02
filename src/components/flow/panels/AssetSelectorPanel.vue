@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useDialogs } from '@/ts/useDialogs';
-import { getLogicFlowInstance } from '@/ts/useLogicFlow';
+import { getLogicFlowInstance, useLogicFlowScope } from '@/ts/useLogicFlow';
 import { SELECTOR_PRESETS } from '@/configs/selectorPresets';
 import type { SelectorConfig } from '@/types/selector';
 import { resolveAssetUrl, resolveAssetUrlsInDataSource } from '@/utils/assetUrl';
@@ -13,6 +13,7 @@ const props = defineProps<{
 }>();
 
 const { openGenericSelector } = useDialogs();
+const logicFlowScope = useLogicFlowScope();
 
 const currentLibrary = computed(() => props.node.properties?.assetLibrary || 'shikigami');
 
@@ -21,7 +22,7 @@ const currentAsset = computed(() => {
 });
 
 const handleOpenSelector = () => {
-  const lf = getLogicFlowInstance();
+  const lf = getLogicFlowInstance(logicFlowScope);
   const node = props.node;
   if (!lf || !node) return;
 

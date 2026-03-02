@@ -118,7 +118,7 @@ import VectorNode from './nodes/common/VectorNode.vue';
 import VectorNodeModel from './nodes/common/VectorNodeModel';
 import PropertyPanel from './PropertyPanel.vue';
 import { useGlobalMessage } from '@/ts/useGlobalMessage';
-import { setLogicFlowInstance, destroyLogicFlowInstance } from '@/ts/useLogicFlow';
+import { setLogicFlowInstance, destroyLogicFlowInstance, useLogicFlowScope } from '@/ts/useLogicFlow';
 import { normalizePropertiesWithStyle, normalizeNodeStyle, styleEquals } from '@/ts/nodeStyle';
 import { useCanvasSettings } from '@/ts/useCanvasSettings';
 import { validateGraphGroupRules, type GroupRuleWarning } from '@/utils/groupRules';
@@ -144,6 +144,7 @@ const props = withDefaults(defineProps<{
 const flowHostRef = ref<HTMLElement | null>(null);
 const containerRef = ref<HTMLElement | null>(null);
 const lf = ref<LogicFlow | null>(null);
+const logicFlowScope = useLogicFlowScope();
 const selectedCount = ref(0);
 const { selectionEnabled, snapGridEnabled, snaplineEnabled } = useCanvasSettings();
 const alignmentButtons: { key: AlignType; label: string }[] = [
@@ -1090,7 +1091,7 @@ onMounted(() => {
   });
 
   registerNodes(lfInstance);
-  setLogicFlowInstance(lfInstance);
+  setLogicFlowInstance(lfInstance, logicFlowScope);
   applySelectionSelect(selectionEnabled.value);
   containerRef.value?.addEventListener('mousedown', handleCanvasMouseDown);
   containerRef.value?.addEventListener('contextmenu', handleCanvasContextMenu, true);
@@ -1245,9 +1246,8 @@ onBeforeUnmount(() => {
   containerRef.value?.removeEventListener('mousedown', handleCanvasMouseDown);
   containerRef.value?.removeEventListener('contextmenu', handleCanvasContextMenu, true);
   stopRightDrag();
-  lf.value?.destroy();
+  destroyLogicFlowInstance(logicFlowScope);
   lf.value = null;
-  destroyLogicFlowInstance();
 });
 
 

@@ -56,7 +56,12 @@ import Toolbar from './components/Toolbar.vue'
 import ComponentsPanel from './components/flow/ComponentsPanel.vue'
 import DialogManager from './components/DialogManager.vue'
 import { useFilesStore } from '@/ts/useStore'
-import { setLogicFlowInstance, destroyLogicFlowInstance, getLogicFlowInstance } from '@/ts/useLogicFlow'
+import {
+  createLogicFlowScope,
+  destroyLogicFlowInstance,
+  getLogicFlowInstance,
+  provideLogicFlowScope
+} from '@/ts/useLogicFlow'
 import {
   registerFlowNodes,
   resolveFlowPlugins,
@@ -200,6 +205,7 @@ const emit = defineEmits<{
 // 创建局部 Pinia 实例（状态隔离）
 const localPinia = createPinia()
 setActivePinia(localPinia)
+const logicFlowScope = provideLogicFlowScope(createLogicFlowScope())
 
 const ensureElementPlusInstalled = () => {
   const instance = getCurrentInstance()
@@ -361,7 +367,7 @@ const handleCancel = () => {
 // 公开方法（供父组件调用）
 const getGraphData = (): GraphData | null => {
   if (props.mode === 'edit') {
-    const lfInstance = getLogicFlowInstance()
+    const lfInstance = getLogicFlowInstance(logicFlowScope)
     if (lfInstance) {
       return lfInstance.getGraphRawData() as GraphData
     }
@@ -374,7 +380,7 @@ const getGraphData = (): GraphData | null => {
 const setGraphData = (data: GraphData) => {
   const safeData = sanitizeGraphData(data, { hideDynamicGroups: props.mode === 'preview' })
   if (props.mode === 'edit') {
-    const lfInstance = getLogicFlowInstance()
+    const lfInstance = getLogicFlowInstance(logicFlowScope)
     if (lfInstance) {
       lfInstance.render(safeData)
     }
@@ -466,7 +472,7 @@ onBeforeUnmount(() => {
   embedResizeObserver?.disconnect()
   embedResizeObserver = null
   destroyPreviewMode()
-  destroyLogicFlowInstance()
+  destroyLogicFlowInstance(logicFlowScope)
 })
 </script>
 

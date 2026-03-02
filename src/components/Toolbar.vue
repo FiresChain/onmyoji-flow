@@ -391,7 +391,7 @@ import updateLogs from "../data/updateLog.json"
 import { useFilesStore } from "@/ts/useStore";
 import { ElMessageBox } from "element-plus";
 import { useGlobalMessage } from "@/ts/useGlobalMessage";
-import { getLogicFlowInstance } from "@/ts/useLogicFlow";
+import { getLogicFlowInstance, useLogicFlowScope } from '@/ts/useLogicFlow';
 import { useCanvasSettings } from '@/ts/useCanvasSettings';
 import { useSafeI18n } from '@/ts/useSafeI18n';
 import { ASSET_LIBRARIES } from '@/types/nodeTypes';
@@ -424,6 +424,7 @@ const props = withDefaults(defineProps<{
 });
 
 const filesStore = props.piniaInstance ? useFilesStore(props.piniaInstance) : useFilesStore();
+const logicFlowScope = useLogicFlowScope();
 const contactImageUrl = resolveAssetUrl('/assets/Other/Contact.png') as string;
 const { showMessage } = useGlobalMessage();
 const { selectionEnabled, snapGridEnabled, snaplineEnabled } = useCanvasSettings();
@@ -853,7 +854,7 @@ const removeManagedAsset = (libraryId: string, item: CustomAssetItem) => {
 // 重新渲染 LogicFlow 画布的通用方法
 const refreshLogicFlowCanvas = (message?: string) => {
   setTimeout(() => {
-    const logicFlowInstance = getLogicFlowInstance();
+    const logicFlowInstance = getLogicFlowInstance(logicFlowScope);
     if (logicFlowInstance) {
       // 获取当前活动文件的数据
       const currentFileData = filesStore.getTab(filesStore.activeFileId);
@@ -1092,7 +1093,7 @@ const handleClearCanvas = () => {
     cancelButtonText: '取消',
     type: 'warning',
   }).then(() => {
-    const lfInstance = getLogicFlowInstance();
+    const lfInstance = getLogicFlowInstance(logicFlowScope);
     const activeId = filesStore.activeFileId;
     const activeFile = filesStore.getTab(activeId);
 
@@ -1230,7 +1231,7 @@ const withDynamicGroupsHiddenForSnapshot = async <T>(
 };
 
 const captureLogicFlowSnapshot = async () => {
-  const logicFlowInstance = getLogicFlowInstance() as any;
+  const logicFlowInstance = getLogicFlowInstance(logicFlowScope) as any;
   if (!logicFlowInstance || typeof logicFlowInstance.getSnapshotBase64 !== 'function') {
     showMessage('error', '未找到 LogicFlow 实例，无法截图');
     return null;

@@ -2,9 +2,10 @@
 import { ref, watch } from 'vue';
 import { QuillEditor } from '@vueup/vue-quill';
 import '@vueup/vue-quill/dist/vue-quill.snow.css';
-import { getLogicFlowInstance } from '@/ts/useLogicFlow';
+import { getLogicFlowInstance, useLogicFlowScope } from '@/ts/useLogicFlow';
 
 const props = defineProps<{ node: any }>();
+const logicFlowScope = useLogicFlowScope();
 
 const DEFAULT_HTML = '<p>请输入文本</p>';
 
@@ -59,7 +60,7 @@ watch(
 );
 
 const handleContentChange = (value: string) => {
-  const lf = getLogicFlowInstance();
+  const lf = getLogicFlowInstance(logicFlowScope);
   const node = props.node;
   if (!lf || !node) return;
 

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { reactive, watch } from 'vue';
-import { getLogicFlowInstance } from '@/ts/useLogicFlow';
+import { getLogicFlowInstance, useLogicFlowScope } from '@/ts/useLogicFlow';
 import { normalizeNodeStyle } from '@/ts/nodeStyle';
 
 type FitMode = 'contain' | 'cover' | 'fill';
@@ -8,6 +8,7 @@ type FitMode = 'contain' | 'cover' | 'fill';
 const props = defineProps<{
   node: any;
 }>();
+const logicFlowScope = useLogicFlowScope();
 
 type ImageForm = {
   url: string;
@@ -59,7 +60,7 @@ watch(
 );
 
 const applyImageChanges = (partial: Partial<ImageForm>) => {
-  const lf = getLogicFlowInstance();
+  const lf = getLogicFlowInstance(logicFlowScope);
   const node = props.node;
   if (!lf || !node) return;
 

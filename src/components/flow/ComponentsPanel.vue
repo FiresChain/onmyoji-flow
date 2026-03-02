@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { getLogicFlowInstance } from '@/ts/useLogicFlow';
+import { getLogicFlowInstance, useLogicFlowScope } from '@/ts/useLogicFlow';
+
+const logicFlowScope = useLogicFlowScope();
 
 // 使用嵌套结构定义组件分组
 const componentGroups = [
@@ -201,7 +203,7 @@ const handleComponentClick = (component) => {
 
 const handleMouseDown = (e, component) => {
   e.preventDefault(); // 阻止文字选中
-  const lf = getLogicFlowInstance();
+  const lf = getLogicFlowInstance(logicFlowScope);
   if (!lf) return;
   lf.dnd.startDrag({
     type: component.type,

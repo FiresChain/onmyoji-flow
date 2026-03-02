@@ -17,6 +17,7 @@ const logicFlowMocks = vi.hoisted(() => ({
   })),
   getNodeModelById: vi.fn(() => ({ zIndex: 1 }))
 }))
+const logicFlowScopeMock = vi.hoisted(() => Symbol('test-logic-flow-scope'))
 
 const createSampleRootDocument = () => ({
   schemaVersion: '1.0.0',
@@ -173,7 +174,8 @@ vi.mock('../ts/useLogicFlow', () => ({
     getGraphRawData: logicFlowMocks.getGraphRawData,
     getTransform: logicFlowMocks.getTransform,
     getNodeModelById: logicFlowMocks.getNodeModelById
-  }))
+  })),
+  useLogicFlowScope: vi.fn(() => logicFlowScopeMock)
 }))
 
 describe('useFilesStore 数据操作测试', () => {
