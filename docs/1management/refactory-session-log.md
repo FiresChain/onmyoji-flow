@@ -40,6 +40,37 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-02] Session 37 - Extract FlowEditor Runtime Wiring into useFlowEditorRuntime
+
+- Refactory Scope:
+  - Phase: Phase 2
+  - Task: 将 `FlowEditor` 中 “LogicFlow 实例初始化 + 事件绑定” 抽离到独立 composable，保持行为不变
+- In Scope Files:
+  - `src/components/flow/FlowEditor.vue`
+  - `src/components/flow/composables/useFlowEditorRuntime.ts`
+  - `src/__tests__/embed-update-data.contract.test.ts`
+  - `docs/2design/FlowEditorArchitecture.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `Toolbar` 拆分
+  - `groupRules` 规则语义调整
+  - `docs/1management/plan.md` 进度更新
+- Decisions:
+  - 新增 `useFlowEditorRuntime`，承接 `FlowEditor` 原 `onMounted` 中的 LogicFlow 初始化、节点注册、快捷键/右键菜单接线、关键图数据变更事件监听与运行时订阅清理。
+  - `FlowEditor` 保留原有业务命令与渲染逻辑，仅改为调用 `mountFlowEditorRuntime(...)` 并在 `onBeforeUnmount` 执行 disposer。
+  - 更新契约守卫测试：将“关键事件监听片段”检查从 `FlowEditor.vue` 转移到新 composable，同时保留 `FlowEditor` 对配置 props 的接线守卫，确保外部契约不变。
+  - 新增 `FlowEditorArchitecture.md` 最小文档，明确渲染层与运行时编排层边界。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 本次为“位置迁移型重构”，事件绑定仍较集中于单个 runtime composable；后续继续拆分时需避免跨文件循环依赖。
+- Next Recommended Unit:
+  - Phase 2 下一原子任务：在不改语义前提下拆分 `FlowEditor` 图层命令与 group rule 编排逻辑边界（仍不触及 Toolbar）。
+
 ## [2026-03-02] Session 36 - Apply Embed config(grid/snapline/keyboard) with Minimal Scope
 
 - Refactory Scope:

@@ -3,6 +3,7 @@ import { defineComponent, h } from 'vue';
 import { mount } from '@vue/test-utils';
 import YysEditorEmbed, { type GraphData } from '@/YysEditorEmbed.vue';
 import flowEditorSource from '@/components/flow/FlowEditor.vue?raw';
+import flowEditorRuntimeSource from '@/components/flow/composables/useFlowEditorRuntime.ts?raw';
 
 const createFlowEditorStub = (payload: GraphData) => defineComponent({
   name: 'FlowEditor',
@@ -191,8 +192,24 @@ describe('YysEditorEmbed update:data contract', () => {
     expect(wrapper.emitted('update:data')).toEqual(payloads.map((payload) => [payload]));
   });
 
-  it('keeps FlowEditor graph-data-change wiring for core mutation event paths', () => {
-    const requiredSnippets = [
+  it('keeps FlowEditor runtime wiring for initialization and core mutation event paths', () => {
+    const flowEditorRequiredSnippets = [
+      'useFlowEditorRuntime',
+      'mountFlowEditorRuntime({',
+      'configSnapGridEnabled?: boolean;',
+      'configSnaplineEnabled?: boolean;',
+      'configKeyboardEnabled?: boolean;',
+      '() => props.configSnapGridEnabled',
+      '() => props.configSnaplineEnabled',
+      '() => props.configKeyboardEnabled'
+    ];
+    flowEditorRequiredSnippets.forEach((snippet) => {
+      expect(flowEditorSource).toContain(snippet);
+    });
+
+    const runtimeRequiredSnippets = [
+      'lf.value = new LogicFlow({',
+      'setLogicFlowInstance(lfInstance, logicFlowScope);',
       'lfInstance.on(EventType.NODE_ADD',
       "lfInstance.on('node:dnd-add'",
       'lfInstance.on(EventType.NODE_PROPERTIES_CHANGE',
@@ -204,16 +221,10 @@ describe('YysEditorEmbed update:data contract', () => {
       'lfInstance.on(EventType.EDGE_DELETE',
       'lfInstance.on(EventType.EDGE_ADJUST',
       'lfInstance.on(EventType.EDGE_EXCHANGE_NODE',
-      'lfInstance.on(EventType.HISTORY_CHANGE',
-      'configSnapGridEnabled?: boolean;',
-      'configSnaplineEnabled?: boolean;',
-      'configKeyboardEnabled?: boolean;',
-      '() => props.configSnapGridEnabled',
-      '() => props.configSnaplineEnabled',
-      '() => props.configKeyboardEnabled'
+      'lfInstance.on(EventType.HISTORY_CHANGE'
     ];
-    requiredSnippets.forEach((snippet) => {
-      expect(flowEditorSource).toContain(snippet);
+    runtimeRequiredSnippets.forEach((snippet) => {
+      expect(flowEditorRuntimeSource).toContain(snippet);
     });
   });
 
