@@ -40,6 +40,34 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-02] Session 27 - Enforce Lint Typecheck and Prettier Checks in CI
+
+- Refactory Scope:
+  - Phase: Phase 0 / quality gate hardening
+  - Task: 在主 workflow 强制执行 `lint + typecheck + prettier --check`，不改业务逻辑
+- In Scope Files:
+  - `.github/workflows/build-pages.yml`
+  - `package.json`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `docs/1management/plan.md` 进度更新
+  - 业务实现与状态管理逻辑
+  - ESLint 边界规则语义
+- Decisions:
+  - `package.json` 将 `lint` 调整为“检查模式”（移除 `--fix`），并新增 `lint:fix` 保留本地自动修复能力。
+  - `package.json` 新增 `format:check` 脚本：`prettier --check "src/**/*.{js,ts,vue}"`。
+  - `.github/workflows/build-pages.yml` 在构建前新增 `Lint`、`Typecheck`、`Prettier Check` 三个强制步骤，任何一步失败都会阻断 build/deploy。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `npm run format:check`: fail（当前基线存在 77 个文件不符合 Prettier）
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 由于已接入 `format:check` 强制闸门，当前分支在 CI 上会被该检查阻断，需后续单独原子任务统一执行 Prettier 对齐并评估差异影响。
+- Next Recommended Unit:
+  - Phase 0: 执行一次“仅格式化”的原子单元（限定 `src/**/*.{js,ts,vue}`），跑全量回归并单独提交，解除 Prettier gate 阻断。
+
 ## [2026-03-02] Session 26 - Add Enumerable Guard for Centralized State Write Boundary Config
 
 - Refactory Scope:
