@@ -142,17 +142,32 @@ describe('useFilesStore 数据操作测试', () => {
     expect(store.activeFileId).toBe(secondFile.id)
   })
 
-  it('切换活动文件时不应将当前画布数据写入目标文件', () => {
+  it('切换活动文件时应只保存一次来源文件且不串写目标文件', () => {
     const store = useFilesStore()
 
     store.importData(createSampleRootDocument())
 
     const targetBefore = JSON.parse(JSON.stringify(store.getTab('file-2')?.graphRawData))
     store.setActiveFile('file-2')
+    const sourceAfter = store.getTab('file-1')?.graphRawData
     const targetAfter = store.getTab('file-2')?.graphRawData
 
     expect(store.activeFileId).toBe('file-2')
+    expect(sourceAfter).toMatchObject({
+      nodes: [{ id: 'lf-node', type: 'rect', x: 100, y: 100, zIndex: 1 }],
+      edges: []
+    })
     expect(targetAfter).toEqual(targetBefore)
+    expect(logicFlowMocks.getGraphRawData).toHaveBeenCalledTimes(1)
+  })
+
+  it('切换到当前活动文件时不应触发重复保存', () => {
+    const store = useFilesStore()
+    store.importData(createSampleRootDocument())
+
+    store.setActiveFile('file-1')
+
+    expect(logicFlowMocks.getGraphRawData).not.toHaveBeenCalled()
   })
 
   it('对非活动文件 setVisible 不应串写目标文件 graphRawData', () => {

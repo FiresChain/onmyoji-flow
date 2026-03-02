@@ -322,8 +322,14 @@ export const useFilesStore = defineStore('files', () => {
     const setActiveFile = (fileKey: string) => {
         const targetId = resolveFileId(fileKey);
         if (!targetId) return;
-        if (activeFileId.value === targetId) return;
+        const previousId = activeFileId.value;
+        if (previousId === targetId) return;
         activeFileId.value = targetId;
+        if (previousId) {
+            updateTab(previousId);
+            return;
+        }
+        persistState();
     };
 
     // 兼容旧组件 API：通过 id/name 设置可见性

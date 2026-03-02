@@ -2,7 +2,7 @@
 import Toolbar from './components/Toolbar.vue';
 import ProjectExplorer from './components/ProjectExplorer.vue';
 import ComponentsPanel from './components/flow/ComponentsPanel.vue';
-import { onMounted, reactive, watch } from 'vue';
+import { computed, onMounted, watch } from 'vue';
 import {useFilesStore} from "@/ts/useStore";
 import Vue3DraggableResizable from 'vue3-draggable-resizable';
 import {TabPaneName, TabsPaneContext} from "element-plus";
@@ -17,6 +17,10 @@ import { useGlobalMessage } from '@/ts/useGlobalMessage';
 
 const filesStore = useFilesStore();
 const { showMessage } = useGlobalMessage();
+const activeFileModel = computed({
+  get: () => filesStore.activeFileId,
+  set: (value: string) => filesStore.setActiveFile(value)
+});
 
 const normalizeGraphData = (data: any) => {
   if (data && Array.isArray((data as any).nodes) && Array.isArray((data as any).edges)) {
@@ -62,14 +66,10 @@ onMounted(() => {
   filesStore.setupAutoSave();
 });
 
-// 1) 切换激活文件：仅当 id 变化时保存旧数据并渲染新数据
+// 1) 切换激活文件：仅渲染新数据；保存旧文件职责由 store.setActiveFile 统一处理
 watch(
   () => filesStore.activeFileId,
-  async (newId, oldId) => {
-    if (oldId && newId !== oldId) {
-      filesStore.updateTab(oldId);
-    }
-
+  (newId) => {
     if (newId) {
       const logicFlowInstance = getLogicFlowInstance();
       const currentTab = filesStore.getTab(newId);
@@ -154,7 +154,7 @@ watch(
       <!-- 工作区 -->
       <div class="workspace">
         <el-tabs
-            v-model="filesStore.activeFileId"
+            v-model="activeFileModel"
             type="card"
             class="demo-tabs"
             editable

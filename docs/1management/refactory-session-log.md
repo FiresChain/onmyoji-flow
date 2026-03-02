@@ -40,6 +40,36 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-02] Session 15 - Converge App/useStore Save Boundary on Active File Switch
+
+- Refactory Scope:
+  - Phase: Phase 1
+  - Task: 收敛 `App.vue` 与 `useStore` 的保存职责边界，统一“切换活动文件时谁负责保存旧文件”，消除重复保存路径并保持不发生跨文件 `graphRawData` 串写
+- In Scope Files:
+  - `src/App.vue`
+  - `src/ts/useStore.ts`
+  - `src/__tests__/useStore.test.ts`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - 其他组件/模块重构
+  - UI 交互改版
+  - `docs/1management/plan.md` 进度更新
+- Decisions:
+  - 将活动文件切换时的“保存旧文件”职责收敛到 store：`setActiveFile` 在切换后显式 `updateTab(previousId)`。
+  - `App.vue` 中 `activeFileId` 监听不再执行 `updateTab(oldId)`，仅负责渲染新活动文件数据。
+  - `el-tabs` 的 `v-model` 改为通过 `activeFileModel` 调用 `filesStore.setActiveFile(...)`，避免直接写 `activeFileId`。
+  - 新增回归断言：切换活动文件只触发一次保存路径，且目标文件 `graphRawData` 不被来源串写。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - store 内仍存在少量直接写 `activeFileId` 的路径（如删除/隐藏等分支中的特定切换场景），当前行为安全但尚未完全统一为单一切换入口。
+- Next Recommended Unit:
+  - Phase 1: 提炼统一的 `switchActiveFile` 内部入口，收敛 `addTab/setVisible/deleteFile/removeTab` 的活动文件切换写法并补回归测试。
+
 ## [2026-03-02] Session 14 - Converge Save-Source Binding After Hiding/Deleting Active File
 
 - Refactory Scope:
