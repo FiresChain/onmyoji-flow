@@ -40,6 +40,35 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-02] Session 5 - Phase 0 Add and Validate Typecheck Script (vue-tsc --noEmit)
+
+- Refactory Scope:
+  - Phase: Phase 0
+  - Task: 4.0.2-2 新增并验证 typecheck 脚本（`vue-tsc --noEmit`）
+- In Scope Files:
+  - `package.json`
+  - `tsconfig.json`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `src/**`
+  - CI 其他子任务
+  - `docs/1management/plan.md` 进度数字更新
+- Decisions:
+  - Add `typecheck` script in `package.json` with exact command `vue-tsc --noEmit`.
+  - Add `typescript` and `vue-tsc` to `devDependencies` so the script is executable in local repo baseline.
+  - Add minimal root `tsconfig.json` because repository baseline had no `tsconfig*.json`, which blocks `vue-tsc` startup.
+  - Keep scope limited to script executability; do not fix existing source typing issues in this unit.
+- Checks:
+  - `npm run typecheck`: fail (command executes successfully, then reports existing baseline type errors in `src/**`)
+  - `npm test`: not-run (out of current atomic unit)
+  - `npm run lint`: not-run (out of current atomic unit)
+  - `prettier --check`: not-run (out of current atomic unit)
+  - `npm run build:lib`: not-run (out of current atomic unit)
+- Risks / Follow-up:
+  - Typecheck is now wired but currently non-green due existing repository type debt (Vue/LogicFlow typing mismatches, missing declarations, and test globals typing).
+- Next Recommended Unit:
+  - Phase 0 (follow-up): establish a scoped typecheck-baseline remediation unit (start with declaration/test-env typing and missing module references) to move `npm run typecheck` toward pass.
+
 ## [2026-03-02] Session 4 - Phase 0 Enable Executable ESLint Config with Vue Parsing
 
 - Refactory Scope:
