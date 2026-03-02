@@ -123,6 +123,25 @@ const collectCallers = (sourceFile: ts.SourceFile, calleeName: string) => {
   return callers
 }
 
+const hasGlobalLocalStorageClearCall = (sourceFile: ts.SourceFile) => {
+  let found = false
+  const visit = (node: ts.Node) => {
+    if (
+      ts.isCallExpression(node) &&
+      ts.isPropertyAccessExpression(node.expression) &&
+      ts.isIdentifier(node.expression.expression) &&
+      node.expression.expression.text === 'localStorage' &&
+      node.expression.name.text === 'clear'
+    ) {
+      found = true
+      return
+    }
+    ts.forEachChild(node, visit)
+  }
+  visit(sourceFile)
+  return found
+}
+
 // Mock localStorage
 const localStorageMock = (() => {
   let store: Record<string, string> = {}
@@ -483,6 +502,14 @@ describe('useFilesStore 数据操作测试', () => {
     const writeFunctions = [...collectFileListWriteFunctions(sourceFile)].sort()
 
     expect(writeFunctions).toEqual(['importData', 'initializeWithPrompt', 'resetWorkspace'])
+  })
+
+  it('localStorage 异常分支不应调用全局 clear（结构性防回归）', () => {
+    const sourceFile = parseUseStoreSource()
+    const namespaceClearCallers = collectCallers(sourceFile, 'clearFilesStoreLocalStorage')
+
+    expect(hasGlobalLocalStorageClearCall(sourceFile)).toBe(false)
+    expect(namespaceClearCallers.has('saveStateToLocalStorage')).toBe(true)
   })
 
   it('运行时切换入口应通过统一入口 switchActiveFile（结构性防回归）', () => {

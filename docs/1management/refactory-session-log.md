@@ -40,6 +40,34 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-02] Session 25 - Fix filesStore Persistence Fallback to Avoid Global localStorage Clear
+
+- Refactory Scope:
+  - Phase: Phase 1
+  - Task: 修复 `useStore` 持久化异常分支的全局 `localStorage.clear()` 风险，仅清理 `filesStore` 命名空间并补最小防回归守卫
+- In Scope Files:
+  - `src/ts/useStore.ts`
+  - `src/__tests__/useStore.test.ts`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `docs/1management/plan.md` 进度更新
+  - ESLint 边界治理（集中配置守卫）
+  - CI 质量闸门补齐
+- Decisions:
+  - 将 `saveStateToLocalStorage` 异常恢复路径由 `localStorage.clear()` 调整为 `clearFilesStoreLocalStorage()`，避免清空非本业务 key。
+  - 在 `useStore` 结构测试中新增守卫：禁止出现 `localStorage.clear()`，并要求 `saveStateToLocalStorage` 通过 `clearFilesStoreLocalStorage` 执行命名空间清理。
+  - 保持既有运行时语义不变：仅在保存失败时重试写入 `filesStore`，不改动正常保存流程与状态结构。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 当前守卫为结构性测试，未注入“磁盘配额触发”运行时故障模拟；后续可按需补一条故障注入用例验证重试分支行为。
+- Next Recommended Unit:
+  - Phase 1: 为 `eslint-rules/state-write-boundaries.config.js` 增加“可枚举边界守卫”，防止新增 boundary 规则绕过集中配置源。
+
 ## [2026-03-02] Session 24 - Centralize State Write Boundary Mapping Config (No Semantic Change)
 
 - Refactory Scope:

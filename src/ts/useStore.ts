@@ -85,9 +85,9 @@ function saveStateToLocalStorage(state: any) {
             console.log('数据已防抖保存到 localStorage');
         } catch (error) {
             console.error('保存到 localStorage 失败:', error);
-            // 如果 localStorage 满了，尝试清理一些数据
+            // 如果 localStorage 满了，仅清理 filesStore 命名空间，避免影响其他业务 key
             try {
-                localStorage.clear();
+                clearFilesStoreLocalStorage();
                 localStorage.setItem('filesStore', JSON.stringify(state));
             } catch (clearError) {
                 console.error('清理 localStorage 后仍无法保存:', clearError);
