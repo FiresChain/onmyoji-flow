@@ -116,7 +116,7 @@ const handleSave = (data) => {
 | `width` | `string \| number` | `'100%'` | 宽度 |
 | `height` | `string \| number` | `'600px'` | 高度 |
 | `showToolbar` | `boolean` | `true` | 显示工具栏 |
-| `showPropertyPanel` | `boolean` | `true` | 兼容保留，当前版本 no-op |
+| `showPropertyPanel` | `boolean` | `true` | 编辑模式下控制右侧属性面板显示 |
 | `showComponentPanel` | `boolean` | `true` | 显示组件库 |
 | `config` | `EditorConfig` | `{}` | 兼容保留，当前版本 no-op |
 
@@ -129,7 +129,7 @@ const handleSave = (data) => {
 | `cancel` | `()` | 取消 |
 | `error` | `(error: Error)` | 错误 |
 
-> 兼容声明（2026-03）：`showPropertyPanel` 和 `config` 为兼容保留参数，当前实现不会消费这两个参数。
+> 契约说明（2026-03）：`showPropertyPanel` 已在 `mode='edit'` 下生效；`config` 仍为兼容保留参数，当前实现不会消费其字段。
 
 ### 方法
 

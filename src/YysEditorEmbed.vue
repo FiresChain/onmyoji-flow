@@ -28,6 +28,7 @@
           ref="flowEditorRef"
           :height="editorContentHeight"
           :enable-label="false"
+          :show-property-panel="showPropertyPanel"
           @graph-data-change="handleGraphDataChange"
         />
       </div>

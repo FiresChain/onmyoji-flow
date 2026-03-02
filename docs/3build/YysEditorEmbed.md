@@ -103,7 +103,7 @@ const handleCancel = () => {
 | `width` | `string \| number` | `'100%'` | 宽度 |
 | `height` | `string \| number` | `'600px'` | 高度 |
 | `showToolbar` | `boolean` | `true` | 是否显示工具栏（仅编辑模式） |
-| `showPropertyPanel` | `boolean` | `true` | 兼容保留，当前版本 no-op（不影响运行时） |
+| `showPropertyPanel` | `boolean` | `true` | 编辑模式下是否显示右侧属性面板 |
 | `showComponentPanel` | `boolean` | `true` | 是否显示组件库（仅编辑模式） |
 | `config` | `EditorConfig` | `{}` | 兼容保留，当前版本 no-op（字段不生效） |
 
@@ -116,7 +116,7 @@ const handleCancel = () => {
 | `cancel` | `()` | 取消（用户点击取消按钮） |
 | `error` | `(error: Error)` | 错误 |
 
-> 兼容声明（2026-03）：`showPropertyPanel` 与 `config` 仍保留在 API 中以避免破坏已有接入，但当前实现不会消费这两个参数。
+> 契约说明（2026-03）：`showPropertyPanel` 已在 `mode='edit'` 下生效；`config` 仍为兼容保留参数，当前实现不会消费其字段。
 
 ### 方法（通过 ref 调用）
 
@@ -325,7 +325,7 @@ const flowData = ref({
 
 ## 高级用法
 
-### 兼容属性说明（当前不生效）
+### 属性说明（showPropertyPanel 已生效，config 暂未生效）
 
 ```vue
 <template>
@@ -338,7 +338,7 @@ const flowData = ref({
 </template>
 ```
 
-以上写法在当前版本仅用于兼容旧接入，`config/showPropertyPanel` 不会改变运行时行为。
+以上写法中，`showPropertyPanel` 会在编辑模式下控制右侧属性面板显示；`config` 目前仍为兼容保留，不改变运行时行为。
 
 ### 监听数据变化
 

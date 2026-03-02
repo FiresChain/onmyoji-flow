@@ -40,6 +40,39 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-02] Session 35 - Implement showPropertyPanel in Embed Edit Mode (Path A, Minimal Wiring)
+
+- Refactory Scope:
+  - Phase: Phase 1
+  - Task: 走 A 路径落地 `showPropertyPanel` 最小可用实现，使其在 embed edit 模式真正生效
+- In Scope Files:
+  - `src/components/flow/FlowEditor.vue`
+  - `src/YysEditorEmbed.vue`
+  - `src/__tests__/embed-update-data.contract.test.ts`
+  - `docs/2design/ComponentArchitecture.md`
+  - `docs/3build/YysEditorEmbed.md`
+  - `docs/3build/EMBED_README.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `config` 运行时能力实现（留在后续 Task 3）
+  - `docs/1management/plan.md` 进度更新
+  - Phase 2/3 重构任务
+- Decisions:
+  - `FlowEditor` 新增 `showPropertyPanel` prop（默认 `true`），并以 `v-if` 控制右侧 `PropertyPanel` 渲染。
+  - `YysEditorEmbed` 在 edit 模式向 `FlowEditor` 透传 `showPropertyPanel`，保持默认行为不变（默认仍显示属性面板）。
+  - 契约测试将 `showPropertyPanel` 从“兼容 no-op”改为“可生效”，并保留 `config` 当前阶段的兼容保留定位。
+  - 文档同步移除 `showPropertyPanel` 的 no-op 描述，仅保留 `config` no-op 声明，确保文档与运行时一致。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 当前只实现属性面板显示开关，不涉及布局/样式策略调整；宿主如对极窄宽度布局有额外要求，需后续单独评估。
+- Next Recommended Unit:
+  - Phase 1: 实现 `config` 的最小可用能力（至少 `grid/snapline/keyboard`）并同步文档与契约测试。
+
 ## [2026-03-02] Session 34 - Harden update:data Contract Coverage for Embed Edit Mutations
 
 - Refactory Scope:

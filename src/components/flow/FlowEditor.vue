@@ -94,7 +94,7 @@
       </div>
     </div>
     <!-- 右侧属性面板 -->
-    <PropertyPanel :height="height" :node="selectedNode" :lf="lf" />
+    <PropertyPanel v-if="showPropertyPanel" :height="height" :node="selectedNode" :lf="lf" />
   </div>
 </template>
 
@@ -137,8 +137,10 @@ const RIGHT_DRAG_CONTEXTMENU_SUPPRESS_MS = 300;
 const props = withDefaults(defineProps<{
   height?: string;
   enableLabel?: boolean;
+  showPropertyPanel?: boolean;
 }>(), {
-  enableLabel: false
+  enableLabel: false,
+  showPropertyPanel: true
 });
 const emit = defineEmits<{
   'graph-data-change': [data: GraphData];

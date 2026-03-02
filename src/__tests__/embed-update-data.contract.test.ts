@@ -1,13 +1,27 @@
 import { describe, expect, it } from 'vitest';
-import { defineComponent, h, Fragment } from 'vue';
+import { defineComponent, h } from 'vue';
 import { mount } from '@vue/test-utils';
 import YysEditorEmbed, { type GraphData } from '@/YysEditorEmbed.vue';
 import flowEditorSource from '@/components/flow/FlowEditor.vue?raw';
 
 const createFlowEditorStub = (payload: GraphData) => defineComponent({
   name: 'FlowEditor',
+  props: {
+    showPropertyPanel: {
+      type: Boolean,
+      default: true
+    },
+    height: {
+      type: String,
+      default: '100%'
+    },
+    enableLabel: {
+      type: Boolean,
+      default: false
+    }
+  },
   emits: ['graph-data-change'],
-  setup(_, { emit, expose }) {
+  setup(props, { emit, expose }) {
     expose({
       resizeCanvas: () => {},
       getGraphData: () => payload,
@@ -17,6 +31,7 @@ const createFlowEditorStub = (payload: GraphData) => defineComponent({
       'button',
       {
         class: 'flow-editor-stub',
+        'data-show-property-panel': String(props.showPropertyPanel),
         onClick: () => emit('graph-data-change', payload)
       },
       'emit-graph-data-change'
@@ -26,16 +41,33 @@ const createFlowEditorStub = (payload: GraphData) => defineComponent({
 
 const createFlowEditorMultiChangeStub = (payloads: GraphData[]) => defineComponent({
   name: 'FlowEditor',
+  props: {
+    showPropertyPanel: {
+      type: Boolean,
+      default: true
+    },
+    height: {
+      type: String,
+      default: '100%'
+    },
+    enableLabel: {
+      type: Boolean,
+      default: false
+    }
+  },
   emits: ['graph-data-change'],
-  setup(_, { emit, expose }) {
+  setup(props, { emit, expose }) {
     expose({
       resizeCanvas: () => {},
       getGraphData: () => payloads[payloads.length - 1] ?? { nodes: [], edges: [] },
       setGraphData: () => {}
     });
     return () => h(
-      Fragment,
-      {},
+      'div',
+      {
+        class: 'flow-editor-multi-stub',
+        'data-show-property-panel': String(props.showPropertyPanel)
+      },
       payloads.map((payload, index) => h(
         'button',
         {
@@ -149,7 +181,7 @@ describe('YysEditorEmbed update:data contract', () => {
     });
   });
 
-  it('keeps showPropertyPanel and config as backward-compatible no-op props', async () => {
+  it('applies showPropertyPanel in edit mode while keeping config backward-compatible for now', async () => {
     const payload: GraphData = {
       nodes: [
         {
@@ -185,9 +217,12 @@ describe('YysEditorEmbed update:data contract', () => {
     });
 
     expect(wrapper.find('.flow-editor-stub').exists()).toBe(true);
+    expect(wrapper.find('.flow-editor-stub').attributes('data-show-property-panel')).toBe('false');
 
     await wrapper.find('.flow-editor-stub').trigger('click');
-
     expect(wrapper.emitted('update:data')).toEqual([[payload]]);
+
+    await wrapper.setProps({ showPropertyPanel: true });
+    expect(wrapper.find('.flow-editor-stub').attributes('data-show-property-panel')).toBe('true');
   });
 });

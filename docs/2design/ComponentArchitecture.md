@@ -135,7 +135,7 @@ interface YysEditorEmbedProps {
 
   // UI 控制（仅在 edit 模式有效）
   showToolbar?: boolean
-  showPropertyPanel?: boolean // 兼容保留（当前版本 no-op）
+  showPropertyPanel?: boolean // 编辑模式下控制属性面板显示
   showComponentPanel?: boolean
 
   // 配置选项（兼容保留，当前版本 no-op）
@@ -165,7 +165,7 @@ interface EdgeData {
   properties?: Record<string, any>
 }
 
-// 编辑器配置（兼容保留，当前版本 no-op）
+// 编辑器配置（当前版本仍为兼容保留，字段暂未消费）
 interface EditorConfig {
   // 画布配置
   grid?: boolean
@@ -206,7 +206,7 @@ const defaultProps = {
   width: '100%',
   height: '600px',
   showToolbar: true,
-  showPropertyPanel: true, // 兼容保留（当前版本 no-op）
+  showPropertyPanel: true, // 编辑模式默认显示属性面板
   showComponentPanel: true,
   config: { // 兼容保留（当前版本 no-op）
     grid: true,
@@ -220,9 +220,9 @@ const defaultProps = {
 
 ### 契约状态（2026-03）
 
-1. `showPropertyPanel`：对外 props 仍保留以保证兼容，但在当前实现中不再控制显示逻辑（no-op）。
+1. `showPropertyPanel`：在 `mode='edit'` 下生效，用于控制右侧属性面板显示；默认值 `true`。
 2. `config`：对外 props 仍保留以保证兼容，但当前实现未消费配置字段（no-op）。
-3. 后续如需恢复这两项能力，应通过新的原子任务显式实现并补契约回归测试。
+3. `config` 的最小可用实现（`grid/snapline/keyboard`）留在后续原子任务落地。
 
 ---
 
@@ -285,7 +285,7 @@ const props = withDefaults(defineProps<{
   width?: string | number
   height?: string | number
   showToolbar?: boolean
-  showPropertyPanel?: boolean // 兼容保留（当前版本 no-op）
+  showPropertyPanel?: boolean // 编辑模式下控制属性面板显示
   showComponentPanel?: boolean
   config?: EditorConfig // 兼容保留（当前版本 no-op）
 }>(), {
@@ -293,7 +293,7 @@ const props = withDefaults(defineProps<{
   width: '100%',
   height: '600px',
   showToolbar: true,
-  showPropertyPanel: true, // 兼容保留（当前版本 no-op）
+  showPropertyPanel: true, // 编辑模式默认显示属性面板
   showComponentPanel: true
 })
 
