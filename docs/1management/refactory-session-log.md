@@ -40,6 +40,38 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-02] Session 2 - Phase 0 Naming Drift Cleanup in Management Docs
+
+- Refactory Scope:
+  - Phase: Phase 0
+  - Task: 文档命名漂移清理（管理文档）
+- In Scope Files:
+  - `docs/1management/plan.md`
+  - `docs/1management/next.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `src/**`
+  - CI/workflow/package.json changes
+  - `docs/2design/**` edits
+  - `plan.md` progress number changes
+- Decisions:
+  - Normalize project naming to `onmyoji-flow` and package naming to `@rookie4show/onmyoji-flow` only within this atomic unit.
+  - Keep component symbol names (for example `YysEditorEmbed`) unchanged to avoid API drift outside this scope.
+  - Keep this session docs-only and avoid any implementation refactor.
+- Checks:
+  - `rg -n "yys-editor" docs/1management/plan.md docs/1management/next.md`: pass (no stale project/package naming remains)
+  - `git diff -- docs/1management/plan.md docs/1management/next.md docs/1management/refactory-session-log.md`: pass (changes constrained to in-scope files)
+  - `npm test`: not-run (docs-only session)
+  - `npm run lint`: not-run (docs-only session)
+  - `npm run typecheck`: not-run (docs-only session)
+  - `prettier --check`: not-run (docs-only session)
+  - `npm run build:lib`: not-run (docs-only session)
+- Risks / Follow-up:
+  - `plan.md` still includes historical class/symbol names prefixed with `YysEditor*`; these were intentionally preserved because they refer to concrete component APIs.
+  - `plan.md` and `next.md` priority/status alignment still needs a dedicated consistency unit.
+- Next Recommended Unit:
+  - Phase 0, task 4.0.1-4: align status/priority consistency between `docs/1management/plan.md` and `docs/1management/next.md`.
+
 ## [2026-03-02] Session 1 - Create Project Baseline Document
 
 - Refactory Scope:
@@ -64,7 +96,7 @@ Copy this block and append at the top for each new refactor session.
   - `prettier --check`: not-run (docs-only session)
   - `npm run build:lib`: not-run (docs-only session)
 - Risks / Follow-up:
-  - `plan.md` still contains historical `yys-editor` naming drift and needs a dedicated naming-alignment unit.
+  - `plan.md` still contains historical legacy naming drift and needs a dedicated naming-alignment unit.
   - Branch convention (`develop`) and workflow trigger (`master`) remain inconsistent and need governance alignment.
 - Next Recommended Unit:
   - Phase 0, task: naming drift cleanup in `docs/1management/plan.md` and `docs/1management/next.md` (scope-limited docs refactor).

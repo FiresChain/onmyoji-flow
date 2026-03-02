@@ -1,8 +1,8 @@
-# yys-editor 项目计划（重新规划）
+# onmyoji-flow 项目计划（重新规划）
 
 ## 📊 项目概述
 
-**项目名称：** yys-editor - 阴阳师流程图编辑器
+**项目名称：** onmyoji-flow - 阴阳师流程图编辑器
 **技术栈：** Vue 3 + LogicFlow + Element Plus + Pinia
 **目标：** 作为独立编辑器和可嵌入组件，支持在 onmyoji-wiki 中作为块插件使用
 
@@ -67,7 +67,7 @@
 
 ### 愿景二：可嵌入组件（1-2 周）
 
-**目标：** 将 yys-editor 改造为可嵌入的组件，支持在 onmyoji-wiki 中作为块插件使用
+**目标：** 将 onmyoji-flow 改造为可嵌入的组件，支持在 onmyoji-wiki 中作为块插件使用
 
 #### 核心需求
 
@@ -173,16 +173,16 @@
 - [x] 更新 package.json
   ```json
   {
-    "name": "yys-editor",
+    "name": "@rookie4show/onmyoji-flow",
     "version": "1.0.0",
-    "main": "./dist/yys-editor.umd.js",
-    "module": "./dist/yys-editor.es.js",
+    "main": "./dist/onmyoji-flow.umd.js",
+    "module": "./dist/onmyoji-flow.es.js",
     "exports": {
       ".": {
-        "import": "./dist/yys-editor.es.js",
-        "require": "./dist/yys-editor.umd.js"
+        "import": "./dist/onmyoji-flow.es.js",
+        "require": "./dist/onmyoji-flow.umd.js"
       },
-      "./style.css": "./dist/yys-editor.css"
+      "./style.css": "./dist/onmyoji-flow.css"
     }
   }
   ```
@@ -194,9 +194,9 @@
 - ✅ 文档完善
 
 **构建产物：**
-- `dist/yys-editor.es.js` - 155 KB (gzip: 35 KB)
-- `dist/yys-editor.umd.js` - 112 KB (gzip: 31 KB)
-- `dist/yys-editor.css` - 69 KB (gzip: 33 KB)
+- `dist/onmyoji-flow.es.js` - 155 KB (gzip: 35 KB)
+- `dist/onmyoji-flow.umd.js` - 112 KB (gzip: 31 KB)
+- `dist/onmyoji-flow.css` - 69 KB (gzip: 33 KB)
 
 **相关文档：**
 - 设计文档：`docs/2design/ComponentArchitecture.md`
@@ -212,7 +212,7 @@
 
 #### 步骤 5：本地引用测试（1-2 天）
 
-- [x] 在 wiki 中引用 yys-editor（file: 方式）
+- [x] 在 wiki 中引用 @rookie4show/onmyoji-flow（file: 方式）
 - [x] 创建集成包装层（当前以 `/editor` 页面集成替代独立 `YysEditorBlock` 组件）
 - [x] 测试预览模式
 - [x] 测试编辑模式
@@ -239,7 +239,7 @@
 ### 组件架构
 
 ```
-yys-editor/
+onmyoji-flow/
 ├── 独立应用模式
 │   ├── App.vue（完整 UI）
 │   ├── 工具栏
@@ -260,7 +260,7 @@ wiki 块编辑器
     ↓ (传入 GraphData)
 YysEditorBlock（包装组件）
     ↓ (Props)
-YysEditorEmbed（yys-editor 组件）
+YysEditorEmbed（@rookie4show/onmyoji-flow 组件）
     ↓ (初始化)
 LogicFlow 画布
     ↓ (编辑)
@@ -376,7 +376,7 @@ interface GraphData {
 
 ```vue
 <template>
-  <div class="yys-editor-block">
+  <div class="onmyoji-flow-block">
     <!-- 预览模式 -->
     <div v-if="!isEditing" @click="startEdit">
       <YysEditorEmbed
@@ -401,7 +401,7 @@ interface GraphData {
 
 <script setup>
 import { ref } from 'vue'
-import { YysEditorEmbed } from 'yys-editor'
+import { YysEditorEmbed } from '@rookie4show/onmyoji-flow'
 
 const isEditing = ref(false)
 const flowData = ref({
@@ -437,7 +437,7 @@ const handleCancel = () => {
 ### 2026-02-26
 - ✅ 修复嵌入式编辑器在 wiki 弹层中的画布高度与边界占满问题（多次 resize + 容器高度链路修正）
 - ✅ 修复编辑已有资产后立即保存时数据偶发不刷新的问题（保存前 flush + 预览强制 key 更新）
-- ✅ 完成与 onmyoji-wiki 的本地库联调闭环（`build:lib` + `file:../yys-editor`）
+- ✅ 完成与 onmyoji-wiki 的本地库联调闭环（`build:lib` + `file:../onmyoji-flow`）
 
 ### 2026-02-25
 - ✅ 修复嵌入编辑器在 onmyoji-wiki 弹层中的初始化尺寸异常

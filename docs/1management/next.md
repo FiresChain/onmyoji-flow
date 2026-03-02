@@ -1,4 +1,4 @@
-我正在开发 yys-editor 项目（阴阳师编辑器），这是一个基于 Vue 3 + LogicFlow 的可视化编辑器。
+我正在开发 onmyoji-flow 项目（阴阳师编辑器），这是一个基于 Vue 3 + LogicFlow 的可视化编辑器。
 
 请按以下流程工作：
 
