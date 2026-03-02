@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
+import * as ts from 'typescript'
 import { useFilesStore } from '../ts/useStore'
+import useStoreSourceCode from '../ts/useStore.ts?raw'
 
 const logicFlowMocks = vi.hoisted(() => ({
   getGraphRawData: vi.fn(() => ({
@@ -45,6 +47,73 @@ const createSampleRootDocument = () => ({
   activeFileId: 'file-1',
   activeFile: 'File 1'
 })
+
+const parseUseStoreSource = () => {
+  return ts.createSourceFile('useStore.ts', useStoreSourceCode, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS)
+}
+
+const getEnclosingFunctionName = (node: ts.Node): string | null => {
+  let current: ts.Node | undefined = node
+  while (current) {
+    if (ts.isFunctionDeclaration(current) && current.name) {
+      return current.name.text
+    }
+    if (ts.isMethodDeclaration(current) && current.name && ts.isIdentifier(current.name)) {
+      return current.name.text
+    }
+    if (ts.isArrowFunction(current) || ts.isFunctionExpression(current)) {
+      const parent = current.parent
+      if (ts.isVariableDeclaration(parent) && ts.isIdentifier(parent.name)) {
+        return parent.name.text
+      }
+      if (ts.isPropertyAssignment(parent)) {
+        const name = parent.name
+        if (ts.isIdentifier(name) || ts.isStringLiteral(name)) {
+          return name.text
+        }
+      }
+    }
+    current = current.parent
+  }
+  return null
+}
+
+const collectActiveFileIdWriteFunctions = (sourceFile: ts.SourceFile) => {
+  const functions = new Set<string>()
+  const visit = (node: ts.Node) => {
+    if (
+      ts.isBinaryExpression(node) &&
+      node.operatorToken.kind === ts.SyntaxKind.EqualsToken &&
+      ts.isPropertyAccessExpression(node.left) &&
+      node.left.name.text === 'value' &&
+      ts.isIdentifier(node.left.expression) &&
+      node.left.expression.text === 'activeFileId'
+    ) {
+      const functionName = getEnclosingFunctionName(node)
+      if (functionName) {
+        functions.add(functionName)
+      }
+    }
+    ts.forEachChild(node, visit)
+  }
+  visit(sourceFile)
+  return functions
+}
+
+const collectCallers = (sourceFile: ts.SourceFile, calleeName: string) => {
+  const callers = new Set<string>()
+  const visit = (node: ts.Node) => {
+    if (ts.isCallExpression(node) && ts.isIdentifier(node.expression) && node.expression.text === calleeName) {
+      const functionName = getEnclosingFunctionName(node)
+      if (functionName) {
+        callers.add(functionName)
+      }
+    }
+    ts.forEachChild(node, visit)
+  }
+  visit(sourceFile)
+  return callers
+}
 
 // Mock localStorage
 const localStorageMock = (() => {
@@ -106,6 +175,40 @@ describe('useFilesStore 数据操作测试', () => {
     store.initializeWithPrompt()
 
     expect(store.fileList.length).toBe(2)
+    expect(store.activeFileId).toBe('file-1')
+    expect(logicFlowMocks.getGraphRawData).not.toHaveBeenCalled()
+  })
+
+  it('initializeWithPrompt 恢复时应按 activeFile(name) 回退活动文件且不触发 LogicFlow 回写', () => {
+    localStorageMock.setItem(
+      'filesStore',
+      JSON.stringify({
+        ...createSampleRootDocument(),
+        activeFileId: 'missing-file',
+        activeFile: 'File 2'
+      })
+    )
+    const store = useFilesStore()
+
+    store.initializeWithPrompt()
+
+    expect(store.activeFileId).toBe('file-2')
+    expect(logicFlowMocks.getGraphRawData).not.toHaveBeenCalled()
+  })
+
+  it('initializeWithPrompt 恢复时当 activeFileId/activeFile 都无效应回退首文件且不触发 LogicFlow 回写', () => {
+    localStorageMock.setItem(
+      'filesStore',
+      JSON.stringify({
+        ...createSampleRootDocument(),
+        activeFileId: 'missing-file',
+        activeFile: 'Missing File'
+      })
+    )
+    const store = useFilesStore()
+
+    store.initializeWithPrompt()
+
     expect(store.activeFileId).toBe('file-1')
     expect(logicFlowMocks.getGraphRawData).not.toHaveBeenCalled()
   })
@@ -329,6 +432,20 @@ describe('useFilesStore 数据操作测试', () => {
     expect(logicFlowMocks.getGraphRawData).not.toHaveBeenCalled()
   })
 
+  it('importData 恢复时应按 activeFile(name) 回退活动文件且不触发 LogicFlow 回写', () => {
+    const store = useFilesStore()
+    const mockData = {
+      ...createSampleRootDocument(),
+      activeFileId: 'missing-file',
+      activeFile: 'File 2'
+    }
+
+    store.importData(mockData)
+
+    expect(store.activeFileId).toBe('file-2')
+    expect(logicFlowMocks.getGraphRawData).not.toHaveBeenCalled()
+  })
+
   it('重置工作区应该恢复到默认状态', async () => {
     const store = useFilesStore()
     store.initializeWithPrompt()
@@ -344,5 +461,31 @@ describe('useFilesStore 数据操作测试', () => {
     expect(store.fileList.length).toBe(1)
     expect(store.fileList[0].name).toBe('File 1')
     expect(logicFlowMocks.getGraphRawData).not.toHaveBeenCalled()
+  })
+
+  it('activeFileId 写入边界应仅允许 bootstrap 与 switch 入口（结构性防回归）', () => {
+    const sourceFile = parseUseStoreSource()
+    const writeFunctions = [...collectActiveFileIdWriteFunctions(sourceFile)].sort()
+
+    expect(writeFunctions).toEqual(['setActiveFileForBootstrap', 'switchActiveFile'])
+  })
+
+  it('运行时切换入口应通过统一入口 switchActiveFile（结构性防回归）', () => {
+    const sourceFile = parseUseStoreSource()
+    const switchCallers = collectCallers(sourceFile, 'switchActiveFile')
+    const removeTabCallers = collectCallers(sourceFile, 'removeTab')
+    const writeFunctions = collectActiveFileIdWriteFunctions(sourceFile)
+
+    expect(switchCallers.has('setActiveFile')).toBe(true)
+    expect(switchCallers.has('addTab')).toBe(true)
+    expect(switchCallers.has('removeTab')).toBe(true)
+    expect(switchCallers.has('setVisible')).toBe(true)
+    expect(removeTabCallers.has('deleteFile')).toBe(true)
+
+    expect(writeFunctions.has('setActiveFile')).toBe(false)
+    expect(writeFunctions.has('addTab')).toBe(false)
+    expect(writeFunctions.has('removeTab')).toBe(false)
+    expect(writeFunctions.has('setVisible')).toBe(false)
+    expect(writeFunctions.has('deleteFile')).toBe(false)
   })
 })

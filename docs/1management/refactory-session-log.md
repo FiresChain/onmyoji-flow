@@ -40,6 +40,35 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-02] Session 18 - Add Anti-Regression Guards for activeFileId Runtime Write Boundary
+
+- Refactory Scope:
+  - Phase: Phase 1
+  - Task: 为 `useStore` 建立 `activeFileId` 写入边界防回归守卫，确保运行时切换路径不绕过 `switchActiveFile`，初始化/恢复路径保持独立且行为不变
+- In Scope Files:
+  - `src/__tests__/useStore.test.ts`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `src/App.vue` 与 UI 交互改造
+  - 数据结构重设计
+  - 新业务功能
+  - `docs/1management/plan.md` 进度更新
+- Decisions:
+  - 不修改 `useStore.ts` 运行时行为，仅通过测试补强守卫。
+  - 新增 AST 结构性测试：约束 `activeFileId.value = ...` 仅允许出现在 `setActiveFileForBootstrap` 与 `switchActiveFile`。
+  - 新增结构性调用链测试：`setActiveFile/addTab/removeTab/setVisible` 必须调用 `switchActiveFile`，`deleteFile` 必须通过 `removeTab` 触发切换路径。
+  - 补充初始化/恢复优先级回归测试：`activeFileId` 无效时回退 `activeFile(name)`，再回退首文件；并确认 `initializeWithPrompt/importData/resetWorkspace` 不触发 LogicFlow 数据回写。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 当前“写入边界”守卫基于源码结构（符号命名与调用关系）；后续若发生重命名需同步更新测试。
+- Next Recommended Unit:
+  - Phase 1: 在 lint/静态规则层增加 `activeFileId` 运行时直写禁令（仅允许白名单函数写入），将当前测试守卫前移到开发期。
+
 ## [2026-03-02] Session 17 - Clarify activeFileId Write Boundary Between Runtime Switch and Bootstrap Paths
 
 - Refactory Scope:
