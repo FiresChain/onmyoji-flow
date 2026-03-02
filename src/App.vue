@@ -17,6 +17,7 @@ import { useGlobalMessage } from '@/ts/useGlobalMessage';
 
 const logicFlowScope = provideLogicFlowScope(createLogicFlowScope());
 const filesStore = useFilesStore();
+filesStore.bindLogicFlowScope(logicFlowScope);
 const { showMessage } = useGlobalMessage();
 const activeFileModel = computed({
   get: () => filesStore.activeFileId,

@@ -425,6 +425,7 @@ const props = withDefaults(defineProps<{
 
 const filesStore = props.piniaInstance ? useFilesStore(props.piniaInstance) : useFilesStore();
 const logicFlowScope = useLogicFlowScope();
+filesStore.bindLogicFlowScope(logicFlowScope);
 const contactImageUrl = resolveAssetUrl('/assets/Other/Contact.png') as string;
 const { showMessage } = useGlobalMessage();
 const { selectionEnabled, snapGridEnabled, snaplineEnabled } = useCanvasSettings();

@@ -3,7 +3,7 @@ import {ref, computed} from 'vue';
 // import type { Edge, Node, ViewportTransform } from '@vue-flow/core';
 import {ElMessageBox} from "element-plus";
 import {useGlobalMessage} from "./useGlobalMessage";
-import {getLogicFlowInstance, useLogicFlowScope} from "./useLogicFlow";
+import {getLogicFlowInstance, type LogicFlowScope} from "./useLogicFlow";
 import {CURRENT_SCHEMA_VERSION, migrateToV1, RootDocument} from "./schema";
 import { normalizeGraphRawDataSchema } from '@/utils/graphSchema';
 
@@ -98,7 +98,11 @@ function saveStateToLocalStorage(state: any) {
 
 
 export const useFilesStore = defineStore('files', () => {
-    const logicFlowScope = useLogicFlowScope();
+    const boundLogicFlowScope = ref<LogicFlowScope | null>(null);
+
+    const bindLogicFlowScope = (scope?: LogicFlowScope) => {
+        boundLogicFlowScope.value = scope ?? null;
+    };
 
     // Helper: generate stable ids
     const genId = () => 'f_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
@@ -429,7 +433,7 @@ export const useFilesStore = defineStore('files', () => {
 
     // 同步 LogicFlow 画布数据到 store 的内部方法
     const syncLogicFlowDataToStore = (fileId?: string) => {
-        const logicFlowInstance = getLogicFlowInstance(logicFlowScope);
+        const logicFlowInstance = getLogicFlowInstance(boundLogicFlowScope.value ?? undefined);
         const targetId = fileId || activeFileId.value;
 
         if (logicFlowInstance && targetId) {
@@ -482,6 +486,7 @@ export const useFilesStore = defineStore('files', () => {
         setVisible,
         deleteFile,
         renameFile,
+        bindLogicFlowScope,
 
         fileList,
         activeFileId,

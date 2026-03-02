@@ -40,6 +40,38 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-02] Session 30 - Add Multi-Instance Embed Isolation Regression Coverage
+
+- Refactory Scope:
+  - Phase: Phase 1
+  - Task: 新增“同页多实例嵌入互不影响”回归测试，覆盖实例状态隔离、画布写入隔离、画布设置隔离
+- In Scope Files:
+  - `src/__tests__/multi-instance-embed-isolation.test.ts`
+  - `src/ts/useStore.ts`
+  - `src/App.vue`
+  - `src/YysEditorEmbed.vue`
+  - `src/components/Toolbar.vue`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `docs/1management/plan.md` 进度更新
+  - Phase 2/3 架构拆分与数据模型重构
+  - 新业务功能与 UI 扩展
+- Decisions:
+  - 新增 `multi-instance-embed-isolation` 回归套件，覆盖三类隔离：`activeFileId/fileList`、`switch/save/update` 写入边界、`useCanvasSettings` scope 隔离。
+  - 测试实施过程中发现 `useStore` 在 store 初始化阶段无法可靠读取组件注入上下文，导致 scope 绑定不稳定；引入 `filesStore.bindLogicFlowScope(scope)` 显式绑定机制。
+  - 在 `App`、`YysEditorEmbed`、`Toolbar` 中补最小接线，确保各实例 store 使用对应 `LogicFlowScope`，避免 `updateTab/setActiveFile` 误读其他实例画布。
+  - 保持运行时语义不变：仅增加上下文绑定入口，不改 `setActiveFile/updateTab/importData` 业务流程。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 当前回归覆盖重点在 store/composable 级隔离，后续可按需补充 UI 级（双实例真实挂载交互）端到端回归。
+- Next Recommended Unit:
+  - Phase 1 收尾：对外文档（ComponentArchitecture）补齐“store scope 显式绑定”说明，避免后续接入方误用。
+
 ## [2026-03-02] Session 29 - Scope Canvas Settings State to Editor Instance Context
 
 - Refactory Scope:

@@ -206,6 +206,8 @@ const emit = defineEmits<{
 const localPinia = createPinia()
 setActivePinia(localPinia)
 const logicFlowScope = provideLogicFlowScope(createLogicFlowScope())
+const filesStore = useFilesStore(localPinia)
+filesStore.bindLogicFlowScope(logicFlowScope)
 
 const ensureElementPlusInstalled = () => {
   const instance = getCurrentInstance()
