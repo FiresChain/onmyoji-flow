@@ -40,6 +40,34 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-02] Session 6 - Phase 0 Typecheck Baseline Batch 1 (Declarations + Test Env Types)
+
+- Refactory Scope:
+  - Phase: Phase 0
+  - Task: typecheck 基线收敛第一批：补齐声明与测试环境类型（最小铺垫）
+- In Scope Files:
+  - `tsconfig.json`
+  - `src/types/global.d.ts`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `src/**` 业务逻辑重构
+  - CI 其他子任务
+  - `docs/1management/plan.md` 进度数字更新
+- Decisions:
+  - Extend tsconfig type environment with `vitest/globals` and raise `lib` to `ES2021` to cover test globals and `replaceAll` typing.
+  - Add a dedicated `src/types/global.d.ts` for minimal baseline declarations: `*.vue` module shim, `NodeJS.Timeout` fallback typing, and shared `FlowFile` global interface used by schema typing.
+  - Keep all implementation files unchanged; only declaration/environment setup is included in this unit.
+- Checks:
+  - `npm run typecheck`: fail (improved baseline; test globals/missing module declarations/FlowFile/replaceAll related errors cleared, remaining failures are business/library typing mismatches in `src/**`)
+  - `npm test`: not-run (out of current atomic unit)
+  - `npm run lint`: not-run (out of current atomic unit)
+  - `prettier --check`: not-run (out of current atomic unit)
+  - `npm run build:lib`: not-run (out of current atomic unit)
+- Risks / Follow-up:
+  - Remaining type errors are now concentrated in LogicFlow API type mismatches, component prop/inference issues, and store contract drifts; these require scoped source-level typing fixes in later units.
+- Next Recommended Unit:
+  - Phase 0 / typecheck 基线收敛第二批：聚焦 `LogicFlow` 相关类型适配（`@logicflow/core` 导出类型与节点模型签名）并保持单元最小化。
+
 ## [2026-03-02] Session 5 - Phase 0 Add and Validate Typecheck Script (vue-tsc --noEmit)
 
 - Refactory Scope:
