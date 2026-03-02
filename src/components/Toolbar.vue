@@ -397,6 +397,7 @@ import { useSafeI18n } from '@/ts/useSafeI18n';
 import { ASSET_LIBRARIES } from '@/types/nodeTypes';
 import type { Pinia } from 'pinia';
 import { resolveAssetUrl } from '@/utils/assetUrl';
+import { useToolbarImportExportCommands } from '@/components/composables/useToolbarImportExportCommands';
 import {
   createCustomAssetFromFile,
   deleteCustomAsset,
@@ -414,7 +415,6 @@ import {
   type ExpressionRuleDefinition,
   type RuleVariableDefinition
 } from '@/configs/groupRules';
-import { convertTeamCodeToRootDocument, decodeTeamCodeFromQrImage } from '@/utils/teamCodeService';
 
 const props = withDefaults(defineProps<{
   isEmbed?: boolean;
@@ -946,136 +946,6 @@ const showFeedbackForm = () => {
   state.showFeedbackFormDialog = !state.showFeedbackFormDialog;
 };
 
-const handleExport = () => {
-  // 导出前先更新当前数据，确保不丢失最新修改
-  filesStore.updateTab();
-
-  // 延迟一点确保更新完成后再导出
-  setTimeout(() => {
-    filesStore.exportData();
-  }, 2000);
-};
-
-const handlePreviewData = () => {
-  // 预览前先更新当前数据
-  filesStore.updateTab();
-
-  // 延迟一点确保更新完成后再预览
-  setTimeout(() => {
-    try {
-      const activeName = filesStore.fileList.find(f => f.id === filesStore.activeFileId)?.name || '';
-      const dataObj = {
-        schemaVersion: 1,
-        fileList: filesStore.fileList,
-        activeFileId: filesStore.activeFileId,
-        activeFile: activeName,
-      };
-      state.previewDataContent = JSON.stringify(dataObj, null, 2);
-      state.showDataPreviewDialog = true;
-    } catch (error) {
-      console.error('生成预览数据失败:', error);
-      showMessage('error', '数据预览失败');
-    }
-  }, 100);
-};
-
-const copyDataToClipboard = async () => {
-  try {
-    await navigator.clipboard.writeText(state.previewDataContent);
-    showMessage('success', '已复制到剪贴板');
-  } catch (error) {
-    console.error('复制失败:', error);
-    showMessage('error', '复制失败');
-  }
-};
-
-const openImportDialog = () => {
-  importSource.value = 'json';
-  teamCodeInput.value = '';
-  state.showImportDialog = true;
-};
-
-const triggerJsonFileImport = () => {
-  state.showImportDialog = false;
-  handleJsonImport();
-};
-
-const triggerTeamCodeQrImport = () => {
-  teamCodeQrInputRef.value?.click();
-};
-
-const handleJsonImport = () => {
-  const input = document.createElement('input');
-  input.type = 'file';
-  input.accept = '.json';
-  input.onchange = (e) => {
-    const target = e.target as HTMLInputElement;
-    const file = target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        try {
-          const target = e.target as FileReader;
-          const data = JSON.parse(target.result as string);
-          filesStore.importData(data);
-          refreshLogicFlowCanvas('LogicFlow 画布已重新渲染（导入数据）');
-        } catch (error) {
-          console.error('Failed to import file', error);
-          showMessage('error', '文件格式错误');
-        }
-      };
-      reader.readAsText(file);
-    }
-    target.value = '';
-  };
-  input.click();
-};
-
-const handleTeamCodeImport = async () => {
-  const rawTeamCode = teamCodeInput.value.trim();
-  if (!rawTeamCode) {
-    showMessage('warning', '请先粘贴阵容码');
-    return;
-  }
-
-  state.importingTeamCode = true;
-  try {
-    const rootDocument = await convertTeamCodeToRootDocument(rawTeamCode);
-    filesStore.importData(rootDocument);
-    refreshLogicFlowCanvas('LogicFlow 画布已重新渲染（阵容码导入）');
-    state.showImportDialog = false;
-    teamCodeInput.value = '';
-    showMessage('success', '阵容码导入成功');
-  } catch (error: any) {
-    console.error('阵容码导入失败:', error);
-    showMessage('error', error?.message || '阵容码导入失败');
-  } finally {
-    state.importingTeamCode = false;
-  }
-};
-
-const handleTeamCodeQrImport = async (event: Event) => {
-  const target = event.target as HTMLInputElement | null;
-  const file = target?.files?.[0];
-  if (!file) {
-    if (target) target.value = '';
-    return;
-  }
-
-  state.decodingTeamCodeQr = true;
-  try {
-    const decodedTeamCode = await decodeTeamCodeFromQrImage(file);
-    teamCodeInput.value = decodedTeamCode;
-    showMessage('success', '二维码识别成功，已填入阵容码');
-  } catch (error: any) {
-    console.error('二维码识别失败:', error);
-    showMessage('error', error?.message || '二维码识别失败');
-  } finally {
-    state.decodingTeamCodeQr = false;
-    if (target) target.value = '';
-  }
-};
-
 const handleResetWorkspace = () => {
   ElMessageBox.confirm('确定重置当前工作区？该操作不可撤销', '提示', {
     confirmButtonText: '重置',
@@ -1142,150 +1012,29 @@ const applyWatermarkSettings = () => {
   state.showWatermarkDialog = false;
 };
 
-
-const addWatermarkToImage = (base64: string) => {
-  const rows = Math.max(1, Number(watermark.rows) || 1);
-  const cols = Math.max(1, Number(watermark.cols) || 1);
-  const angle = (Number(watermark.angle) * Math.PI) / 180;
-
-  return new Promise<string>((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      canvas.width = img.width;
-      canvas.height = img.height;
-
-      if (!ctx) {
-        reject(new Error('无法创建画布上下文'));
-        return;
-      }
-
-      ctx.drawImage(img, 0, 0);
-      ctx.font = `${watermark.fontSize}px sans-serif`;
-      ctx.fillStyle = watermark.color;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-
-      const rowStep = canvas.height / rows;
-      const colStep = canvas.width / cols;
-
-      for (let r = 0; r < rows; r++) {
-        for (let c = 0; c < cols; c++) {
-          const x = (c + 0.5) * colStep;
-          const y = (r + 0.5) * rowStep;
-          ctx.save();
-          ctx.translate(x, y);
-          ctx.rotate(angle);
-          ctx.fillText(watermark.text, 0, 0);
-          ctx.restore();
-        }
-      }
-
-      resolve(canvas.toDataURL('image/png'));
-    };
-    img.onerror = () => reject(new Error('快照加载失败'));
-    img.src = base64;
-  });
-};
-
-const waitForNextPaint = () => {
-  return new Promise<void>((resolve) => {
-    if (typeof window === 'undefined' || typeof window.requestAnimationFrame !== 'function') {
-      resolve();
-      return;
-    }
-    window.requestAnimationFrame(() => resolve());
-  });
-};
-
-const withDynamicGroupsHiddenForSnapshot = async <T>(
-  logicFlowInstance: any,
-  runner: () => Promise<T>,
-): Promise<T> => {
-  const graphModel = logicFlowInstance?.graphModel;
-  const dynamicGroupModels = (graphModel?.nodes ?? []).filter(
-    (node: any) => node?.type === 'dynamic-group',
-  );
-
-  if (!dynamicGroupModels.length) {
-    return runner();
-  }
-
-  const previousStates = dynamicGroupModels.map((model: any) => ({
-    model,
-    visible: model.visible,
-  }));
-
-  try {
-    previousStates.forEach(({ model }) => {
-      model.visible = false;
-    });
-    await waitForNextPaint();
-    return await runner();
-  } finally {
-    previousStates.forEach(({ model, visible }) => {
-      model.visible = visible;
-    });
-    await waitForNextPaint();
-  }
-};
-
-const captureLogicFlowSnapshot = async () => {
-  const logicFlowInstance = getLogicFlowInstance(logicFlowScope) as any;
-  if (!logicFlowInstance || typeof logicFlowInstance.getSnapshotBase64 !== 'function') {
-    showMessage('error', '未找到 LogicFlow 实例，无法截图');
-    return null;
-  }
-
-  const snapshotResult = await withDynamicGroupsHiddenForSnapshot<string | { data?: string }>(
-    logicFlowInstance,
-    () => logicFlowInstance.getSnapshotBase64(
-      undefined,
-      undefined,
-      {
-        fileType: 'png',
-        backgroundColor: '#ffffff',
-        partial: false,
-        padding: 20,
-      },
-    ),
-  );
-
-  const base64 = typeof snapshotResult === 'string' ? snapshotResult : snapshotResult?.data;
-  if (!base64) {
-    showMessage('error', '未获取到截图数据');
-    return null;
-  }
-
-  return addWatermarkToImage(base64);
-};
-
-const prepareCapture = async () => {
-  try {
-    const img = await captureLogicFlowSnapshot();
-    if (!img) return;
-    state.previewImage = img;
-    state.previewVisible = true;
-  } catch (e) {
-    showMessage('error', '截图失败: ' + (e?.message || e));
-  }
-};
-
-const downloadImage = () => {
-  if (state.previewImage) {
-    const link = document.createElement('a');
-    link.href = state.previewImage;
-    link.download = 'screenshot.png';
-    link.click();
-    state.previewVisible = false;
-  }
-};
-
-const handleClose = (done) => {
-  state.previewImage = null; // 清除预览图像
-  done(); // 关闭弹窗
-};
+const {
+  handleExport,
+  handlePreviewData,
+  copyDataToClipboard,
+  openImportDialog,
+  triggerJsonFileImport,
+  triggerTeamCodeQrImport,
+  handleTeamCodeImport,
+  handleTeamCodeQrImport,
+  prepareCapture,
+  downloadImage,
+  handleClose,
+} = useToolbarImportExportCommands({
+  state,
+  filesStore,
+  logicFlowScope,
+  importSource,
+  teamCodeInput,
+  teamCodeQrInputRef,
+  watermark,
+  showMessage,
+  refreshLogicFlowCanvas,
+});
 </script>
 
 <style scoped>

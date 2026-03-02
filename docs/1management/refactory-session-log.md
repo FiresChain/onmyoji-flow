@@ -40,6 +40,40 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-02] Session 41 - Extract Toolbar Import/Export and Preview Commands into useToolbarImportExportCommands
+
+- Refactory Scope:
+  - Phase: Phase 2
+  - Task: 将 `Toolbar` 中导入/导出/预览相关命令编排抽离到 composable，保持行为不变
+- In Scope Files:
+  - `src/components/Toolbar.vue`
+  - `src/components/composables/useToolbarImportExportCommands.ts`
+  - `src/__tests__/useToolbarImportExportCommands.test.ts`
+  - `docs/2design/ToolbarArchitecture.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `Toolbar` 素材管理编排拆分
+  - `Toolbar` 规则管理编排拆分
+  - `FlowEditor` 新增重构任务
+  - `groupRules` 规则语义调整
+  - `docs/1management/plan.md` 进度更新
+  - Phase 1 / Phase 3 内容
+- Decisions:
+  - 新增 `useToolbarImportExportCommands`，承接 `Toolbar` 内导入/导出/预览命令（含 JSON 导入、阵容码导入、二维码识别、数据预览、截图预览与下载）。
+  - `Toolbar.vue` 改为仅保留状态与接线，模板调用点保持原命令名与行为时序不变。
+  - 新增最小回归测试，覆盖导出延迟语义、数据预览负载生成、导入流程（阵容码/二维码）与截图前置错误分支。
+  - 新增 `ToolbarArchitecture.md`，记录 Phase 2 拆分边界与 Task 1 已落地的命令层职责。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - `Toolbar` 仍保留素材管理与规则管理编排，文件复杂度尚未完全收敛；需继续按原子单元拆分。
+- Next Recommended Unit:
+  - Phase 2 下一原子任务：抽离 `Toolbar` 素材管理编排到 `useToolbarAssetManagement`（保持行为不变）。
+
 ## [2026-03-02] Session 40 - Extract Flow Canvas Interaction Wiring into useFlowCanvasInteraction
 
 - Refactory Scope:
