@@ -109,6 +109,17 @@ const addGroupElement = () => {
   editShikigami(props.groups[0].groupInfo.length - 1);
 };
 
+const removeGroupElement = (positionIndex: number) => {
+  const group = props.groups[0];
+  if (!group?.groupInfo || !Array.isArray(group.groupInfo)) {
+    return;
+  }
+  if (group.groupInfo.length <= 1) {
+    return;
+  }
+  group.groupInfo.splice(positionIndex, 1);
+};
+
 const editShikigami = (positionIndex) => {
   // console.log("==== 选择式神 ===", groupIndex, positionIndex);
   state.showSelectShikigami = true;

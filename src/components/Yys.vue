@@ -348,12 +348,22 @@ const getYuhunPropertyNames = (yuhun) =>{
   return propertyNames;
 }
 
-const importGroups = (file) => {
+const importGroups = (file: File) => {
   const reader = new FileReader();
-  reader.onload = (e) => {
+  reader.onload = (e: ProgressEvent<FileReader>) => {
+    const result = e.target?.result;
+    if (typeof result !== 'string') {
+      ElMessage.error('文件读取失败');
+      return;
+    }
+
     try {
-      const importedData = JSON.parse(e.target.result);
-      props.groups = importedData;
+      const importedData = JSON.parse(result);
+      if (!Array.isArray(importedData)) {
+        ElMessage.error('文件格式错误');
+        return;
+      }
+      props.groups.splice(0, props.groups.length, ...importedData);
       ElMessage.success('导入成功');
     } catch (error) {
       ElMessage.error('文件格式错误');

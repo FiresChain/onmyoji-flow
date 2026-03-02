@@ -40,6 +40,36 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-02] Session 10 - Phase 0 Typecheck Baseline Batch 5 (Yys Import Typing + YysRank API Alignment + useSafeI18n Rest Inference)
+
+- Refactory Scope:
+  - Phase: Phase 0
+  - Task: typecheck 基线收敛第五批：Yys 导入结果类型收窄、YysRank store API 对齐、useSafeI18n rest 参数推断
+- In Scope Files:
+  - `src/components/Yys.vue`
+  - `src/components/YysRank.vue`
+  - `src/ts/useSafeI18n.ts`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `src/**` 其他业务逻辑重构
+  - LogicFlow 兼容声明层（`src/types/logicflow-*.d.ts`）
+  - CI 其他子任务
+  - `docs/1management/plan.md` 进度数字更新
+- Decisions:
+  - In `Yys.vue/importGroups`, narrow `FileReader` result to `string`, validate imported payload as array, and replace `groups` via in-place `splice` to satisfy readonly props contract.
+  - In `YysRank.vue`, add missing `removeGroupElement(positionIndex)` handler so template invocation matches current list mutation API and avoids unresolved setup binding.
+  - In `useSafeI18n.ts`, infer translation rest-argument element types from `useI18n().t` parameters and switch to arity-based invocation (`t(key)` / `t(key, arg1)` / `t(key, arg1, arg2)`) to avoid spread tuple mismatch while keeping one-arg call sites compatible.
+- Checks:
+  - `npm run typecheck`: pass (first run surfaced 4 scoped errors in `Yys.vue`/`YysRank.vue`/`useSafeI18n.ts`; final run all clear)
+  - `npm test`: not-run (out of current atomic unit)
+  - `npm run lint`: not-run (out of current atomic unit)
+  - `prettier --check`: not-run (out of current atomic unit)
+  - `npm run build:lib`: not-run (out of current atomic unit)
+- Risks / Follow-up:
+  - `YysRank.vue` 当前删除行为为静默本地删除（保留至少 1 项），未引入确认弹窗/消息提示；如需与 `Yys.vue` 完全一致可在后续 UX 对齐单元统一处理。
+- Next Recommended Unit:
+  - Phase 0 / 类型收敛补强：聚焦 `src/components/flow/nodes/yys/**` 与 `Toolbar.vue` 的 i18n 参数契约细化（在不改变运行行为前提下收窄 `t` 调用参数类型）。
+
 ## [2026-03-02] Session 9 - Phase 0 Typecheck Baseline Batch 4 (Non-LogicFlow Remaining Types Convergence)
 
 - Refactory Scope:
