@@ -99,6 +99,47 @@ describe('useFilesStore 数据操作测试', () => {
     expect(store.activeFileId).toBe(secondFile.id)
   })
 
+  it('切换活动文件时不应将当前画布数据写入目标文件', () => {
+    const store = useFilesStore()
+
+    store.importData({
+      schemaVersion: '1.0.0',
+      fileList: [
+        {
+          id: 'file-1',
+          name: 'File 1',
+          label: 'File 1',
+          visible: true,
+          type: 'FLOW',
+          graphRawData: {
+            nodes: [{ id: 'source-node', type: 'rect', x: 10, y: 10 }],
+            edges: []
+          }
+        },
+        {
+          id: 'file-2',
+          name: 'File 2',
+          label: 'File 2',
+          visible: true,
+          type: 'FLOW',
+          graphRawData: {
+            nodes: [{ id: 'target-node', type: 'rect', x: 20, y: 20 }],
+            edges: []
+          }
+        }
+      ],
+      activeFileId: 'file-1',
+      activeFile: 'File 1'
+    })
+
+    const targetBefore = JSON.parse(JSON.stringify(store.getTab('file-2')?.graphRawData))
+    store.setActiveFile('file-2')
+    const targetAfter = store.getTab('file-2')?.graphRawData
+
+    expect(store.activeFileId).toBe('file-2')
+    expect(targetAfter).toEqual(targetBefore)
+  })
+
   it('visibleFiles 应该只返回可见文件', async () => {
     const store = useFilesStore()
     store.initializeWithPrompt()

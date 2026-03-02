@@ -40,6 +40,63 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-02] Session 12 - Fix Cross-File Overwrite Risk on Active File Switch
+
+- Refactory Scope:
+  - Phase: Phase 0/P1 bridge
+  - Task: 修复 `setActiveFile -> updateTab(targetId)` 导致切换时可能将当前画布写入目标文件的问题，并补回归测试
+- In Scope Files:
+  - `src/ts/useStore.ts`
+  - `src/__tests__/useStore.test.ts`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `src/**` 其他状态管理重构
+  - UI/交互层改动
+  - `docs/1management/plan.md` 进度更新
+- Decisions:
+  - `setActiveFile` 调整为“仅切换 activeFileId，不做目标文件写入”，并增加“切换到同一文件直接返回”保护。
+  - 新增单测覆盖“切换到目标文件后，目标文件 graphRawData 不被当前画布数据串写”。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - `setVisible` / `renameFile` 当前仍通过 `updateTab(targetId)` 落盘；若操作非当前激活文件，仍存在同类跨文件写入风险，需要独立原子单元处理。
+- Next Recommended Unit:
+  - Phase 0/P1 bridge: 审计并修复 `setVisible` / `renameFile` / `deleteFile` 对非活动文件调用 `updateTab(targetId)` 的潜在串写路径，并补针对性回归测试。
+
+## [2026-03-02] Session 11 - Refactory Plan Refresh (Status + Risk + DoD Tightening)
+
+- Refactory Scope:
+  - Phase: Governance refresh
+  - Task: 更新 `Refactory.md`，补充当前执行状态、已知高风险、质量闸门强度和 DoD 约束
+- In Scope Files:
+  - `docs/2design/Refactory.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `src/**` 业务代码修改
+  - CI/workflow 实际实现改动
+  - `docs/1management/plan.md` 进度数字调整
+- Decisions:
+  - 将 Phase 0 状态改为“部分完成”，并显式列出已完成/未完成项。
+  - 将“文件切换误写目标文件数据”提升为 Refactory 风险条目并加入建议提交顺序。
+  - 将 lint 目标从“可执行”升级为“可约束”（需要明确规则集）。
+  - 将 compat 类型声明视为过渡债务，要求设退出计划。
+  - 在 DoD 中加入 session log 与基线文档一致性要求。
+- Checks:
+  - `docs diff`: pass (`Refactory.md` 仅新增治理信息，无代码行为变更)
+  - `npm test`: not-run (docs-only session)
+  - `npm run lint`: not-run (docs-only session)
+  - `npm run typecheck`: not-run (docs-only session)
+  - `prettier --check`: not-run (docs-only session)
+  - `npm run build:lib`: not-run (docs-only session)
+- Risks / Follow-up:
+  - Refactory 计划已更新，但对应的代码修复和 CI 补齐尚未执行，需要尽快进入下一原子单元。
+- Next Recommended Unit:
+  - Phase 0/P1 bridge: 修复 `setActiveFile -> updateTab(targetId)` 造成的文件切换误写风险，并补回归测试。
+
 ## [2026-03-02] Session 10 - Phase 0 Typecheck Baseline Batch 5 (Yys Import Typing + YysRank API Alignment + useSafeI18n Rest Inference)
 
 - Refactory Scope:
