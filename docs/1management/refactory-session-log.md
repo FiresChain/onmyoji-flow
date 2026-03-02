@@ -40,6 +40,37 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-03] Session 50 - Harden Import/Export Failure and Edge Regression Coverage
+
+- Refactory Scope:
+  - Phase: Phase 2
+  - Task: 补齐 `useToolbarImportExportCommands` 关键失败分支与边界分支回归（仅测试补强）
+- In Scope Files:
+  - `src/__tests__/useToolbarImportExportCommands.test.ts`
+  - `docs/2design/ToolbarArchitecture.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `FlowEditor` 新增重构任务
+  - `groupRules` 规则语义调整
+  - `docs/1management/plan.md` 进度更新
+  - Phase 1 / Phase 3 内容
+- Decisions:
+  - JSON 导入补齐解析失败与无文件 no-op 回归，保持导入失败提示与输入重置行为不变。
+  - 阵容码导入补齐转换失败路径回归，验证 loading 回收、弹窗状态与错误提示链路不变。
+  - 二维码导入补齐无文件 no-op 与识别失败路径，验证输入重置与错误提示行为不变。
+  - 截图链路补齐空快照与水印处理失败路径，验证预览状态守卫与错误提示不变。
+  - 更新 `ToolbarArchitecture.md` Task 9，记录本次仅测试补强边界，不改运行语义。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - JSON 读取失败分支仍主要依赖 `FileReader` mock 驱动，若后续需要可增补真实文件读取异常注入的浏览器层集成回归。
+- Next Recommended Unit:
+  - Phase 2 下一原子任务：扩展 `toolbar-wiring.regression`，锁定导入对话框来源切换后的 `json/teamCode/qr` 命令链路。
+
 ## [2026-03-03] Session 49 - Harden Workspace/Dialog Regression Coverage for Edge Branches
 
 - Refactory Scope:

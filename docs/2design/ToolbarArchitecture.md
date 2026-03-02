@@ -21,6 +21,7 @@
 6. 架构边界守卫回归：`toolbar-architecture.guard`
 7. 接线行为回归：`toolbar-wiring.regression`
 8. workspace/dialog 边界分支回归：`useToolbarWorkspaceCommands` + `useToolbarDialogState`
+9. import/export 失败与边界分支回归：`useToolbarImportExportCommands`
 
 ## Task 1 落地（导入/导出/预览）
 
@@ -148,3 +149,14 @@
 - `dialog`：
   - 补齐 `mountDialogState` 同版本 no-op 分支。
   - 补齐水印配置初始化边界（持久化值读取 + 非数字输入回退默认值）。
+
+## Task 9 落地（ImportExport 失败与边界分支补强）
+
+增强：`src/__tests__/useToolbarImportExportCommands.test.ts`
+
+回归目标：
+
+- JSON 导入：补齐解析失败和无文件 no-op 分支，保持错误提示与重置行为不变。
+- 阵容码导入：补齐转换失败分支，保持 loading 回收与错误提示行为不变。
+- 二维码导入：补齐无文件 no-op 与识别失败分支，保持输入回填/清理语义不变。
+- 截图链路：补齐空快照与水印处理失败分支，保持错误提示与预览状态守卫不变。

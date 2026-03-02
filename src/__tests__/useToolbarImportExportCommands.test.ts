@@ -4,6 +4,9 @@ import { useToolbarImportExportCommands } from '@/components/composables/useTool
 import { getLogicFlowInstance } from '@/ts/useLogicFlow';
 import { convertTeamCodeToRootDocument, decodeTeamCodeFromQrImage } from '@/utils/teamCodeService';
 
+const OriginalFileReader = globalThis.FileReader;
+const OriginalImage = globalThis.Image;
+
 vi.mock('@/utils/teamCodeService', () => ({
   convertTeamCodeToRootDocument: vi.fn(),
   decodeTeamCodeFromQrImage: vi.fn(),
@@ -109,6 +112,8 @@ describe('useToolbarImportExportCommands', () => {
 
   afterEach(() => {
     vi.useRealTimers();
+    (globalThis as typeof globalThis & { FileReader: typeof FileReader }).FileReader = OriginalFileReader;
+    (globalThis as typeof globalThis & { Image: typeof Image }).Image = OriginalImage;
   });
 
   it('handleExport keeps update-first then delayed export behavior', () => {
@@ -161,6 +166,79 @@ describe('useToolbarImportExportCommands', () => {
     expect(context.state.showImportDialog).toBe(true);
   });
 
+  it('triggerJsonFileImport keeps parse-failure error behavior', () => {
+    const context = createContext();
+    const input = {
+      type: '',
+      accept: '',
+      files: [new File(['not-json'], 'broken.json', { type: 'application/json' })],
+      value: 'filled',
+      onchange: null as ((event: Event) => void) | null,
+      click: vi.fn(() => {
+        input.onchange?.({ target: input } as unknown as Event);
+      }),
+    };
+    const originalCreateElement = document.createElement.bind(document);
+    const createElementSpy = vi.spyOn(document, 'createElement').mockImplementation((tagName: string) => {
+      if (tagName === 'input') {
+        return input as unknown as HTMLInputElement;
+      }
+      return originalCreateElement(tagName);
+    });
+    class MockFileReader {
+      public onload: ((event: ProgressEvent<FileReader>) => void) | null = null;
+
+      public result: string | ArrayBuffer | null = null;
+
+      readAsText() {
+        this.result = '{invalid-json';
+        this.onload?.({ target: this } as unknown as ProgressEvent<FileReader>);
+      }
+    }
+    (globalThis as typeof globalThis & { FileReader: typeof FileReader }).FileReader = MockFileReader as unknown as typeof FileReader;
+    context.state.showImportDialog = true;
+
+    context.commands.triggerJsonFileImport();
+
+    expect(context.state.showImportDialog).toBe(false);
+    expect(context.filesStore.importData).not.toHaveBeenCalled();
+    expect(context.refreshLogicFlowCanvas).not.toHaveBeenCalled();
+    expect(context.showMessage).toHaveBeenCalledWith('error', '文件格式错误');
+    expect(input.value).toBe('');
+    createElementSpy.mockRestore();
+  });
+
+  it('triggerJsonFileImport keeps no-file no-op behavior', () => {
+    const context = createContext();
+    const input = {
+      type: '',
+      accept: '',
+      files: [] as File[],
+      value: 'filled',
+      onchange: null as ((event: Event) => void) | null,
+      click: vi.fn(() => {
+        input.onchange?.({ target: input } as unknown as Event);
+      }),
+    };
+    const originalCreateElement = document.createElement.bind(document);
+    const createElementSpy = vi.spyOn(document, 'createElement').mockImplementation((tagName: string) => {
+      if (tagName === 'input') {
+        return input as unknown as HTMLInputElement;
+      }
+      return originalCreateElement(tagName);
+    });
+    context.state.showImportDialog = true;
+
+    context.commands.triggerJsonFileImport();
+
+    expect(context.state.showImportDialog).toBe(false);
+    expect(context.filesStore.importData).not.toHaveBeenCalled();
+    expect(context.refreshLogicFlowCanvas).not.toHaveBeenCalled();
+    expect(context.showMessage).not.toHaveBeenCalled();
+    expect(input.value).toBe('');
+    createElementSpy.mockRestore();
+  });
+
   it('handleTeamCodeImport keeps warning path when team code is empty', async () => {
     const context = createContext();
 
@@ -192,6 +270,24 @@ describe('useToolbarImportExportCommands', () => {
     expect(context.showMessage).toHaveBeenCalledWith('success', '阵容码导入成功');
   });
 
+  it('handleTeamCodeImport keeps conversion-failure error behavior', async () => {
+    const context = createContext();
+
+    vi.mocked(convertTeamCodeToRootDocument).mockRejectedValue(new Error('阵容码转换失败') as never);
+    context.teamCodeInput.value = '#TA#BROKEN';
+    context.state.showImportDialog = true;
+
+    await context.commands.handleTeamCodeImport();
+
+    expect(convertTeamCodeToRootDocument).toHaveBeenCalledWith('#TA#BROKEN');
+    expect(context.filesStore.importData).not.toHaveBeenCalled();
+    expect(context.refreshLogicFlowCanvas).not.toHaveBeenCalled();
+    expect(context.state.importingTeamCode).toBe(false);
+    expect(context.state.showImportDialog).toBe(true);
+    expect(context.teamCodeInput.value).toBe('#TA#BROKEN');
+    expect(context.showMessage).toHaveBeenCalledWith('error', '阵容码转换失败');
+  });
+
   it('handleTeamCodeQrImport keeps decode-fill-clear behavior', async () => {
     const context = createContext();
     const file = new File(['qr'], 'team-code.png', { type: 'image/png' });
@@ -211,6 +307,41 @@ describe('useToolbarImportExportCommands', () => {
     expect(context.showMessage).toHaveBeenCalledWith('success', '二维码识别成功，已填入阵容码');
   });
 
+  it('handleTeamCodeQrImport keeps no-file no-op behavior', async () => {
+    const context = createContext();
+    const target = {
+      files: [] as File[],
+      value: 'filled',
+    } as unknown as HTMLInputElement;
+
+    await context.commands.handleTeamCodeQrImport({ target } as unknown as Event);
+
+    expect(decodeTeamCodeFromQrImage).not.toHaveBeenCalled();
+    expect(context.teamCodeInput.value).toBe('');
+    expect(context.state.decodingTeamCodeQr).toBe(false);
+    expect(context.showMessage).not.toHaveBeenCalled();
+    expect(target.value).toBe('');
+  });
+
+  it('handleTeamCodeQrImport keeps decode-failure error behavior', async () => {
+    const context = createContext();
+    const file = new File(['broken-qr'], 'broken-qr.png', { type: 'image/png' });
+    const target = {
+      files: [file],
+      value: 'filled',
+    } as unknown as HTMLInputElement;
+
+    vi.mocked(decodeTeamCodeFromQrImage).mockRejectedValue(new Error('二维码识别失败') as never);
+
+    await context.commands.handleTeamCodeQrImport({ target } as unknown as Event);
+
+    expect(decodeTeamCodeFromQrImage).toHaveBeenCalledWith(file);
+    expect(context.teamCodeInput.value).toBe('');
+    expect(context.state.decodingTeamCodeQr).toBe(false);
+    expect(context.showMessage).toHaveBeenCalledWith('error', '二维码识别失败');
+    expect(target.value).toBe('');
+  });
+
   it('prepareCapture keeps missing-instance error behavior', async () => {
     const context = createContext();
 
@@ -219,6 +350,48 @@ describe('useToolbarImportExportCommands', () => {
     await context.commands.prepareCapture();
 
     expect(context.showMessage).toHaveBeenCalledWith('error', '未找到 LogicFlow 实例，无法截图');
+    expect(context.state.previewImage).toBeNull();
+    expect(context.state.previewVisible).toBe(false);
+  });
+
+  it('prepareCapture keeps empty-snapshot guard behavior', async () => {
+    const context = createContext();
+    const logicFlowInstance = {
+      getSnapshotBase64: vi.fn().mockResolvedValue({ data: '' }),
+    };
+
+    vi.mocked(getLogicFlowInstance).mockReturnValue(logicFlowInstance as never);
+
+    await context.commands.prepareCapture();
+
+    expect(logicFlowInstance.getSnapshotBase64).toHaveBeenCalledTimes(1);
+    expect(context.showMessage).toHaveBeenCalledWith('error', '未获取到截图数据');
+    expect(context.state.previewImage).toBeNull();
+    expect(context.state.previewVisible).toBe(false);
+  });
+
+  it('prepareCapture keeps watermark-processing failure behavior', async () => {
+    const context = createContext();
+    const logicFlowInstance = {
+      getSnapshotBase64: vi.fn().mockResolvedValue('data:image/png;base64,mock'),
+    };
+    class MockImage {
+      public onload: (() => void) | null = null;
+
+      public onerror: (() => void) | null = null;
+
+      set src(_value: string) {
+        this.onerror?.();
+      }
+    }
+
+    vi.mocked(getLogicFlowInstance).mockReturnValue(logicFlowInstance as never);
+    (globalThis as typeof globalThis & { Image: typeof Image }).Image = MockImage as unknown as typeof Image;
+
+    await context.commands.prepareCapture();
+
+    expect(logicFlowInstance.getSnapshotBase64).toHaveBeenCalledTimes(1);
+    expect(context.showMessage).toHaveBeenCalledWith('error', '截图失败: 快照加载失败');
     expect(context.state.previewImage).toBeNull();
     expect(context.state.previewVisible).toBe(false);
   });
