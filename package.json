@@ -32,8 +32,8 @@
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
-    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path .gitignore && npm run lint:active-file-boundary",
-    "lint:active-file-boundary": "node ./scripts/check-active-file-id-boundary.cjs",
+    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --rulesdir ./eslint-rules --fix --ignore-path .gitignore && npm run lint:active-file-boundary",
+    "lint:active-file-boundary": "eslint src/ts/useStore.ts --ext .ts --rulesdir ./eslint-rules --ignore-path .gitignore",
     "format": "prettier --write src/",
     "precommit": "npm test && npm run lint",
     "typecheck": "vue-tsc --noEmit"
@@ -73,6 +73,7 @@
     "@vue/eslint-config-prettier": "^8.0.0",
     "@vue/test-utils": "^2.4.6",
     "eslint": "^8.49.0",
+    "@typescript-eslint/parser": "^8.46.2",
     "eslint-plugin-vue": "^9.17.0",
     "happy-dom": "^20.6.1",
     "husky": "^9.1.7",

@@ -40,6 +40,40 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-02] Session 20 - Upgrade activeFileId Write Boundary to ESLint Rule Layer
+
+- Refactory Scope:
+  - Phase: Phase 1
+  - Task: 将 `activeFileId` 写入边界约束从独立脚本检查升级为 ESLint 本地规则层，保持白名单入口与运行时语义不变
+- In Scope Files:
+  - `.eslintrc.cjs`
+  - `eslint-rules/active-file-id-boundary.js`
+  - `eslint-rules/package.json`
+  - `package.json`
+  - `package-lock.json`
+  - `scripts/check-active-file-id-boundary.cjs` (removed)
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `src/App.vue` 与 UI 交互改造
+  - 数据结构重设计
+  - 新业务功能
+  - `docs/1management/plan.md` 进度更新
+- Decisions:
+  - 新增本地 ESLint 规则 `active-file-id-boundary`，在语法树层面约束 `activeFileId.value` 仅允许由 `switchActiveFile` 与 `setActiveFileForBootstrap` 写入。
+  - 对 `src/ts/useStore.ts` 启用 `@typescript-eslint/parser`，并在 `.eslintrc.cjs` 中仅对该文件启用边界规则，避免扩大无关 lint 面。
+  - `npm run lint` 改为通过 ESLint 自身执行边界检查（`lint:active-file-boundary`），移除独立脚本 `scripts/check-active-file-id-boundary.cjs`。
+  - 保持 `src/ts/useStore.ts` 与运行时行为不变，仅迁移静态约束承载层。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 规则当前绑定 `src/ts/useStore.ts` 路径与 `activeFileId` 标识符命名；若后续重命名文件或状态字段需同步更新 ESLint 规则与配置。
+- Next Recommended Unit:
+  - Phase 1: 将“关键状态写入边界”抽象为可复用 ESLint 规则模板，并逐步覆盖其他高风险状态字段。
+
 ## [2026-03-02] Session 19 - Enforce activeFileId Runtime Write Boundary in Static Check Layer
 
 - Refactory Scope:

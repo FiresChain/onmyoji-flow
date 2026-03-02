@@ -24,6 +24,20 @@ module.exports = {
       },
     },
     {
+      files: ["**/*.ts"],
+      parser: "@typescript-eslint/parser",
+      parserOptions: {
+        ecmaVersion: "latest",
+        sourceType: "module",
+      },
+    },
+    {
+      files: ["src/ts/useStore.ts"],
+      rules: {
+        "active-file-id-boundary": "error",
+      },
+    },
+    {
       files: ["**/*.cjs"],
       parserOptions: {
         sourceType: "script",
