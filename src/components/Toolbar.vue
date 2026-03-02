@@ -394,17 +394,10 @@ import { useGlobalMessage } from "@/ts/useGlobalMessage";
 import { getLogicFlowInstance, useLogicFlowScope } from '@/ts/useLogicFlow';
 import { useCanvasSettings } from '@/ts/useCanvasSettings';
 import { useSafeI18n } from '@/ts/useSafeI18n';
-import { ASSET_LIBRARIES } from '@/types/nodeTypes';
 import type { Pinia } from 'pinia';
 import { resolveAssetUrl } from '@/utils/assetUrl';
 import { useToolbarImportExportCommands } from '@/components/composables/useToolbarImportExportCommands';
-import {
-  createCustomAssetFromFile,
-  deleteCustomAsset,
-  listCustomAssets,
-  subscribeCustomAssetStore,
-  type CustomAssetItem
-} from '@/utils/customAssets';
+import { useToolbarAssetManagement } from '@/components/composables/useToolbarAssetManagement';
 import {
   readSharedGroupRulesConfig,
   writeSharedGroupRulesConfig
@@ -458,18 +451,22 @@ const state = reactive({
 const importSource = ref<'json' | 'teamCode'>('json');
 const teamCodeInput = ref('');
 const teamCodeQrInputRef = ref<HTMLInputElement | null>(null);
-const assetLibraries = ASSET_LIBRARIES.map((item) => ({
-  id: item.id,
-  label: `${item.label}素材`
-}));
-const assetManagerLibrary = ref(assetLibraries[0]?.id || 'shikigami');
-const assetUploadInputRef = ref<HTMLInputElement | null>(null);
 const ruleBundleImportInputRef = ref<HTMLInputElement | null>(null);
-const managedAssets = reactive<Record<string, CustomAssetItem[]>>({});
-assetLibraries.forEach((item) => {
-  managedAssets[item.id] = [];
+const {
+  assetLibraries,
+  assetManagerLibrary,
+  assetUploadInputRef,
+  mountAssetManagement,
+  disposeAssetManagement,
+  openAssetManager,
+  getManagedAssets,
+  triggerAssetManagerUpload,
+  handleAssetManagerUpload,
+  removeManagedAsset,
+} = useToolbarAssetManagement({
+  state,
+  showMessage,
 });
-let unsubscribeAssetStore: (() => void) | null = null;
 
 const ruleManagerTab = ref<'rules' | 'variables' | 'docs'>('rules');
 
@@ -644,21 +641,6 @@ count(unique(map(ctx.team.yuhuns, "name"))) >= 2
 4) [规划中的 shikigami scope] 当前式神是辉夜姬且其关联御魂包含破势
 ctx.unit.shikigami.name == "辉夜姬" && contains(map(ctx.unit.yuhuns, "name"), "破势")`;
 
-const refreshManagedAssets = (library?: string) => {
-  if (library) {
-    managedAssets[library] = listCustomAssets(library);
-    return;
-  }
-  assetLibraries.forEach((item) => {
-    managedAssets[item.id] = listCustomAssets(item.id);
-  });
-};
-
-const openAssetManager = () => {
-  refreshManagedAssets();
-  state.showAssetManagerDialog = true;
-};
-
 const reloadRuleManagerDraft = () => {
   ruleConfigDraft.value = cloneRuleConfig(readSharedGroupRulesConfig());
   cancelRuleEditor();
@@ -819,39 +801,6 @@ const restoreDefaultRuleConfig = () => {
   });
 };
 
-const getManagedAssets = (libraryId: string) => {
-  return managedAssets[libraryId] || [];
-};
-
-const triggerAssetManagerUpload = () => {
-  assetUploadInputRef.value?.click();
-};
-
-const handleAssetManagerUpload = async (event: Event) => {
-  const target = event.target as HTMLInputElement | null;
-  const file = target?.files?.[0];
-  if (!file) {
-    if (target) target.value = '';
-    return;
-  }
-
-  try {
-    await createCustomAssetFromFile(assetManagerLibrary.value, file);
-    refreshManagedAssets(assetManagerLibrary.value);
-    showMessage('success', '素材上传成功');
-  } catch (error) {
-    console.error('素材上传失败:', error);
-    showMessage('error', '素材上传失败');
-  } finally {
-    if (target) target.value = '';
-  }
-};
-
-const removeManagedAsset = (libraryId: string, item: CustomAssetItem) => {
-  deleteCustomAsset(libraryId, item);
-  refreshManagedAssets(libraryId);
-};
-
 // 重新渲染 LogicFlow 画布的通用方法
 const refreshLogicFlowCanvas = (message?: string) => {
   setTimeout(() => {
@@ -917,10 +866,7 @@ const showUpdateLog = () => {
 };
 
 onMounted(() => {
-  refreshManagedAssets();
-  unsubscribeAssetStore = subscribeCustomAssetStore(() => {
-    refreshManagedAssets();
-  });
+  mountAssetManagement();
 
   if (props.isEmbed) {
     return;
@@ -937,8 +883,7 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
-  unsubscribeAssetStore?.();
-  unsubscribeAssetStore = null;
+  disposeAssetManagement();
 });
 
 

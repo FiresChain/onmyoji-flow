@@ -39,4 +39,22 @@
 
 - 视图模板与按钮绑定。
 - `state` / `watermark` 等现有响应式数据定义。
-- 与本任务无关的素材管理、规则管理、工作区控制逻辑。
+- 与本任务无关的规则管理、工作区控制逻辑。
+
+## Task 2 落地（素材管理）
+
+新增：`src/components/composables/useToolbarAssetManagement.ts`
+
+当前由该 composable 承接的编排：
+
+- 素材分类映射与当前分类状态
+- 素材列表刷新（全量 / 按分类）
+- 素材存储订阅与销毁（`mountAssetManagement` / `disposeAssetManagement`）
+- 素材管理弹窗打开
+- 素材上传触发与上传处理
+- 素材删除处理
+
+`Toolbar.vue` 调整为：
+
+- 保留模板绑定与生命周期调用点（`onMounted` / `onBeforeUnmount`）。
+- 通过 composable 暴露的 API 接线素材管理按钮与列表渲染。

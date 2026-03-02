@@ -40,6 +40,40 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-02] Session 42 - Extract Toolbar Asset Management Orchestration into useToolbarAssetManagement
+
+- Refactory Scope:
+  - Phase: Phase 2
+  - Task: 将 `Toolbar` 中素材管理编排逻辑抽离到 composable，保持行为不变
+- In Scope Files:
+  - `src/components/Toolbar.vue`
+  - `src/components/composables/useToolbarAssetManagement.ts`
+  - `src/__tests__/useToolbarAssetManagement.test.ts`
+  - `docs/2design/ToolbarArchitecture.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `Toolbar` 导入/导出/预览编排继续重构
+  - `Toolbar` 规则管理编排拆分
+  - `FlowEditor` 新增重构任务
+  - `groupRules` 规则语义调整
+  - `docs/1management/plan.md` 进度更新
+  - Phase 1 / Phase 3 内容
+- Decisions:
+  - 新增 `useToolbarAssetManagement`，承接素材分类状态、列表刷新、上传、删除、存储订阅与销毁编排。
+  - `Toolbar.vue` 改为通过 composable 暴露的 API 接线素材管理模板与生命周期（`mountAssetManagement` / `disposeAssetManagement`）。
+  - 新增最小回归测试，覆盖素材管理关键行为：挂载刷新+订阅、上传成功/失败、删除后刷新。
+  - 在 `ToolbarArchitecture.md` 增量补齐 Task 2 边界说明，保持 Phase 2 拆分文档连续性。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 规则管理编排仍集中在 `Toolbar.vue`，仍是当前复杂度主要来源。
+- Next Recommended Unit:
+  - Phase 2 下一原子任务：抽离 `Toolbar` 规则管理编排到 `useToolbarRuleManagement`（保持行为不变）。
+
 ## [2026-03-02] Session 41 - Extract Toolbar Import/Export and Preview Commands into useToolbarImportExportCommands
 
 - Refactory Scope:
