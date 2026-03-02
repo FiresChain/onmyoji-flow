@@ -40,6 +40,35 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-02] Session 17 - Clarify activeFileId Write Boundary Between Runtime Switch and Bootstrap Paths
+
+- Refactory Scope:
+  - Phase: Phase 1
+  - Task: 收敛并明确 `useStore` 中 `activeFileId` 写入边界：运行时切换路径只通过统一入口 `switchActiveFile`，初始化/恢复路径与运行时职责分离并保持行为不变
+- In Scope Files:
+  - `src/ts/useStore.ts`
+  - `src/__tests__/useStore.test.ts`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `src/App.vue` 与 UI 交互改造
+  - 数据结构重设计
+  - `docs/1management/plan.md` 进度更新
+- Decisions:
+  - 在 `useStore` 新增初始化/恢复专用入口 `setActiveFileForBootstrap`，用于 `importData / initializeWithPrompt / resetWorkspace` 的 `activeFileId` 设置，避免引入运行时切换副作用。
+  - 提炼 `resolvePreferredActiveId`，统一恢复优先级（`activeFileId` > `activeFile(name)` > 首文件），保持历史行为不变。
+  - 保留并明确注释 `switchActiveFile` 为运行时唯一切换入口；运行时相关路径继续通过该入口切换活动文件。
+  - 增补测试断言初始化默认、localStorage 恢复、导入、重置路径不触发 LogicFlow 数据回写；保留并复用既有切换单测覆盖“单次保存 + 不串写”。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 运行时“只通过统一入口”的约束当前是代码约定 + 测试行为约束，尚未引入静态限制（例如禁止直接写 `activeFileId` 的 lint 规则）。
+- Next Recommended Unit:
+  - Phase 1: 增加针对 `useStore` 的结构性防回归测试（覆盖所有运行时入口对 `switchActiveFile` 的行为契约），并评估引入轻量静态约束防止未来直接写 `activeFileId`。
+
 ## [2026-03-02] Session 16 - Extract switchActiveFile and Converge Active-File Switching Paths
 
 - Refactory Scope:

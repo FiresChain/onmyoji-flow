@@ -96,6 +96,18 @@ describe('useFilesStore 数据操作测试', () => {
     expect(store.fileList.length).toBeGreaterThan(0)
     expect(store.fileList[0].name).toBe('File 1')
     expect(store.fileList[0].type).toBe('FLOW')
+    expect(logicFlowMocks.getGraphRawData).not.toHaveBeenCalled()
+  })
+
+  it('initializeWithPrompt 从 localStorage 恢复时不应触发 LogicFlow 数据回写', () => {
+    localStorageMock.setItem('filesStore', JSON.stringify(createSampleRootDocument()))
+    const store = useFilesStore()
+
+    store.initializeWithPrompt()
+
+    expect(store.fileList.length).toBe(2)
+    expect(store.activeFileId).toBe('file-1')
+    expect(logicFlowMocks.getGraphRawData).not.toHaveBeenCalled()
   })
 
   it('添加新文件应该增加文件列表长度', async () => {
@@ -314,6 +326,7 @@ describe('useFilesStore 数据操作测试', () => {
     expect(store.fileList.length).toBe(1)
     expect(store.fileList[0].name).toBe('Test File')
     expect(store.activeFileId).toBe('test-1')
+    expect(logicFlowMocks.getGraphRawData).not.toHaveBeenCalled()
   })
 
   it('重置工作区应该恢复到默认状态', async () => {
@@ -325,9 +338,11 @@ describe('useFilesStore 数据操作测试', () => {
     // 等待添加完成
     await new Promise(resolve => setTimeout(resolve, 100))
 
+    logicFlowMocks.getGraphRawData.mockClear()
     store.resetWorkspace()
 
     expect(store.fileList.length).toBe(1)
     expect(store.fileList[0].name).toBe('File 1')
+    expect(logicFlowMocks.getGraphRawData).not.toHaveBeenCalled()
   })
 })

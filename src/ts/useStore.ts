@@ -134,6 +134,27 @@ export const useFilesStore = defineStore('files', () => {
         if (!fileKey) return '';
         return findById(fileKey)?.id || findByName(fileKey)?.id || '';
     };
+    const resolvePreferredActiveId = (normalized: FlowFile[], raw: { activeFileId?: string; activeFile?: string }) => {
+        if (raw.activeFileId && normalized.some(file => file.id === raw.activeFileId)) {
+            return raw.activeFileId;
+        }
+        if (raw.activeFile) {
+            const matched = normalized.find(file => file.name === raw.activeFile);
+            if (matched) {
+                return matched.id;
+            }
+        }
+        return normalized[0]?.id || '';
+    };
+
+    // 初始化/恢复专用入口：仅用于装载默认值或持久化状态，不触发运行时切换副作用
+    const setActiveFileForBootstrap = (nextActiveId?: string) => {
+        if (nextActiveId && findById(nextActiveId)) {
+            activeFileId.value = nextActiveId;
+            return;
+        }
+        activeFileId.value = fileList.value[0]?.id || '';
+    };
 
     // 导入数据（兼容旧格式 activeFile/name）
     const importData = (data: any) => {
@@ -146,19 +167,11 @@ export const useFilesStore = defineStore('files', () => {
             const normalized = normalizeList(root.fileList || []);
             fileList.value = normalized;
 
-            // 选中逻辑：优先 activeFileId -> 其次 activeFile(name) -> 首个
-            let nextActiveId: string | undefined = undefined;
-            const idFromData = (data as any).activeFileId ?? root.activeFileId;
-            if (idFromData && normalized.some(f => f.id === idFromData)) {
-                nextActiveId = idFromData;
-            } else {
-                const nameFromData = (data as any).activeFile ?? root.activeFile;
-                if (nameFromData) {
-                    const byName = normalized.find(f => f.name === nameFromData);
-                    nextActiveId = byName?.id;
-                }
-            }
-            activeFileId.value = nextActiveId || normalized[0]?.id || '';
+            // 导入装载属于初始化路径，不经过运行时切换入口
+            setActiveFileForBootstrap(resolvePreferredActiveId(normalized, {
+                activeFileId: (data as any).activeFileId ?? root.activeFileId,
+                activeFile: (data as any).activeFile ?? root.activeFile
+            }));
 
             showMessage('success', '数据导入成功');
         } catch (error) {
@@ -205,24 +218,17 @@ export const useFilesStore = defineStore('files', () => {
             const normalized = normalizeList(root.fileList || []);
             fileList.value = normalized;
 
-            let next: string | undefined;
-            const idFromData = (savedStateRaw as any).activeFileId ?? root.activeFileId;
-            if (idFromData && normalized.some(f => f.id === idFromData)) {
-                next = idFromData;
-            } else {
-                const nameFromData = (savedStateRaw as any).activeFile ?? root.activeFile;
-                if (nameFromData) {
-                    next = normalized.find(f => f.name === nameFromData)?.id;
-                }
-            }
-            activeFileId.value = next || normalized[0]?.id || '';
+            setActiveFileForBootstrap(resolvePreferredActiveId(normalized, {
+                activeFileId: (savedStateRaw as any).activeFileId ?? root.activeFileId,
+                activeFile: (savedStateRaw as any).activeFile ?? root.activeFile
+            }));
             showMessage('success', '已恢复上次工作区');
             return;
         }
 
         // 无保存数据：使用默认
         fileList.value = normalizeList(defaultState.fileList);
-        activeFileId.value = fileList.value[0]?.id || '';
+        setActiveFileForBootstrap(defaultState.activeFileId);
     };
 
     // 提供重置接口：清空本地并回到默认
@@ -230,7 +236,7 @@ export const useFilesStore = defineStore('files', () => {
         clearFilesStoreLocalStorage();
         const def = getDefaultState();
         fileList.value = normalizeList(def.fileList);
-        activeFileId.value = fileList.value[0]?.id || '';
+        setActiveFileForBootstrap(def.activeFileId);
         showMessage('success', '已重置工作区');
     };
 
@@ -280,6 +286,7 @@ export const useFilesStore = defineStore('files', () => {
         allowEmptyTarget?: boolean;
     };
 
+    // 运行时切换入口：运行时路径只能通过这里写 activeFileId
     const switchActiveFile = (nextActiveId: string, options: SwitchActiveFileOptions = {}) => {
         const {saveSourceFileId, persistAfterSwitch = false, allowEmptyTarget = false} = options;
         if (!nextActiveId && !allowEmptyTarget) return false;
