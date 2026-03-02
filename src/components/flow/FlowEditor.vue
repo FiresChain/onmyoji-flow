@@ -1174,6 +1174,19 @@ onMounted(() => {
     emitGraphDataChange();
   });
 
+  lfInstance.on(EventType.NODE_PROPERTIES_DELETE, () => {
+    scheduleGroupRuleValidation();
+    emitGraphDataChange();
+  });
+  lfInstance.on(EventType.NODE_DROP, () => {
+    emitGraphDataChange();
+  });
+  lfInstance.on(EventType.TEXT_UPDATE, () => {
+    emitGraphDataChange();
+  });
+  lfInstance.on(EventType.LABEL_UPDATE, () => {
+    emitGraphDataChange();
+  });
   lfInstance.on(EventType.NODE_DELETE, () => {
     scheduleGroupRuleValidation();
     emitGraphDataChange();
@@ -1186,8 +1199,15 @@ onMounted(() => {
     scheduleGroupRuleValidation();
     emitGraphDataChange();
   });
+  lfInstance.on(EventType.EDGE_ADJUST, () => {
+    emitGraphDataChange();
+  });
+  lfInstance.on(EventType.EDGE_EXCHANGE_NODE, () => {
+    scheduleGroupRuleValidation();
+    emitGraphDataChange();
+  });
 
-  lfInstance.on('history:change', () => {
+  lfInstance.on(EventType.HISTORY_CHANGE, () => {
     emitGraphDataChange();
   });
 

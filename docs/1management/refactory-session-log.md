@@ -40,6 +40,34 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-02] Session 34 - Harden update:data Contract Coverage for Embed Edit Mutations
+
+- Refactory Scope:
+  - Phase: Phase 1
+  - Task: 补强嵌入编辑模式 `update:data` 契约覆盖，补齐“有修改但可能漏发”的关键事件路径（最小补线）
+- In Scope Files:
+  - `src/components/flow/FlowEditor.vue`
+  - `src/__tests__/embed-update-data.contract.test.ts`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `showPropertyPanel/config` 运行时实现（A 路径留在后续任务）
+  - `docs/1management/plan.md` 进度更新
+  - Phase 2/3 重构任务
+- Decisions:
+  - 在 `FlowEditor` 中为 `graph-data-change` 增加关键变更事件补线：`NODE_PROPERTIES_DELETE`、`NODE_DROP`、`TEXT_UPDATE`、`LABEL_UPDATE`、`EDGE_ADJUST`、`EDGE_EXCHANGE_NODE`，并将历史监听统一为 `EventType.HISTORY_CHANGE`。
+  - 扩展 `embed-update-data.contract` 回归：新增“连续多次变更事件转发不丢失”用例，确保 edit 模式对 `graph-data-change` 的逐次透传稳定。
+  - 增加结构守卫测试，约束 `FlowEditor` 保持对核心变更事件的 `graph-data-change` 监听接线，降低后续回归漏网风险。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 新增事件与 `history:change` 可能在单次用户动作中产生多次 `update:data`；当前按“宁可不漏发”处理，后续如需降噪可再做节流/去重原子任务。
+- Next Recommended Unit:
+  - Phase 1: 执行 A 路径，落地 `showPropertyPanel` 的最小可用实现并同步文档/契约测试。
+
 ## [2026-03-02] Session 33 - Align showPropertyPanel/config Contract as Compatibility No-op
 
 - Refactory Scope:
