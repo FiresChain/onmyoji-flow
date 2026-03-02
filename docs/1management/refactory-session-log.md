@@ -40,6 +40,34 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-02] Session 14 - Converge Save-Source Binding After Hiding/Deleting Active File
+
+- Refactory Scope:
+  - Phase: Phase 0/P1 bridge
+  - Task: 收敛“删除/隐藏活动文件”后的保存来源绑定策略，避免 `activeFile` 切换后从错误来源同步 `graphRawData`
+- In Scope Files:
+  - `src/ts/useStore.ts`
+  - `src/__tests__/useStore.test.ts`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `src/**` 其他状态管理与组件重构
+  - UI/交互改动
+  - `docs/1management/plan.md` 进度更新
+- Decisions:
+  - `setVisible` 在“隐藏活动文件”分支改为先 `updateTab(targetId)`，显式将当前画布保存回来源文件，再切换 `activeFileId` 并 `persistState()`。
+  - `deleteFile` 删除 `updateTab(activeFileId)` 路径，改为删除后仅 `persistState()`，避免把当前画布误写到新的活动文件。
+  - 新增回归测试覆盖“隐藏活动文件”和“删除活动文件”后的跨文件串写防护。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - `App.vue` 的 `activeFileId` 监听仍会在切换时调用 `updateTab(oldId)`，当前不会导致跨文件串写，但会产生重复保存；可在后续原子单元继续收敛。
+- Next Recommended Unit:
+  - Phase 1: 收敛 `App.vue` 切换监听与 store 保存职责边界（避免重复保存，统一“谁负责保存旧文件”）。
+
 ## [2026-03-02] Session 13 - Fix Cross-File Overwrite Risk for Non-Active File Operations
 
 - Refactory Scope:

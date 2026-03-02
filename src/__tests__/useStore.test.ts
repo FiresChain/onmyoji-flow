@@ -168,6 +168,25 @@ describe('useFilesStore 数据操作测试', () => {
     expect(logicFlowMocks.getGraphRawData).not.toHaveBeenCalled()
   })
 
+  it('隐藏活动文件后应保持保存来源明确且不串写新活动文件 graphRawData', () => {
+    const store = useFilesStore()
+    store.importData(createSampleRootDocument())
+
+    const fallbackBefore = JSON.parse(JSON.stringify(store.getTab('file-2')?.graphRawData))
+    store.setVisible('file-1', false)
+    const hiddenFile = store.getTab('file-1')
+    const fallbackAfter = store.getTab('file-2')?.graphRawData
+
+    expect(store.activeFileId).toBe('file-2')
+    expect(hiddenFile?.visible).toBe(false)
+    expect(fallbackAfter).toEqual(fallbackBefore)
+    expect(hiddenFile?.graphRawData).toMatchObject({
+      nodes: [{ id: 'lf-node', type: 'rect', x: 100, y: 100, zIndex: 1 }],
+      edges: []
+    })
+    expect(logicFlowMocks.getGraphRawData).toHaveBeenCalledTimes(1)
+  })
+
   it('对非活动文件 renameFile 不应串写目标文件 graphRawData', () => {
     const store = useFilesStore()
     store.importData(createSampleRootDocument())
@@ -191,6 +210,20 @@ describe('useFilesStore 数据操作测试', () => {
 
     expect(store.getTab('file-2')).toBeUndefined()
     expect(activeAfter).toEqual(activeBefore)
+    expect(logicFlowMocks.getGraphRawData).not.toHaveBeenCalled()
+  })
+
+  it('删除活动文件后不应将当前画布数据串写到新活动文件', () => {
+    const store = useFilesStore()
+    store.importData(createSampleRootDocument())
+
+    const fallbackBefore = JSON.parse(JSON.stringify(store.getTab('file-2')?.graphRawData))
+    store.deleteFile('file-1')
+    const fallbackAfter = store.getTab('file-2')?.graphRawData
+
+    expect(store.getTab('file-1')).toBeUndefined()
+    expect(store.activeFileId).toBe('file-2')
+    expect(fallbackAfter).toEqual(fallbackBefore)
     expect(logicFlowMocks.getGraphRawData).not.toHaveBeenCalled()
   })
 

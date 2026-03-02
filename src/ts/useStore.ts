@@ -334,17 +334,23 @@ export const useFilesStore = defineStore('files', () => {
         if (!file) return;
         const isTargetActive = activeFileId.value === targetId;
         file.visible = visible;
-        if (!visible && isTargetActive) {
-            const fallback = visibleFiles.value.find((item) => item.id !== targetId)
-                || fileList.value.find((item) => item.id !== targetId);
-            activeFileId.value = fallback?.id || '';
-        }
 
         // 非活动文件仅更新元数据并持久化，避免把当前画布数据串写到目标文件
         if (!isTargetActive) {
             persistState();
             return;
         }
+
+        if (!visible) {
+            // 隐藏当前活动文件时，先将画布数据显式写回来源文件，再切换 activeFileId
+            updateTab(targetId);
+            const fallback = visibleFiles.value.find((item) => item.id !== targetId)
+                || fileList.value.find((item) => item.id !== targetId);
+            activeFileId.value = fallback?.id || '';
+            persistState();
+            return;
+        }
+
         updateTab(targetId);
     };
 
@@ -352,15 +358,9 @@ export const useFilesStore = defineStore('files', () => {
     const deleteFile = (fileKey: string) => {
         const targetId = resolveFileId(fileKey);
         if (!targetId) return;
-        const isTargetActive = activeFileId.value === targetId;
         removeTab(targetId);
-
-        // 删除非活动文件时仅持久化文件列表变化，避免不必要的画布同步
-        if (!isTargetActive) {
-            persistState();
-            return;
-        }
-        updateTab(activeFileId.value);
+        // 删除文件后只持久化元数据，避免将当前画布误写到新的活动文件
+        persistState();
     };
 
     // 兼容旧组件 API：通过 id/name 重命名文件
