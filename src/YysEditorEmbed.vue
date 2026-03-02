@@ -29,6 +29,9 @@
           :height="editorContentHeight"
           :enable-label="false"
           :show-property-panel="showPropertyPanel"
+          :config-snap-grid-enabled="resolvedEmbedConfig.grid"
+          :config-snapline-enabled="resolvedEmbedConfig.snapline"
+          :config-keyboard-enabled="resolvedEmbedConfig.keyboard"
           @graph-data-change="handleGraphDataChange"
         />
       </div>
@@ -257,6 +260,12 @@ const containerHeight = computed(() => {
 
 const editorContentStyle = computed(() => ({
   height: editorContentHeight.value
+}))
+
+const resolvedEmbedConfig = computed(() => ({
+  grid: props.config?.grid ?? true,
+  snapline: props.config?.snapline ?? true,
+  keyboard: props.config?.keyboard ?? true
 }))
 
 const recalcEditContentHeight = () => {

@@ -118,7 +118,7 @@ const handleSave = (data) => {
 | `showToolbar` | `boolean` | `true` | 显示工具栏 |
 | `showPropertyPanel` | `boolean` | `true` | 编辑模式下控制右侧属性面板显示 |
 | `showComponentPanel` | `boolean` | `true` | 显示组件库 |
-| `config` | `EditorConfig` | `{}` | 兼容保留，当前版本 no-op |
+| `config` | `EditorConfig` | `{}` | 最小实现已生效：`grid/snapline/keyboard` |
 
 ### Events
 
@@ -129,7 +129,7 @@ const handleSave = (data) => {
 | `cancel` | `()` | 取消 |
 | `error` | `(error: Error)` | 错误 |
 
-> 契约说明（2026-03）：`showPropertyPanel` 已在 `mode='edit'` 下生效；`config` 仍为兼容保留参数，当前实现不会消费其字段。
+> 契约说明（2026-03）：`showPropertyPanel` 已在 `mode='edit'` 下生效；`config` 当前已生效 `grid/snapline/keyboard`，其余字段（如 `theme/locale`）仍为兼容保留。
 
 ### 方法
 

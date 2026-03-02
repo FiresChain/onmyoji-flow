@@ -18,6 +18,18 @@ const createFlowEditorStub = (payload: GraphData) => defineComponent({
     enableLabel: {
       type: Boolean,
       default: false
+    },
+    configSnapGridEnabled: {
+      type: Boolean,
+      default: true
+    },
+    configSnaplineEnabled: {
+      type: Boolean,
+      default: true
+    },
+    configKeyboardEnabled: {
+      type: Boolean,
+      default: true
     }
   },
   emits: ['graph-data-change'],
@@ -32,6 +44,9 @@ const createFlowEditorStub = (payload: GraphData) => defineComponent({
       {
         class: 'flow-editor-stub',
         'data-show-property-panel': String(props.showPropertyPanel),
+        'data-config-snap-grid-enabled': String(props.configSnapGridEnabled),
+        'data-config-snapline-enabled': String(props.configSnaplineEnabled),
+        'data-config-keyboard-enabled': String(props.configKeyboardEnabled),
         onClick: () => emit('graph-data-change', payload)
       },
       'emit-graph-data-change'
@@ -53,6 +68,18 @@ const createFlowEditorMultiChangeStub = (payloads: GraphData[]) => defineCompone
     enableLabel: {
       type: Boolean,
       default: false
+    },
+    configSnapGridEnabled: {
+      type: Boolean,
+      default: true
+    },
+    configSnaplineEnabled: {
+      type: Boolean,
+      default: true
+    },
+    configKeyboardEnabled: {
+      type: Boolean,
+      default: true
     }
   },
   emits: ['graph-data-change'],
@@ -66,7 +93,10 @@ const createFlowEditorMultiChangeStub = (payloads: GraphData[]) => defineCompone
       'div',
       {
         class: 'flow-editor-multi-stub',
-        'data-show-property-panel': String(props.showPropertyPanel)
+        'data-show-property-panel': String(props.showPropertyPanel),
+        'data-config-snap-grid-enabled': String(props.configSnapGridEnabled),
+        'data-config-snapline-enabled': String(props.configSnaplineEnabled),
+        'data-config-keyboard-enabled': String(props.configKeyboardEnabled)
       },
       payloads.map((payload, index) => h(
         'button',
@@ -174,14 +204,20 @@ describe('YysEditorEmbed update:data contract', () => {
       'lfInstance.on(EventType.EDGE_DELETE',
       'lfInstance.on(EventType.EDGE_ADJUST',
       'lfInstance.on(EventType.EDGE_EXCHANGE_NODE',
-      'lfInstance.on(EventType.HISTORY_CHANGE'
+      'lfInstance.on(EventType.HISTORY_CHANGE',
+      'configSnapGridEnabled?: boolean;',
+      'configSnaplineEnabled?: boolean;',
+      'configKeyboardEnabled?: boolean;',
+      '() => props.configSnapGridEnabled',
+      '() => props.configSnaplineEnabled',
+      '() => props.configKeyboardEnabled'
     ];
     requiredSnippets.forEach((snippet) => {
       expect(flowEditorSource).toContain(snippet);
     });
   });
 
-  it('applies showPropertyPanel in edit mode while keeping config backward-compatible for now', async () => {
+  it('applies showPropertyPanel and config(grid/snapline/keyboard) in edit mode', async () => {
     const payload: GraphData = {
       nodes: [
         {
@@ -218,11 +254,24 @@ describe('YysEditorEmbed update:data contract', () => {
 
     expect(wrapper.find('.flow-editor-stub').exists()).toBe(true);
     expect(wrapper.find('.flow-editor-stub').attributes('data-show-property-panel')).toBe('false');
+    expect(wrapper.find('.flow-editor-stub').attributes('data-config-snap-grid-enabled')).toBe('false');
+    expect(wrapper.find('.flow-editor-stub').attributes('data-config-snapline-enabled')).toBe('false');
+    expect(wrapper.find('.flow-editor-stub').attributes('data-config-keyboard-enabled')).toBe('false');
 
     await wrapper.find('.flow-editor-stub').trigger('click');
     expect(wrapper.emitted('update:data')).toEqual([[payload]]);
 
-    await wrapper.setProps({ showPropertyPanel: true });
+    await wrapper.setProps({
+      showPropertyPanel: true,
+      config: {
+        grid: true,
+        snapline: true,
+        keyboard: true
+      }
+    });
     expect(wrapper.find('.flow-editor-stub').attributes('data-show-property-panel')).toBe('true');
+    expect(wrapper.find('.flow-editor-stub').attributes('data-config-snap-grid-enabled')).toBe('true');
+    expect(wrapper.find('.flow-editor-stub').attributes('data-config-snapline-enabled')).toBe('true');
+    expect(wrapper.find('.flow-editor-stub').attributes('data-config-keyboard-enabled')).toBe('true');
   });
 });

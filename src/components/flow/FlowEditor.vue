@@ -138,9 +138,15 @@ const props = withDefaults(defineProps<{
   height?: string;
   enableLabel?: boolean;
   showPropertyPanel?: boolean;
+  configSnapGridEnabled?: boolean;
+  configSnaplineEnabled?: boolean;
+  configKeyboardEnabled?: boolean;
 }>(), {
   enableLabel: false,
-  showPropertyPanel: true
+  showPropertyPanel: true,
+  configSnapGridEnabled: true,
+  configSnaplineEnabled: true,
+  configKeyboardEnabled: true
 });
 const emit = defineEmits<{
   'graph-data-change': [data: GraphData];
@@ -782,6 +788,16 @@ function applySnapGrid(enabled: boolean) {
   lfInstance.updateEditConfig({ snapGrid: enabled });
 }
 
+function applyKeyboardEnabled(enabled: boolean) {
+  const lfInstance = lf.value as any;
+  if (!lfInstance?.keyboard) return;
+  if (enabled) {
+    lfInstance.keyboard.enable?.(true);
+    return;
+  }
+  lfInstance.keyboard.disable?.();
+}
+
 function getSelectedRects() {
   const lfInstance = lf.value;
   if (!lfInstance) return [];
@@ -1103,6 +1119,9 @@ onMounted(() => {
 
   registerNodes(lfInstance);
   setLogicFlowInstance(lfInstance, logicFlowScope);
+  snapGridEnabled.value = props.configSnapGridEnabled;
+  snaplineEnabled.value = props.configSnaplineEnabled;
+  applyKeyboardEnabled(props.configKeyboardEnabled);
   applySelectionSelect(selectionEnabled.value);
   containerRef.value?.addEventListener('mousedown', handleCanvasMouseDown);
   containerRef.value?.addEventListener('contextmenu', handleCanvasContextMenu, true);
@@ -1259,6 +1278,27 @@ watch(snaplineEnabled, (enabled) => {
     lfInstance.snaplineModel?.clearSnapline?.();
   }
 });
+
+watch(
+  () => props.configSnapGridEnabled,
+  (enabled) => {
+    snapGridEnabled.value = enabled;
+  }
+);
+
+watch(
+  () => props.configSnaplineEnabled,
+  (enabled) => {
+    snaplineEnabled.value = enabled;
+  }
+);
+
+watch(
+  () => props.configKeyboardEnabled,
+  (enabled) => {
+    applyKeyboardEnabled(enabled);
+  }
+);
 
 watch(
   () => props.height,

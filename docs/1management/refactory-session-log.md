@@ -40,6 +40,42 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-02] Session 36 - Apply Embed config(grid/snapline/keyboard) with Minimal Scope
+
+- Refactory Scope:
+  - Phase: Phase 1
+  - Task: 落地 `config` 最小可用实现（至少 `grid/snapline/keyboard`），并同步文档与契约
+- In Scope Files:
+  - `src/YysEditorEmbed.vue`
+  - `src/components/flow/FlowEditor.vue`
+  - `src/__tests__/embed-update-data.contract.test.ts`
+  - `docs/2design/ComponentArchitecture.md`
+  - `docs/3build/YysEditorEmbed.md`
+  - `docs/3build/EMBED_README.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `config` 复杂配置系统与其余字段深度实现（如 `theme/locale`）
+  - `docs/1management/plan.md` 进度更新
+  - Phase 2/3 重构任务
+- Decisions:
+  - `YysEditorEmbed` 新增 `resolvedEmbedConfig`，对 `config.grid/snapline/keyboard` 做默认值归一化后透传到 `FlowEditor`。
+  - `FlowEditor` 增加最小配置 props：`configSnapGridEnabled`、`configSnaplineEnabled`、`configKeyboardEnabled`（默认 `true`），并通过现有状态/能力最小接线：
+    - `grid`：写入 `snapGridEnabled` 并复用现有 `applySnapGrid`；
+    - `snapline`：写入 `snaplineEnabled` 并复用现有 snapline 行为；
+    - `keyboard`：通过 `lfInstance.keyboard.enable/disable` 切换。
+  - 新增契约测试断言 `showPropertyPanel` 与 `config(grid/snapline/keyboard)` 在 edit 模式透传生效，并补结构守卫覆盖配置接线关键片段。
+  - 文档同步声明：`config` 已最小生效三字段，其余字段仍为兼容保留状态。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - `snapline` 目前沿用现有开关行为模型（最小接线）；如需更细粒度语义（例如完全关闭吸附计算）需后续单独任务评估。
+- Next Recommended Unit:
+  - Phase 1 收尾：补一条针对 `config` 其余字段状态（`theme/locale` 未实现）的文档/测试守卫，避免后续误读为已生效。
+
 ## [2026-03-02] Session 35 - Implement showPropertyPanel in Embed Edit Mode (Path A, Minimal Wiring)
 
 - Refactory Scope:

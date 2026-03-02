@@ -105,7 +105,7 @@ const handleCancel = () => {
 | `showToolbar` | `boolean` | `true` | 是否显示工具栏（仅编辑模式） |
 | `showPropertyPanel` | `boolean` | `true` | 编辑模式下是否显示右侧属性面板 |
 | `showComponentPanel` | `boolean` | `true` | 是否显示组件库（仅编辑模式） |
-| `config` | `EditorConfig` | `{}` | 兼容保留，当前版本 no-op（字段不生效） |
+| `config` | `EditorConfig` | `{}` | 最小实现已生效：`grid/snapline/keyboard` |
 
 ### Events
 
@@ -116,7 +116,7 @@ const handleCancel = () => {
 | `cancel` | `()` | 取消（用户点击取消按钮） |
 | `error` | `(error: Error)` | 错误 |
 
-> 契约说明（2026-03）：`showPropertyPanel` 已在 `mode='edit'` 下生效；`config` 仍为兼容保留参数，当前实现不会消费其字段。
+> 契约说明（2026-03）：`showPropertyPanel` 已在 `mode='edit'` 下生效；`config` 当前已生效 `grid/snapline/keyboard`，其余字段（如 `theme/locale`）仍为兼容保留。
 
 ### 方法（通过 ref 调用）
 
@@ -325,7 +325,7 @@ const flowData = ref({
 
 ## 高级用法
 
-### 属性说明（showPropertyPanel 已生效，config 暂未生效）
+### 属性说明（showPropertyPanel 已生效，config 部分生效）
 
 ```vue
 <template>
@@ -338,7 +338,7 @@ const flowData = ref({
 </template>
 ```
 
-以上写法中，`showPropertyPanel` 会在编辑模式下控制右侧属性面板显示；`config` 目前仍为兼容保留，不改变运行时行为。
+以上写法中，`showPropertyPanel` 会在编辑模式下控制右侧属性面板显示；`config` 的 `grid/snapline/keyboard` 会在编辑模式生效。
 
 ### 监听数据变化
 
