@@ -535,7 +535,7 @@ function bringForward(nodeId?: string) {
   if (!targetId) return;
 
   const currentNode = lfInstance.getNodeModelById(targetId);
-  if (!currentNode) return;t
+  if (!currentNode) return;
 
   const currentZIndex = currentNode.zIndex;
   currentNode.setZIndex(currentZIndex + 1);

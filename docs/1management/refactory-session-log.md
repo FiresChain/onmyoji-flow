@@ -40,6 +40,71 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-02] Session 8 - Phase 0 Typecheck Baseline Batch 3 (Non-LogicFlow Deterministic Typing Fixes)
+
+- Refactory Scope:
+  - Phase: Phase 0
+  - Task: typecheck 基线收敛第三批：修复非 LogicFlow 的确定性类型错误（`FlowEditor` 语法残留、`nodeStyle` 导出契约、`ProjectExplorer` store API 对齐）
+- In Scope Files:
+  - `src/components/flow/FlowEditor.vue`
+  - `src/ts/nodeStyle.ts`
+  - `src/components/ProjectExplorer.vue`
+  - `src/ts/useStore.ts`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - LogicFlow 兼容声明层（`src/types/logicflow-*.d.ts`）进一步调整
+  - CI 其他子任务
+  - `docs/1management/plan.md` 进度数字更新
+- Decisions:
+  - Remove stray token in `FlowEditor.vue` (`return;t` -> `return;`) to eliminate deterministic TS parser/name error without behavior change.
+  - Normalize `nodeStyle` radius fallback typing and re-export `NodeStyle` from `src/ts/nodeStyle.ts` to satisfy existing import contract in `StylePanel` / `useNodeAppearance`.
+  - Keep `ProjectExplorer` call sites unchanged by adding backward-compatible file operations in files store (`setActiveFile`, `setVisible`, `deleteFile`, `renameFile`), and remove macro import conflicts in `ProjectExplorer.vue`.
+- Checks:
+  - `npm run typecheck`: fail (scoped target errors resolved; remaining failures are in other modules: `AssetSelectorNode`, `PropertySelectNode`, `Toolbar`, `Yys`, `YysRank`, `useSafeI18n`, `groupRulesConfigSource`)
+  - `npm test`: not-run (out of current atomic unit)
+  - `npm run lint`: not-run (out of current atomic unit)
+  - `prettier --check`: not-run (out of current atomic unit)
+  - `npm run build:lib`: not-run (out of current atomic unit)
+- Risks / Follow-up:
+  - Added store compatibility methods mutate existing file entries by id/name; behavior is backward-compatible but should be consolidated into a single file-management API in a later refactor pass.
+  - Typecheck remains non-green due unrelated typing debt outside this unit.
+- Next Recommended Unit:
+  - Phase 0 / typecheck 基线收敛第四批：处理 `AssetSelectorNode` 样式类型、`PropertySelectNode` 字段推断、`groupRulesConfigSource` 与 `Toolbar` 的规则类型契约。
+
+## [2026-03-02] Session 7 - Phase 0 Typecheck Baseline Batch 2 (LogicFlow Type Compatibility)
+
+- Refactory Scope:
+  - Phase: Phase 0
+  - Task: typecheck 基线收敛第二批：LogicFlow 相关类型适配（导出类型、插件扩展 API、节点模型签名兼容）
+- In Scope Files:
+  - `tsconfig.json`
+  - `src/types/logicflow-core-compat.d.ts`
+  - `src/types/logicflow-extension-compat.d.ts`
+  - `src/types/logicflow-vue-node-registry-compat.d.ts`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `src/**` 业务逻辑重构（仅类型层兼容）
+  - CI 其他子任务
+  - `docs/1management/plan.md` 进度数字更新
+- Decisions:
+  - Add a dedicated LogicFlow compatibility declaration layer in `src/types` and route `@logicflow/core`, `@logicflow/extension`, `@logicflow/vue-node-registry` type resolution to local shims via `tsconfig.json` paths.
+  - Keep runtime imports and behavior unchanged; only relax/normalize typing contracts for current codebase compatibility:
+    - re-export and normalize commonly used `@logicflow/core` data/model types,
+    - widen extension menu plugin surface typing (`addMenuConfig`, `setMenuByType`),
+    - loosen vue-node-registry `register` config typing for optional `component/model`.
+  - Tune node/data signatures in compat declarations to match existing usage patterns (for example `addNode` without pre-supplied `id`, node model `resize(deltaX, deltaY)` override compatibility).
+- Checks:
+  - `npm run typecheck`: fail (LogicFlow-related type errors removed from baseline; remaining failures are non-LogicFlow issues such as `FlowEditor.vue` stray token `t`, nodeStyle/export/store/i18n typing drifts)
+  - `npm test`: not-run (out of current atomic unit)
+  - `npm run lint`: not-run (out of current atomic unit)
+  - `prettier --check`: not-run (out of current atomic unit)
+  - `npm run build:lib`: not-run (out of current atomic unit)
+- Risks / Follow-up:
+  - LogicFlow type compatibility now depends on local shim declarations; when upgrading LogicFlow major/minor versions, these shims should be reviewed together with runtime API changes.
+  - Typecheck is still non-green due unrelated non-LogicFlow debt.
+- Next Recommended Unit:
+  - Phase 0 / typecheck 基线收敛第三批：修复非 LogicFlow 的确定性类型错误（优先 `FlowEditor.vue` 语法残留、`nodeStyle` 导出契约、`ProjectExplorer` store API 对齐）。
+
 ## [2026-03-02] Session 6 - Phase 0 Typecheck Baseline Batch 1 (Declarations + Test Env Types)
 
 - Refactory Scope:

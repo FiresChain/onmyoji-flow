@@ -130,6 +130,10 @@ export const useFilesStore = defineStore('files', () => {
 
     const findById = (id?: string) => fileList.value.find(f => f.id === id);
     const findByName = (name?: string) => fileList.value.find(f => f.name === name);
+    const resolveFileId = (fileKey?: string) => {
+        if (!fileKey) return '';
+        return findById(fileKey)?.id || findByName(fileKey)?.id || '';
+    };
 
     // 导入数据（兼容旧格式 activeFile/name）
     const importData = (data: any) => {
@@ -310,6 +314,49 @@ export const useFilesStore = defineStore('files', () => {
         return findById(targetId) || findByName(fileKey || '');
     };
 
+    // 兼容旧组件 API：通过 id/name 设置活动文件
+    const setActiveFile = (fileKey: string) => {
+        const targetId = resolveFileId(fileKey);
+        if (!targetId) return;
+        activeFileId.value = targetId;
+        updateTab(targetId);
+    };
+
+    // 兼容旧组件 API：通过 id/name 设置可见性
+    const setVisible = (fileKey: string, visible: boolean) => {
+        const targetId = resolveFileId(fileKey);
+        if (!targetId) return;
+        const file = findById(targetId);
+        if (!file) return;
+        file.visible = visible;
+        if (!visible && activeFileId.value === targetId) {
+            const fallback = visibleFiles.value.find((item) => item.id !== targetId)
+                || fileList.value.find((item) => item.id !== targetId);
+            activeFileId.value = fallback?.id || '';
+        }
+        updateTab(targetId);
+    };
+
+    // 兼容旧组件 API：通过 id/name 删除文件
+    const deleteFile = (fileKey: string) => {
+        const targetId = resolveFileId(fileKey);
+        if (!targetId) return;
+        removeTab(targetId);
+        updateTab(activeFileId.value);
+    };
+
+    // 兼容旧组件 API：通过 id/name 重命名文件
+    const renameFile = (fileKey: string, newName: string) => {
+        const targetId = resolveFileId(fileKey);
+        const nextName = newName?.trim();
+        if (!targetId || !nextName) return;
+        const file = findById(targetId);
+        if (!file) return;
+        file.name = nextName;
+        file.label = nextName;
+        updateTab(targetId);
+    };
+
     // 同步 LogicFlow 画布数据到 store 的内部方法
     const syncLogicFlowDataToStore = (fileId?: string) => {
         const logicFlowInstance = getLogicFlowInstance();
@@ -361,6 +408,10 @@ export const useFilesStore = defineStore('files', () => {
         removeTab,
         updateTab,
         getTab,
+        setActiveFile,
+        setVisible,
+        deleteFile,
+        renameFile,
 
         fileList,
         activeFileId,

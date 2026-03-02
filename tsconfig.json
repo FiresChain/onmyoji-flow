@@ -7,7 +7,10 @@
     "types": ["vite/client", "vitest/globals"],
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@logicflow/core": ["./src/types/logicflow-core-compat.d.ts"],
+      "@logicflow/extension": ["./src/types/logicflow-extension-compat.d.ts"],
+      "@logicflow/vue-node-registry": ["./src/types/logicflow-vue-node-registry-compat.d.ts"]
     },
     "allowJs": true,
     "checkJs": false,

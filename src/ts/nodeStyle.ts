@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'vue';
 import { DefaultNodeStyle, type NodeStyle } from './schema';
+export type { NodeStyle } from './schema';
 
 const toNumber = (value: any, fallback: number | undefined): number | undefined => {
   const num = Number(value);
@@ -10,10 +11,15 @@ const toNumber = (value: any, fallback: number | undefined): number | undefined 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
 const normalizeRadius = (radius: NodeStyle['radius']): NodeStyle['radius'] => {
-  const defaultRadius = DefaultNodeStyle.radius ?? 0;
+  const defaultRadius = typeof DefaultNodeStyle.radius === 'number' ? DefaultNodeStyle.radius : 0;
   if (Array.isArray(radius)) {
-    const fallback = Array.isArray(DefaultNodeStyle.radius)
-      ? DefaultNodeStyle.radius
+    const fallback: [number, number, number, number] = Array.isArray(DefaultNodeStyle.radius)
+      ? [
+          toNumber(DefaultNodeStyle.radius[0], defaultRadius) ?? defaultRadius,
+          toNumber(DefaultNodeStyle.radius[1], defaultRadius) ?? defaultRadius,
+          toNumber(DefaultNodeStyle.radius[2], defaultRadius) ?? defaultRadius,
+          toNumber(DefaultNodeStyle.radius[3], defaultRadius) ?? defaultRadius
+        ]
       : [defaultRadius, defaultRadius, defaultRadius, defaultRadius];
     return [
       toNumber(radius[0], fallback[0]) ?? 0,
