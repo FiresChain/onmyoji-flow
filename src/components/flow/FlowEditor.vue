@@ -120,7 +120,7 @@ import PropertyPanel from './PropertyPanel.vue';
 import { useGlobalMessage } from '@/ts/useGlobalMessage';
 import { setLogicFlowInstance, destroyLogicFlowInstance, useLogicFlowScope } from '@/ts/useLogicFlow';
 import { normalizePropertiesWithStyle, normalizeNodeStyle, styleEquals } from '@/ts/nodeStyle';
-import { useCanvasSettings } from '@/ts/useCanvasSettings';
+import { destroyCanvasSettingsScope, useCanvasSettings } from '@/ts/useCanvasSettings';
 import { validateGraphGroupRules, type GroupRuleWarning } from '@/utils/groupRules';
 import { subscribeSharedGroupRulesConfig } from '@/utils/groupRulesConfigSource';
 import { getProblemTargetCandidateIds } from '@/utils/problemTarget';
@@ -1247,6 +1247,7 @@ onBeforeUnmount(() => {
   containerRef.value?.removeEventListener('contextmenu', handleCanvasContextMenu, true);
   stopRightDrag();
   destroyLogicFlowInstance(logicFlowScope);
+  destroyCanvasSettingsScope(logicFlowScope);
   lf.value = null;
 });
 

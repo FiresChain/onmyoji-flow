@@ -40,6 +40,36 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-02] Session 29 - Scope Canvas Settings State to Editor Instance Context
+
+- Refactory Scope:
+  - Phase: Phase 1
+  - Task: 将 `useCanvasSettings` 改为实例级作用域状态，并与 `LogicFlowScope` 对齐，消除跨实例设置串扰
+- In Scope Files:
+  - `src/ts/useCanvasSettings.ts`
+  - `src/components/flow/FlowEditor.vue`
+  - `src/__tests__/useCanvasSettings.scope.test.ts`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `docs/1management/plan.md` 进度更新
+  - 业务功能与 UI 扩展
+  - 多实例回归覆盖任务（留在下一原子任务）
+- Decisions:
+  - `useCanvasSettings` 由模块级共享 `ref` 改为 `Map<LogicFlowScope, CanvasSettingsState>`，每个作用域独立维护 `selectionEnabled/snapGridEnabled/snaplineEnabled`。
+  - `useCanvasSettings` 支持可选 `scope` 参数；默认通过 `useLogicFlowScope()` 解析当前编辑器作用域，与 Task 1 的上下文机制对齐。
+  - 新增 `destroyCanvasSettingsScope` 并在 `FlowEditor` 卸载时按作用域清理，避免长生命周期页面中的状态残留。
+  - 新增 scope 隔离单测，覆盖“同 scope 共享、跨 scope 隔离、销毁后重建恢复默认值”。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 当前仍缺少“同页多实例嵌入”端到端回归覆盖，需要在下一任务补齐跨实例状态/画布操作/画布设置完整回归。
+- Next Recommended Unit:
+  - Phase 1: 增加多实例隔离回归测试（状态、画布操作、画布设置）并仅做最小必要接线。
+
 ## [2026-03-02] Session 28 - Isolate useLogicFlow State by Editor Scope Context
 
 - Refactory Scope:
