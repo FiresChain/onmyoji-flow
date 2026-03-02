@@ -40,6 +40,33 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-02] Session 4 - Phase 0 Enable Executable ESLint Config with Vue Parsing
+
+- Refactory Scope:
+  - Phase: Phase 0
+  - Task: 4.0.2-1 补齐并验证 ESLint 可执行配置（含 `.vue` 解析）
+- In Scope Files:
+  - `.eslintrc.cjs`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `src/**`
+  - typecheck/CI 其他子任务
+  - `docs/1management/plan.md` 进度数字更新
+- Decisions:
+  - Add a minimal root ESLint config to make `npm run lint` executable for this repository baseline.
+  - Use `vue-eslint-parser` for `.vue` files and set `parserOptions.parser = false` to avoid blocking on mixed script syntax in current `.vue` sources during this atomic unit.
+  - Keep this unit focused on executability and `.vue` file handling only, without introducing rule hardening.
+- Checks:
+  - `npm run lint`: pass
+  - `npm test`: not-run (out of current atomic unit)
+  - `npm run typecheck`: not-run (out of current atomic unit)
+  - `prettier --check`: not-run (out of current atomic unit)
+  - `npm run build:lib`: not-run (out of current atomic unit)
+- Risks / Follow-up:
+  - Current `.vue` script blocks are not deeply linted yet; a follow-up unit should add TypeScript-aware parsing/rules with explicit dependency alignment.
+- Next Recommended Unit:
+  - Phase 0, task 4.0.2-2: 新增并验证 `typecheck` 脚本（`vue-tsc --noEmit`）并确认与现有代码基线兼容。
+
 ## [2026-03-02] Session 3 - Phase 0 Align Status/Priority Between plan.md and next.md
 
 - Refactory Scope:
