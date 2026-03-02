@@ -40,6 +40,35 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-02] Session 19 - Enforce activeFileId Runtime Write Boundary in Static Check Layer
+
+- Refactory Scope:
+  - Phase: Phase 1
+  - Task: 在静态检查层新增 `activeFileId` 运行时写入边界约束，禁止运行时路径直接写入，仅允许白名单入口 `switchActiveFile` / `setActiveFileForBootstrap`
+- In Scope Files:
+  - `package.json`
+  - `scripts/check-active-file-id-boundary.cjs`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `src/App.vue` 与 UI 交互改造
+  - 数据结构重设计
+  - 新业务功能
+  - `docs/1management/plan.md` 进度更新
+- Decisions:
+  - 新增静态检查脚本 `check-active-file-id-boundary.cjs`，基于 TypeScript AST 校验 `useStore.ts` 中 `activeFileId.value = ...` 的写入函数白名单。
+  - 将该检查接入 `npm run lint`，使其在 lint/静态检查阶段即可阻断未来运行时入口（如 `setActiveFile/addTab/removeTab/setVisible/deleteFile`）的直写回归。
+  - 保持运行时代码与行为不变，不改动 `src/ts/useStore.ts`。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 当前边界约束针对 `src/ts/useStore.ts` 的 `activeFileId` 写入路径；若未来重命名文件/变量需同步更新该静态检查脚本。
+- Next Recommended Unit:
+  - Phase 1: 将同类“关键状态写入边界”规则扩展到其他高风险状态字段，并评估统一到 ESLint 自定义规则插件。
+
 ## [2026-03-02] Session 18 - Add Anti-Regression Guards for activeFileId Runtime Write Boundary
 
 - Refactory Scope:

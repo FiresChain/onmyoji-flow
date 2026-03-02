@@ -32,7 +32,8 @@
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
-    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path .gitignore",
+    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path .gitignore && npm run lint:active-file-boundary",
+    "lint:active-file-boundary": "node ./scripts/check-active-file-id-boundary.cjs",
     "format": "prettier --write src/",
     "precommit": "npm test && npm run lint",
     "typecheck": "vue-tsc --noEmit"
