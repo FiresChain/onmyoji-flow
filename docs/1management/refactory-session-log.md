@@ -40,6 +40,35 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-02] Session 26 - Add Enumerable Guard for Centralized State Write Boundary Config
+
+- Refactory Scope:
+  - Phase: Phase 1
+  - Task: 为 `state-write-boundaries.config.js` 增加可枚举边界守卫并补结构探针，防止新增 `*-boundary` 规则绕过集中配置源
+- In Scope Files:
+  - `eslint-rules/state-write-boundaries.config.js`
+  - `src/__tests__/state-write-boundaries.config.test.ts`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `docs/1management/plan.md` 进度更新
+  - `src/ts/useStore.ts` 运行时逻辑
+  - CI workflow 与脚本治理
+- Decisions:
+  - 在集中配置中新增 `listStateWriteBoundaryIdentifiers()` 导出，提供边界标识可枚举能力。
+  - `createStateWriteBoundaryOptions()` 返回值改为数组/对象浅拷贝，避免规则侧意外修改集中配置原对象。
+  - 新增结构探针测试：自动枚举 `eslint-rules/*-boundary.js`，要求规则文件必须引用 `state-write-boundaries.config` 且声明的 `stateIdentifier` 与集中配置枚举列表一一对应。
+  - 保持既有边界规则语义不变，不修改 `active-file-id-boundary`/`file-list-boundary` 触发逻辑与文案。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 当前守卫覆盖命名模式为 `*-boundary.js`；若后续规则文件命名脱离该模式，需同步调整探针匹配策略。
+- Next Recommended Unit:
+  - Phase 0/1 gate: 在 CI 强制执行 `lint + typecheck + prettier --check`，补齐质量闸门。
+
 ## [2026-03-02] Session 25 - Fix filesStore Persistence Fallback to Avoid Global localStorage Clear
 
 - Refactory Scope:

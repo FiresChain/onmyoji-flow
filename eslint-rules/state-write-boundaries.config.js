@@ -1,6 +1,6 @@
 "use strict";
 
-const stateWriteBoundaries = {
+const stateWriteBoundaries = Object.freeze({
   activeFileId: {
     allowedWriteFunctions: ["switchActiveFile", "setActiveFileForBootstrap"],
     runtimeEntryFunctions: [
@@ -38,7 +38,11 @@ const stateWriteBoundaries = {
         "fileList.value may only be written in whitelist entries (importData, initializeWithPrompt, resetWorkspace). Found in '{{functionName}}'.",
     },
   },
-};
+});
+
+function listStateWriteBoundaryIdentifiers() {
+  return Object.keys(stateWriteBoundaries);
+}
 
 function createStateWriteBoundaryOptions(stateIdentifier) {
   const stateBoundary = stateWriteBoundaries[stateIdentifier];
@@ -52,14 +56,14 @@ function createStateWriteBoundaryOptions(stateIdentifier) {
   return {
     stateIdentifier,
     statePropertyName: "value",
-    allowedWriteFunctions: stateBoundary.allowedWriteFunctions,
-    runtimeEntryFunctions: stateBoundary.runtimeEntryFunctions,
+    allowedWriteFunctions: [...stateBoundary.allowedWriteFunctions],
+    runtimeEntryFunctions: [...stateBoundary.runtimeEntryFunctions],
     docsDescription: stateBoundary.docsDescription,
-    messages: stateBoundary.messages,
+    messages: {...stateBoundary.messages},
   };
 }
 
 module.exports = {
   createStateWriteBoundaryOptions,
+  listStateWriteBoundaryIdentifiers,
 };
-
