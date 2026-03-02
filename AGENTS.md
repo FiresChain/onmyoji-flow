@@ -191,3 +191,32 @@ A Refactory session is complete only if all are true:
    - changed files
    - what was intentionally not changed
    - exact next unit recommendation
+
+## 12. Continue Command Protocol (Conversation Control)
+
+This section defines the mandatory meaning of user command `继续` in this repository.
+
+### 12.1 Two-step meaning of `继续`
+
+After one task is initially completed and waiting for user acceptance:
+
+1. First `继续` in the same task context:
+   - Means: user accepted the implementation result and asks for commit.
+   - Agent MUST: only commit current task changes.
+   - Agent MUST NOT: start next task.
+
+2. Second `继续` in the same task context:
+   - Means: user asks for next atomic unit prompt.
+   - Agent MUST: only provide the next-task prompt text.
+   - Agent MUST NOT: execute the next task immediately.
+
+### 12.2 No implicit task switching
+
+1. If user says `继续`, agent should default to current-task post-actions (commit or next prompt), not new execution.
+2. Agent can start a new task only when user explicitly says to start/execute it (for example: `开始执行下一条`).
+
+### 12.3 Single-task guardrail in one conversation
+
+1. Prefer one atomic unit per conversation.
+2. If user requests multiple tasks in one turn, agent MUST intercept and ask to narrow to one atomic unit first.
+3. Agent MUST avoid chaining multiple refactor units continuously in the same conversation without explicit user re-confirmation.

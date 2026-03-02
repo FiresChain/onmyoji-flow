@@ -62,9 +62,33 @@
 
 ---
 
+## 3.1 当前执行状态（2026-03-02）
+
+### Phase 0 状态：部分完成
+
+已完成（基于近 10 轮会话落地）：
+
+1. 已建立项目基线与会话记录机制：
+   - `docs/1management/project-baseline.md`
+   - `docs/1management/refactory-session-log.md`
+2. 已完成管理文档命名统一和 `next.md` 与 `plan.md` 的优先级对齐。
+3. 已补齐 ESLint 可执行配置（`.vue` 可解析）。
+4. 已补齐 `typecheck` 命令与 `tsconfig` 基线，并完成分批类型收敛。
+5. 当前仓库在 HEAD 可通过：`lint` / `test` / `typecheck` / `build:lib`。
+
+未完成（仍需推进）：
+
+1. CI 质量闸门尚未完全覆盖 `lint + typecheck + prettier-check`。
+2. 文档指标仍存在陈旧信息（例如体积、版本与脚本状态）。
+3. 存在高风险行为缺陷：文件切换路径可能误写目标文件数据（详见风险章节）。
+4. ESLint 目前以“可执行”为主，规则强度尚不足以约束多人/多工具统一风格。
+5. LogicFlow 兼容声明仍为过渡方案，尚未形成退出闭环。
+
+---
+
 ## 4. 执行计划（分阶段）
 
-## Phase 0：基线收敛（P0）
+## Phase 0：基线收敛（P0，部分完成）
 
 目标：先让仓库“可检查、可发布、可协作”。
 
@@ -90,12 +114,17 @@
    - `prettier --check`
 4. 清理仓库杂质：
    - `.DS_Store`、`.bak`、无引用旧实现。
+5. Lint 强度治理（可执行 -> 可约束）：
+   - 补齐 `extends` 与核心规则集，避免仅“跑通不报错”。
+6. 过渡类型声明治理：
+   - 为 `src/types/logicflow-*-compat.d.ts` 设定收敛与退出条件（删除时间点和替代方案）。
 
 ### 4.0.3 验收标准
 
 1. 本地与 CI 均可稳定通过 test/lint/typecheck/format-check。
 2. 文档中包名与产物名不再出现错误主路径引用。
 3. `plan.md` 与 `next.md` 不存在状态冲突。
+4. 文件切换/保存路径无误写风险，并有回归测试覆盖。
 
 ---
 
@@ -210,6 +239,8 @@
    - 相对路径有效
    - 不引用不存在目录
    - 不引用历史文件名
+7. 基线文档一致性：
+   - `project-baseline.md`、`plan.md`、`package.json` 在版本号/脚本项/构建产物信息上保持一致。
 
 ---
 
@@ -233,6 +264,8 @@
    - schema + migration + test 闭环
 7. 仓库卫生
    - 清理 `.bak`、`.DS_Store`、死代码
+8. 类型过渡债务治理
+   - 为 compat 声明建立删除计划，避免长期掩盖真实类型问题。
 
 ---
 
@@ -253,6 +286,12 @@
    - 缓解：PR 模板强制文档同步检查项。
 3. 风险：多人并行修改冲突增大。
    - 缓解：按模块拆分 PR，降低并发编辑面。
+4. 风险：文件切换时可能误写目标文件数据（`setActiveFile -> updateTab(targetId)` 路径）。
+   - 缓解：切换时仅更新 `activeFileId`，保存动作绑定旧文件或显式来源文件；补回归测试覆盖切换场景。
+5. 风险：compat 声明放宽导致“类型绿灯但语义错误”。
+   - 缓解：对 compat 层设置范围边界与退出时间，并逐步替换为真实上游类型。
+6. 风险：lint 仅可执行但约束不足，无法稳定统一代码风格。
+   - 缓解：引入明确规则集、禁止关键反模式，并在 CI 强制执行。
 
 ---
 
@@ -270,6 +309,8 @@
    - RootDocument 有明确 schema 与迁移回归测试。
 5. 维护层：
    - 大组件完成第一轮职责拆分并有对应设计文档。
+6. 治理层：
+   - `refactory-session-log.md` 有对应会话记录，且关键基线文档（`project-baseline.md`、`plan.md`）与当前仓库状态一致。
 
 ---
 
@@ -279,8 +320,8 @@
 
 1. `docs: baseline unify and broken links fix`
 2. `chore: enable lint/typecheck/ci gates`
-3. `refactor: isolate editor instance state and storage safety`
-4. `refactor: split flow editor and toolbar modules`
-5. `feat: add root-document schema validation and migration tests`
-6. `docs: align design/management/build/test docs with implementation`
-
+3. `fix: prevent cross-file data overwrite on active file switch`
+4. `refactor: isolate editor instance state and storage safety`
+5. `refactor: split flow editor and toolbar modules`
+6. `feat: add root-document schema validation and migration tests`
+7. `docs: align design/management/build/test docs with implementation`
