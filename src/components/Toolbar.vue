@@ -5,7 +5,7 @@
       <el-button icon="Download" type="primary" @click="handleExport">{{ t('export') }}</el-button>
       <el-button icon="View" type="success" @click="handlePreviewData">数据预览</el-button>
       <el-button icon="Share" type="primary" @click="prepareCapture">{{ t('prepareCapture') }}</el-button>
-      <el-button icon="Setting" type="primary" @click="state.showWatermarkDialog = true">{{ t('setWatermark') }}</el-button>
+      <el-button icon="Setting" type="primary" @click="openWatermarkDialog">{{ t('setWatermark') }}</el-button>
       <el-button icon="Picture" type="primary" plain @click="openAssetManager">素材管理</el-button>
       <el-button icon="EditPen" type="primary" plain @click="openRuleManager">规则管理</el-button>
       <el-button v-if="!props.isEmbed" type="info" @click="loadExample">{{ t('loadExample') }}</el-button>
@@ -399,6 +399,7 @@ import { useToolbarImportExportCommands } from '@/components/composables/useTool
 import { useToolbarAssetManagement } from '@/components/composables/useToolbarAssetManagement';
 import { useToolbarRuleManagement } from '@/components/composables/useToolbarRuleManagement';
 import { useToolbarWorkspaceCommands } from '@/components/composables/useToolbarWorkspaceCommands';
+import { useToolbarDialogState } from '@/components/composables/useToolbarDialogState';
 
 const props = withDefaults(defineProps<{
   isEmbed?: boolean;
@@ -442,6 +443,18 @@ const state = reactive({
 const importSource = ref<'json' | 'teamCode'>('json');
 const teamCodeInput = ref('');
 const teamCodeQrInputRef = ref<HTMLInputElement | null>(null);
+const {
+  watermark,
+  showUpdateLog,
+  showFeedbackForm,
+  openWatermarkDialog,
+  applyWatermarkSettings,
+  mountDialogState,
+} = useToolbarDialogState({
+  state,
+  isEmbed: props.isEmbed,
+  currentAppVersion: updateLogs[0].version,
+});
 const {
   assetLibraries,
   assetManagerLibrary,
@@ -517,57 +530,14 @@ const {
   refreshLogicFlowCanvas,
 });
 
-const CURRENT_APP_VERSION = updateLogs[0].version;
-const showUpdateLog = () => {
-  state.showUpdateLogDialog = !state.showUpdateLogDialog;
-};
-
 onMounted(() => {
   mountAssetManagement();
-
-  if (props.isEmbed) {
-    return;
-  }
-
-  const lastVersion = localStorage.getItem('appVersion');
-
-  if (lastVersion !== CURRENT_APP_VERSION) {
-    // 如果版本号不同，则显示更新日志对话框
-    state.showUpdateLogDialog = true;
-    // 更新本地存储中的版本号为当前版本
-    localStorage.setItem('appVersion', CURRENT_APP_VERSION);
-  }
+  mountDialogState();
 });
 
 onBeforeUnmount(() => {
   disposeAssetManagement();
 });
-
-
-const showFeedbackForm = () => {
-  state.showFeedbackFormDialog = !state.showFeedbackFormDialog;
-};
-
-const watermark = reactive({
-  text: localStorage.getItem('watermark.text') || '示例水印',
-  fontSize: Number(localStorage.getItem('watermark.fontSize')) || 30,
-  color: localStorage.getItem('watermark.color') || 'rgba(184, 184, 184, 0.3)',
-  angle: Number(localStorage.getItem('watermark.angle')) || -20,
-  rows: Number(localStorage.getItem('watermark.rows')) || 1,
-  cols: Number(localStorage.getItem('watermark.cols')) || 1,
-});
-
-const applyWatermarkSettings = () => {
-  // 保存水印设置到 localStorage
-  localStorage.setItem('watermark.text', watermark.text);
-  localStorage.setItem('watermark.fontSize', String(watermark.fontSize));
-  localStorage.setItem('watermark.color', watermark.color);
-  localStorage.setItem('watermark.angle', String(watermark.angle));
-  localStorage.setItem('watermark.rows', String(watermark.rows));
-  localStorage.setItem('watermark.cols', String(watermark.cols));
-
-  state.showWatermarkDialog = false;
-};
 
 const {
   handleExport,

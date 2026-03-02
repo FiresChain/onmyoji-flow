@@ -40,6 +40,38 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-02] Session 45 - Extract Toolbar Dialog State Orchestration into useToolbarDialogState
+
+- Refactory Scope:
+  - Phase: Phase 2
+  - Task: 将 `Toolbar` 中更新日志/反馈/水印设置对话框状态编排抽离到 composable，保持行为不变
+- In Scope Files:
+  - `src/components/Toolbar.vue`
+  - `src/components/composables/useToolbarDialogState.ts`
+  - `src/__tests__/useToolbarDialogState.test.ts`
+  - `docs/2design/ToolbarArchitecture.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `FlowEditor` 新增重构任务
+  - `groupRules` 规则语义调整
+  - `docs/1management/plan.md` 进度更新
+  - Phase 1 / Phase 3 内容
+- Decisions:
+  - 新增 `useToolbarDialogState`，承接更新日志开关、反馈开关、水印设置状态与持久化命令。
+  - `Toolbar.vue` 保留模板与按钮绑定，通过 composable 返回的方法接线，不改交互文案与 UI 结构。
+  - 将版本首开更新日志逻辑迁移到 `mountDialogState`，保持 embed 模式下不触发该逻辑。
+  - 新增最小回归测试，覆盖版本首开、开关切换、水印设置持久化与对话框关闭行为。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - Toolbar 架构边界仍缺显式守卫测试，后续需补充以防命令实现回流到单文件。
+- Next Recommended Unit:
+  - Phase 2 下一原子任务：新增 Toolbar 架构守卫回归，确保命令实现留在 composables、Toolbar 保持编排/模板层角色。
+
 ## [2026-03-02] Session 44 - Extract Toolbar Workspace Commands Orchestration into useToolbarWorkspaceCommands
 
 - Refactory Scope:

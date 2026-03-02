@@ -94,3 +94,19 @@
 
 - 保留 `refreshLogicFlowCanvas` 与模板按钮绑定点。
 - 通过 composable 返回命令接线工作区按钮，不改确认弹窗文案与执行语义。
+
+## Task 5 落地（对话框状态编排）
+
+新增：`src/components/composables/useToolbarDialogState.ts`
+
+当前由该 composable 承接的编排：
+
+- 更新日志对话框开关与版本首开逻辑
+- 反馈对话框开关
+- 水印设置状态初始化与持久化应用
+
+`Toolbar.vue` 调整为：
+
+- 水印按钮改为调用 `openWatermarkDialog` 接线方法。
+- `onMounted` 通过 `mountDialogState` 执行版本首开逻辑，不改 embed 模式行为。
+- 通过 composable 返回的 `watermark` 与命令接线既有水印设置弹窗，不改文案和 UI 结构。
