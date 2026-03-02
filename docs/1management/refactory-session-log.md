@@ -40,6 +40,36 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-02] Session 33 - Align showPropertyPanel/config Contract as Compatibility No-op
+
+- Refactory Scope:
+  - Phase: Phase 1
+  - Task: 收敛 `showPropertyPanel/config` 的文档声明与运行时行为，选择 B（兼容保留 + 文档标记 no-op）
+- In Scope Files:
+  - `docs/2design/ComponentArchitecture.md`
+  - `docs/3build/YysEditorEmbed.md`
+  - `docs/3build/EMBED_README.md`
+  - `src/__tests__/embed-update-data.contract.test.ts`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `src/YysEditorEmbed.vue` 运行时能力实现（选择 B，不新增行为）
+  - `docs/1management/plan.md` 进度更新
+  - Phase 2/3 重构任务
+- Decisions:
+  - 明确决策为 B：`showPropertyPanel` 与 `config` 保留在 API 以兼容存量接入，但当前版本视为 no-op，不承诺运行时效果。
+  - 在 `ComponentArchitecture`、`YysEditorEmbed` 使用文档和 `EMBED_README` 同步标注 no-op 与兼容声明，移除“当前生效”暗示。
+  - 增加契约回归测试，验证在传入 `showPropertyPanel/config` 时嵌入编辑模式行为保持兼容且不影响 `update:data` 事件链路。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 当前对 `showPropertyPanel/config` 的需求仍可能存在；若后续需要恢复能力，应以单独原子任务实现并补运行时/契约测试。
+- Next Recommended Unit:
+  - Phase 1 后续：若业务确认需要上述能力，选择 A 路径实现最小运行时接线并在文档中移除 no-op 标记。
+
 ## [2026-03-02] Session 32 - Emit update:data in Embed Edit Mode via Minimal Wiring
 
 - Refactory Scope:

@@ -116,9 +116,9 @@ const handleSave = (data) => {
 | `width` | `string \| number` | `'100%'` | 宽度 |
 | `height` | `string \| number` | `'600px'` | 高度 |
 | `showToolbar` | `boolean` | `true` | 显示工具栏 |
-| `showPropertyPanel` | `boolean` | `true` | 显示属性面板 |
+| `showPropertyPanel` | `boolean` | `true` | 兼容保留，当前版本 no-op |
 | `showComponentPanel` | `boolean` | `true` | 显示组件库 |
-| `config` | `EditorConfig` | `{}` | 编辑器配置 |
+| `config` | `EditorConfig` | `{}` | 兼容保留，当前版本 no-op |
 
 ### Events
 
@@ -128,6 +128,8 @@ const handleSave = (data) => {
 | `save` | `(data: GraphData)` | 保存 |
 | `cancel` | `()` | 取消 |
 | `error` | `(error: Error)` | 错误 |
+
+> 兼容声明（2026-03）：`showPropertyPanel` 和 `config` 为兼容保留参数，当前实现不会消费这两个参数。
 
 ### 方法
 

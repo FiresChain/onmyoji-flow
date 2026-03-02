@@ -135,10 +135,10 @@ interface YysEditorEmbedProps {
 
   // UI 控制（仅在 edit 模式有效）
   showToolbar?: boolean
-  showPropertyPanel?: boolean
+  showPropertyPanel?: boolean // 兼容保留（当前版本 no-op）
   showComponentPanel?: boolean
 
-  // 配置选项
+  // 配置选项（兼容保留，当前版本 no-op）
   config?: EditorConfig
 }
 
@@ -165,7 +165,7 @@ interface EdgeData {
   properties?: Record<string, any>
 }
 
-// 编辑器配置
+// 编辑器配置（兼容保留，当前版本 no-op）
 interface EditorConfig {
   // 画布配置
   grid?: boolean
@@ -206,9 +206,9 @@ const defaultProps = {
   width: '100%',
   height: '600px',
   showToolbar: true,
-  showPropertyPanel: true,
+  showPropertyPanel: true, // 兼容保留（当前版本 no-op）
   showComponentPanel: true,
-  config: {
+  config: { // 兼容保留（当前版本 no-op）
     grid: true,
     snapline: true,
     keyboard: true,
@@ -217,6 +217,12 @@ const defaultProps = {
   }
 }
 ```
+
+### 契约状态（2026-03）
+
+1. `showPropertyPanel`：对外 props 仍保留以保证兼容，但在当前实现中不再控制显示逻辑（no-op）。
+2. `config`：对外 props 仍保留以保证兼容，但当前实现未消费配置字段（no-op）。
+3. 后续如需恢复这两项能力，应通过新的原子任务显式实现并补契约回归测试。
 
 ---
 
@@ -249,11 +255,8 @@ const defaultProps = {
         <FlowEditor
           ref="flowEditorRef"
           :initial-data="data"
-          @data-change="handleDataChange"
+          @graph-data-change="handleDataChange"
         />
-
-        <!-- 右侧属性面板 -->
-        <PropertyPanel v-if="showPropertyPanel" />
       </div>
     </template>
 
@@ -273,7 +276,6 @@ import { ref, computed, watch, onMounted } from 'vue'
 import FlowEditor from './components/flow/FlowEditor.vue'
 import Toolbar from './components/Toolbar.vue'
 import ComponentsPanel from './components/flow/ComponentsPanel.vue'
-import PropertyPanel from './components/flow/PropertyPanel.vue'
 import type { GraphData, EditorConfig } from './ts/schema'
 
 // Props
@@ -283,15 +285,15 @@ const props = withDefaults(defineProps<{
   width?: string | number
   height?: string | number
   showToolbar?: boolean
-  showPropertyPanel?: boolean
+  showPropertyPanel?: boolean // 兼容保留（当前版本 no-op）
   showComponentPanel?: boolean
-  config?: EditorConfig
+  config?: EditorConfig // 兼容保留（当前版本 no-op）
 }>(), {
   mode: 'edit',
   width: '100%',
   height: '600px',
   showToolbar: true,
-  showPropertyPanel: true,
+  showPropertyPanel: true, // 兼容保留（当前版本 no-op）
   showComponentPanel: true
 })
 

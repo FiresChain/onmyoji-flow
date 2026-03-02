@@ -57,4 +57,46 @@ describe('YysEditorEmbed update:data contract', () => {
 
     expect(wrapper.emitted('update:data')).toEqual([[payload]]);
   });
+
+  it('keeps showPropertyPanel and config as backward-compatible no-op props', async () => {
+    const payload: GraphData = {
+      nodes: [
+        {
+          id: 'node-legacy',
+          type: 'rect',
+          x: 10,
+          y: 20
+        }
+      ],
+      edges: []
+    };
+
+    const wrapper = mount(YysEditorEmbed, {
+      props: {
+        mode: 'edit',
+        showToolbar: false,
+        showComponentPanel: false,
+        showPropertyPanel: false,
+        config: {
+          grid: false,
+          snapline: false,
+          keyboard: false
+        }
+      },
+      global: {
+        stubs: {
+          FlowEditor: createFlowEditorStub(payload),
+          Toolbar: true,
+          ComponentsPanel: true,
+          DialogManager: true
+        }
+      }
+    });
+
+    expect(wrapper.find('.flow-editor-stub').exists()).toBe(true);
+
+    await wrapper.find('.flow-editor-stub').trigger('click');
+
+    expect(wrapper.emitted('update:data')).toEqual([[payload]]);
+  });
 });

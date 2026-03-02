@@ -103,9 +103,9 @@ const handleCancel = () => {
 | `width` | `string \| number` | `'100%'` | 宽度 |
 | `height` | `string \| number` | `'600px'` | 高度 |
 | `showToolbar` | `boolean` | `true` | 是否显示工具栏（仅编辑模式） |
-| `showPropertyPanel` | `boolean` | `true` | 是否显示属性面板（仅编辑模式） |
+| `showPropertyPanel` | `boolean` | `true` | 兼容保留，当前版本 no-op（不影响运行时） |
 | `showComponentPanel` | `boolean` | `true` | 是否显示组件库（仅编辑模式） |
-| `config` | `EditorConfig` | `{}` | 编辑器配置 |
+| `config` | `EditorConfig` | `{}` | 兼容保留，当前版本 no-op（字段不生效） |
 
 ### Events
 
@@ -115,6 +115,8 @@ const handleCancel = () => {
 | `save` | `(data: GraphData)` | 保存（用户点击保存按钮） |
 | `cancel` | `()` | 取消（用户点击取消按钮） |
 | `error` | `(error: Error)` | 错误 |
+
+> 兼容声明（2026-03）：`showPropertyPanel` 与 `config` 仍保留在 API 中以避免破坏已有接入，但当前实现不会消费这两个参数。
 
 ### 方法（通过 ref 调用）
 
@@ -156,6 +158,8 @@ interface EditorConfig {
   locale?: 'zh' | 'ja' | 'en'
 }
 ```
+
+> `EditorConfig` 目前为兼容类型定义，运行时尚未消费其字段。
 
 ## 使用场景
 
@@ -321,23 +325,20 @@ const flowData = ref({
 
 ## 高级用法
 
-### 自定义配置
+### 兼容属性说明（当前不生效）
 
 ```vue
 <template>
   <YysEditorEmbed
     :data="flowData"
     mode="edit"
-    :config="{
-      grid: true,
-      snapline: true,
-      keyboard: true,
-      theme: 'light',
-      locale: 'zh'
-    }"
+    :config="{ grid: true, snapline: true }"
+    :showPropertyPanel="false"
   />
 </template>
 ```
+
+以上写法在当前版本仅用于兼容旧接入，`config/showPropertyPanel` 不会改变运行时行为。
 
 ### 监听数据变化
 
