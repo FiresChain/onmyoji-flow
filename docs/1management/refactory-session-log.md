@@ -40,6 +40,64 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-02] Session 22 - Extract Reusable State Write Boundary Rule Factory (activeFileId first)
+
+- Refactory Scope:
+  - Phase: Phase 1
+  - Task: 将 `active-file-id-boundary` 抽象为可复用的“状态写入边界规则工厂”，先落地 `activeFileId`，并保持现有语义不变
+- In Scope Files:
+  - `eslint-rules/active-file-id-boundary.js`
+  - `eslint-rules/create-state-write-boundary-rule.js`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `src/ts/useStore.ts` 运行时逻辑改动
+  - `src/App.vue` 与 UI 交互改造
+  - 数据结构重设计
+  - 新业务功能
+  - `docs/1management/plan.md` 进度更新
+- Decisions:
+  - 提取通用工厂 `createStateWriteBoundaryRule`，复用原有 AST 判定逻辑（函数包围域识别 + 成员赋值识别）。
+  - `active-file-id-boundary` 改为工厂配置包装，保留原白名单入口（`switchActiveFile`、`setActiveFileForBootstrap`）、运行时禁写入口（`setActiveFile`、`addTab`、`removeTab`、`setVisible`、`deleteFile`）与报错文案。
+  - 不修改运行时代码与测试结构，仅重构静态规则实现结构。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+  - `npx eslint eslint-rules/__boundary_probe__.js --no-eslintrc --rulesdir ./eslint-rules --rule "active-file-id-boundary:error"`: pass（探针验证语义，预期报错 6 条；白名单写入无报错）
+- Risks / Follow-up:
+  - 工厂文件位于 `eslint-rules/`，若后续新增同目录规则需避免命名冲突并保持配置显式。
+- Next Recommended Unit:
+  - Phase 1: 在不改变运行时行为前提下，为第二个高风险状态字段接入同一工厂并补最小化探针验证。
+
+## [2026-03-02] Session 21 - Verify activeFileId ESLint Boundary Migration and Keep Semantics Unchanged
+
+- Refactory Scope:
+  - Phase: Phase 1
+  - Task: 校验并确认 `activeFileId` 写入边界已由独立脚本检查迁移到 ESLint 规则层，且白名单入口与运行时语义保持不变
+- In Scope Files:
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `src/App.vue` 与 UI 交互改造
+  - 数据结构重设计
+  - 新业务功能
+  - `docs/1management/plan.md` 进度更新
+- Decisions:
+  - 复核现状后确认迁移已落地：本地规则 `active-file-id-boundary` 已接入 lint 流程，独立脚本 `scripts/check-active-file-id-boundary.cjs` 已移除。
+  - 保持运行时代码不变：`src/ts/useStore.ts` 仍仅在 `switchActiveFile` 与 `setActiveFileForBootstrap` 写入 `activeFileId.value`。
+  - 追加临时 ESLint 探针验证：`setActiveFile` 直写 `activeFileId.value` 会报错，`switchActiveFile` 写入通过。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 规则当前依赖函数名与文件路径约定；若后续重命名 `useStore.ts` 或入口函数名，需要同步更新规则/配置与结构性测试。
+- Next Recommended Unit:
+  - Phase 1: 将关键状态写入边界规则模板化，评估覆盖 `activeFileId` 以外的高风险状态字段。
+
 ## [2026-03-02] Session 20 - Upgrade activeFileId Write Boundary to ESLint Rule Layer
 
 - Refactory Scope:
