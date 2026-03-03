@@ -49,6 +49,7 @@
 34. Toolbar 导入模板结构不变量守卫再收紧：唯一来源绑定 + QR input 接线细节 + 接线层边界守卫：`toolbar-architecture.guard`
 35. ImportExport 分段推进 + 局部 flush + 重批次确定性补强：计数稳定与零残留定时器守卫：`useToolbarImportExportCommands`
 36. Toolbar 导入弹窗结构锚点混合噪声回归补强：多 footer 噪声 + 额外结构噪声节点下作用域排他与计数对齐守卫：`toolbar-wiring.regression`
+37. Toolbar 导入模板局部结构不变量再收紧：局部 `import-form` 唯一来源绑定 + QR actions 同域接线 + 接线层依赖边界守卫：`toolbar-architecture.guard`
 
 ## Task 1 落地（导入/导出/预览）
 
@@ -461,3 +462,14 @@
 - 在“多个非导入弹窗 `dialog-footer` 噪声 + 额外结构噪声节点（`dialog-structure-noise`）”并存时，导入弹窗仍唯一命中结构锚点组合（`import-form` + `dialog-footer`）。
 - 在 `teamCode` 来源下，`team-code-qr-actions` 继续仅位于导入弹窗作用域内，不被结构噪声节点误命中。
 - 在 mixed-structural-noise + 多轮“打开/切换来源/关闭/重开”循环中，`openImportDialog` 与 `json/teamCode/qr` 三路径命令计数持续对齐。
+
+## Task 37 落地（Toolbar 导入模板局部结构不变量再收紧）
+
+增强：`src/__tests__/toolbar-architecture.guard.test.ts`
+
+回归目标：
+
+- 锁定导入弹窗局部模板中 `import-form` 与 `v-model="importSource"` 绑定入口全局唯一且局部唯一，不回流到其它对话框模板。
+- 锁定 `json/teamCode` 来源选项在导入表单局部模板中保持唯一且完整（无额外来源分支）。
+- 锁定 `team-code-qr-actions` 结构锚点唯一，二维码 input 接线持续保持 `ref="teamCodeQrInputRef" + @change="handleTeamCodeQrImport" + accept="image/*"`，且与 `triggerTeamCodeQrImport` 同域。
+- 持续守卫 `Toolbar.vue` 为接线层，不回流 `teamCodeService` 与 import/export 实现依赖。
