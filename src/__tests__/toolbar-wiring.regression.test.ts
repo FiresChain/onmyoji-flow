@@ -242,6 +242,37 @@ const ElDialogWithSlotWrapperStructuralNoiseStub = defineComponent({
   },
 });
 
+const ElDialogWithNestedSlotFooterNoiseMatrixStub = defineComponent({
+  name: 'ElDialog',
+  setup(_, { attrs, slots }) {
+    return () => {
+      const title = typeof attrs.title === 'string' ? attrs.title : '';
+      const isImportDialog = title === '导入数据';
+      const nestedSlotFooterNoiseNodes = isImportDialog
+        ? []
+        : [
+          h('div', { class: 'slot-wrapper-noise-matrix-layer slot-wrapper-noise-matrix-layer-primary' }, [
+            h('div', { class: 'slot-wrapper slot-wrapper-noise-matrix slot-wrapper-noise-matrix-primary', slot: 'footer', 'data-slot-footer-noise': 'true' }, [
+              h('div', { class: 'slot-wrapper slot-wrapper-noise-matrix-secondary' }, [
+                h('div', { class: 'import-form slot-wrapper-import-form-fake-anchor' }, 'slot-wrapper-import-form-fake-anchor'),
+                h('div', { class: 'dialog-footer dialog-footer-noise slot-wrapper-dialog-footer-noise-matrix', slot: 'footer', 'data-slot-footer-noise': 'true' }, [
+                  h('button', 'slot-wrapper-noise-matrix-action'),
+                ]),
+              ]),
+              h('div', { class: 'team-code-qr-actions slot-wrapper-team-code-qr-actions-fake-anchor', slot: 'footer', 'data-slot-footer-noise': 'true' }, [
+                h('button', 'slot-wrapper-noise-matrix-qr-entry'),
+              ]),
+            ]),
+            h('div', { class: 'slot-wrapper slot-wrapper-slot-footer-noise', slot: 'footer', 'data-slot-footer-noise': 'true' }, [
+              h('span', { class: 'dialog-footer dialog-footer-noise slot-wrapper-slot-footer-dialog-footer-noise', slot: 'footer', 'data-slot-footer-noise': 'true' }, 'slot-wrapper-slot-footer-noise'),
+            ]),
+          ]),
+        ];
+      return h('div', [...nestedSlotFooterNoiseNodes, slots.default?.(), slots.footer?.()]);
+    };
+  },
+});
+
 const ElFormStub = defineComponent({
   name: 'ElForm',
   setup(_, { attrs, slots }) {
@@ -256,8 +287,15 @@ const ElFormItemStub = defineComponent({
   },
 });
 
-const createWrapper = (options?: { footerNoise?: boolean; mixedStructuralNoise?: boolean; slotWrapperStructuralNoise?: boolean }) => {
-  const dialogStub = options?.slotWrapperStructuralNoise
+const createWrapper = (options?: {
+  footerNoise?: boolean;
+  mixedStructuralNoise?: boolean;
+  slotWrapperStructuralNoise?: boolean;
+  nestedSlotFooterNoiseMatrix?: boolean;
+}) => {
+  const dialogStub = options?.nestedSlotFooterNoiseMatrix
+    ? ElDialogWithNestedSlotFooterNoiseMatrixStub
+    : options?.slotWrapperStructuralNoise
     ? ElDialogWithSlotWrapperStructuralNoiseStub
     : options?.mixedStructuralNoise
     ? ElDialogWithMixedStructuralNoiseStub
@@ -343,8 +381,18 @@ const getImportDialogScope = (
   });
 
   if (expectedSource === 'teamCode') {
-    const teamCodeQrActions = importDialogScope.findAll('.team-code-qr-actions');
-    const globalTeamCodeQrActions = wrapper.findAll('.team-code-qr-actions');
+    const teamCodeQrActions = importDialogScope.findAll('.team-code-qr-actions').filter((actionsScope) => {
+      const teamCodeQrButton = actionsScope
+        .findAll('button')
+        .find((button) => button.text().trim() === '选择二维码图片');
+      return actionsScope.find('input[accept="image/*"]').exists() && Boolean(teamCodeQrButton);
+    });
+    const globalTeamCodeQrActions = wrapper.findAll('.team-code-qr-actions').filter((actionsScope) => {
+      const teamCodeQrButton = actionsScope
+        .findAll('button')
+        .find((button) => button.text().trim() === '选择二维码图片');
+      return actionsScope.find('input[accept="image/*"]').exists() && Boolean(teamCodeQrButton);
+    });
     expect(globalTeamCodeQrActions).toHaveLength(1);
     expect(teamCodeQrActions).toHaveLength(1);
     expect(importDialogScope.element.contains(teamCodeQrActions[0].element)).toBe(true);
@@ -769,6 +817,86 @@ describe('toolbar wiring regression', () => {
       await vm.$nextTick();
       vm.importSource = 'teamCode';
       vm.teamCodeInput = `#TA#CLOSED-SLOT-WRAPPER-${round}`;
+      await vm.$nextTick();
+    }
+
+    expect(wiringSpies.openImportDialog).toHaveBeenCalledTimes(expectedOpenCount);
+    expect(wiringSpies.triggerJsonFileImport).toHaveBeenCalledTimes(expectedJsonCount);
+    expect(wiringSpies.handleTeamCodeImport).toHaveBeenCalledTimes(expectedTeamCodeCount);
+    expect(wiringSpies.triggerTeamCodeQrImport).toHaveBeenCalledTimes(expectedQrCount);
+
+    wrapper.unmount();
+  });
+
+  it('keeps import-dialog anchoring and command counts aligned under nested slot-wrapper slot-footer noise matrix reopen cycles', async () => {
+    const wrapper = createWrapper({ nestedSlotFooterNoiseMatrix: true });
+    const vm = wrapper.vm as unknown as ToolbarVm;
+    const importButton = findButtonByText(wrapper, '导入');
+    expect(importButton).toBeTruthy();
+
+    expect(wrapper.findAll('.slot-wrapper-noise-matrix-layer').length).toBeGreaterThan(0);
+    expect(wrapper.findAll('[data-slot-footer-noise="true"]').length).toBeGreaterThan(4);
+    expect(wrapper.findAll('.slot-wrapper-import-form-fake-anchor').length).toBeGreaterThan(0);
+    expect(wrapper.findAll('.slot-wrapper-team-code-qr-actions-fake-anchor').length).toBeGreaterThan(0);
+    expect(wrapper.findAll('.import-form').length).toBeGreaterThan(1);
+    expect(wrapper.findAll('.team-code-qr-actions').length).toBeGreaterThan(1);
+
+    let expectedOpenCount = 0;
+    let expectedJsonCount = 0;
+    let expectedTeamCodeCount = 0;
+    let expectedQrCount = 0;
+
+    for (let round = 1; round <= 5; round += 1) {
+      await importButton!.trigger('click');
+      expectedOpenCount += 1;
+      expect(wiringSpies.openImportDialog).toHaveBeenCalledTimes(expectedOpenCount);
+      expect(vm.importSource).toBe('json');
+      expect(vm.teamCodeInput).toBe('');
+      expect(vm.state.showImportDialog).toBe(true);
+
+      let sourceBoundVisibility = assertImportSourceBoundVisibility(wrapper, vm, 'json');
+      await sourceBoundVisibility.sourceCommandButton.trigger('click');
+      expectedJsonCount += 1;
+      expect(wiringSpies.triggerJsonFileImport).toHaveBeenCalledTimes(expectedJsonCount);
+
+      vm.importSource = 'teamCode';
+      vm.teamCodeInput = `#TA#NESTED-SLOT-FOOTER-${round}`;
+      await vm.$nextTick();
+
+      sourceBoundVisibility = assertImportSourceBoundVisibility(wrapper, vm, 'teamCode');
+      const importDialogScope = getImportDialogScope(wrapper, 'teamCode');
+      const scopedRealTeamCodeQrActions = importDialogScope.findAll('.team-code-qr-actions').filter((actionsScope) => {
+        const teamCodeQrButton = actionsScope
+          .findAll('button')
+          .find((button) => button.text().trim() === '选择二维码图片');
+        return actionsScope.find('input[accept="image/*"]').exists() && Boolean(teamCodeQrButton);
+      });
+      expect(scopedRealTeamCodeQrActions).toHaveLength(1);
+      wrapper.findAll('.slot-wrapper-import-form-fake-anchor').forEach((noiseNode) => {
+        expect(importDialogScope.element.contains(noiseNode.element)).toBe(false);
+      });
+      wrapper.findAll('.slot-wrapper-dialog-footer-noise-matrix').forEach((noiseNode) => {
+        expect(importDialogScope.element.contains(noiseNode.element)).toBe(false);
+      });
+      wrapper.findAll('.slot-wrapper-slot-footer-dialog-footer-noise').forEach((noiseNode) => {
+        expect(importDialogScope.element.contains(noiseNode.element)).toBe(false);
+      });
+      wrapper.findAll('.slot-wrapper-team-code-qr-actions-fake-anchor').forEach((noiseNode) => {
+        expect(importDialogScope.element.contains(noiseNode.element)).toBe(false);
+      });
+
+      await sourceBoundVisibility.sourceCommandButton.trigger('click');
+      expectedTeamCodeCount += 1;
+      expect(wiringSpies.handleTeamCodeImport).toHaveBeenCalledTimes(expectedTeamCodeCount);
+      expect(sourceBoundVisibility.teamCodeQrButton.exists()).toBe(true);
+      await sourceBoundVisibility.teamCodeQrButton.trigger('click');
+      expectedQrCount += 1;
+      expect(wiringSpies.triggerTeamCodeQrImport).toHaveBeenCalledTimes(expectedQrCount);
+
+      vm.state.showImportDialog = false;
+      await vm.$nextTick();
+      vm.importSource = 'teamCode';
+      vm.teamCodeInput = `#TA#CLOSED-NESTED-SLOT-FOOTER-${round}`;
       await vm.$nextTick();
     }
 

@@ -40,6 +40,36 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-03] Session 83 - Strengthen Import-Dialog Scope Anchoring Under Nested Slot-Footer Noise Matrix
+
+- Refactory Scope:
+  - Phase: Phase 2
+  - Task: Toolbar 导入弹窗结构锚点：嵌套 slot-wrapper + slot/footer 混合噪声矩阵回归补强（`toolbar-wiring.regression`，仅测试补强）
+- In Scope Files:
+  - `src/__tests__/toolbar-wiring.regression.test.ts`
+  - `docs/2design/ToolbarArchitecture.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `FlowEditor` 新增重构任务
+  - `groupRules` 规则语义调整
+  - `docs/1management/plan.md` 更新
+  - Phase 1 / Phase 3 内容
+- Decisions:
+  - 新增 nested slot-footer 噪声矩阵 `ElDialog` stub：在非导入弹窗同时注入多层 slot-wrapper、`slot/footer` 噪声和 `import-form`/`team-code-qr-actions` 假锚点节点。
+  - 将 `teamCode` 分支二维码动作块判定收紧为“`选择二维码图片` 按钮 + `accept="image/*"` input”联合条件，确保真假锚点共存时仅命中真实导入弹窗作用域。
+  - 新增 5 轮“打开/切换来源/关闭/重开（含关闭后污染态）”回归，持续校验 `openImportDialog + json/teamCode/qr` 三路径计数无漂移。
+  - 更新 `ToolbarArchitecture.md` Task 42，记录本轮 nested slot-footer noise matrix 结构锚点边界。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 结构锚点守卫仍依赖导入区按钮文本与二维码 input 属性；若后续模板文案或输入属性迁移，需要同步更新作用域识别条件。
+- Next Recommended Unit:
+  - Phase 2 下一原子任务：收紧 `toolbar-architecture.guard` 的导入弹窗局部模板不变量（footer 分支互斥与局部唯一绑定）。
+
 ## [2026-03-03] Session 82 - Reinforce Timer Determinism Across Pre-Threshold Flush Matrix and Rebatch Isolation
 
 - Refactory Scope:

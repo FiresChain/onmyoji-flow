@@ -54,6 +54,7 @@
 39. Toolbar 导入弹窗结构锚点 slot-wrapper 混合噪声回归补强：结构锚点定位在 slot-wrapper 假锚点共存下继续唯一命中并保持多轮计数对齐：`toolbar-wiring.regression`
 40. Toolbar 导入模板局部结构不变量再收紧：导入弹窗局部唯一性 + 来源分支互斥 + QR 接线同域守卫：`toolbar-architecture.guard`
 41. ImportExport 阈值前 flush 变体矩阵 + 批次隔离确定性补强：99ms 前 flush、多批次分段推进与定时器零残留守卫：`useToolbarImportExportCommands`
+42. Toolbar 导入弹窗结构锚点再补强：嵌套 slot-wrapper + slot/footer 混合噪声矩阵下唯一命中与多轮计数对齐守卫：`toolbar-wiring.regression`
 
 ## Task 1 落地（导入/导出/预览）
 
@@ -518,3 +519,13 @@
 - 新增“阈值前 flush 变体矩阵”回归：交错触发后统一在 `99ms` 阈值前执行 `runOnlyPendingTimers`，验证 `preview/export` 计数在各变体下不漂移且 flush 后 `vi.getTimerCount() === 0`。
 - 在每个变体首批 flush 后触发新批次，按 `99ms -> 1ms -> 1899ms -> 1ms` 分段推进，持续锁定 `updateTab` 即时计数、`preview/export` 延时计数稳定且无提前触发。
 - 在变体循环收尾与全流程收束后重复断言 `vi.getTimerCount() === 0`，确保批次隔离下无幽灵定时器残留。
+
+## Task 42 落地（Toolbar 导入弹窗结构锚点：嵌套 slot-footer 噪声矩阵回归）
+
+增强：`src/__tests__/toolbar-wiring.regression.test.ts`
+
+回归目标：
+
+- 在“多层 slot-wrapper + slot/footer 噪声 + `import-form`/`team-code-qr-actions` 假锚点”并存时，导入弹窗仍唯一命中 `import-form + dialog-footer` 结构锚点。
+- 在 `teamCode` 来源下，仅真实二维码动作块（含 `选择二维码图片` 按钮 + `accept="image/*"` input）归属导入弹窗作用域，假锚点不误命中。
+- 在 nested noise matrix 多轮“打开/切换来源/关闭/重开（含关闭后污染态）”循环中，`openImportDialog + json/teamCode/qr` 三路径命令计数持续对齐。
