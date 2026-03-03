@@ -192,6 +192,29 @@ const ElDialogWithFooterNoiseStub = defineComponent({
   },
 });
 
+const ElDialogWithMixedStructuralNoiseStub = defineComponent({
+  name: 'ElDialog',
+  setup(_, { attrs, slots }) {
+    return () => {
+      const title = typeof attrs.title === 'string' ? attrs.title : '';
+      const isImportDialog = title === '导入数据';
+      const mixedNoiseNodes = isImportDialog
+        ? []
+        : [
+          h('span', { class: 'dialog-footer dialog-footer-noise' }, 'noise-footer'),
+          h('div', { class: 'dialog-structure-noise' }, [
+            h('span', { class: 'dialog-footer dialog-footer-noise dialog-footer-noise-secondary' }, 'noise-footer-secondary'),
+            h('div', { class: 'import-form-noise' }, 'noise-import-form'),
+            h('div', { class: 'team-code-qr-actions-noise' }, [
+              h('button', 'noise-qr-entry'),
+            ]),
+          ]),
+        ];
+      return h('div', [...mixedNoiseNodes, slots.default?.(), slots.footer?.()]);
+    };
+  },
+});
+
 const ElFormStub = defineComponent({
   name: 'ElForm',
   setup(_, { attrs, slots }) {
@@ -206,8 +229,12 @@ const ElFormItemStub = defineComponent({
   },
 });
 
-const createWrapper = (options?: { footerNoise?: boolean }) => {
-  const dialogStub = options?.footerNoise ? ElDialogWithFooterNoiseStub : ElDialogStub;
+const createWrapper = (options?: { footerNoise?: boolean; mixedStructuralNoise?: boolean }) => {
+  const dialogStub = options?.mixedStructuralNoise
+    ? ElDialogWithMixedStructuralNoiseStub
+    : options?.footerNoise
+      ? ElDialogWithFooterNoiseStub
+      : ElDialogStub;
   return mount(Toolbar, {
     global: {
       stubs: {
@@ -573,6 +600,69 @@ describe('toolbar wiring regression', () => {
       await vm.$nextTick();
       vm.importSource = 'teamCode';
       vm.teamCodeInput = `#TA#CLOSED-NOISE-${round}`;
+      await vm.$nextTick();
+    }
+
+    expect(wiringSpies.openImportDialog).toHaveBeenCalledTimes(expectedOpenCount);
+    expect(wiringSpies.triggerJsonFileImport).toHaveBeenCalledTimes(expectedJsonCount);
+    expect(wiringSpies.handleTeamCodeImport).toHaveBeenCalledTimes(expectedTeamCodeCount);
+    expect(wiringSpies.triggerTeamCodeQrImport).toHaveBeenCalledTimes(expectedQrCount);
+
+    wrapper.unmount();
+  });
+
+  it('keeps import-dialog scope anchoring and command counts aligned under mixed structural-noise reopen cycles', async () => {
+    const wrapper = createWrapper({ mixedStructuralNoise: true });
+    const vm = wrapper.vm as unknown as ToolbarVm;
+    const importButton = findButtonByText(wrapper, '导入');
+    expect(importButton).toBeTruthy();
+
+    expect(wrapper.findAll('.dialog-footer-noise').length).toBeGreaterThan(1);
+    expect(wrapper.findAll('.dialog-structure-noise').length).toBeGreaterThan(0);
+    expect(wrapper.findAll('.import-form-noise').length).toBeGreaterThan(0);
+    expect(wrapper.findAll('.team-code-qr-actions-noise').length).toBeGreaterThan(0);
+
+    let expectedOpenCount = 0;
+    let expectedJsonCount = 0;
+    let expectedTeamCodeCount = 0;
+    let expectedQrCount = 0;
+
+    for (let round = 1; round <= 3; round += 1) {
+      await importButton!.trigger('click');
+      expectedOpenCount += 1;
+      expect(wiringSpies.openImportDialog).toHaveBeenCalledTimes(expectedOpenCount);
+      expect(vm.importSource).toBe('json');
+      expect(vm.teamCodeInput).toBe('');
+      expect(vm.state.showImportDialog).toBe(true);
+
+      let sourceBoundVisibility = assertImportSourceBoundVisibility(wrapper, vm, 'json');
+      await sourceBoundVisibility.sourceCommandButton.trigger('click');
+      expectedJsonCount += 1;
+      expect(wiringSpies.triggerJsonFileImport).toHaveBeenCalledTimes(expectedJsonCount);
+
+      vm.importSource = 'teamCode';
+      vm.teamCodeInput = `#TA#MIXED-NOISE-${round}`;
+      await vm.$nextTick();
+
+      sourceBoundVisibility = assertImportSourceBoundVisibility(wrapper, vm, 'teamCode');
+      const importDialogScope = getImportDialogScope(wrapper, 'teamCode');
+      expect(importDialogScope.findAll('.team-code-qr-actions')).toHaveLength(1);
+      wrapper.findAll('.team-code-qr-actions-noise').forEach((noiseNode) => {
+        expect(importDialogScope.element.contains(noiseNode.element)).toBe(false);
+      });
+
+      await sourceBoundVisibility.sourceCommandButton.trigger('click');
+      expectedTeamCodeCount += 1;
+      expect(wiringSpies.handleTeamCodeImport).toHaveBeenCalledTimes(expectedTeamCodeCount);
+      expect(sourceBoundVisibility.teamCodeQrButton.exists()).toBe(true);
+      await sourceBoundVisibility.teamCodeQrButton.trigger('click');
+      expectedQrCount += 1;
+      expect(wiringSpies.triggerTeamCodeQrImport).toHaveBeenCalledTimes(expectedQrCount);
+
+      vm.state.showImportDialog = false;
+      await vm.$nextTick();
+      vm.importSource = 'teamCode';
+      vm.teamCodeInput = `#TA#CLOSED-MIXED-${round}`;
       await vm.$nextTick();
     }
 

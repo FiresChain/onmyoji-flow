@@ -40,6 +40,37 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-03] Session 77 - Harden Import-Dialog Scope Anchoring Against Mixed Structural-Noise Variants
+
+- Refactory Scope:
+  - Phase: Phase 2
+  - Task: Toolbar 导入弹窗结构锚点混合噪声回归补强（`toolbar-wiring.regression`，仅测试补强）
+- In Scope Files:
+  - `src/__tests__/toolbar-wiring.regression.test.ts`
+  - `docs/2design/ToolbarArchitecture.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `FlowEditor` 新增重构任务
+  - `groupRules` 规则语义调整
+  - `docs/1management/plan.md` 更新
+  - Phase 1 / Phase 3 内容
+- Decisions:
+  - 在 `ElDialog` 测试 stub 新增 mixed-structural-noise 变体：为非导入弹窗同时注入多个 `dialog-footer` 噪声与额外结构噪声节点（`dialog-structure-noise` / `import-form-noise` / `team-code-qr-actions-noise`）。
+  - 新增回归用例，验证导入弹窗在混合噪声下仍唯一命中 `import-form + dialog-footer` 结构锚点。
+  - 在 `teamCode` 分支下增加噪声隔离断言：真实 `team-code-qr-actions` 继续全局唯一且仅位于导入弹窗作用域内，噪声节点不会被误归属。
+  - 在 mixed-noise 多轮“打开/切换来源/关闭/重开”循环中继续校验 `openImportDialog + json/teamCode/qr` 三路径命令计数持续对齐。
+  - 更新 `ToolbarArchitecture.md` Task 36，记录本轮 mixed structural-noise 作用域守卫边界。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 守卫仍依赖导入弹窗结构类名（`import-form` / `dialog-footer` / `team-code-qr-actions`）；若后续模板命名或结构迁移，需要同步更新锚点断言。
+- Next Recommended Unit:
+  - Phase 2 下一原子任务：在 `toolbar-architecture.guard` 继续收紧导入弹窗局部模板不变量（唯一来源绑定与二维码 input 接线细节守卫）。
+
 ## [2026-03-03] Session 76 - Reinforce Segmented Timer Cleanup Determinism with Partial-Flush Rebatching
 
 - Refactory Scope:
