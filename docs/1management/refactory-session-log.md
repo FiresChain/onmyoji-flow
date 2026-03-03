@@ -40,6 +40,37 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-03] Session 84 - Tighten Import-Dialog Footer Branch Exclusivity and Local Binding Uniqueness
+
+- Refactory Scope:
+  - Phase: Phase 2
+  - Task: Toolbar 导入模板局部不变量：footer 分支互斥与唯一绑定再收紧（`toolbar-architecture.guard`，仅测试补强）
+- In Scope Files:
+  - `src/__tests__/toolbar-architecture.guard.test.ts`
+  - `docs/2design/ToolbarArchitecture.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `FlowEditor` 新增重构任务
+  - `groupRules` 规则语义调整
+  - `docs/1management/plan.md` 更新
+  - Phase 1 / Phase 3 内容
+- Decisions:
+  - 新增导入弹窗局部守卫：`import-form`、`v-model="importSource"`、`v-model="teamCodeInput"` 在全模板与导入弹窗局部均保持唯一，且局部绑定继续归属导入表单结构。
+  - 新增来源选项完整性守卫：导入弹窗局部来源选项维持 `json/teamCode` 唯一且完整，不允许新增分支漂移。
+  - 新增 footer 分支互斥强化守卫：`triggerJsonFileImport` 的 `v-if` 与 `handleTeamCodeImport` 的 `v-else` 继续唯一、相邻，且显式禁止 `v-else-if` 回流。
+  - 持续锁定二维码接线同域不变量：`team-code-qr-actions` 继续唯一，二维码 input 仍保留 `ref + @change + accept="image/*"`，并保持 `Toolbar.vue` 接线层依赖边界。
+  - 更新 `ToolbarArchitecture.md` Task 43，记录本轮导入模板局部不变量收紧边界。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 局部模板守卫依赖当前导入 footer 按钮顺序与模板结构；若后续改为子组件封装或模板重排，需要同步更新结构匹配断言。
+- Next Recommended Unit:
+  - Phase 2 下一原子任务：补强 `useToolbarImportExportCommands` 在“多变体阈值前 flush + 新批次隔离”下的计时确定性与零残留定时器守卫。
+
 ## [2026-03-03] Session 83 - Strengthen Import-Dialog Scope Anchoring Under Nested Slot-Footer Noise Matrix
 
 - Refactory Scope:
