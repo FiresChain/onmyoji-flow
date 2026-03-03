@@ -40,6 +40,36 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-03] Session 61 - Extend Toolbar Wiring Regression with Closed-State Pollution Reset and Counter Alignment Guards
+
+- Refactory Scope:
+  - Phase: Phase 2
+  - Task: 增强 `toolbar-wiring.regression`，验证导入对话框多轮循环中的关闭后污染态恢复与命令计数对齐（仅测试补强）
+- In Scope Files:
+  - `src/__tests__/toolbar-wiring.regression.test.ts`
+  - `docs/2design/ToolbarArchitecture.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `FlowEditor` 新增重构任务
+  - `groupRules` 规则语义调整
+  - `docs/1management/plan.md` 进度更新
+  - Phase 1 / Phase 3 内容
+- Decisions:
+  - 在两轮循环回归中新增“关闭后污染来源/输入”步骤，验证下一轮打开仍恢复默认来源 `json` 与空输入。
+  - 增补命令计数守卫：`openImportDialog`、`triggerJsonFileImport`、`handleTeamCodeImport`、`triggerTeamCodeQrImport` 在多轮循环后均与导入触发轮次一致。
+  - 保持既有 `json/teamCode/qr` 三路径按钮接线断言，确保循环后链路不漂移。
+  - 更新 `ToolbarArchitecture.md` Task 20，记录本轮多轮接线回归补强边界。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 回归仍依赖组件 stub 与按钮文本选择，后续若导入弹窗模板结构或文案调整，需同步更新选择器与断言策略。
+- Next Recommended Unit:
+  - Phase 2 下一原子任务：在 `toolbar-architecture.guard` 引入 AST 级边界守卫，减少源码片段/模式匹配误报（保持行为不变）。
+
 ## [2026-03-03] Session 60 - Harden Import/Export Lifecycle Cleanup with Repeated-Failure and In-Flight Recovery Guards
 
 - Refactory Scope:

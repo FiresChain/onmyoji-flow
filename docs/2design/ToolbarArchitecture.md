@@ -32,6 +32,7 @@
 17. 导入对话框多轮循环接线回归：`toolbar-wiring.regression`
 18. import/export 架构守卫细化（二次）：定时语义与 DOM 归属模式守卫：`toolbar-architecture.guard`
 19. import/export 生命周期清理边界补强（二次）：重复失败幂等与 in-flight 回收守卫：`useToolbarImportExportCommands`
+20. 导入对话框多轮循环接线回归（二次）：关闭后污染态恢复与链路计数对齐守卫：`toolbar-wiring.regression`
 
 ## Task 1 落地（导入/导出/预览）
 
@@ -273,3 +274,13 @@
 - 补充 `triggerJsonFileImport` 连续失败回归，锁定失败后导入弹窗持续关闭、来源保持 `json`、输入不被污染（幂等语义不回退）。
 - 补充 `handleTeamCodeQrImport` in-flight 状态回归，验证成功/失败异步分支在处理中 `decoding` 置为 `true`，收尾后统一回收为 `false`。
 - 在上述异步分支中统一断言文件 input 清理语义保持不变，避免生命周期清理边界回退。
+
+## Task 20 落地（Toolbar 导入对话框多轮循环接线回归：污染态恢复与计数对齐）
+
+增强：`src/__tests__/toolbar-wiring.regression.test.ts`
+
+回归目标：
+
+- 在两轮“打开 -> 切换来源 -> 关闭 -> 再打开”循环中，新增“关闭后人为污染来源/输入”场景，验证下一轮打开仍恢复默认来源 `json` 与空输入。
+- 增补命令计数对齐守卫：`openImportDialog`、`triggerJsonFileImport`、`handleTeamCodeImport`、`triggerTeamCodeQrImport` 在多轮循环后均与“导入”按钮触发轮次一致。
+- 保持 `Toolbar.vue` 仅作为接线层，确保多轮循环不发生命令链路漂移。

@@ -313,7 +313,7 @@ describe('toolbar wiring regression', () => {
       await importButton!.trigger('click');
       importButtonTriggerCount += 1;
 
-      expect(wiringSpies.openImportDialog).toHaveBeenCalledTimes(round);
+      expect(wiringSpies.openImportDialog).toHaveBeenCalledTimes(importButtonTriggerCount);
       expect(vm.importSource).toBe('json');
       expect(vm.teamCodeInput).toBe('');
       expect(vm.state.showImportDialog).toBe(true);
@@ -340,9 +340,16 @@ describe('toolbar wiring regression', () => {
       vm.state.showImportDialog = false;
       await vm.$nextTick();
       expect(vm.state.showImportDialog).toBe(false);
+
+      vm.importSource = 'teamCode';
+      vm.teamCodeInput = `#TA#CLOSED-${round}`;
+      await vm.$nextTick();
     }
 
     expect(wiringSpies.openImportDialog).toHaveBeenCalledTimes(importButtonTriggerCount);
+    expect(wiringSpies.triggerJsonFileImport).toHaveBeenCalledTimes(importButtonTriggerCount);
+    expect(wiringSpies.handleTeamCodeImport).toHaveBeenCalledTimes(importButtonTriggerCount);
+    expect(wiringSpies.triggerTeamCodeQrImport).toHaveBeenCalledTimes(importButtonTriggerCount);
 
     wrapper.unmount();
   });
