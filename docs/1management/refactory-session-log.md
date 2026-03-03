@@ -40,6 +40,38 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-03] Session 93 - Enforce Import-Dialog Footer-Order and Local-Form Ownership AST Guards
+
+- Refactory Scope:
+  - Phase: Phase 2
+  - Task: Toolbar 导入模板局部不变量：表单归属 + footer 顺序与互斥 AST 守卫（`toolbar-architecture.guard`，仅测试补强）
+- In Scope Files:
+  - `src/__tests__/toolbar-architecture.guard.test.ts`
+  - `docs/2design/ToolbarArchitecture.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `FlowEditor` 新增重构任务
+  - `groupRules` 规则语义调整
+  - `docs/1management/plan.md` 更新
+  - Phase 1 / Phase 3 内容
+- Decisions:
+  - 新增导入弹窗局部 ownership 守卫：`import-form/importSource/teamCodeInput` 在全模板与导入弹窗局部保持唯一，且绑定严格归属导入表单（不漂移到 form 外/弹窗外）。
+  - 新增 footer 顺序互斥守卫：关闭按钮 + `json(v-if)` + `teamCode(v-else)` 三按钮顺序固定，显式禁止 `v-else-if` 与分支互换。
+  - 新增二维码接线唯一守卫：`team-code-qr-actions` 唯一，二维码 input 继续保持 `ref + @change + accept="image/*"`，并断言导入弹窗外不存在 `teamCodeQrInputRef/handleTeamCodeQrImport/triggerTeamCodeQrImport` 接线。
+  - 新增 AST 边界守卫：`Toolbar.vue` 继续仅为接线层，不回流 `teamCodeService` 与 import/export 实现依赖，`useToolbarImportExportCommands` 入参键保持完整。
+  - 对断言误伤做收敛：移除对全模板通用 `accept="image/*"` 的否定约束，改为只校验 teamCode 二维码专属接线，避免干扰素材上传输入。
+  - 更新 `ToolbarArchitecture.md` Task 52，记录本轮局部模板不变量与 AST 守卫边界。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 局部模板守卫仍依赖当前导入弹窗模板结构；若后续改为子组件封装或模板重排，需要同步更新局部匹配与 AST 断言。
+- Next Recommended Unit:
+  - Phase 2 下一原子任务：补强 `useToolbarImportExportCommands` 在“重复 pre-threshold flush + 链式即时 rebatch”场景下的计时确定性与零残留定时器守卫。
+
 ## [2026-03-03] Session 92 - Harden Import-Dialog Anchoring Under Footer-Order Drift and Same-Class Fake-Anchor Noise Matrix
 
 - Refactory Scope:

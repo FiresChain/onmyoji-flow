@@ -699,6 +699,132 @@ describe('Toolbar architecture guard', () => {
     ]));
   });
 
+  it('enforces import-dialog footer-order and local-form ownership with exclusive qr wiring AST guards', () => {
+    const toolbarTemplateSource = extractTemplateContent(toolbarSource);
+    const toolbarScriptSource = extractScriptSetupContent(toolbarSource);
+    const importDialogTemplateMatch = toolbarTemplateSource.match(
+      /<el-dialog[^>]*title="导入数据"[\s\S]*?<\/el-dialog>/,
+    );
+    expect(importDialogTemplateMatch).toBeTruthy();
+    const importDialogTemplateSource = importDialogTemplateMatch![0];
+
+    const importFormTemplateMatch = importDialogTemplateSource.match(
+      /<el-form(?=[^>]*class="import-form")[^>]*>[\s\S]*?<\/el-form>/,
+    );
+    expect(importFormTemplateMatch).toBeTruthy();
+    const importFormTemplateSource = importFormTemplateMatch![0];
+
+    const importDialogFooterMatch = importDialogTemplateSource.match(
+      /<template #footer>[\s\S]*?<\/template>/,
+    );
+    expect(importDialogFooterMatch).toBeTruthy();
+    const importDialogFooterSource = importDialogFooterMatch![0];
+
+    expect(Array.from(toolbarTemplateSource.matchAll(/class="import-form"/g))).toHaveLength(1);
+    expect(Array.from(importDialogTemplateSource.matchAll(/class="import-form"/g))).toHaveLength(1);
+    expect(Array.from(toolbarTemplateSource.matchAll(/v-model="importSource"/g))).toHaveLength(1);
+    expect(Array.from(importDialogTemplateSource.matchAll(/v-model="importSource"/g))).toHaveLength(1);
+    expect(Array.from(importFormTemplateSource.matchAll(/v-model="importSource"/g))).toHaveLength(1);
+    expect(Array.from(toolbarTemplateSource.matchAll(/v-model="teamCodeInput"/g))).toHaveLength(1);
+    expect(Array.from(importDialogTemplateSource.matchAll(/v-model="teamCodeInput"/g))).toHaveLength(1);
+    expect(Array.from(importFormTemplateSource.matchAll(/v-model="teamCodeInput"/g))).toHaveLength(1);
+
+    const toolbarTemplateWithoutImportDialog = toolbarTemplateSource.replace(importDialogTemplateSource, '');
+    expect(toolbarTemplateWithoutImportDialog).not.toContain('class="import-form"');
+    expect(toolbarTemplateWithoutImportDialog).not.toContain('v-model="importSource"');
+    expect(toolbarTemplateWithoutImportDialog).not.toContain('v-model="teamCodeInput"');
+    expect(toolbarTemplateWithoutImportDialog).not.toContain('class="team-code-qr-actions"');
+
+    const importDialogWithoutImportForm = importDialogTemplateSource.replace(importFormTemplateSource, '');
+    expect(importDialogWithoutImportForm).not.toContain('v-model="importSource"');
+    expect(importDialogWithoutImportForm).not.toContain('v-model="teamCodeInput"');
+
+    const footerButtons = Array.from(importDialogFooterSource.matchAll(/<el-button[\s\S]*?<\/el-button>/g)).map((match) => match[0]);
+    expect(footerButtons).toHaveLength(3);
+    expect(footerButtons[0]).toMatch(/@click="state\.showImportDialog = false"/);
+    expect(footerButtons[0]).not.toMatch(/\bv-if\b/);
+    expect(footerButtons[0]).not.toMatch(/\bv-else\b/);
+    expect(footerButtons[0]).not.toMatch(/\bv-else-if\b/);
+    expect(footerButtons[1]).toMatch(/v-if="importSource === 'json'"/);
+    expect(footerButtons[1]).toMatch(/@click="triggerJsonFileImport"/);
+    expect(footerButtons[1]).not.toMatch(/\bv-else\b/);
+    expect(footerButtons[1]).not.toMatch(/\bv-else-if\b/);
+    expect(footerButtons[2]).toMatch(/\bv-else\b/);
+    expect(footerButtons[2]).toMatch(/@click="handleTeamCodeImport"/);
+    expect(footerButtons[2]).not.toMatch(/\bv-if\b/);
+    expect(footerButtons[2]).not.toMatch(/\bv-else-if\b/);
+    expect(importDialogFooterSource).not.toMatch(/\bv-else-if\b/);
+    expect(Array.from(importDialogFooterSource.matchAll(/@click="state\.showImportDialog = false"/g))).toHaveLength(1);
+    expect(Array.from(importDialogFooterSource.matchAll(/@click="triggerJsonFileImport"/g))).toHaveLength(1);
+    expect(Array.from(importDialogFooterSource.matchAll(/@click="handleTeamCodeImport"/g))).toHaveLength(1);
+    expect(Array.from(importDialogFooterSource.matchAll(/v-if="importSource === 'json'"/g))).toHaveLength(1);
+    expect(Array.from(importDialogFooterSource.matchAll(/\bv-else\b/g))).toHaveLength(1);
+
+    const closeActionIndex = importDialogFooterSource.indexOf('@click="state.showImportDialog = false"');
+    const jsonActionIndex = importDialogFooterSource.indexOf('@click="triggerJsonFileImport"');
+    const teamCodeActionIndex = importDialogFooterSource.indexOf('@click="handleTeamCodeImport"');
+    expect(closeActionIndex).toBeGreaterThanOrEqual(0);
+    expect(jsonActionIndex).toBeGreaterThanOrEqual(0);
+    expect(teamCodeActionIndex).toBeGreaterThanOrEqual(0);
+    expect(closeActionIndex).toBeLessThan(jsonActionIndex);
+    expect(jsonActionIndex).toBeLessThan(teamCodeActionIndex);
+
+    expect(Array.from(toolbarTemplateSource.matchAll(/class="team-code-qr-actions"/g))).toHaveLength(1);
+    expect(Array.from(importDialogTemplateSource.matchAll(/class="team-code-qr-actions"/g))).toHaveLength(1);
+    expect(Array.from(importDialogTemplateSource.matchAll(/@click="triggerTeamCodeQrImport"/g))).toHaveLength(1);
+    expect(Array.from(importDialogTemplateSource.matchAll(/ref="teamCodeQrInputRef"/g))).toHaveLength(1);
+    expect(Array.from(importDialogTemplateSource.matchAll(/@change="handleTeamCodeQrImport"/g))).toHaveLength(1);
+    expect(Array.from(importDialogTemplateSource.matchAll(/accept="image\/\*"/g))).toHaveLength(1);
+    expect(toolbarTemplateWithoutImportDialog).not.toContain('triggerTeamCodeQrImport');
+    expect(toolbarTemplateWithoutImportDialog).not.toContain('teamCodeQrInputRef');
+    expect(toolbarTemplateWithoutImportDialog).not.toContain('handleTeamCodeQrImport');
+    const teamCodeQrActionsMatch = importDialogTemplateSource.match(
+      /<div class="team-code-qr-actions">[\s\S]*?<\/div>/,
+    );
+    expect(teamCodeQrActionsMatch).toBeTruthy();
+    const teamCodeQrActionsSource = teamCodeQrActionsMatch![0];
+    expect(teamCodeQrActionsSource).toMatch(/<el-button(?=[^>]*@click="triggerTeamCodeQrImport")[^>]*>/);
+    expect(teamCodeQrActionsSource).toMatch(
+      /<input(?=[^>]*ref="teamCodeQrInputRef")(?=[^>]*@change="handleTeamCodeQrImport")(?=[^>]*accept="image\/\*")[^>]*>/,
+    );
+
+    const toolbarScriptAst = scanAst(toolbarScriptSource, 'Toolbar.script.ts');
+    const toolbarImportModules = toolbarScriptAst.importDeclarations.map(getImportModuleSpecifier);
+    expect(toolbarImportModules).not.toContain('@/utils/teamCodeService');
+    expect(toolbarScriptSource).not.toContain('convertTeamCodeToRootDocument');
+    expect(toolbarScriptSource).not.toContain('decodeTeamCodeFromQrImage');
+    expect(toolbarScriptSource).not.toContain('withDynamicGroupsHiddenForSnapshot');
+    expect(toolbarScriptSource).not.toContain('addWatermarkToImage');
+    expect(toolbarScriptSource).not.toContain('navigator.clipboard.writeText');
+    expect(toolbarScriptSource).not.toContain('document.createElement');
+
+    const toolbarImportedIdentifiers = toolbarScriptAst.importDeclarations.flatMap(getNamedImportIdentifiers);
+    expect(toolbarImportedIdentifiers).not.toContain('convertTeamCodeToRootDocument');
+    expect(toolbarImportedIdentifiers).not.toContain('decodeTeamCodeFromQrImage');
+    expect(toolbarImportedIdentifiers).not.toContain('withDynamicGroupsHiddenForSnapshot');
+    expect(toolbarImportedIdentifiers).not.toContain('addWatermarkToImage');
+
+    const importExportDeclaration = toolbarScriptAst.variableDeclarations.find((declaration) => {
+      if (!declaration.initializer || !ts.isCallExpression(declaration.initializer)) {
+        return false;
+      }
+      return getCallExpressionText(declaration.initializer, toolbarScriptAst.sourceFile) === 'useToolbarImportExportCommands';
+    });
+    expect(importExportDeclaration).toBeTruthy();
+    const importExportCallArgument = importExportDeclaration!.initializer
+      && ts.isCallExpression(importExportDeclaration!.initializer)
+      ? importExportDeclaration!.initializer.arguments[0]
+      : null;
+    expect(importExportCallArgument && ts.isObjectLiteralExpression(importExportCallArgument)).toBe(true);
+    const importExportCallArgumentKeys = getObjectLiteralPropertyNames(importExportCallArgument as ts.ObjectLiteralExpression);
+    expect(importExportCallArgumentKeys).toEqual(expect.arrayContaining([
+      'state',
+      'importSource',
+      'teamCodeInput',
+      'teamCodeQrInputRef',
+    ]));
+  });
+
   it('keeps import/export ownership boundaries with AST-level guards', () => {
     const toolbarScriptSource = extractScriptSetupContent(toolbarSource);
     const toolbarScriptAst = scanAst(toolbarScriptSource, 'Toolbar.script.ts');
