@@ -40,6 +40,37 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-03] Session 81 - Tighten Import-Dialog Local Template Exclusivity and Branch Invariants
+
+- Refactory Scope:
+  - Phase: Phase 2
+  - Task: Toolbar 导入模板局部结构不变量：分支互斥与局部唯一性（`toolbar-architecture.guard`，仅测试补强）
+- In Scope Files:
+  - `src/__tests__/toolbar-architecture.guard.test.ts`
+  - `docs/2design/ToolbarArchitecture.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `FlowEditor` 新增重构任务
+  - `groupRules` 规则语义调整
+  - `docs/1management/plan.md` 更新
+  - Phase 1 / Phase 3 内容
+- Decisions:
+  - 新增导入弹窗局部模板不变量守卫：`import-form`、`v-model="importSource"`、`v-model="teamCodeInput"` 在全模板与导入弹窗局部均保持唯一。
+  - 新增来源选项完整性守卫：导入弹窗局部模板仅保留 `json/teamCode` 两个来源选项，且各自唯一。
+  - 新增 footer 分支互斥守卫：`triggerJsonFileImport` 按钮保持 `v-if` 唯一，`handleTeamCodeImport` 按钮保持 `v-else` 唯一，并锁定相邻互斥结构不回退。
+  - 持续收紧二维码接线同域守卫：`team-code-qr-actions` 唯一，二维码 input 继续保持 `ref="teamCodeQrInputRef" + @change="handleTeamCodeQrImport" + accept="image/*"`；`Toolbar.vue` script 继续仅接线层不回流实现依赖。
+  - 更新 `ToolbarArchitecture.md` Task 40，记录本轮导入模板局部唯一性与互斥分支边界。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 局部模板互斥守卫依赖当前 `v-if/v-else` 结构与模板顺序；若后续改为条件组件封装，需要同步更新结构正则断言。
+- Next Recommended Unit:
+  - Phase 2 下一原子任务：补强 `useToolbarImportExportCommands` 在“阈值前 flush 变体矩阵 + 新批次隔离”下的计时确定性与零残留定时器守卫（仅测试补强，不改语义）。
+
 ## [2026-03-03] Session 80 - Harden Import-Dialog Anchoring Against Slot-Wrapper Structural-Noise Variants
 
 - Refactory Scope:

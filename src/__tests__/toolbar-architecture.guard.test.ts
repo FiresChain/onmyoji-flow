@@ -369,6 +369,70 @@ describe('Toolbar architecture guard', () => {
     expect(toolbarScriptSource).not.toContain('document.createElement');
   });
 
+  it('keeps import-dialog local template exclusivity and branch-mutual-exclusion invariants', () => {
+    const toolbarTemplateSource = extractTemplateContent(toolbarSource);
+    const toolbarScriptSource = extractScriptSetupContent(toolbarSource);
+    const importDialogTemplateMatch = toolbarTemplateSource.match(
+      /<el-dialog[^>]*title="导入数据"[\s\S]*?<\/el-dialog>/,
+    );
+    expect(importDialogTemplateMatch).toBeTruthy();
+    const importDialogTemplateSource = importDialogTemplateMatch![0];
+
+    const importDialogFooterMatch = importDialogTemplateSource.match(
+      /<template #footer>[\s\S]*?<\/template>/,
+    );
+    expect(importDialogFooterMatch).toBeTruthy();
+    const importDialogFooterSource = importDialogFooterMatch![0];
+
+    const globalImportFormAnchors = Array.from(toolbarTemplateSource.matchAll(/class="import-form"/g));
+    const localImportFormAnchors = Array.from(importDialogTemplateSource.matchAll(/class="import-form"/g));
+    const globalImportSourceBindings = Array.from(toolbarTemplateSource.matchAll(/v-model="importSource"/g));
+    const localImportSourceBindings = Array.from(importDialogTemplateSource.matchAll(/v-model="importSource"/g));
+    const globalTeamCodeInputBindings = Array.from(toolbarTemplateSource.matchAll(/v-model="teamCodeInput"/g));
+    const localTeamCodeInputBindings = Array.from(importDialogTemplateSource.matchAll(/v-model="teamCodeInput"/g));
+    const localImportSourceOptions = Array.from(
+      importDialogTemplateSource.matchAll(/<el-radio-button[^>]*label="([^"]+)"[^>]*>/g),
+    ).map((match) => match[1]);
+
+    expect(globalImportFormAnchors).toHaveLength(1);
+    expect(localImportFormAnchors).toHaveLength(1);
+    expect(globalImportSourceBindings).toHaveLength(1);
+    expect(localImportSourceBindings).toHaveLength(1);
+    expect(globalTeamCodeInputBindings).toHaveLength(1);
+    expect(localTeamCodeInputBindings).toHaveLength(1);
+    expect(localImportSourceOptions).toHaveLength(2);
+    expect(localImportSourceOptions).toEqual(expect.arrayContaining(['json', 'teamCode']));
+    expect(localImportSourceOptions.filter((value) => value === 'json')).toHaveLength(1);
+    expect(localImportSourceOptions.filter((value) => value === 'teamCode')).toHaveLength(1);
+
+    expect(Array.from(importDialogFooterSource.matchAll(/v-if="importSource === 'json'"/g))).toHaveLength(1);
+    expect(Array.from(importDialogFooterSource.matchAll(/@click="triggerJsonFileImport"/g))).toHaveLength(1);
+    expect(Array.from(importDialogFooterSource.matchAll(/\bv-else\b/g))).toHaveLength(1);
+    expect(Array.from(importDialogFooterSource.matchAll(/@click="handleTeamCodeImport"/g))).toHaveLength(1);
+    expect(importDialogFooterSource).toMatch(
+      /<el-button(?=[^>]*v-if="importSource === 'json'")(?=[^>]*@click="triggerJsonFileImport")[^>]*>[\s\S]*?<\/el-button>\s*<el-button(?=[^>]*v-else)(?=[^>]*@click="handleTeamCodeImport")[^>]*>[\s\S]*?<\/el-button>/,
+    );
+
+    const teamCodeQrActionsMatch = importDialogTemplateSource.match(
+      /<div class="team-code-qr-actions">[\s\S]*?<\/div>/,
+    );
+    expect(teamCodeQrActionsMatch).toBeTruthy();
+    const teamCodeQrActionsSource = teamCodeQrActionsMatch![0];
+    expect(Array.from(importDialogTemplateSource.matchAll(/class="team-code-qr-actions"/g))).toHaveLength(1);
+    expect(teamCodeQrActionsSource).toMatch(/<el-button(?=[^>]*@click="triggerTeamCodeQrImport")[^>]*>/);
+    expect(teamCodeQrActionsSource).toMatch(
+      /<input(?=[^>]*ref="teamCodeQrInputRef")(?=[^>]*@change="handleTeamCodeQrImport")(?=[^>]*accept="image\/\*")[^>]*>/,
+    );
+
+    const toolbarScriptAst = scanAst(toolbarScriptSource, 'Toolbar.script.ts');
+    const toolbarImportModules = toolbarScriptAst.importDeclarations.map(getImportModuleSpecifier);
+    expect(toolbarImportModules).not.toContain('@/utils/teamCodeService');
+    expect(toolbarScriptSource).not.toContain('convertTeamCodeToRootDocument');
+    expect(toolbarScriptSource).not.toContain('decodeTeamCodeFromQrImage');
+    expect(toolbarScriptSource).not.toContain('withDynamicGroupsHiddenForSnapshot');
+    expect(toolbarScriptSource).not.toContain('addWatermarkToImage');
+  });
+
   it('keeps import/export ownership boundaries with AST-level guards', () => {
     const toolbarScriptSource = extractScriptSetupContent(toolbarSource);
     const toolbarScriptAst = scanAst(toolbarScriptSource, 'Toolbar.script.ts');
