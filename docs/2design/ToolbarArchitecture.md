@@ -834,3 +834,15 @@
 - 在非导入弹窗注入复合噪声（slot/footer 分支顺序漂移 + class 漂移 + 同文案按钮 + duplicate `accept="image/*"` + hidden fake inputs + extra footer/action）时，导入弹窗作用域仍唯一命中真实结构锚点。
 - 在 `teamCode` 来源下，真实 `team-code-qr-actions` 继续仅归属导入弹窗作用域，primary/secondary/tertiary 假候选全部排除。
 - 在多轮“打开/切换来源/关闭/重开（含关闭后污染态）”循环中，`openImportDialog + json/teamCode/qr` 三路径命令计数持续对齐（`>= 10` 轮）。
+
+## Task 70 落地（Toolbar 导入模板局部不变量：slot-footer 分支顺序互斥 + footer-scoped event-uniqueness + action-pair AST 守卫 v3）
+
+增强：`src/__tests__/toolbar-architecture.guard.test.ts`
+
+回归目标：
+
+- 持续强化导入弹窗局部 ownership：`import-form` / `importSource` / `teamCodeInput` 在全模板、导入弹窗局部、导入表单局部保持唯一且归属导入表单。
+- 显式守卫 footer 分支顺序互斥：关闭按钮 + `json(v-if)` + `teamCode(v-else)`，并禁止 `v-else-if`、分支互换与 footer 外漂移。
+- 显式守卫来源分支完整性：`json/teamCode` 两来源分支保持完整且唯一，不引入隐式第三分支条件。
+- 持续守卫 `triggerJsonFileImport` / `handleTeamCodeImport` 的 footer-scoped event-uniqueness，以及 `team-code-qr-actions` 的 action/input 唯一配对（不依赖固定先后顺序）。
+- 持续守卫 `Toolbar.vue` 接线层边界：不回流 `teamCodeService` 与 import/export 实现依赖，`useToolbarImportExportCommands` 入参键保持完整。

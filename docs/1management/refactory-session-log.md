@@ -40,6 +40,38 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-04] Session 111 - Enforce Import-Dialog Local Ownership with Slot-Footer Branch-Order Exclusivity and Footer-Scoped Event-Uniqueness Action-Pair AST Guards v3
+
+- Refactory Scope:
+  - Phase: Phase 2
+  - Task: Toolbar 导入模板局部不变量：slot-footer 分支顺序互斥 + footer-scoped event-uniqueness + action-pair AST 守卫 v3（`toolbar-architecture.guard`，仅测试补强）
+- In Scope Files:
+  - `src/__tests__/toolbar-architecture.guard.test.ts`
+  - `docs/2design/ToolbarArchitecture.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `FlowEditor` 新增重构任务
+  - `groupRules` 规则语义调整
+  - `docs/1management/plan.md` 更新
+  - Phase 1 / Phase 3 内容
+- Decisions:
+  - 新增导入弹窗局部 ownership AST 守卫 v3：`import-form/importSource/teamCodeInput` 在全模板、导入弹窗局部、导入表单局部持续唯一，且绑定继续归属导入表单。
+  - 强化 slot-footer 分支顺序互斥守卫：footer 三按钮继续锁定“关闭 + `json(v-if)` + `teamCode(v-else)`”，显式禁止 `v-else-if`、分支互换与 footer 外漂移。
+  - 显式守卫来源分支完整性：`json/teamCode` 条件值保持完整且唯一，不引入隐式第三分支。
+  - 持续守卫 footer-scoped event-uniqueness 与 `team-code-qr-actions` action/input 配对唯一性（不依赖固定顺序）。
+  - 持续守卫 `Toolbar.vue` 接线层边界：不回流 `teamCodeService` 与 import/export 实现依赖，`useToolbarImportExportCommands` 入参键保持完整。
+  - 更新 `ToolbarArchitecture.md` Task 70，记录本轮导入模板局部 ownership + 分支顺序互斥 + event-uniqueness/action-pair AST 边界。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - AST 守卫仍依赖 `Toolbar.vue` 当前模板结构与事件命名；若后续导入弹窗模板拆分或改名，需要同步更新匹配与断言。
+- Next Recommended Unit:
+  - Phase 2 下一原子任务：补强 `useToolbarImportExportCommands` 在“>=6 组交错变体 repeated pre-threshold flush + multi-rebatch segmented windows + 零残留幂等清理”场景下的计时确定性守卫（仅测试补强）。
+
 ## [2026-03-04] Session 110 - Harden Import-Dialog Anchoring Under Slot-Footer Branch-Order Class-Drift Duplicate-Accept Hidden-Input Extended Fake-Action Noise Matrix v3
 
 - Refactory Scope:
