@@ -41,6 +41,7 @@
 26. ImportExport 交错触发时序确定性补强：`useToolbarImportExportCommands`
 27. Toolbar 导入弹窗作用域去标题耦合回归：结构锚点定位守卫：`toolbar-wiring.regression`
 28. Toolbar 导入弹窗模板接线结构守卫补强：来源分支不变量与二维码双入口接线守卫：`toolbar-architecture.guard`
+29. ImportExport 定时窗口边界确定性补强：分段推进与多批次交错计数守卫：`useToolbarImportExportCommands`
 
 ## Task 1 落地（导入/导出/预览）
 
@@ -372,3 +373,13 @@
 - 在 `Toolbar.vue` 模板守卫中锁定导入来源分支不变量：`json` 分支按钮必须保留 `v-if="importSource === 'json'" + @click="triggerJsonFileImport"`，`teamCode` 分支按钮必须保留 `v-else + @click="handleTeamCodeImport"`。
 - 锁定二维码入口双接线不变量：`@click="triggerTeamCodeQrImport"` 与 `@change="handleTeamCodeQrImport"` 必须同时保留，且 `team-code-qr-actions` 结构锚点存在。
 - 保持 `Toolbar.vue` 仅做接线层边界，不回流 `convertTeamCodeToRootDocument` / `decodeTeamCodeFromQrImage` / 截图水印实现依赖到 script 层。
+
+## Task 29 落地（ImportExport 定时窗口边界确定性补强）
+
+增强：`src/__tests__/useToolbarImportExportCommands.test.ts`
+
+回归目标：
+
+- 在 `handleExport` / `handlePreviewData` 交错触发后，按 `99ms -> 1ms -> 1899ms -> 1ms` 分段推进，锁定 `updateTab` 即时计数、`100ms` 预览计数、`2000ms` 导出计数均稳定且无提前触发。
+- 增加“多批次交错 + 中途 flush 后再触发新一批”回归，验证第二批的预览/导出计数在同一分段窗口下持续对齐、不漂移。
+- 保持既有失败分支语义不变（序列化失败、导入失败、二维码失败等），仅补确定性断言，不改实现逻辑。

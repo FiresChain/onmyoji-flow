@@ -40,6 +40,36 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-03] Session 70 - Harden Import/Export Timer Window Boundary Determinism Regression
+
+- Refactory Scope:
+  - Phase: Phase 2
+  - Task: ImportExport 定时窗口边界确定性补强（`useToolbarImportExportCommands`，仅测试补强）
+- In Scope Files:
+  - `src/__tests__/useToolbarImportExportCommands.test.ts`
+  - `docs/2design/ToolbarArchitecture.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `FlowEditor` 新增重构任务
+  - `groupRules` 规则语义调整
+  - `docs/1management/plan.md` 更新
+  - Phase 1 / Phase 3 内容
+- Decisions:
+  - 新增分段窗口回归：在交错触发后按 `99ms -> 1ms -> 1899ms -> 1ms` 推进 fake timers，逐段锁定 `updateTab` 即时计数、`100ms` 预览计数与 `2000ms` 导出计数无提前触发。
+  - 新增“多批次交错 + 中途 flush”回归：首批次完成窗口验证后执行 `runOnlyPendingTimers`，再触发第二批交错命令并复验同一分段窗口下计数不漂移。
+  - 既有失败分支语义保持不变，仅补充确定性断言，不调整 import/export 运行逻辑。
+  - 更新 `ToolbarArchitecture.md` Task 29，记录本轮定时窗口边界守卫内容。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 本组断言依赖 fake timers 与 `setTimeout` 调度语义；若后续改为任务队列/节流器实现，需要同步调整时间窗口断言策略。
+- Next Recommended Unit:
+  - Phase 2 下一原子任务：继续在 `toolbar-wiring.regression` 与 `toolbar-architecture.guard` 间补充导入弹窗结构变体（仅测试补强，保持语义不变）。
+
 ## [2026-03-03] Session 69 - Add Import-Dialog Source-Branch Wiring Invariants to Toolbar Architecture Guard
 
 - Refactory Scope:

@@ -302,6 +302,119 @@ describe('useToolbarImportExportCommands', () => {
     stringifySpy.mockRestore();
   });
 
+  it('handleExport and handlePreviewData keep segmented timer-window determinism at 99/1/1899/1 boundaries', () => {
+    const context = createContext();
+    const stringifySpy = vi.spyOn(JSON, 'stringify');
+    const interleavedActions: Array<'preview' | 'export'> = [
+      'preview',
+      'export',
+      'preview',
+      'export',
+      'preview',
+    ];
+    let expectedUpdateTabCount = 0;
+    let expectedPreviewTriggerCount = 0;
+    let expectedExportTriggerCount = 0;
+
+    interleavedActions.forEach((action) => {
+      if (action === 'preview') {
+        context.commands.handlePreviewData();
+        expectedPreviewTriggerCount += 1;
+      } else {
+        context.commands.handleExport();
+        expectedExportTriggerCount += 1;
+      }
+      expectedUpdateTabCount += 1;
+      expect(context.filesStore.updateTab).toHaveBeenCalledTimes(expectedUpdateTabCount);
+    });
+
+    expect(stringifySpy).toHaveBeenCalledTimes(0);
+    expect(context.filesStore.exportData).toHaveBeenCalledTimes(0);
+
+    vi.advanceTimersByTime(99);
+    expect(stringifySpy).toHaveBeenCalledTimes(0);
+    expect(context.filesStore.exportData).toHaveBeenCalledTimes(0);
+
+    vi.advanceTimersByTime(1);
+    expect(stringifySpy).toHaveBeenCalledTimes(expectedPreviewTriggerCount);
+    expect(context.filesStore.exportData).toHaveBeenCalledTimes(0);
+
+    vi.advanceTimersByTime(1899);
+    expect(stringifySpy).toHaveBeenCalledTimes(expectedPreviewTriggerCount);
+    expect(context.filesStore.exportData).toHaveBeenCalledTimes(0);
+
+    vi.advanceTimersByTime(1);
+    expect(context.filesStore.exportData).toHaveBeenCalledTimes(expectedExportTriggerCount);
+    expect(context.filesStore.updateTab).toHaveBeenCalledTimes(expectedUpdateTabCount);
+    stringifySpy.mockRestore();
+  });
+
+  it('handleExport and handlePreviewData keep no-drift counts across interleaved multi-batch runs after flush', () => {
+    const context = createContext();
+    const stringifySpy = vi.spyOn(JSON, 'stringify');
+    let expectedUpdateTabCount = 0;
+    let expectedPreviewTriggerCount = 0;
+    let expectedExportTriggerCount = 0;
+
+    const triggerInterleavedBatch = (batch: Array<'preview' | 'export'>) => {
+      batch.forEach((action) => {
+        if (action === 'preview') {
+          context.commands.handlePreviewData();
+          expectedPreviewTriggerCount += 1;
+        } else {
+          context.commands.handleExport();
+          expectedExportTriggerCount += 1;
+        }
+        expectedUpdateTabCount += 1;
+        expect(context.filesStore.updateTab).toHaveBeenCalledTimes(expectedUpdateTabCount);
+      });
+    };
+
+    triggerInterleavedBatch(['preview', 'export', 'preview']);
+    expect(stringifySpy).toHaveBeenCalledTimes(0);
+    expect(context.filesStore.exportData).toHaveBeenCalledTimes(0);
+
+    vi.advanceTimersByTime(99);
+    expect(stringifySpy).toHaveBeenCalledTimes(0);
+    expect(context.filesStore.exportData).toHaveBeenCalledTimes(0);
+
+    vi.advanceTimersByTime(1);
+    expect(stringifySpy).toHaveBeenCalledTimes(2);
+    expect(context.filesStore.exportData).toHaveBeenCalledTimes(0);
+
+    vi.advanceTimersByTime(1899);
+    expect(context.filesStore.exportData).toHaveBeenCalledTimes(0);
+
+    vi.advanceTimersByTime(1);
+    expect(context.filesStore.exportData).toHaveBeenCalledTimes(1);
+    expect(context.filesStore.updateTab).toHaveBeenCalledTimes(expectedUpdateTabCount);
+
+    vi.runOnlyPendingTimers();
+    expect(stringifySpy).toHaveBeenCalledTimes(2);
+    expect(context.filesStore.exportData).toHaveBeenCalledTimes(1);
+
+    triggerInterleavedBatch(['export', 'preview', 'export', 'preview']);
+    expect(context.filesStore.updateTab).toHaveBeenCalledTimes(expectedUpdateTabCount);
+    expect(stringifySpy).toHaveBeenCalledTimes(2);
+    expect(context.filesStore.exportData).toHaveBeenCalledTimes(1);
+
+    vi.advanceTimersByTime(99);
+    expect(stringifySpy).toHaveBeenCalledTimes(2);
+    expect(context.filesStore.exportData).toHaveBeenCalledTimes(1);
+
+    vi.advanceTimersByTime(1);
+    expect(stringifySpy).toHaveBeenCalledTimes(expectedPreviewTriggerCount);
+    expect(context.filesStore.exportData).toHaveBeenCalledTimes(1);
+
+    vi.advanceTimersByTime(1899);
+    expect(context.filesStore.exportData).toHaveBeenCalledTimes(1);
+
+    vi.advanceTimersByTime(1);
+    expect(context.filesStore.exportData).toHaveBeenCalledTimes(expectedExportTriggerCount);
+    expect(context.filesStore.updateTab).toHaveBeenCalledTimes(expectedUpdateTabCount);
+    stringifySpy.mockRestore();
+  });
+
   it('handlePreviewData keeps serialize-failure error behavior', () => {
     const context = createContext();
     context.filesStore.fileList = [
