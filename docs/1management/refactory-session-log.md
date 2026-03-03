@@ -40,6 +40,36 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-03] Session 82 - Reinforce Timer Determinism Across Pre-Threshold Flush Matrix and Rebatch Isolation
+
+- Refactory Scope:
+  - Phase: Phase 2
+  - Task: ImportExport 阈值前 flush 变体矩阵 + 批次隔离确定性补强（`useToolbarImportExportCommands`，仅测试补强）
+- In Scope Files:
+  - `src/__tests__/useToolbarImportExportCommands.test.ts`
+  - `docs/2design/ToolbarArchitecture.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `FlowEditor` 新增重构任务
+  - `groupRules` 规则语义调整
+  - `docs/1management/plan.md` 更新
+  - Phase 1 / Phase 3 内容
+- Decisions:
+  - 新增“阈值前 flush 变体矩阵”回归：两组交错触发变体均在 `99ms` 阈值前执行 `runOnlyPendingTimers`，锁定 `preview/export` 计数与 `updateTab` 计数无漂移。
+  - 在每个变体首批 flush 后立即触发新批次，并按 `99ms -> 1ms -> 1899ms -> 1ms` 分段推进，持续校验 `preview/export` 延迟计数稳定且无提前触发。
+  - 在每次 flush 收束后、每次批次收尾后以及全流程收束后均断言 `vi.getTimerCount() === 0`，确保无幽灵定时器残留并维持批次隔离确定性。
+  - 更新 `ToolbarArchitecture.md` Task 41，记录本轮 pre-threshold flush 变体矩阵与 rebatch 隔离边界。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 断言依赖 fake timers 与当前 `setTimeout` 调度语义；若后续导入/导出调度机制迁移，需要同步调整窗口分段与计数期望。
+- Next Recommended Unit:
+  - Phase 2 下一原子任务：继续在 `toolbar-wiring.regression`/`toolbar-architecture.guard` 补强导入弹窗局部结构锚点与分支边界变体守卫（仅测试补强，不改语义）。
+
 ## [2026-03-03] Session 81 - Tighten Import-Dialog Local Template Exclusivity and Branch Invariants
 
 - Refactory Scope:
