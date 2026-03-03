@@ -6,6 +6,7 @@ import { convertTeamCodeToRootDocument, decodeTeamCodeFromQrImage } from '@/util
 
 const OriginalFileReader = globalThis.FileReader;
 const OriginalImage = globalThis.Image;
+const OriginalClipboard = globalThis.navigator.clipboard;
 
 vi.mock('@/utils/teamCodeService', () => ({
   convertTeamCodeToRootDocument: vi.fn(),
@@ -114,6 +115,10 @@ describe('useToolbarImportExportCommands', () => {
     vi.useRealTimers();
     (globalThis as typeof globalThis & { FileReader: typeof FileReader }).FileReader = OriginalFileReader;
     (globalThis as typeof globalThis & { Image: typeof Image }).Image = OriginalImage;
+    Object.defineProperty(globalThis.navigator, 'clipboard', {
+      configurable: true,
+      value: OriginalClipboard,
+    });
   });
 
   it('handleExport keeps update-first then delayed export behavior', () => {
@@ -150,6 +155,44 @@ describe('useToolbarImportExportCommands', () => {
     expect(parsed.schemaVersion).toBe(1);
     expect(parsed.activeFileId).toBe('file-b');
     expect(parsed.activeFile).toBe('beta');
+  });
+
+  it('handlePreviewData keeps serialize-failure error behavior', () => {
+    const context = createContext();
+    context.filesStore.fileList = [
+      {
+        id: 'file-c',
+        name: 'gamma',
+        payload: BigInt(1),
+      } as unknown as { id: string; name: string },
+    ];
+
+    context.commands.handlePreviewData();
+
+    expect(context.filesStore.updateTab).toHaveBeenCalledTimes(1);
+    vi.advanceTimersByTime(100);
+
+    expect(context.state.showDataPreviewDialog).toBe(false);
+    expect(context.state.previewDataContent).toBe('');
+    expect(context.showMessage).toHaveBeenCalledWith('error', '数据预览失败');
+  });
+
+  it('copyDataToClipboard keeps failure error behavior', async () => {
+    const context = createContext();
+    const writeText = vi.fn().mockRejectedValue(new Error('clipboard blocked'));
+
+    Object.defineProperty(globalThis.navigator, 'clipboard', {
+      configurable: true,
+      value: {
+        writeText,
+      },
+    });
+    context.state.previewDataContent = '{"schemaVersion":1}';
+
+    await context.commands.copyDataToClipboard();
+
+    expect(writeText).toHaveBeenCalledWith('{"schemaVersion":1}');
+    expect(context.showMessage).toHaveBeenCalledWith('error', '复制失败');
   });
 
   it('openImportDialog resets source/input and opens import dialog', () => {
@@ -394,5 +437,56 @@ describe('useToolbarImportExportCommands', () => {
     expect(context.showMessage).toHaveBeenCalledWith('error', '截图失败: 快照加载失败');
     expect(context.state.previewImage).toBeNull();
     expect(context.state.previewVisible).toBe(false);
+  });
+
+  it('downloadImage keeps no-op behavior when preview image is empty', () => {
+    const context = createContext();
+    const createElementSpy = vi.spyOn(document, 'createElement');
+
+    context.state.previewImage = null;
+    context.state.previewVisible = true;
+    context.commands.downloadImage();
+
+    expect(createElementSpy).not.toHaveBeenCalled();
+    expect(context.state.previewVisible).toBe(true);
+    createElementSpy.mockRestore();
+  });
+
+  it('downloadImage keeps close-preview behavior after download', () => {
+    const context = createContext();
+    const link = {
+      href: '',
+      download: '',
+      click: vi.fn(),
+    };
+    const originalCreateElement = document.createElement.bind(document);
+    const createElementSpy = vi.spyOn(document, 'createElement').mockImplementation((tagName: string) => {
+      if (tagName === 'a') {
+        return link as unknown as HTMLAnchorElement;
+      }
+      return originalCreateElement(tagName);
+    });
+
+    context.state.previewImage = 'data:image/png;base64,mock';
+    context.state.previewVisible = true;
+
+    context.commands.downloadImage();
+
+    expect(link.href).toBe('data:image/png;base64,mock');
+    expect(link.download).toBe('screenshot.png');
+    expect(link.click).toHaveBeenCalledTimes(1);
+    expect(context.state.previewVisible).toBe(false);
+    createElementSpy.mockRestore();
+  });
+
+  it('handleClose keeps preview cleanup behavior', () => {
+    const context = createContext();
+    const done = vi.fn();
+
+    context.state.previewImage = 'data:image/png;base64,mock';
+    context.commands.handleClose(done);
+
+    expect(context.state.previewImage).toBeNull();
+    expect(done).toHaveBeenCalledTimes(1);
   });
 });

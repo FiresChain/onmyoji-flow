@@ -40,6 +40,37 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-03] Session 53 - Harden Import/Export Timer and Cleanup Regression Coverage
+
+- Refactory Scope:
+  - Phase: Phase 2
+  - Task: 补齐 `useToolbarImportExportCommands` 的“定时/关闭/清理”边界分支回归（仅测试补强，不改语义）
+- In Scope Files:
+  - `src/__tests__/useToolbarImportExportCommands.test.ts`
+  - `docs/2design/ToolbarArchitecture.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `FlowEditor` 新增重构任务
+  - `groupRules` 规则语义调整
+  - `docs/1management/plan.md` 进度更新
+  - Phase 1 / Phase 3 内容
+- Decisions:
+  - 补齐 `handlePreviewData` 序列化失败分支，验证失败提示与预览弹窗守卫不变。
+  - 补齐 `copyDataToClipboard` 失败路径，验证剪贴板异常时错误提示不变。
+  - 补齐 `downloadImage` 空预览 no-op 与下载后关闭预览两条边界。
+  - 补齐 `handleClose` 清理分支，验证关闭时 `previewImage` 清空并执行 `done` 回调。
+  - 更新 `ToolbarArchitecture.md` Task 12，记录本次定时与清理回归补强边界。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 失败分支回归仍依赖 mock 环境（`navigator.clipboard`、`JSON.stringify` 异常注入），后续若浏览器 API 兼容层调整需同步维护测试注入方式。
+- Next Recommended Unit:
+  - Phase 2 下一原子任务：扩展 `toolbar-wiring.regression`，补齐导入对话框来源切换后的状态复位接线回归。
+
 ## [2026-03-03] Session 52 - Tighten Toolbar Architecture Guard for Import/Export Implementation Ownership
 
 - Refactory Scope:

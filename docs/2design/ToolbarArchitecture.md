@@ -24,6 +24,7 @@
 9. import/export 失败与边界分支回归：`useToolbarImportExportCommands`
 10. 导入对话框接线回归：`toolbar-wiring.regression`（json/teamCode/qr）
 11. import/export 架构守卫补强：`toolbar-architecture.guard`
+12. import/export 定时与清理分支补强：`useToolbarImportExportCommands`
 
 ## Task 1 落地（导入/导出/预览）
 
@@ -183,3 +184,14 @@
 - `Toolbar.vue` 不应包含 import/export 具体实现片段（teamCode 转换、QR 识别、截图/水印细节、关键错误处理）。
 - `useToolbarImportExportCommands.ts` 需保留对应实现片段与关键错误处理路径。
 - `Toolbar.vue` 仅保留命令接线与模板绑定，不承载实现逻辑。
+
+## Task 12 落地（ImportExport 定时与清理分支补强）
+
+增强：`src/__tests__/useToolbarImportExportCommands.test.ts`
+
+回归目标：
+
+- `handlePreviewData` 补齐序列化失败分支，保持失败提示与弹窗状态守卫不变。
+- `copyDataToClipboard` 补齐剪贴板失败分支，保持错误提示语义不变。
+- `downloadImage` 补齐空预览 no-op 与下载后关闭预览分支。
+- `handleClose` 补齐预览关闭清理分支（`previewImage` 清空 + `done` 回调执行）。
