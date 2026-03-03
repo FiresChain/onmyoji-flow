@@ -27,6 +27,7 @@
 12. import/export 定时与清理分支补强：`useToolbarImportExportCommands`
 13. 导入对话框状态复位接线回归：`toolbar-wiring.regression`
 14. import/export 架构守卫再收紧：`toolbar-architecture.guard`
+15. import/export 定时与 DOM 归属守卫细化：`toolbar-architecture.guard`
 
 ## Task 1 落地（导入/导出/预览）
 
@@ -217,3 +218,13 @@
 - `Toolbar.vue` 不应出现 import/export 的 DOM 与定时实现片段（`document.createElement('input'/'a')`、`FileReader`、剪贴板写入与导出/预览定时细节）。
 - `useToolbarImportExportCommands.ts` 需保留上述实现片段，确保 import/export 实现归属仍在 composable。
 - 补齐 import/export 关键错误处理路径守卫（数据预览失败、复制失败、文件格式错误、截图关键错误）以防实现回流或语义漂移。
+
+## Task 15 落地（ImportExport 架构守卫细化：定时与 DOM 归属）
+
+增强：`src/__tests__/toolbar-architecture.guard.test.ts`
+
+回归目标：
+
+- `Toolbar.vue` 不应出现 import/export 的 DOM 细节语句（`document.createElement('input'/'a')`、`FileReader`、`navigator.clipboard.writeText`）。
+- `Toolbar.vue` 不应出现 import/export 的定时语义片段（导出 `2000ms`、预览 `100ms`）。
+- `useToolbarImportExportCommands.ts` 必须保留上述 DOM 与定时实现片段，确保实现责任边界继续稳定在 composable。
