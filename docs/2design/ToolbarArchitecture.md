@@ -44,6 +44,7 @@
 29. ImportExport 定时窗口边界确定性补强：分段推进与多批次交错计数守卫：`useToolbarImportExportCommands`
 30. Toolbar 导入弹窗结构作用域排他性回归：结构锚点 exclusivity 与多轮计数对齐守卫：`toolbar-wiring.regression`
 31. Toolbar 导入接线参数不变量守卫补强：调用参数键 + 来源分支 + 接线层边界守卫：`toolbar-architecture.guard`
+32. ImportExport 定时窗口清理确定性补强：分段推进 + flush + 新批次无漂移守卫：`useToolbarImportExportCommands`
 
 ## Task 1 落地（导入/导出/预览）
 
@@ -406,3 +407,13 @@
 - 新增 AST 守卫：`importSource` 默认初始化必须保持 `ref<'json' | 'teamCode'>('json')`。
 - 新增模板守卫：`importSource` 的 `json/teamCode` 分支与二维码入口双接线（`@click="triggerTeamCodeQrImport"` + `@change="handleTeamCodeQrImport"`）继续存在。
 - 保持 `Toolbar.vue` 仅做接线层边界，不回流 import/export 实现依赖。
+
+## Task 32 落地（ImportExport 定时窗口清理确定性补强）
+
+增强：`src/__tests__/useToolbarImportExportCommands.test.ts`
+
+回归目标：
+
+- 在交错触发后按 `99ms -> 1ms -> 1899ms -> 1ms` 分段推进，持续锁定 `updateTab` 即时计数、`100ms` 预览计数、`2000ms` 导出计数稳定且无提前触发。
+- 在“中途 `runOnlyPendingTimers`/flush 后再触发新批次”场景，持续验证第二批分段窗口下计数无漂移。
+- 增加定时器清理断言（`vi.getTimerCount()`），确保批次收束后无幽灵定时器残留，且既有失败分支语义不变。

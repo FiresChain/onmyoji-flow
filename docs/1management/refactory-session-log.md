@@ -40,6 +40,37 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-03] Session 73 - Strengthen Import/Export Timer Cleanup Determinism Across Segmented Batches
+
+- Refactory Scope:
+  - Phase: Phase 2
+  - Task: ImportExport 定时窗口清理确定性补强（`useToolbarImportExportCommands`，仅测试补强）
+- In Scope Files:
+  - `src/__tests__/useToolbarImportExportCommands.test.ts`
+  - `docs/2design/ToolbarArchitecture.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `FlowEditor` 新增重构任务
+  - `groupRules` 规则语义调整
+  - `docs/1management/plan.md` 更新
+  - Phase 1 / Phase 3 内容
+- Decisions:
+  - 在分段窗口回归（`99ms -> 1ms -> 1899ms -> 1ms`）中增加 `vi.getTimerCount()` 断言，锁定交错触发后定时队列在每个窗口的剩余数与预览/导出计数严格一致。
+  - 在“中途 `runOnlyPendingTimers` 后触发新批次”回归中补充定时队列断言，验证首批收束后无残留，新批次在同分段窗口下计数不漂移。
+  - 新增批次收尾 `runOnlyPendingTimers + getTimerCount() === 0` 守卫，确保无幽灵定时器残留。
+  - 保持既有失败分支语义不变，仅补确定性与清理断言，不修改 import/export 实现。
+  - 更新 `ToolbarArchitecture.md` Task 32，记录本轮定时清理确定性边界。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 断言依赖 fake timers 的 `getTimerCount` 语义；若后续调度机制迁移到非 `setTimeout` 路径，需同步调整计时窗口与队列计数守卫。
+- Next Recommended Unit:
+  - Phase 2 下一原子任务：继续补强 `toolbar-wiring.regression` 与 `toolbar-architecture.guard` 的导入弹窗结构变体守卫（仅测试补强，保持语义不变）。
+
 ## [2026-03-03] Session 72 - Add Import-Dialog Wiring Parameter Invariants to Toolbar Architecture Guard
 
 - Refactory Scope:

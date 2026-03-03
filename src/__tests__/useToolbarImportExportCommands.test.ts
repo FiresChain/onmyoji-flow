@@ -327,23 +327,28 @@ describe('useToolbarImportExportCommands', () => {
       expectedUpdateTabCount += 1;
       expect(context.filesStore.updateTab).toHaveBeenCalledTimes(expectedUpdateTabCount);
     });
+    expect(vi.getTimerCount()).toBe(interleavedActions.length);
 
     expect(stringifySpy).toHaveBeenCalledTimes(0);
     expect(context.filesStore.exportData).toHaveBeenCalledTimes(0);
 
     vi.advanceTimersByTime(99);
+    expect(vi.getTimerCount()).toBe(interleavedActions.length);
     expect(stringifySpy).toHaveBeenCalledTimes(0);
     expect(context.filesStore.exportData).toHaveBeenCalledTimes(0);
 
     vi.advanceTimersByTime(1);
+    expect(vi.getTimerCount()).toBe(expectedExportTriggerCount);
     expect(stringifySpy).toHaveBeenCalledTimes(expectedPreviewTriggerCount);
     expect(context.filesStore.exportData).toHaveBeenCalledTimes(0);
 
     vi.advanceTimersByTime(1899);
+    expect(vi.getTimerCount()).toBe(expectedExportTriggerCount);
     expect(stringifySpy).toHaveBeenCalledTimes(expectedPreviewTriggerCount);
     expect(context.filesStore.exportData).toHaveBeenCalledTimes(0);
 
     vi.advanceTimersByTime(1);
+    expect(vi.getTimerCount()).toBe(0);
     expect(context.filesStore.exportData).toHaveBeenCalledTimes(expectedExportTriggerCount);
     expect(context.filesStore.updateTab).toHaveBeenCalledTimes(expectedUpdateTabCount);
     stringifySpy.mockRestore();
@@ -371,47 +376,61 @@ describe('useToolbarImportExportCommands', () => {
     };
 
     triggerInterleavedBatch(['preview', 'export', 'preview']);
+    expect(vi.getTimerCount()).toBe(3);
     expect(stringifySpy).toHaveBeenCalledTimes(0);
     expect(context.filesStore.exportData).toHaveBeenCalledTimes(0);
 
     vi.advanceTimersByTime(99);
+    expect(vi.getTimerCount()).toBe(3);
     expect(stringifySpy).toHaveBeenCalledTimes(0);
     expect(context.filesStore.exportData).toHaveBeenCalledTimes(0);
 
     vi.advanceTimersByTime(1);
+    expect(vi.getTimerCount()).toBe(1);
     expect(stringifySpy).toHaveBeenCalledTimes(2);
     expect(context.filesStore.exportData).toHaveBeenCalledTimes(0);
 
     vi.advanceTimersByTime(1899);
+    expect(vi.getTimerCount()).toBe(1);
     expect(context.filesStore.exportData).toHaveBeenCalledTimes(0);
 
     vi.advanceTimersByTime(1);
+    expect(vi.getTimerCount()).toBe(0);
     expect(context.filesStore.exportData).toHaveBeenCalledTimes(1);
     expect(context.filesStore.updateTab).toHaveBeenCalledTimes(expectedUpdateTabCount);
 
     vi.runOnlyPendingTimers();
+    expect(vi.getTimerCount()).toBe(0);
     expect(stringifySpy).toHaveBeenCalledTimes(2);
     expect(context.filesStore.exportData).toHaveBeenCalledTimes(1);
 
     triggerInterleavedBatch(['export', 'preview', 'export', 'preview']);
+    expect(vi.getTimerCount()).toBe(4);
     expect(context.filesStore.updateTab).toHaveBeenCalledTimes(expectedUpdateTabCount);
     expect(stringifySpy).toHaveBeenCalledTimes(2);
     expect(context.filesStore.exportData).toHaveBeenCalledTimes(1);
 
     vi.advanceTimersByTime(99);
+    expect(vi.getTimerCount()).toBe(4);
     expect(stringifySpy).toHaveBeenCalledTimes(2);
     expect(context.filesStore.exportData).toHaveBeenCalledTimes(1);
 
     vi.advanceTimersByTime(1);
+    expect(vi.getTimerCount()).toBe(2);
     expect(stringifySpy).toHaveBeenCalledTimes(expectedPreviewTriggerCount);
     expect(context.filesStore.exportData).toHaveBeenCalledTimes(1);
 
     vi.advanceTimersByTime(1899);
+    expect(vi.getTimerCount()).toBe(2);
     expect(context.filesStore.exportData).toHaveBeenCalledTimes(1);
 
     vi.advanceTimersByTime(1);
+    expect(vi.getTimerCount()).toBe(0);
     expect(context.filesStore.exportData).toHaveBeenCalledTimes(expectedExportTriggerCount);
     expect(context.filesStore.updateTab).toHaveBeenCalledTimes(expectedUpdateTabCount);
+
+    vi.runOnlyPendingTimers();
+    expect(vi.getTimerCount()).toBe(0);
     stringifySpy.mockRestore();
   });
 
