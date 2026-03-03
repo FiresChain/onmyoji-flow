@@ -353,4 +353,113 @@ describe('toolbar wiring regression', () => {
 
     wrapper.unmount();
   });
+
+  it('keeps import source-toggle visibility and command counts stable without drift', async () => {
+    const wrapper = createWrapper();
+    const vm = wrapper.vm as unknown as ToolbarVm;
+    const importButton = findButtonByText(wrapper, '导入');
+    expect(importButton).toBeTruthy();
+
+    let importTriggerCount = 0;
+    let expectedJsonTriggerCount = 0;
+    let expectedTeamCodeTriggerCount = 0;
+    let expectedQrTriggerCount = 0;
+
+    const openImportDialog = async () => {
+      await importButton!.trigger('click');
+      importTriggerCount += 1;
+
+      expect(wiringSpies.openImportDialog).toHaveBeenCalledTimes(importTriggerCount);
+      expect(vm.state.showImportDialog).toBe(true);
+      expect(vm.importSource).toBe('json');
+      expect(vm.teamCodeInput).toBe('');
+    };
+
+    const assertJsonSourceVisibility = () => {
+      const jsonButton = findButtonByText(wrapper, '选择 JSON 文件');
+      const teamCodeButton = findButtonByText(wrapper, '导入阵容码');
+      const qrButton = findButtonByText(wrapper, '选择二维码图片');
+
+      expect(jsonButton).toBeTruthy();
+      expect(teamCodeButton).toBeFalsy();
+      expect(qrButton).toBeFalsy();
+      return jsonButton!;
+    };
+
+    const assertTeamCodeSourceVisibility = () => {
+      const jsonButton = findButtonByText(wrapper, '选择 JSON 文件');
+      const teamCodeButton = findButtonByText(wrapper, '导入阵容码');
+      const qrButton = findButtonByText(wrapper, '选择二维码图片');
+
+      expect(jsonButton).toBeFalsy();
+      expect(teamCodeButton).toBeTruthy();
+      expect(qrButton).toBeTruthy();
+      return {
+        teamCodeButton: teamCodeButton!,
+        qrButton: qrButton!,
+      };
+    };
+
+    await openImportDialog();
+    const jsonButtonInFirstOpen = assertJsonSourceVisibility();
+    await jsonButtonInFirstOpen.trigger('click');
+    expectedJsonTriggerCount += 1;
+    expect(wiringSpies.triggerJsonFileImport).toHaveBeenCalledTimes(expectedJsonTriggerCount);
+
+    vm.importSource = 'teamCode';
+    await vm.$nextTick();
+    let teamCodeVisibility = assertTeamCodeSourceVisibility();
+    await teamCodeVisibility.teamCodeButton.trigger('click');
+    expectedTeamCodeTriggerCount += 1;
+    expect(wiringSpies.handleTeamCodeImport).toHaveBeenCalledTimes(expectedTeamCodeTriggerCount);
+    await teamCodeVisibility.qrButton.trigger('click');
+    expectedQrTriggerCount += 1;
+    expect(wiringSpies.triggerTeamCodeQrImport).toHaveBeenCalledTimes(expectedQrTriggerCount);
+
+    vm.importSource = 'json';
+    await vm.$nextTick();
+    const jsonButtonAfterToggleBack = assertJsonSourceVisibility();
+    await jsonButtonAfterToggleBack.trigger('click');
+    expectedJsonTriggerCount += 1;
+    expect(wiringSpies.triggerJsonFileImport).toHaveBeenCalledTimes(expectedJsonTriggerCount);
+
+    vm.importSource = 'teamCode';
+    await vm.$nextTick();
+    teamCodeVisibility = assertTeamCodeSourceVisibility();
+    await teamCodeVisibility.teamCodeButton.trigger('click');
+    expectedTeamCodeTriggerCount += 1;
+    expect(wiringSpies.handleTeamCodeImport).toHaveBeenCalledTimes(expectedTeamCodeTriggerCount);
+    await teamCodeVisibility.qrButton.trigger('click');
+    expectedQrTriggerCount += 1;
+    expect(wiringSpies.triggerTeamCodeQrImport).toHaveBeenCalledTimes(expectedQrTriggerCount);
+
+    vm.state.showImportDialog = false;
+    await vm.$nextTick();
+    vm.importSource = 'teamCode';
+    vm.teamCodeInput = '#TA#DIRTY-CLOSED';
+    await vm.$nextTick();
+
+    await openImportDialog();
+    const jsonButtonInSecondOpen = assertJsonSourceVisibility();
+    await jsonButtonInSecondOpen.trigger('click');
+    expectedJsonTriggerCount += 1;
+    expect(wiringSpies.triggerJsonFileImport).toHaveBeenCalledTimes(expectedJsonTriggerCount);
+
+    vm.importSource = 'teamCode';
+    await vm.$nextTick();
+    teamCodeVisibility = assertTeamCodeSourceVisibility();
+    await teamCodeVisibility.teamCodeButton.trigger('click');
+    expectedTeamCodeTriggerCount += 1;
+    expect(wiringSpies.handleTeamCodeImport).toHaveBeenCalledTimes(expectedTeamCodeTriggerCount);
+    await teamCodeVisibility.qrButton.trigger('click');
+    expectedQrTriggerCount += 1;
+    expect(wiringSpies.triggerTeamCodeQrImport).toHaveBeenCalledTimes(expectedQrTriggerCount);
+
+    expect(wiringSpies.openImportDialog).toHaveBeenCalledTimes(importTriggerCount);
+    expect(wiringSpies.triggerJsonFileImport).toHaveBeenCalledTimes(expectedJsonTriggerCount);
+    expect(wiringSpies.handleTeamCodeImport).toHaveBeenCalledTimes(expectedTeamCodeTriggerCount);
+    expect(wiringSpies.triggerTeamCodeQrImport).toHaveBeenCalledTimes(expectedQrTriggerCount);
+
+    wrapper.unmount();
+  });
 });

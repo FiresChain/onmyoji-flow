@@ -40,6 +40,36 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-03] Session 64 - Extend Toolbar Wiring Regression for Import Source-Toggle Visibility and Call-Count Stability
+
+- Refactory Scope:
+  - Phase: Phase 2
+  - Task: 增强 `toolbar-wiring.regression`，覆盖导入来源切换可见性与命令计数稳定性（仅测试补强，不改语义）
+- In Scope Files:
+  - `src/__tests__/toolbar-wiring.regression.test.ts`
+  - `docs/2design/ToolbarArchitecture.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `FlowEditor` 新增重构任务
+  - `groupRules` 规则语义调整
+  - `docs/1management/plan.md` 更新
+  - Phase 1 / Phase 3 内容
+- Decisions:
+  - 新增来源切换可见性守卫：`json` 来源仅展示 JSON 导入按钮；`teamCode` 来源展示阵容码与二维码入口。
+  - 新增单轮多次来源来回切换回归，验证 `triggerJsonFileImport` / `handleTeamCodeImport` / `triggerTeamCodeQrImport` 三路径持续命中既有 composable 命令。
+  - 新增跨轮打开导入弹窗计数守卫，锁定 `openImportDialog` 与三路径命令计数持续对齐，不发生多调/少调漂移。
+  - 更新 `ToolbarArchitecture.md` Task 23，记录本轮来源切换可见性与计数漂移回归边界。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 当前回归基于按钮文本匹配与组件 stub；后续若导入对话框文案/结构调整，需同步更新选择器与可见性断言。
+- Next Recommended Unit:
+  - Phase 2 下一原子任务：继续补 `toolbar-architecture.guard` 与 `toolbar-wiring.regression` 的结构鲁棒性（例如弱化对文案选择器的依赖，仍保持语义不变）。
+
 ## [2026-03-03] Session 63 - Strengthen Import/Export Command Determinism and Ref-Event Edge Coverage
 
 - Refactory Scope:

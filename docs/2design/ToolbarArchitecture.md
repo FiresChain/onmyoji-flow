@@ -35,6 +35,7 @@
 20. 导入对话框多轮循环接线回归（二次）：关闭后污染态恢复与链路计数对齐守卫：`toolbar-wiring.regression`
 21. import/export 架构守卫 AST 级补强：脚本边界调用归属与定时语义归属守卫：`toolbar-architecture.guard`
 22. import/export 命令确定性与 ref 事件边界补强：`useToolbarImportExportCommands`
+23. 导入来源切换可见性与命令计数漂移回归：`toolbar-wiring.regression`
 
 ## Task 1 落地（导入/导出/预览）
 
@@ -306,3 +307,13 @@
 - `triggerTeamCodeQrImport` 在 `teamCodeQrInputRef` 存在时，`click` 调用次数与触发次数严格一致，不产生额外副作用。
 - `handleTeamCodeQrImport` 在 `event.target` 缺失或异常输入时保持 no-op，且 `decodingTeamCodeQr`/输入状态不被污染。
 - `handleExport` 与 `handlePreviewData` 多次连续触发时，`updateTab` 立即调用与延时执行（`2000ms` / `100ms`）计数关系保持稳定，不漂移。
+
+## Task 23 落地（Toolbar 导入来源切换可见性与计数漂移回归）
+
+增强：`src/__tests__/toolbar-wiring.regression.test.ts`
+
+回归目标：
+
+- 导入弹窗在 `json/teamCode` 来源切换时，按钮可见性保持与既有命令接线一致（`json` 显示 JSON 导入按钮；`teamCode` 显示阵容码与二维码入口）。
+- 单轮内多次来源来回切换后，`json/teamCode/qr` 三路径仍命中既有 composable 命令（`triggerJsonFileImport` / `handleTeamCodeImport` / `triggerTeamCodeQrImport`）。
+- 跨轮打开导入弹窗后，`openImportDialog` 与三路径命令调用计数持续对齐，不多调/不少调，防止接线计数漂移。
