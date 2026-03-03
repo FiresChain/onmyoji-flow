@@ -274,24 +274,42 @@ describe('Toolbar architecture guard', () => {
   it('keeps import dialog source-branch and qr entry wiring invariants in template', () => {
     const toolbarTemplateSource = extractTemplateContent(toolbarSource);
     const toolbarScriptSource = extractScriptSetupContent(toolbarSource);
+    const importDialogTemplateMatch = toolbarTemplateSource.match(
+      /<el-dialog[^>]*title="导入数据"[\s\S]*?<\/el-dialog>/,
+    );
+    expect(importDialogTemplateMatch).toBeTruthy();
+    const importDialogTemplateSource = importDialogTemplateMatch![0];
+    const importSourceModelBindings = Array.from(importDialogTemplateSource.matchAll(/v-model="importSource"/g));
+    const importSourceOptions = Array.from(
+      importDialogTemplateSource.matchAll(/<el-radio-button[^>]*label="([^"]+)"[^>]*>/g),
+    ).map((match) => match[1]);
+    const teamCodeQrActionsAnchors = Array.from(
+      importDialogTemplateSource.matchAll(/class="team-code-qr-actions"/g),
+    );
 
-    expect(toolbarTemplateSource).toMatch(/<el-radio-group(?=[^>]*v-model="importSource")[^>]*>/);
-    expect(toolbarTemplateSource).toMatch(/<el-radio-button(?=[^>]*label="json")[^>]*>/);
-    expect(toolbarTemplateSource).toMatch(/<el-radio-button(?=[^>]*label="teamCode")[^>]*>/);
-    expect(toolbarTemplateSource).toMatch(
+    expect(importSourceModelBindings).toHaveLength(1);
+    expect(importDialogTemplateSource).toMatch(/<el-radio-group(?=[^>]*v-model="importSource")[^>]*>/);
+    expect(importSourceOptions).toHaveLength(2);
+    expect(importSourceOptions).toEqual(expect.arrayContaining(['json', 'teamCode']));
+    expect(importSourceOptions.filter((value) => value === 'json')).toHaveLength(1);
+    expect(importSourceOptions.filter((value) => value === 'teamCode')).toHaveLength(1);
+    expect(importDialogTemplateSource).toMatch(
       /<el-button(?=[^>]*v-if="importSource === 'json'")(?=[^>]*@click="triggerJsonFileImport")[^>]*>/,
     );
-    expect(toolbarTemplateSource).toMatch(
+    expect(importDialogTemplateSource).toMatch(
       /<el-button(?=[^>]*v-else)(?=[^>]*@click="handleTeamCodeImport")[^>]*>/,
     );
-    expect(toolbarTemplateSource).toContain('class="team-code-qr-actions"');
-    expect(toolbarTemplateSource).toMatch(/<el-button(?=[^>]*@click="triggerTeamCodeQrImport")[^>]*>/);
-    expect(toolbarTemplateSource).toMatch(/<input(?=[^>]*@change="handleTeamCodeQrImport")[^>]*>/);
+    expect(teamCodeQrActionsAnchors).toHaveLength(1);
+    expect(importDialogTemplateSource).toMatch(/<el-button(?=[^>]*@click="triggerTeamCodeQrImport")[^>]*>/);
+    expect(importDialogTemplateSource).toMatch(
+      /<input(?=[^>]*ref="teamCodeQrInputRef")(?=[^>]*@change="handleTeamCodeQrImport")(?=[^>]*accept="image\/\*")[^>]*>/,
+    );
 
     expect(toolbarScriptSource).not.toContain('convertTeamCodeToRootDocument');
     expect(toolbarScriptSource).not.toContain('decodeTeamCodeFromQrImage');
     expect(toolbarScriptSource).not.toContain('withDynamicGroupsHiddenForSnapshot');
     expect(toolbarScriptSource).not.toContain('addWatermarkToImage');
+    expect(toolbarScriptSource).not.toContain("@/utils/teamCodeService");
   });
 
   it('keeps import/export ownership boundaries with AST-level guards', () => {

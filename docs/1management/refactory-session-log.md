@@ -40,6 +40,36 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-03] Session 75 - Tighten Import-Template Structural Invariants in Toolbar Architecture Guard
+
+- Refactory Scope:
+  - Phase: Phase 2
+  - Task: Toolbar 导入模板结构不变量守卫再收紧（`toolbar-architecture.guard`，仅测试补强）
+- In Scope Files:
+  - `src/__tests__/toolbar-architecture.guard.test.ts`
+  - `docs/2design/ToolbarArchitecture.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `FlowEditor` 新增重构任务
+  - `groupRules` 规则语义调整
+  - `docs/1management/plan.md` 更新
+  - Phase 1 / Phase 3 内容
+- Decisions:
+  - 将导入模板守卫收敛到“导入数据”弹窗局部模板，校验 `importSource` 绑定入口唯一，并且来源选项仅保留 `json/teamCode` 两项。
+  - 补充二维码 input 接线不变量守卫：`team-code-qr-actions` 唯一，且二维码 input 继续保持 `ref="teamCodeQrInputRef" + @change="handleTeamCodeQrImport" + accept="image/*"`。
+  - 延续接线层边界守卫：`Toolbar.vue` script 继续不回流 `teamCodeService` 与 import/export 实现依赖。
+  - 更新 `ToolbarArchitecture.md` Task 34，记录本轮模板结构不变量边界。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 模板守卫依赖当前导入弹窗结构与属性名；若后续改为子组件封装或属性重命名，需同步更新 guard 正则与局部块提取逻辑。
+- Next Recommended Unit:
+  - Phase 2 下一原子任务：补强 `useToolbarImportExportCommands` 在“分段推进 + 中途局部 flush + 新批次”场景的计时与定时器收束确定性守卫。
+
 ## [2026-03-03] Session 74 - Harden Import-Dialog Structural Anchoring Against Footer-Noise Regressions
 
 - Refactory Scope:
