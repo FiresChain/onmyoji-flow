@@ -75,6 +75,7 @@
 60. Toolbar 导入弹窗结构锚点再补强：嵌套 slot-footer 次级顺序 + duplicate-accept 假动作噪声矩阵下作用域唯一命中与多轮计数对齐守卫：`toolbar-wiring.regression`
 61. Toolbar 导入模板局部不变量再收紧：slot-footer 归属 + 分支互斥 + event-uniqueness action-pair AST 守卫：`toolbar-architecture.guard`
 62. ImportExport 计时确定性再补强：交替双窗口混合 flush + 链式即时 rebatch 零残留循环下分段推进守卫：`useToolbarImportExportCommands`
+63. Toolbar 导入弹窗结构锚点再补强：嵌套 slot-footer 次级顺序 + class 漂移 + duplicate-accept 扩展假动作噪声矩阵下作用域唯一命中与多轮计数对齐守卫：`toolbar-wiring.regression`
 
 ## Task 1 落地（导入/导出/预览）
 
@@ -757,3 +758,13 @@
 - 在 4 组交错变体中，前两批均在 `99ms` 阈值前执行 `runOnlyPendingTimers`，并在每次 flush 后追加幂等 `runOnlyPendingTimers` 断言，持续锁定 `preview/export/updateTab` 计数无漂移。
 - 每次 flush 收束后立即触发下一批（至少两次链式 rebatch），并对后续两批按 `99ms -> 1ms -> 1899ms -> 1ms` 分段推进，持续验证无提前触发。
 - 在每次 flush 后、每个分段批次收束后、每组变体收束后与全流程结束后均断言 `vi.getTimerCount() === 0`，确保零残留定时器循环稳定。
+
+## Task 63 落地（Toolbar 导入弹窗结构锚点：嵌套 slot-footer 次级顺序 + class 漂移 + duplicate-accept 扩展假动作噪声）
+
+增强：`src/__tests__/toolbar-wiring.regression.test.ts`
+
+回归目标：
+
+- 在非导入弹窗注入多层假 `import-form` / 假 `dialog-footer` / 假 `team-code-qr-actions` 并叠加 nested slot-footer 次级顺序漂移与 class 漂移时，导入弹窗作用域仍唯一命中真实结构锚点。
+- 在 `teamCode` 来源下，含同文案按钮与 duplicate `accept="image/*"` input 的 primary/secondary 假 actions（含扩展 footer/action 噪声）不被误命中，真实二维码动作块继续仅归属导入弹窗作用域。
+- 在上述扩展噪声矩阵的多轮“打开/切换来源/关闭/重开（含关闭后污染态）”循环中，`openImportDialog + json/teamCode/qr` 三路径命令计数持续对齐（`>= 9` 轮）。
