@@ -846,3 +846,13 @@
 - 显式守卫来源分支完整性：`json/teamCode` 两来源分支保持完整且唯一，不引入隐式第三分支条件。
 - 持续守卫 `triggerJsonFileImport` / `handleTeamCodeImport` 的 footer-scoped event-uniqueness，以及 `team-code-qr-actions` 的 action/input 唯一配对（不依赖固定先后顺序）。
 - 持续守卫 `Toolbar.vue` 接线层边界：不回流 `teamCodeService` 与 import/export 实现依赖，`useToolbarImportExportCommands` 入参键保持完整。
+
+## Task 71 落地（ImportExport 交替双窗口 repeated pre-threshold flush + multi-rebatch 分段窗口零残留循环 v3）
+
+增强：`src/__tests__/useToolbarImportExportCommands.test.ts`
+
+回归目标：
+
+- 在 `>= 6` 组交错变体中，前两批持续执行 `99ms` 阈值前 flush，锁定 `preview/export/updateTab` 计数无漂移。
+- 每组至少两次 chained immediate rebatch，并对后续批次持续按 `99ms -> 1ms -> 1899ms -> 1ms` 固定分段推进，验证无提前触发。
+- 持续执行三层清理守卫：每轮/每组/全流程均断言 `vi.getTimerCount() === 0`，并补 `runOnlyPendingTimers` 幂等清理断言，确保零残留定时器循环稳定。
