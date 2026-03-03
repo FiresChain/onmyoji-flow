@@ -301,45 +301,48 @@ describe('toolbar wiring regression', () => {
     expect(wiringSpies.handleClearCanvas).toHaveBeenCalledTimes(1);
   });
 
-  it('keeps import dialog state-reset and command paths stable after source switch', async () => {
+  it('keeps import dialog wiring stable across repeated open-switch-close cycles', async () => {
     const wrapper = createWrapper();
     const vm = wrapper.vm as unknown as ToolbarVm;
 
     const importButton = findButtonByText(wrapper, '导入');
     expect(importButton).toBeTruthy();
-    await importButton!.trigger('click');
-    expect(wiringSpies.openImportDialog).toHaveBeenCalledTimes(1);
-    expect(vm.importSource).toBe('json');
-    expect(vm.state.showImportDialog).toBe(true);
+    let importButtonTriggerCount = 0;
 
-    const jsonButton = findButtonByText(wrapper, '选择 JSON 文件');
-    expect(jsonButton).toBeTruthy();
-    await jsonButton!.trigger('click');
-    expect(wiringSpies.triggerJsonFileImport).toHaveBeenCalledTimes(1);
+    for (let round = 1; round <= 2; round += 1) {
+      await importButton!.trigger('click');
+      importButtonTriggerCount += 1;
 
-    vm.importSource = 'teamCode';
-    vm.teamCodeInput = '#TA#DIRTY';
-    vm.state.showImportDialog = false;
-    await vm.$nextTick();
+      expect(wiringSpies.openImportDialog).toHaveBeenCalledTimes(round);
+      expect(vm.importSource).toBe('json');
+      expect(vm.teamCodeInput).toBe('');
+      expect(vm.state.showImportDialog).toBe(true);
 
-    await importButton!.trigger('click');
-    expect(wiringSpies.openImportDialog).toHaveBeenCalledTimes(2);
-    expect(vm.importSource).toBe('json');
-    expect(vm.teamCodeInput).toBe('');
-    expect(vm.state.showImportDialog).toBe(true);
+      const jsonButton = findButtonByText(wrapper, '选择 JSON 文件');
+      expect(jsonButton).toBeTruthy();
+      await jsonButton!.trigger('click');
+      expect(wiringSpies.triggerJsonFileImport).toHaveBeenCalledTimes(round);
 
-    vm.importSource = 'teamCode';
-    await vm.$nextTick();
+      vm.importSource = 'teamCode';
+      vm.teamCodeInput = `#TA#DIRTY-${round}`;
+      await vm.$nextTick();
 
-    const teamCodeButton = findButtonByText(wrapper, '导入阵容码');
-    expect(teamCodeButton).toBeTruthy();
-    await teamCodeButton!.trigger('click');
-    expect(wiringSpies.handleTeamCodeImport).toHaveBeenCalledTimes(1);
+      const teamCodeButton = findButtonByText(wrapper, '导入阵容码');
+      expect(teamCodeButton).toBeTruthy();
+      await teamCodeButton!.trigger('click');
+      expect(wiringSpies.handleTeamCodeImport).toHaveBeenCalledTimes(round);
 
-    const qrButton = findButtonByText(wrapper, '选择二维码图片');
-    expect(qrButton).toBeTruthy();
-    await qrButton!.trigger('click');
-    expect(wiringSpies.triggerTeamCodeQrImport).toHaveBeenCalledTimes(1);
+      const qrButton = findButtonByText(wrapper, '选择二维码图片');
+      expect(qrButton).toBeTruthy();
+      await qrButton!.trigger('click');
+      expect(wiringSpies.triggerTeamCodeQrImport).toHaveBeenCalledTimes(round);
+
+      vm.state.showImportDialog = false;
+      await vm.$nextTick();
+      expect(vm.state.showImportDialog).toBe(false);
+    }
+
+    expect(wiringSpies.openImportDialog).toHaveBeenCalledTimes(importButtonTriggerCount);
 
     wrapper.unmount();
   });

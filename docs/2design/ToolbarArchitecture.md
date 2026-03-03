@@ -29,6 +29,7 @@
 14. import/export 架构守卫再收紧：`toolbar-architecture.guard`
 15. import/export 定时与 DOM 归属守卫细化：`toolbar-architecture.guard`
 16. import/export 生命周期清理与状态复位边界补强：`useToolbarImportExportCommands`
+17. 导入对话框多轮循环接线回归：`toolbar-wiring.regression`
 
 ## Task 1 落地（导入/导出/预览）
 
@@ -240,3 +241,13 @@
 - `openImportDialog` 重复调用时持续保持来源重置为 `json`、输入清空、弹窗打开语义（幂等）。
 - `triggerJsonFileImport` 失败路径后保持导入弹窗状态语义不变（维持关闭），且不污染来源与输入状态。
 - `handleTeamCodeQrImport` 成功/失败/无文件三分支均保持 `decoding` 状态回收与文件 input 清理语义不变。
+
+## Task 17 落地（Toolbar 导入对话框多轮循环接线回归）
+
+增强：`src/__tests__/toolbar-wiring.regression.test.ts`
+
+回归目标：
+
+- 覆盖“打开 -> 切换来源 -> 关闭 -> 再打开”连续两轮循环，验证每轮打开后默认来源仍回到 `json`。
+- 每轮均校验 `json/teamCode/qr` 三路径按钮继续命中既有 composable 命令：`triggerJsonFileImport` / `handleTeamCodeImport` / `triggerTeamCodeQrImport`。
+- 校验“导入”按钮触发次数与 `openImportDialog` 调用次数一致，防止接线链路漂移。

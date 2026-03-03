@@ -40,6 +40,36 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-03] Session 58 - Extend Toolbar Wiring Regression for Repeated Import Dialog State-Reset Cycles
+
+- Refactory Scope:
+  - Phase: Phase 2
+  - Task: 增强 `toolbar-wiring.regression`，验证导入对话框多轮开关循环后接线与默认来源恢复不变（仅测试补强）
+- In Scope Files:
+  - `src/__tests__/toolbar-wiring.regression.test.ts`
+  - `docs/2design/ToolbarArchitecture.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `FlowEditor` 新增重构任务
+  - `groupRules` 规则语义调整
+  - `docs/1management/plan.md` 进度更新
+  - Phase 1 / Phase 3 内容
+- Decisions:
+  - 将导入回归用例扩展为两轮“打开 -> 切换来源 -> 关闭 -> 再打开”循环，逐轮断言默认来源恢复为 `json`、输入重置语义不回退。
+  - 在每一轮中均断言 `json/teamCode/qr` 三路径按钮继续命中既有 composable 命令。
+  - 增加触发计数守卫：`openImportDialog` 调用次数必须与“导入”按钮触发次数一致，防止接线链路漂移。
+  - 更新 `ToolbarArchitecture.md` Task 17，记录多轮循环接线回归边界。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 该回归依赖组件 stub 与按钮文案匹配，后续若导入对话框结构或文案调整，需同步更新选择器与断言。
+- Next Recommended Unit:
+  - Phase 2 下一原子任务：在 `toolbar-architecture.guard` 增补 AST 级边界断言，降低源码片段匹配的误报风险（保持行为不变）。
+
 ## [2026-03-03] Session 57 - Harden Import/Export Lifecycle Cleanup and Dialog Reset Regression Coverage
 
 - Refactory Scope:
