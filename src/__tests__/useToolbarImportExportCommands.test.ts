@@ -1624,6 +1624,161 @@ describe('useToolbarImportExportCommands', () => {
     stringifySpy.mockRestore();
   });
 
+  it('handleExport and handlePreviewData reinforce timer determinism under alternating dual-window hybrid flush repeated pre-threshold loops and chained immediate rebatch zero-residual cycles', () => {
+    const context = createContext();
+    const stringifySpy = vi.spyOn(JSON, 'stringify');
+    let expectedUpdateTabCount = 0;
+    let expectedPreviewTriggerCount = 0;
+    let expectedExportTriggerCount = 0;
+    let executedPreviewCount = 0;
+    let executedExportCount = 0;
+
+    const countBatchActions = (batch: Array<'preview' | 'export'>, action: 'preview' | 'export') => {
+      return batch.filter((item) => item === action).length;
+    };
+
+    const triggerInterleavedBatch = (batch: Array<'preview' | 'export'>) => {
+      batch.forEach((action) => {
+        if (action === 'preview') {
+          context.commands.handlePreviewData();
+          expectedPreviewTriggerCount += 1;
+        } else {
+          context.commands.handleExport();
+          expectedExportTriggerCount += 1;
+        }
+        expectedUpdateTabCount += 1;
+        expect(context.filesStore.updateTab).toHaveBeenCalledTimes(expectedUpdateTabCount);
+      });
+    };
+
+    const settleByRepeatedPreThresholdFlush = (batch: Array<'preview' | 'export'>) => {
+      const batchPreviewCount = countBatchActions(batch, 'preview');
+      const batchExportCount = countBatchActions(batch, 'export');
+
+      triggerInterleavedBatch(batch);
+      expect(vi.getTimerCount()).toBe(batch.length);
+      expect(stringifySpy).toHaveBeenCalledTimes(executedPreviewCount);
+      expect(context.filesStore.exportData).toHaveBeenCalledTimes(executedExportCount);
+
+      vi.advanceTimersByTime(99);
+      expect(vi.getTimerCount()).toBe(batch.length);
+      expect(stringifySpy).toHaveBeenCalledTimes(executedPreviewCount);
+      expect(context.filesStore.exportData).toHaveBeenCalledTimes(executedExportCount);
+
+      vi.runOnlyPendingTimers();
+      executedPreviewCount += batchPreviewCount;
+      executedExportCount += batchExportCount;
+      expect(vi.getTimerCount()).toBe(0);
+      expect(stringifySpy).toHaveBeenCalledTimes(executedPreviewCount);
+      expect(context.filesStore.exportData).toHaveBeenCalledTimes(executedExportCount);
+
+      vi.runOnlyPendingTimers();
+      expect(vi.getTimerCount()).toBe(0);
+      expect(stringifySpy).toHaveBeenCalledTimes(executedPreviewCount);
+      expect(context.filesStore.exportData).toHaveBeenCalledTimes(executedExportCount);
+    };
+
+    const settleBySegmentedWindow = (batch: Array<'preview' | 'export'>) => {
+      const batchPreviewCount = countBatchActions(batch, 'preview');
+      const batchExportCount = countBatchActions(batch, 'export');
+
+      triggerInterleavedBatch(batch);
+      expect(vi.getTimerCount()).toBe(batch.length);
+      expect(stringifySpy).toHaveBeenCalledTimes(executedPreviewCount);
+      expect(context.filesStore.exportData).toHaveBeenCalledTimes(executedExportCount);
+
+      vi.advanceTimersByTime(99);
+      expect(vi.getTimerCount()).toBe(batch.length);
+      expect(stringifySpy).toHaveBeenCalledTimes(executedPreviewCount);
+      expect(context.filesStore.exportData).toHaveBeenCalledTimes(executedExportCount);
+
+      vi.advanceTimersByTime(1);
+      executedPreviewCount += batchPreviewCount;
+      expect(vi.getTimerCount()).toBe(batchExportCount);
+      expect(stringifySpy).toHaveBeenCalledTimes(executedPreviewCount);
+      expect(context.filesStore.exportData).toHaveBeenCalledTimes(executedExportCount);
+
+      vi.advanceTimersByTime(1899);
+      expect(vi.getTimerCount()).toBe(batchExportCount);
+      expect(stringifySpy).toHaveBeenCalledTimes(executedPreviewCount);
+      expect(context.filesStore.exportData).toHaveBeenCalledTimes(executedExportCount);
+
+      vi.advanceTimersByTime(1);
+      executedExportCount += batchExportCount;
+      expect(vi.getTimerCount()).toBe(0);
+      expect(stringifySpy).toHaveBeenCalledTimes(executedPreviewCount);
+      expect(context.filesStore.exportData).toHaveBeenCalledTimes(executedExportCount);
+
+      vi.runOnlyPendingTimers();
+      expect(vi.getTimerCount()).toBe(0);
+      expect(stringifySpy).toHaveBeenCalledTimes(executedPreviewCount);
+      expect(context.filesStore.exportData).toHaveBeenCalledTimes(executedExportCount);
+    };
+
+    const alternatingDualWindowHybridFlushRepeatedLoopsMatrix = [
+      {
+        firstBatch: ['preview', 'export', 'preview', 'export'] as Array<'preview' | 'export'>,
+        secondBatch: ['export', 'preview', 'export', 'preview'] as Array<'preview' | 'export'>,
+        thirdBatch: ['preview', 'preview', 'export', 'export'] as Array<'preview' | 'export'>,
+        fourthBatch: ['export', 'preview', 'preview', 'export', 'preview'] as Array<'preview' | 'export'>,
+      },
+      {
+        firstBatch: ['export', 'preview', 'preview', 'export'] as Array<'preview' | 'export'>,
+        secondBatch: ['preview', 'export', 'preview'] as Array<'preview' | 'export'>,
+        thirdBatch: ['export', 'preview', 'export', 'preview'] as Array<'preview' | 'export'>,
+        fourthBatch: ['preview', 'export', 'export', 'preview'] as Array<'preview' | 'export'>,
+      },
+      {
+        firstBatch: ['preview', 'export', 'export', 'preview'] as Array<'preview' | 'export'>,
+        secondBatch: ['export', 'preview', 'preview', 'export', 'preview'] as Array<'preview' | 'export'>,
+        thirdBatch: ['preview', 'export', 'preview', 'export', 'preview'] as Array<'preview' | 'export'>,
+        fourthBatch: ['export', 'preview', 'export', 'preview'] as Array<'preview' | 'export'>,
+      },
+      {
+        firstBatch: ['export', 'preview', 'export'] as Array<'preview' | 'export'>,
+        secondBatch: ['preview', 'preview', 'export', 'export'] as Array<'preview' | 'export'>,
+        thirdBatch: ['export', 'preview', 'preview', 'export'] as Array<'preview' | 'export'>,
+        fourthBatch: ['preview', 'export', 'preview', 'export'] as Array<'preview' | 'export'>,
+      },
+      {
+        firstBatch: ['preview', 'preview', 'export', 'export', 'preview'] as Array<'preview' | 'export'>,
+        secondBatch: ['export', 'preview', 'export', 'preview', 'export'] as Array<'preview' | 'export'>,
+        thirdBatch: ['preview', 'export', 'preview', 'preview', 'export'] as Array<'preview' | 'export'>,
+        fourthBatch: ['export', 'export', 'preview', 'preview'] as Array<'preview' | 'export'>,
+      },
+    ];
+
+    alternatingDualWindowHybridFlushRepeatedLoopsMatrix.forEach(({ firstBatch, secondBatch, thirdBatch, fourthBatch }) => {
+      settleByRepeatedPreThresholdFlush(firstBatch);
+      expect(vi.getTimerCount()).toBe(0);
+      vi.runOnlyPendingTimers();
+      expect(vi.getTimerCount()).toBe(0);
+
+      settleByRepeatedPreThresholdFlush(secondBatch);
+      expect(vi.getTimerCount()).toBe(0);
+      vi.runOnlyPendingTimers();
+      expect(vi.getTimerCount()).toBe(0);
+
+      settleBySegmentedWindow(thirdBatch);
+      expect(vi.getTimerCount()).toBe(0);
+      vi.runOnlyPendingTimers();
+      expect(vi.getTimerCount()).toBe(0);
+
+      settleBySegmentedWindow(fourthBatch);
+      expect(vi.getTimerCount()).toBe(0);
+      vi.runOnlyPendingTimers();
+      expect(vi.getTimerCount()).toBe(0);
+    });
+
+    expect(stringifySpy).toHaveBeenCalledTimes(expectedPreviewTriggerCount);
+    expect(context.filesStore.exportData).toHaveBeenCalledTimes(expectedExportTriggerCount);
+    expect(context.filesStore.updateTab).toHaveBeenCalledTimes(expectedUpdateTabCount);
+    expect(vi.getTimerCount()).toBe(0);
+    vi.runOnlyPendingTimers();
+    expect(vi.getTimerCount()).toBe(0);
+    stringifySpy.mockRestore();
+  });
+
   it('handlePreviewData keeps serialize-failure error behavior', () => {
     const context = createContext();
     context.filesStore.fileList = [

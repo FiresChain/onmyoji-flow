@@ -40,6 +40,36 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-04] Session 106 - Reinforce Timer Determinism Under Alternating Dual-Window Hybrid Flush Repeated Pre-Threshold Loops and Chained Immediate Rebatch Zero-Residual Cycles
+
+- Refactory Scope:
+  - Phase: Phase 2
+  - Task: ImportExport 交替双窗口混合 flush + 重复 pre-threshold loops + 链式即时 rebatch 零残留循环（二次矩阵）（`useToolbarImportExportCommands`，仅测试补强）
+- In Scope Files:
+  - `src/__tests__/useToolbarImportExportCommands.test.ts`
+  - `docs/2design/ToolbarArchitecture.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `FlowEditor` 新增重构任务
+  - `groupRules` 规则语义调整
+  - `docs/1management/plan.md` 更新
+  - Phase 1 / Phase 3 内容
+- Decisions:
+  - 新增 alternating dual-window hybrid flush repeated pre-threshold loops + chained immediate rebatch zero-residual cycles 回归：在 5 组交错变体中，前两批均在 `99ms` 阈值前执行 `runOnlyPendingTimers`，持续锁定 `preview/export/updateTab` 计数无漂移。
+  - 每组在两次 pre-threshold flush 收束后立即链式触发后续两批，并按 `99ms -> 1ms -> 1899ms -> 1ms` 分段推进，持续验证无提前触发。
+  - 在每次 flush 后、每组分段批次收束后、全流程结束后均断言 `vi.getTimerCount() === 0`，并补充 `runOnlyPendingTimers` 幂等断言，强化零残留定时器清理约束。
+  - 更新 `ToolbarArchitecture.md` Task 65，记录本轮交替双窗口重复 pre-threshold flush loops 与链式即时 rebatch 计时确定性边界。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 断言依赖 fake timers 与当前 `setTimeout` 调度语义；若后续导入/导出调度机制变更，需要同步更新分段窗口与计数期望。
+- Next Recommended Unit:
+  - Phase 2 下一原子任务：回到 `toolbar-wiring.regression`，继续补强导入弹窗结构锚点在“嵌套 slot/footer + class 漂移 + duplicate-accept 扩展噪声”与多轮计数对齐场景下的作用域唯一命中边界（仅测试补强）。
+
 ## [2026-03-04] Session 105 - Enforce Import-Dialog Local Ownership with Slot-Footer Branch-Exclusivity and Event-Uniqueness Action-Pair AST Guards
 
 - Refactory Scope:
