@@ -40,6 +40,36 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-03] Session 80 - Harden Import-Dialog Anchoring Against Slot-Wrapper Structural-Noise Variants
+
+- Refactory Scope:
+  - Phase: Phase 2
+  - Task: Toolbar 导入弹窗结构锚点 slot-wrapper 混合噪声回归补强（`toolbar-wiring.regression`，仅测试补强）
+- In Scope Files:
+  - `src/__tests__/toolbar-wiring.regression.test.ts`
+  - `docs/2design/ToolbarArchitecture.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `FlowEditor` 新增重构任务
+  - `groupRules` 规则语义调整
+  - `docs/1management/plan.md` 更新
+  - Phase 1 / Phase 3 内容
+- Decisions:
+  - 新增 `slot-wrapper` 结构噪声 `ElDialog` stub 变体：在非导入弹窗同时注入多层 footer 噪声、`import-form` 假锚点与 QR actions 噪声节点，覆盖 slot-wrapper 混合噪声场景。
+  - 将导入弹窗作用域定位 helper 收敛为“`import-form + dialog-footer` 结构锚点 + 导入分支按钮文本”联合判定，避免被 slot-wrapper 假锚点误命中。
+  - 新增多轮“打开/切换来源/关闭/重开”回归（4 轮），持续校验 `openImportDialog + json/teamCode/qr` 三路径计数对齐，并断言真实 `team-code-qr-actions` 仅归属导入弹窗作用域。
+  - 更新 `ToolbarArchitecture.md` Task 39，记录本轮 slot-wrapper mixed-noise 结构锚点边界。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 结构锚点守卫仍依赖当前导入 footer 按钮文案与 class 组合；若后续模板文案或 class 迁移，需要同步更新作用域匹配断言。
+- Next Recommended Unit:
+  - Phase 2 下一原子任务：继续补强 `toolbar-architecture.guard` 的导入弹窗局部模板互斥与局部唯一性守卫（仅测试补强，不改语义）。
+
 ## [2026-03-03] Session 79 - Reinforce Timer Determinism Under Pre-Threshold Flush and Rebatch Isolation
 
 - Refactory Scope:

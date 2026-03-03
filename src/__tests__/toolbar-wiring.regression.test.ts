@@ -215,6 +215,33 @@ const ElDialogWithMixedStructuralNoiseStub = defineComponent({
   },
 });
 
+const ElDialogWithSlotWrapperStructuralNoiseStub = defineComponent({
+  name: 'ElDialog',
+  setup(_, { attrs, slots }) {
+    return () => {
+      const title = typeof attrs.title === 'string' ? attrs.title : '';
+      const isImportDialog = title === '导入数据';
+      const slotWrapperNoiseNodes = isImportDialog
+        ? []
+        : [
+          h('span', { class: 'dialog-footer dialog-footer-noise dialog-footer-noise-tertiary' }, 'noise-footer-tertiary'),
+          h('div', { class: 'slot-wrapper-structural-noise' }, [
+            h('div', { class: 'slot-wrapper slot-wrapper-import-noise' }, [
+              h('div', { class: 'import-form slot-wrapper-import-form-noise' }, 'slot-wrapper-import-form-noise'),
+              h('span', { class: 'dialog-footer dialog-footer-noise slot-wrapper-dialog-footer-noise' }, [
+                h('button', 'slot-wrapper-noise-action'),
+              ]),
+            ]),
+            h('div', { class: 'slot-wrapper team-code-qr-actions-noise slot-wrapper-team-code-qr-actions-noise' }, [
+              h('button', 'slot-wrapper-noise-qr-entry'),
+            ]),
+          ]),
+        ];
+      return h('div', [...slotWrapperNoiseNodes, slots.default?.(), slots.footer?.()]);
+    };
+  },
+});
+
 const ElFormStub = defineComponent({
   name: 'ElForm',
   setup(_, { attrs, slots }) {
@@ -229,8 +256,10 @@ const ElFormItemStub = defineComponent({
   },
 });
 
-const createWrapper = (options?: { footerNoise?: boolean; mixedStructuralNoise?: boolean }) => {
-  const dialogStub = options?.mixedStructuralNoise
+const createWrapper = (options?: { footerNoise?: boolean; mixedStructuralNoise?: boolean; slotWrapperStructuralNoise?: boolean }) => {
+  const dialogStub = options?.slotWrapperStructuralNoise
+    ? ElDialogWithSlotWrapperStructuralNoiseStub
+    : options?.mixedStructuralNoise
     ? ElDialogWithMixedStructuralNoiseStub
     : options?.footerNoise
       ? ElDialogWithFooterNoiseStub
@@ -283,19 +312,27 @@ const getImportDialogScope = (
   wrapper: ReturnType<typeof createWrapper>,
   expectedSource: 'json' | 'teamCode',
 ) => {
+  const expectedSourceButtonText = expectedSource === 'json' ? '选择 JSON 文件' : '导入阵容码';
   const allDialogFooters = wrapper.findAll('.dialog-footer');
   expect(allDialogFooters.length).toBeGreaterThan(1);
   const allImportForms = wrapper.findAll('.import-form');
-  expect(allImportForms).toHaveLength(1);
+  expect(allImportForms.length).toBeGreaterThan(0);
 
   const importDialogScopes = wrapper.findAll('div').filter((scope) => {
+    const footerButtons = scope.findAll('.dialog-footer button');
+    const sourceCommandButton = footerButtons[1];
     return scope.find('.import-form').exists()
       && scope.findAll('.import-form').length === 1
       && scope.find('.dialog-footer').exists()
-      && scope.findAll('.dialog-footer').length === 1;
+      && scope.findAll('.dialog-footer').length === 1
+      && footerButtons.length === 2
+      && Boolean(sourceCommandButton)
+      && sourceCommandButton.text().trim() === expectedSourceButtonText;
   });
   expect(importDialogScopes).toHaveLength(1);
   const importDialogScope = importDialogScopes[0];
+  const importFormInScope = importDialogScope.find('.import-form');
+  expect(importFormInScope.exists()).toBe(true);
 
   const nonImportDialogFooters = allDialogFooters.filter((footer) => {
     return !importDialogScope.element.contains(footer.element);
@@ -304,7 +341,6 @@ const getImportDialogScope = (
   nonImportDialogFooters.forEach((footer) => {
     expect(importDialogScope.element.contains(footer.element)).toBe(false);
   });
-  expect(importDialogScope.element.contains(allImportForms[0].element)).toBe(true);
 
   if (expectedSource === 'teamCode') {
     const teamCodeQrActions = importDialogScope.findAll('.team-code-qr-actions');
@@ -663,6 +699,76 @@ describe('toolbar wiring regression', () => {
       await vm.$nextTick();
       vm.importSource = 'teamCode';
       vm.teamCodeInput = `#TA#CLOSED-MIXED-${round}`;
+      await vm.$nextTick();
+    }
+
+    expect(wiringSpies.openImportDialog).toHaveBeenCalledTimes(expectedOpenCount);
+    expect(wiringSpies.triggerJsonFileImport).toHaveBeenCalledTimes(expectedJsonCount);
+    expect(wiringSpies.handleTeamCodeImport).toHaveBeenCalledTimes(expectedTeamCodeCount);
+    expect(wiringSpies.triggerTeamCodeQrImport).toHaveBeenCalledTimes(expectedQrCount);
+
+    wrapper.unmount();
+  });
+
+  it('keeps import-dialog anchoring and command counts aligned under slot-wrapper structural-noise reopen cycles', async () => {
+    const wrapper = createWrapper({ slotWrapperStructuralNoise: true });
+    const vm = wrapper.vm as unknown as ToolbarVm;
+    const importButton = findButtonByText(wrapper, '导入');
+    expect(importButton).toBeTruthy();
+
+    expect(wrapper.findAll('.dialog-footer-noise').length).toBeGreaterThan(1);
+    expect(wrapper.findAll('.slot-wrapper-structural-noise').length).toBeGreaterThan(0);
+    expect(wrapper.findAll('.slot-wrapper-import-form-noise').length).toBeGreaterThan(0);
+    expect(wrapper.findAll('.slot-wrapper-team-code-qr-actions-noise').length).toBeGreaterThan(0);
+    expect(wrapper.findAll('.import-form').length).toBeGreaterThan(1);
+
+    let expectedOpenCount = 0;
+    let expectedJsonCount = 0;
+    let expectedTeamCodeCount = 0;
+    let expectedQrCount = 0;
+
+    for (let round = 1; round <= 4; round += 1) {
+      await importButton!.trigger('click');
+      expectedOpenCount += 1;
+      expect(wiringSpies.openImportDialog).toHaveBeenCalledTimes(expectedOpenCount);
+      expect(vm.importSource).toBe('json');
+      expect(vm.teamCodeInput).toBe('');
+      expect(vm.state.showImportDialog).toBe(true);
+
+      let sourceBoundVisibility = assertImportSourceBoundVisibility(wrapper, vm, 'json');
+      await sourceBoundVisibility.sourceCommandButton.trigger('click');
+      expectedJsonCount += 1;
+      expect(wiringSpies.triggerJsonFileImport).toHaveBeenCalledTimes(expectedJsonCount);
+
+      vm.importSource = 'teamCode';
+      vm.teamCodeInput = `#TA#SLOT-WRAPPER-${round}`;
+      await vm.$nextTick();
+
+      sourceBoundVisibility = assertImportSourceBoundVisibility(wrapper, vm, 'teamCode');
+      const importDialogScope = getImportDialogScope(wrapper, 'teamCode');
+      expect(importDialogScope.findAll('.team-code-qr-actions')).toHaveLength(1);
+      wrapper.findAll('.slot-wrapper-import-form-noise').forEach((noiseNode) => {
+        expect(importDialogScope.element.contains(noiseNode.element)).toBe(false);
+      });
+      wrapper.findAll('.slot-wrapper-dialog-footer-noise').forEach((noiseNode) => {
+        expect(importDialogScope.element.contains(noiseNode.element)).toBe(false);
+      });
+      wrapper.findAll('.slot-wrapper-team-code-qr-actions-noise').forEach((noiseNode) => {
+        expect(importDialogScope.element.contains(noiseNode.element)).toBe(false);
+      });
+
+      await sourceBoundVisibility.sourceCommandButton.trigger('click');
+      expectedTeamCodeCount += 1;
+      expect(wiringSpies.handleTeamCodeImport).toHaveBeenCalledTimes(expectedTeamCodeCount);
+      expect(sourceBoundVisibility.teamCodeQrButton.exists()).toBe(true);
+      await sourceBoundVisibility.teamCodeQrButton.trigger('click');
+      expectedQrCount += 1;
+      expect(wiringSpies.triggerTeamCodeQrImport).toHaveBeenCalledTimes(expectedQrCount);
+
+      vm.state.showImportDialog = false;
+      await vm.$nextTick();
+      vm.importSource = 'teamCode';
+      vm.teamCodeInput = `#TA#CLOSED-SLOT-WRAPPER-${round}`;
       await vm.$nextTick();
     }
 

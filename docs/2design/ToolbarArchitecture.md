@@ -51,6 +51,7 @@
 36. Toolbar 导入弹窗结构锚点混合噪声回归补强：多 footer 噪声 + 额外结构噪声节点下作用域排他与计数对齐守卫：`toolbar-wiring.regression`
 37. Toolbar 导入模板局部结构不变量再收紧：局部 `import-form` 唯一来源绑定 + QR actions 同域接线 + 接线层依赖边界守卫：`toolbar-architecture.guard`
 38. ImportExport 阈值前 flush + 重批次隔离确定性补强：99ms 前 flush 与新批次分段窗口计数/定时器零残留守卫：`useToolbarImportExportCommands`
+39. Toolbar 导入弹窗结构锚点 slot-wrapper 混合噪声回归补强：结构锚点定位在 slot-wrapper 假锚点共存下继续唯一命中并保持多轮计数对齐：`toolbar-wiring.regression`
 
 ## Task 1 落地（导入/导出/预览）
 
@@ -484,3 +485,13 @@
 - 在交错触发后先推进 `99ms`，随后执行 `runOnlyPendingTimers`（阈值前 flush），验证 `preview/export` 计数在首批次收束时无漂移，且 `vi.getTimerCount()` 归零。
 - flush 后触发新批次，按 `99ms -> 1ms -> 1899ms -> 1ms` 分段推进，持续锁定 `updateTab` 即时计数、`preview/export` 延时计数稳定且无提前触发。
 - 在 flush 收束后与批次收尾后分别断言 `vi.getTimerCount() === 0`，确保无幽灵定时器残留。
+
+## Task 39 落地（Toolbar 导入弹窗结构锚点 slot-wrapper 混合噪声回归补强）
+
+增强：`src/__tests__/toolbar-wiring.regression.test.ts`
+
+回归目标：
+
+- 在“多个非导入弹窗 footer 噪声 + slot-wrapper 结构噪声（含 `import-form` 假锚点）”并存时，导入弹窗仍唯一命中 `import-form + dialog-footer` 结构锚点。
+- 在 `teamCode` 来源下，真实 `team-code-qr-actions` 继续仅归属导入弹窗作用域，不被 slot-wrapper 噪声节点误命中。
+- 在 slot-wrapper mixed-noise 多轮“打开/切换来源/关闭/重开”循环中，`openImportDialog + json/teamCode/qr` 三路径命令计数持续对齐。
