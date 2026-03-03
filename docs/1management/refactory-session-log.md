@@ -40,6 +40,37 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-03] Session 90 - Enforce Import-Dialog Local-Template Ownership and Footer Adjacency AST Guards
+
+- Refactory Scope:
+  - Phase: Phase 2
+  - Task: Toolbar 导入模板局部不变量：表单归属 + footer 相邻互斥 AST 守卫（`toolbar-architecture.guard`，仅测试补强）
+- In Scope Files:
+  - `src/__tests__/toolbar-architecture.guard.test.ts`
+  - `docs/2design/ToolbarArchitecture.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `FlowEditor` 新增重构任务
+  - `groupRules` 规则语义调整
+  - `docs/1management/plan.md` 更新
+  - Phase 1 / Phase 3 内容
+- Decisions:
+  - 新增导入弹窗局部模板归属守卫：`import-form/importSource/teamCodeInput` 在全模板与导入弹窗局部保持唯一，且绑定仅归属导入表单（不漂移到 form 外或导入弹窗外）。
+  - 新增 footer 相邻互斥守卫：关闭按钮 + `json(v-if)` + `teamCode(v-else)` 三按钮顺序保持稳定，显式禁止 `v-else-if` 漂移。
+  - 新增二维码接线唯一守卫：`team-code-qr-actions` 唯一，二维码 input 继续保持 `ref + @change + accept="image/*"` 接线不变量。
+  - 继续通过 AST 断言锁定 `Toolbar.vue` 为接线层，不回流 `teamCodeService` 与 import/export 实现依赖，并保持 `useToolbarImportExportCommands` 入参键完整。
+  - 更新 `ToolbarArchitecture.md` Task 49，记录本轮局部模板不变量与 AST 守卫边界。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 模板守卫依赖当前导入弹窗结构与按钮顺序；若后续改为子组件封装或模板重排，需要同步更新局部匹配规则与 AST 断言。
+- Next Recommended Unit:
+  - Phase 2 下一原子任务：补强 `useToolbarImportExportCommands` 在“重复 pre-threshold flush + 即时新批次隔离”场景下的计时确定性与零残留定时器守卫。
+
 ## [2026-03-03] Session 89 - Harden Import-Dialog Anchoring Under Command-Order and Class-Drift Noise Matrix
 
 - Refactory Scope:
