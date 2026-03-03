@@ -174,8 +174,8 @@ const ElButtonStub = defineComponent({
 
 const ElDialogStub = defineComponent({
   name: 'ElDialog',
-  setup(_, { slots }) {
-    return () => h('div', [slots.default?.(), slots.footer?.()]);
+  setup(_, { attrs, slots }) {
+    return () => h('div', { 'data-dialog-title': String(attrs.title ?? '') }, [slots.default?.(), slots.footer?.()]);
   },
 });
 
@@ -236,6 +236,46 @@ const clickButtonByText = async (buttonText: string) => {
   expect(button).toBeTruthy();
   await button!.trigger('click');
   wrapper.unmount();
+};
+
+const getImportDialogScope = (wrapper: ReturnType<typeof createWrapper>) => {
+  const importDialogScope = wrapper.find('[data-dialog-title="导入数据"]');
+  expect(importDialogScope.exists()).toBe(true);
+  return importDialogScope;
+};
+
+const getImportDialogCommandButtons = (wrapper: ReturnType<typeof createWrapper>) => {
+  const importDialogScope = getImportDialogScope(wrapper);
+  const footerButtons = importDialogScope.findAll('.dialog-footer button');
+  const teamCodeQrButton = importDialogScope.find('.team-code-qr-actions button');
+  return {
+    footerButtons,
+    teamCodeQrButton,
+  };
+};
+
+const assertImportSourceBoundVisibility = (
+  wrapper: ReturnType<typeof createWrapper>,
+  vm: ToolbarVm,
+  expectedSource: 'json' | 'teamCode',
+) => {
+  expect(vm.importSource).toBe(expectedSource);
+  const { footerButtons, teamCodeQrButton } = getImportDialogCommandButtons(wrapper);
+  expect(footerButtons).toHaveLength(2);
+
+  const sourceCommandButton = footerButtons[1];
+  expect(sourceCommandButton).toBeTruthy();
+
+  if (expectedSource === 'json') {
+    expect(teamCodeQrButton.exists()).toBe(false);
+  } else {
+    expect(teamCodeQrButton.exists()).toBe(true);
+  }
+
+  return {
+    sourceCommandButton: sourceCommandButton!,
+    teamCodeQrButton,
+  };
 };
 
 type ToolbarVm = {
@@ -318,23 +358,20 @@ describe('toolbar wiring regression', () => {
       expect(vm.teamCodeInput).toBe('');
       expect(vm.state.showImportDialog).toBe(true);
 
-      const jsonButton = findButtonByText(wrapper, '选择 JSON 文件');
-      expect(jsonButton).toBeTruthy();
-      await jsonButton!.trigger('click');
+      let sourceBoundVisibility = assertImportSourceBoundVisibility(wrapper, vm, 'json');
+      await sourceBoundVisibility.sourceCommandButton.trigger('click');
       expect(wiringSpies.triggerJsonFileImport).toHaveBeenCalledTimes(round);
 
       vm.importSource = 'teamCode';
       vm.teamCodeInput = `#TA#DIRTY-${round}`;
       await vm.$nextTick();
 
-      const teamCodeButton = findButtonByText(wrapper, '导入阵容码');
-      expect(teamCodeButton).toBeTruthy();
-      await teamCodeButton!.trigger('click');
+      sourceBoundVisibility = assertImportSourceBoundVisibility(wrapper, vm, 'teamCode');
+      await sourceBoundVisibility.sourceCommandButton.trigger('click');
       expect(wiringSpies.handleTeamCodeImport).toHaveBeenCalledTimes(round);
 
-      const qrButton = findButtonByText(wrapper, '选择二维码图片');
-      expect(qrButton).toBeTruthy();
-      await qrButton!.trigger('click');
+      expect(sourceBoundVisibility.teamCodeQrButton.exists()).toBe(true);
+      await sourceBoundVisibility.teamCodeQrButton.trigger('click');
       expect(wiringSpies.triggerTeamCodeQrImport).toHaveBeenCalledTimes(round);
 
       vm.state.showImportDialog = false;
@@ -375,61 +412,38 @@ describe('toolbar wiring regression', () => {
       expect(vm.teamCodeInput).toBe('');
     };
 
-    const assertJsonSourceVisibility = () => {
-      const jsonButton = findButtonByText(wrapper, '选择 JSON 文件');
-      const teamCodeButton = findButtonByText(wrapper, '导入阵容码');
-      const qrButton = findButtonByText(wrapper, '选择二维码图片');
-
-      expect(jsonButton).toBeTruthy();
-      expect(teamCodeButton).toBeFalsy();
-      expect(qrButton).toBeFalsy();
-      return jsonButton!;
-    };
-
-    const assertTeamCodeSourceVisibility = () => {
-      const jsonButton = findButtonByText(wrapper, '选择 JSON 文件');
-      const teamCodeButton = findButtonByText(wrapper, '导入阵容码');
-      const qrButton = findButtonByText(wrapper, '选择二维码图片');
-
-      expect(jsonButton).toBeFalsy();
-      expect(teamCodeButton).toBeTruthy();
-      expect(qrButton).toBeTruthy();
-      return {
-        teamCodeButton: teamCodeButton!,
-        qrButton: qrButton!,
-      };
-    };
-
     await openImportDialog();
-    const jsonButtonInFirstOpen = assertJsonSourceVisibility();
-    await jsonButtonInFirstOpen.trigger('click');
+    let sourceBoundVisibility = assertImportSourceBoundVisibility(wrapper, vm, 'json');
+    await sourceBoundVisibility.sourceCommandButton.trigger('click');
     expectedJsonTriggerCount += 1;
     expect(wiringSpies.triggerJsonFileImport).toHaveBeenCalledTimes(expectedJsonTriggerCount);
 
     vm.importSource = 'teamCode';
     await vm.$nextTick();
-    let teamCodeVisibility = assertTeamCodeSourceVisibility();
-    await teamCodeVisibility.teamCodeButton.trigger('click');
+    sourceBoundVisibility = assertImportSourceBoundVisibility(wrapper, vm, 'teamCode');
+    await sourceBoundVisibility.sourceCommandButton.trigger('click');
     expectedTeamCodeTriggerCount += 1;
     expect(wiringSpies.handleTeamCodeImport).toHaveBeenCalledTimes(expectedTeamCodeTriggerCount);
-    await teamCodeVisibility.qrButton.trigger('click');
+    expect(sourceBoundVisibility.teamCodeQrButton.exists()).toBe(true);
+    await sourceBoundVisibility.teamCodeQrButton.trigger('click');
     expectedQrTriggerCount += 1;
     expect(wiringSpies.triggerTeamCodeQrImport).toHaveBeenCalledTimes(expectedQrTriggerCount);
 
     vm.importSource = 'json';
     await vm.$nextTick();
-    const jsonButtonAfterToggleBack = assertJsonSourceVisibility();
-    await jsonButtonAfterToggleBack.trigger('click');
+    sourceBoundVisibility = assertImportSourceBoundVisibility(wrapper, vm, 'json');
+    await sourceBoundVisibility.sourceCommandButton.trigger('click');
     expectedJsonTriggerCount += 1;
     expect(wiringSpies.triggerJsonFileImport).toHaveBeenCalledTimes(expectedJsonTriggerCount);
 
     vm.importSource = 'teamCode';
     await vm.$nextTick();
-    teamCodeVisibility = assertTeamCodeSourceVisibility();
-    await teamCodeVisibility.teamCodeButton.trigger('click');
+    sourceBoundVisibility = assertImportSourceBoundVisibility(wrapper, vm, 'teamCode');
+    await sourceBoundVisibility.sourceCommandButton.trigger('click');
     expectedTeamCodeTriggerCount += 1;
     expect(wiringSpies.handleTeamCodeImport).toHaveBeenCalledTimes(expectedTeamCodeTriggerCount);
-    await teamCodeVisibility.qrButton.trigger('click');
+    expect(sourceBoundVisibility.teamCodeQrButton.exists()).toBe(true);
+    await sourceBoundVisibility.teamCodeQrButton.trigger('click');
     expectedQrTriggerCount += 1;
     expect(wiringSpies.triggerTeamCodeQrImport).toHaveBeenCalledTimes(expectedQrTriggerCount);
 
@@ -440,18 +454,19 @@ describe('toolbar wiring regression', () => {
     await vm.$nextTick();
 
     await openImportDialog();
-    const jsonButtonInSecondOpen = assertJsonSourceVisibility();
-    await jsonButtonInSecondOpen.trigger('click');
+    sourceBoundVisibility = assertImportSourceBoundVisibility(wrapper, vm, 'json');
+    await sourceBoundVisibility.sourceCommandButton.trigger('click');
     expectedJsonTriggerCount += 1;
     expect(wiringSpies.triggerJsonFileImport).toHaveBeenCalledTimes(expectedJsonTriggerCount);
 
     vm.importSource = 'teamCode';
     await vm.$nextTick();
-    teamCodeVisibility = assertTeamCodeSourceVisibility();
-    await teamCodeVisibility.teamCodeButton.trigger('click');
+    sourceBoundVisibility = assertImportSourceBoundVisibility(wrapper, vm, 'teamCode');
+    await sourceBoundVisibility.sourceCommandButton.trigger('click');
     expectedTeamCodeTriggerCount += 1;
     expect(wiringSpies.handleTeamCodeImport).toHaveBeenCalledTimes(expectedTeamCodeTriggerCount);
-    await teamCodeVisibility.qrButton.trigger('click');
+    expect(sourceBoundVisibility.teamCodeQrButton.exists()).toBe(true);
+    await sourceBoundVisibility.teamCodeQrButton.trigger('click');
     expectedQrTriggerCount += 1;
     expect(wiringSpies.triggerTeamCodeQrImport).toHaveBeenCalledTimes(expectedQrTriggerCount);
 

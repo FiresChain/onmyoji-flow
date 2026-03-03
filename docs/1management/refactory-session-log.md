@@ -40,6 +40,36 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-03] Session 65 - Harden Toolbar Wiring Regression Against Selector Brittleness and Call-Count Drift
+
+- Refactory Scope:
+  - Phase: Phase 2
+  - Task: Toolbar 接线回归抗脆弱补强（来源状态绑定可见性 + 多轮切换/重开计数对齐，纯测试补强）
+- In Scope Files:
+  - `src/__tests__/toolbar-wiring.regression.test.ts`
+  - `docs/2design/ToolbarArchitecture.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `FlowEditor` 新增重构任务
+  - `groupRules` 规则语义调整
+  - `docs/1management/plan.md` 更新
+  - Phase 1 / Phase 3 内容
+- Decisions:
+  - 导入弹窗可见性断言由“单一按钮文案匹配”收敛为“来源状态 + 结构选择器”联合守卫：通过导入对话框容器作用域与 footer/二维码区域结构断言按钮可见性，减少文案耦合。
+  - 在 `json` 与 `teamCode` 来源切换时，分别断言来源命令按钮与二维码入口显隐，保持与 `importSource` 状态强绑定。
+  - 多轮来源切换与重开导入弹窗中，持续断言 `openImportDialog`、`triggerJsonFileImport`、`handleTeamCodeImport`、`triggerTeamCodeQrImport` 计数同轮对齐，防止调用漂移。
+  - 更新 `ToolbarArchitecture.md` Task 24，记录本轮抗脆弱补强边界。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 导入对话框作用域当前通过 `title="导入数据"` 定位，若后续标题文案调整需同步更新该定位策略。
+- Next Recommended Unit:
+  - Phase 2 下一原子任务：为 `toolbar-architecture.guard` 增加 composable 导入与命令解构完整性 AST 守卫（仅测试补强，不改语义）。
+
 ## [2026-03-03] Session 64 - Extend Toolbar Wiring Regression for Import Source-Toggle Visibility and Call-Count Stability
 
 - Refactory Scope:

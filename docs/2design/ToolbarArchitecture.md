@@ -36,6 +36,7 @@
 21. import/export 架构守卫 AST 级补强：脚本边界调用归属与定时语义归属守卫：`toolbar-architecture.guard`
 22. import/export 命令确定性与 ref 事件边界补强：`useToolbarImportExportCommands`
 23. 导入来源切换可见性与命令计数漂移回归：`toolbar-wiring.regression`
+24. Toolbar 接线回归抗脆弱补强：来源状态绑定可见性断言与跨轮计数漂移守卫：`toolbar-wiring.regression`
 
 ## Task 1 落地（导入/导出/预览）
 
@@ -317,3 +318,13 @@
 - 导入弹窗在 `json/teamCode` 来源切换时，按钮可见性保持与既有命令接线一致（`json` 显示 JSON 导入按钮；`teamCode` 显示阵容码与二维码入口）。
 - 单轮内多次来源来回切换后，`json/teamCode/qr` 三路径仍命中既有 composable 命令（`triggerJsonFileImport` / `handleTeamCodeImport` / `triggerTeamCodeQrImport`）。
 - 跨轮打开导入弹窗后，`openImportDialog` 与三路径命令调用计数持续对齐，不多调/不少调，防止接线计数漂移。
+
+## Task 24 落地（Toolbar 接线回归抗脆弱补强：来源状态绑定可见性 + 跨轮计数守卫）
+
+增强：`src/__tests__/toolbar-wiring.regression.test.ts`
+
+回归目标：
+
+- 导入弹窗可见性断言从“单一文案匹配”收敛为“来源状态 + 结构选择器”联合守卫：`json` 来源仅暴露 JSON 导入命令入口，`teamCode` 来源暴露阵容码与二维码入口。
+- 在多轮来源切换与重开导入弹窗场景下，持续断言 `openImportDialog` 与 `triggerJsonFileImport` / `handleTeamCodeImport` / `triggerTeamCodeQrImport` 调用计数同轮对齐，避免计数漂移。
+- 保持 `Toolbar.vue` 仅接线语义，不引入 UI/业务语义变更，仅提升测试稳定性与可维护性。
