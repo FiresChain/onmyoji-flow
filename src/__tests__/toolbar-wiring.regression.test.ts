@@ -179,6 +179,19 @@ const ElDialogStub = defineComponent({
   },
 });
 
+const ElDialogWithFooterNoiseStub = defineComponent({
+  name: 'ElDialog',
+  setup(_, { attrs, slots }) {
+    return () => {
+      const title = typeof attrs.title === 'string' ? attrs.title : '';
+      const noiseFooter = title === '导入数据'
+        ? []
+        : [h('span', { class: 'dialog-footer dialog-footer-noise' }, 'noise-footer')];
+      return h('div', [...noiseFooter, slots.default?.(), slots.footer?.()]);
+    };
+  },
+});
+
 const ElFormStub = defineComponent({
   name: 'ElForm',
   setup(_, { attrs, slots }) {
@@ -193,13 +206,14 @@ const ElFormItemStub = defineComponent({
   },
 });
 
-const createWrapper = () => {
+const createWrapper = (options?: { footerNoise?: boolean }) => {
+  const dialogStub = options?.footerNoise ? ElDialogWithFooterNoiseStub : ElDialogStub;
   return mount(Toolbar, {
     global: {
       stubs: {
         'el-button': ElButtonStub,
         'el-switch': true,
-        'el-dialog': ElDialogStub,
+        'el-dialog': dialogStub,
         'el-form': ElFormStub,
         'el-form-item': ElFormItemStub,
         'el-input': true,
@@ -244,6 +258,8 @@ const getImportDialogScope = (
 ) => {
   const allDialogFooters = wrapper.findAll('.dialog-footer');
   expect(allDialogFooters.length).toBeGreaterThan(1);
+  const allImportForms = wrapper.findAll('.import-form');
+  expect(allImportForms).toHaveLength(1);
 
   const importDialogScopes = wrapper.findAll('div').filter((scope) => {
     return scope.find('.import-form').exists()
@@ -258,11 +274,18 @@ const getImportDialogScope = (
     return !importDialogScope.element.contains(footer.element);
   });
   expect(nonImportDialogFooters.length).toBeGreaterThan(0);
+  nonImportDialogFooters.forEach((footer) => {
+    expect(importDialogScope.element.contains(footer.element)).toBe(false);
+  });
+  expect(importDialogScope.element.contains(allImportForms[0].element)).toBe(true);
 
   if (expectedSource === 'teamCode') {
     const teamCodeQrActions = importDialogScope.findAll('.team-code-qr-actions');
+    const globalTeamCodeQrActions = wrapper.findAll('.team-code-qr-actions');
+    expect(globalTeamCodeQrActions).toHaveLength(1);
     expect(teamCodeQrActions).toHaveLength(1);
     expect(importDialogScope.element.contains(teamCodeQrActions[0].element)).toBe(true);
+    expect(importDialogScope.element.contains(globalTeamCodeQrActions[0].element)).toBe(true);
   }
 
   return importDialogScope;
@@ -505,6 +528,58 @@ describe('toolbar wiring regression', () => {
     expect(wiringSpies.triggerJsonFileImport).toHaveBeenCalledTimes(expectedJsonTriggerCount);
     expect(wiringSpies.handleTeamCodeImport).toHaveBeenCalledTimes(expectedTeamCodeTriggerCount);
     expect(wiringSpies.triggerTeamCodeQrImport).toHaveBeenCalledTimes(expectedQrTriggerCount);
+
+    wrapper.unmount();
+  });
+
+  it('keeps import-dialog structural anchor exclusive and command counts aligned under footer-noise reopen cycles', async () => {
+    const wrapper = createWrapper({ footerNoise: true });
+    const vm = wrapper.vm as unknown as ToolbarVm;
+    const importButton = findButtonByText(wrapper, '导入');
+    expect(importButton).toBeTruthy();
+
+    let expectedOpenCount = 0;
+    let expectedJsonCount = 0;
+    let expectedTeamCodeCount = 0;
+    let expectedQrCount = 0;
+
+    for (let round = 1; round <= 3; round += 1) {
+      await importButton!.trigger('click');
+      expectedOpenCount += 1;
+      expect(wiringSpies.openImportDialog).toHaveBeenCalledTimes(expectedOpenCount);
+      expect(vm.importSource).toBe('json');
+      expect(vm.teamCodeInput).toBe('');
+      expect(vm.state.showImportDialog).toBe(true);
+
+      let sourceBoundVisibility = assertImportSourceBoundVisibility(wrapper, vm, 'json');
+      await sourceBoundVisibility.sourceCommandButton.trigger('click');
+      expectedJsonCount += 1;
+      expect(wiringSpies.triggerJsonFileImport).toHaveBeenCalledTimes(expectedJsonCount);
+
+      vm.importSource = 'teamCode';
+      vm.teamCodeInput = `#TA#FOOTER-NOISE-${round}`;
+      await vm.$nextTick();
+
+      sourceBoundVisibility = assertImportSourceBoundVisibility(wrapper, vm, 'teamCode');
+      await sourceBoundVisibility.sourceCommandButton.trigger('click');
+      expectedTeamCodeCount += 1;
+      expect(wiringSpies.handleTeamCodeImport).toHaveBeenCalledTimes(expectedTeamCodeCount);
+      expect(sourceBoundVisibility.teamCodeQrButton.exists()).toBe(true);
+      await sourceBoundVisibility.teamCodeQrButton.trigger('click');
+      expectedQrCount += 1;
+      expect(wiringSpies.triggerTeamCodeQrImport).toHaveBeenCalledTimes(expectedQrCount);
+
+      vm.state.showImportDialog = false;
+      await vm.$nextTick();
+      vm.importSource = 'teamCode';
+      vm.teamCodeInput = `#TA#CLOSED-NOISE-${round}`;
+      await vm.$nextTick();
+    }
+
+    expect(wiringSpies.openImportDialog).toHaveBeenCalledTimes(expectedOpenCount);
+    expect(wiringSpies.triggerJsonFileImport).toHaveBeenCalledTimes(expectedJsonCount);
+    expect(wiringSpies.handleTeamCodeImport).toHaveBeenCalledTimes(expectedTeamCodeCount);
+    expect(wiringSpies.triggerTeamCodeQrImport).toHaveBeenCalledTimes(expectedQrCount);
 
     wrapper.unmount();
   });

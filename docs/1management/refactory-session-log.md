@@ -40,6 +40,36 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-03] Session 74 - Harden Import-Dialog Structural Anchoring Against Footer-Noise Regressions
+
+- Refactory Scope:
+  - Phase: Phase 2
+  - Task: Toolbar 导入弹窗结构锚点抗噪声回归（`toolbar-wiring.regression`，仅测试补强）
+- In Scope Files:
+  - `src/__tests__/toolbar-wiring.regression.test.ts`
+  - `docs/2design/ToolbarArchitecture.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `FlowEditor` 新增重构任务
+  - `groupRules` 规则语义调整
+  - `docs/1management/plan.md` 更新
+  - Phase 1 / Phase 3 内容
+- Decisions:
+  - 在测试 stub 中为非导入弹窗注入额外 `dialog-footer` 噪声节点，验证导入弹窗结构锚点（`import-form + dialog-footer`）在噪声场景下仍唯一命中。
+  - 补充 `teamCode` 来源下的全局作用域断言：`team-code-qr-actions` 全局唯一并且仅位于导入弹窗作用域内，不串到其它弹窗 footer。
+  - 新增 footer-noise + 多轮重开回归，持续校验 `openImportDialog` 与 `json/teamCode/qr` 三路径命令计数对齐，不发生漂移。
+  - 更新 `ToolbarArchitecture.md` Task 33，记录本轮结构锚点抗噪声边界。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 抗噪声守卫依赖当前结构类名（`import-form` / `dialog-footer` / `team-code-qr-actions`）；后续模板命名调整时需同步更新选择器断言。
+- Next Recommended Unit:
+  - Phase 2 下一原子任务：收紧 `toolbar-architecture.guard` 的导入模板结构不变量（唯一 `importSource` 绑定、二维码输入 `ref/@change/accept` 接线、接线层边界守卫）。
+
 ## [2026-03-03] Session 73 - Strengthen Import/Export Timer Cleanup Determinism Across Segmented Batches
 
 - Refactory Scope:

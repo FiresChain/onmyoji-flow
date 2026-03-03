@@ -45,6 +45,7 @@
 30. Toolbar 导入弹窗结构作用域排他性回归：结构锚点 exclusivity 与多轮计数对齐守卫：`toolbar-wiring.regression`
 31. Toolbar 导入接线参数不变量守卫补强：调用参数键 + 来源分支 + 接线层边界守卫：`toolbar-architecture.guard`
 32. ImportExport 定时窗口清理确定性补强：分段推进 + flush + 新批次无漂移守卫：`useToolbarImportExportCommands`
+33. Toolbar 导入弹窗结构锚点抗噪声回归：footer-noise 下作用域排他与多轮计数对齐守卫：`toolbar-wiring.regression`
 
 ## Task 1 落地（导入/导出/预览）
 
@@ -417,3 +418,13 @@
 - 在交错触发后按 `99ms -> 1ms -> 1899ms -> 1ms` 分段推进，持续锁定 `updateTab` 即时计数、`100ms` 预览计数、`2000ms` 导出计数稳定且无提前触发。
 - 在“中途 `runOnlyPendingTimers`/flush 后再触发新批次”场景，持续验证第二批分段窗口下计数无漂移。
 - 增加定时器清理断言（`vi.getTimerCount()`），确保批次收束后无幽灵定时器残留，且既有失败分支语义不变。
+
+## Task 33 落地（Toolbar 导入弹窗结构锚点抗噪声回归）
+
+增强：`src/__tests__/toolbar-wiring.regression.test.ts`
+
+回归目标：
+
+- 在存在额外 `dialog-footer` 噪声节点时，导入弹窗作用域仍唯一命中结构锚点组合（`import-form` + `dialog-footer`），不串到其它弹窗 footer。
+- 在 `teamCode` 来源下，`team-code-qr-actions` 继续仅位于导入弹窗作用域内，不受全局 footer 噪声干扰。
+- 在 footer-noise + 多轮“打开/切换来源/关闭/重开”循环中，`openImportDialog` 与 `json/teamCode/qr` 三路径命令计数持续对齐，不发生漂移。
