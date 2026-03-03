@@ -40,6 +40,37 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-03] Session 63 - Strengthen Import/Export Command Determinism and Ref-Event Edge Coverage
+
+- Refactory Scope:
+  - Phase: Phase 2
+  - Task: 补齐 `useToolbarImportExportCommands` 的确定性与 ref 事件边界回归（仅测试补强，不改语义）
+- In Scope Files:
+  - `src/__tests__/useToolbarImportExportCommands.test.ts`
+  - `docs/2design/ToolbarArchitecture.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `FlowEditor` 新增重构任务
+  - `groupRules` 规则语义调整
+  - `docs/1management/plan.md` 更新
+  - Phase 1 / Phase 3 内容
+- Decisions:
+  - 新增 `triggerTeamCodeQrImport` ref 存在路径，锁定触发次数与 `click` 调用次数严格一致。
+  - 新增 `handleTeamCodeQrImport` 在 `event.target` 缺失/异常输入时的 no-op 回归，锁定 `decodingTeamCodeQr` 与输入状态不被污染。
+  - 新增 `handleExport` 多次触发计数回归，锁定 `updateTab` 立即执行与 `2000ms` 延时导出计数关系稳定。
+  - 新增 `handlePreviewData` 多次触发计数回归，锁定 `updateTab` 与 `100ms` 延时序列化/弹窗打开计数关系稳定。
+  - 更新 `ToolbarArchitecture.md` Task 22，记录本轮确定性与事件边界补强。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 当前计数稳定性回归依赖 fake timers 与 JSON stringify spy；若后续内部异步机制从 `setTimeout` 切换为其它调度方式，需同步调整断言策略。
+- Next Recommended Unit:
+  - Phase 2 下一原子任务：扩展 `toolbar-wiring.regression`，补导入来源切换可见性与多次切换后的命令计数稳定性回归。
+
 ## [2026-03-03] Session 62 - Add AST-Level Toolbar Architecture Guard for Import/Export Ownership Boundaries
 
 - Refactory Scope:

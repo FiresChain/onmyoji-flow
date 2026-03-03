@@ -34,6 +34,7 @@
 19. import/export 生命周期清理边界补强（二次）：重复失败幂等与 in-flight 回收守卫：`useToolbarImportExportCommands`
 20. 导入对话框多轮循环接线回归（二次）：关闭后污染态恢复与链路计数对齐守卫：`toolbar-wiring.regression`
 21. import/export 架构守卫 AST 级补强：脚本边界调用归属与定时语义归属守卫：`toolbar-architecture.guard`
+22. import/export 命令确定性与 ref 事件边界补强：`useToolbarImportExportCommands`
 
 ## Task 1 落地（导入/导出/预览）
 
@@ -295,3 +296,13 @@
 - 在既有字符串/模式守卫基础上，增加 AST 级边界守卫，锁定 `Toolbar.vue` script 区域不回流 import/export 实现调用（`document.createElement`、`FileReader`、`navigator.clipboard.writeText`、import/export 语义定时回调）。
 - 通过 AST 断言 `useToolbarImportExportCommands.ts` 继续持有上述调用归属（包含 `input/a` 节点创建、二维码读取与剪贴板写入调用）。
 - 通过 AST 断言导出 `2000ms` 与预览 `100ms` 定时语义仍归属 `useToolbarImportExportCommands`，避免接线层与命令层边界漂移。
+
+## Task 22 落地（ImportExport 命令确定性与 ref 事件边界补强）
+
+增强：`src/__tests__/useToolbarImportExportCommands.test.ts`
+
+回归目标：
+
+- `triggerTeamCodeQrImport` 在 `teamCodeQrInputRef` 存在时，`click` 调用次数与触发次数严格一致，不产生额外副作用。
+- `handleTeamCodeQrImport` 在 `event.target` 缺失或异常输入时保持 no-op，且 `decodingTeamCodeQr`/输入状态不被污染。
+- `handleExport` 与 `handlePreviewData` 多次连续触发时，`updateTab` 立即调用与延时执行（`2000ms` / `100ms`）计数关系保持稳定，不漂移。

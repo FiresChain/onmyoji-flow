@@ -146,6 +146,26 @@ describe('useToolbarImportExportCommands', () => {
     expect(context.filesStore.exportData).toHaveBeenCalledTimes(1);
   });
 
+  it('handleExport keeps deterministic update/delay counts across repeated triggers', () => {
+    const context = createContext();
+    const triggerCount = 3;
+
+    for (let round = 0; round < triggerCount; round += 1) {
+      context.commands.handleExport();
+    }
+
+    expect(context.filesStore.updateTab).toHaveBeenCalledTimes(triggerCount);
+    expect(context.filesStore.exportData).toHaveBeenCalledTimes(0);
+
+    vi.advanceTimersByTime(1999);
+    expect(context.filesStore.exportData).toHaveBeenCalledTimes(0);
+    expect(context.filesStore.updateTab).toHaveBeenCalledTimes(triggerCount);
+
+    vi.advanceTimersByTime(1);
+    expect(context.filesStore.exportData).toHaveBeenCalledTimes(triggerCount);
+    expect(context.filesStore.updateTab).toHaveBeenCalledTimes(triggerCount);
+  });
+
   it('handlePreviewData keeps update-first and delayed preview payload behavior', () => {
     const context = createContext();
 
@@ -165,6 +185,30 @@ describe('useToolbarImportExportCommands', () => {
     expect(parsed.schemaVersion).toBe(1);
     expect(parsed.activeFileId).toBe('file-b');
     expect(parsed.activeFile).toBe('beta');
+  });
+
+  it('handlePreviewData keeps deterministic update/delay counts across repeated triggers', () => {
+    const context = createContext();
+    const triggerCount = 3;
+    const stringifySpy = vi.spyOn(JSON, 'stringify');
+
+    for (let round = 0; round < triggerCount; round += 1) {
+      context.commands.handlePreviewData();
+    }
+
+    expect(context.filesStore.updateTab).toHaveBeenCalledTimes(triggerCount);
+    expect(context.state.showDataPreviewDialog).toBe(false);
+    expect(stringifySpy).toHaveBeenCalledTimes(0);
+
+    vi.advanceTimersByTime(99);
+    expect(context.state.showDataPreviewDialog).toBe(false);
+    expect(stringifySpy).toHaveBeenCalledTimes(0);
+
+    vi.advanceTimersByTime(1);
+    expect(stringifySpy).toHaveBeenCalledTimes(triggerCount);
+    expect(context.state.showDataPreviewDialog).toBe(true);
+    expect(context.filesStore.updateTab).toHaveBeenCalledTimes(triggerCount);
+    stringifySpy.mockRestore();
   });
 
   it('handlePreviewData keeps serialize-failure error behavior', () => {
@@ -385,6 +429,25 @@ describe('useToolbarImportExportCommands', () => {
     expect(context.showMessage).not.toHaveBeenCalled();
   });
 
+  it('triggerTeamCodeQrImport keeps click count aligned with trigger count when qr input ref exists', () => {
+    const context = createContext();
+    const click = vi.fn();
+    const inputRef = {
+      click,
+    } as unknown as HTMLInputElement;
+    const triggerCount = 4;
+
+    context.teamCodeQrInputRef.value = inputRef;
+
+    for (let round = 0; round < triggerCount; round += 1) {
+      context.commands.triggerTeamCodeQrImport();
+    }
+
+    expect(click).toHaveBeenCalledTimes(triggerCount);
+    expect(context.state.decodingTeamCodeQr).toBe(false);
+    expect(context.showMessage).not.toHaveBeenCalled();
+  });
+
   it('handleTeamCodeImport keeps warning path when team code is empty', async () => {
     const context = createContext();
 
@@ -508,6 +571,23 @@ describe('useToolbarImportExportCommands', () => {
     expect(context.state.decodingTeamCodeQr).toBe(false);
     expect(context.showMessage).not.toHaveBeenCalled();
     expect(target.value).toBe('');
+  });
+
+  it('handleTeamCodeQrImport keeps no-op and decoding-state isolation for missing/abnormal event targets', async () => {
+    const context = createContext();
+    const malformedTarget = {
+      value: 'filled',
+      files: undefined,
+    } as unknown as HTMLInputElement;
+
+    await context.commands.handleTeamCodeQrImport({} as Event);
+    await context.commands.handleTeamCodeQrImport({ target: malformedTarget } as unknown as Event);
+
+    expect(decodeTeamCodeFromQrImage).not.toHaveBeenCalled();
+    expect(context.state.decodingTeamCodeQr).toBe(false);
+    expect(context.teamCodeInput.value).toBe('');
+    expect(context.showMessage).not.toHaveBeenCalled();
+    expect(malformedTarget.value).toBe('');
   });
 
   it('handleTeamCodeQrImport keeps decode-failure error behavior', async () => {
