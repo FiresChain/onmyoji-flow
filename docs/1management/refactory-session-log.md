@@ -40,6 +40,37 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-03] Session 94 - Reinforce Timer Determinism Under Repeated Pre-Threshold Flush and Chained Immediate Rebatch Isolation
+
+- Refactory Scope:
+  - Phase: Phase 2
+  - Task: ImportExport 重复 pre-threshold flush + 链式即时 rebatch 隔离（`useToolbarImportExportCommands`，仅测试补强）
+- In Scope Files:
+  - `src/__tests__/useToolbarImportExportCommands.test.ts`
+  - `docs/2design/ToolbarArchitecture.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `FlowEditor` 新增重构任务
+  - `groupRules` 规则语义调整
+  - `docs/1management/plan.md` 更新
+  - Phase 1 / Phase 3 内容
+- Decisions:
+  - 新增 repeated pre-threshold flush + chained immediate rebatch isolation 回归：在 4 组交错变体中，前两批均于 `99ms` 阈值前执行 `runOnlyPendingTimers`，持续锁定 `preview/export/updateTab` 计数无漂移。
+  - 将“每次 flush 后立即触发新批次”链式化执行（至少两次 rebatch）：首批 flush 后立刻进入第二批 flush，再进入分段推进批次，验证批次隔离稳定。
+  - 对后续批次按 `99ms -> 1ms -> 1899ms -> 1ms` 分段推进，显式验证无提前触发（`1ms` 前 export 不触发，`1899ms` 后仍不提前）。
+  - 在每次 flush 后、每组批次收束后、全流程结束后均断言 `vi.getTimerCount() === 0`，强化零残留定时器清理约束。
+  - 更新 `ToolbarArchitecture.md` Task 53，记录本轮重复 pre-threshold flush 与链式 rebatch 隔离确定性边界。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 断言依赖 fake timers 与当前 `setTimeout` 调度语义；若后续导入/导出调度机制改变，需要同步调整分段窗口与计数期望。
+- Next Recommended Unit:
+  - Phase 2 下一原子任务：回到 `toolbar-wiring.regression`，继续补强导入弹窗结构锚点在“slot/footer 组合漂移 + 假动作块同文案/同属性”噪声下的作用域唯一命中与计数对齐守卫（仅测试补强）。
+
 ## [2026-03-03] Session 93 - Enforce Import-Dialog Footer-Order and Local-Form Ownership AST Guards
 
 - Refactory Scope:
