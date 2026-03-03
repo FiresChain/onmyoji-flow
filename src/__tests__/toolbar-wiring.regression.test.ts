@@ -348,6 +348,45 @@ const ElDialogWithCommandOrderAndClassDriftNoiseMatrixStub = defineComponent({
   },
 });
 
+const ElDialogWithFooterOrderDriftAndSameClassFakeAnchorNoiseMatrixStub = defineComponent({
+  name: 'ElDialog',
+  setup(_, { attrs, slots }) {
+    return () => {
+      const title = typeof attrs.title === 'string' ? attrs.title : '';
+      const isImportDialog = title === '导入数据';
+      const footerOrderDriftSameClassNoiseNodes = isImportDialog
+        ? []
+        : [
+          h('div', { class: 'footer-order-drift-same-class-noise-matrix' }, [
+            h('div', { class: 'footer-order-drift-same-class-fake-scope footer-order-drift-same-class-fake-scope-json' }, [
+              h('div', { class: 'import-form footer-order-drift-same-class-import-form-fake-anchor footer-order-drift-same-class-import-form-fake-anchor-json' }, 'footer-order-drift-same-class-import-form-fake-anchor-json'),
+              h('span', { class: 'dialog-footer footer-order-drift-same-class-dialog-footer-fake-anchor footer-order-drift-same-class-dialog-footer-fake-anchor-json' }, [
+                h('button', '选择 JSON 文件'),
+                h('button', '取消'),
+                h('button', 'footer-order-drift-same-class-extra-noise-json'),
+              ]),
+            ]),
+            h('div', { class: 'footer-order-drift-same-class-fake-scope footer-order-drift-same-class-fake-scope-team-code' }, [
+              h('div', { class: 'import-form footer-order-drift-same-class-import-form-fake-anchor footer-order-drift-same-class-import-form-fake-anchor-team-code' }, 'footer-order-drift-same-class-import-form-fake-anchor-team-code'),
+              h('span', { class: 'dialog-footer footer-order-drift-same-class-dialog-footer-fake-anchor footer-order-drift-same-class-dialog-footer-fake-anchor-team-code' }, [
+                h('button', '导入阵容码'),
+                h('button', '取消'),
+                h('button', 'footer-order-drift-same-class-extra-noise-team-code'),
+              ]),
+              h('div', { class: 'team-code-qr-actions footer-order-drift-same-class-team-code-qr-actions-fake-anchor' }, [
+                h('button', 'footer-order-drift-same-class-extra-noise-qr-pre'),
+                h('input', { type: 'file', accept: 'image/*' }),
+                h('button', '选择二维码图片'),
+                h('button', 'footer-order-drift-same-class-extra-noise-qr-post'),
+              ]),
+            ]),
+          ]),
+        ];
+      return h('div', [...footerOrderDriftSameClassNoiseNodes, slots.default?.(), slots.footer?.()]);
+    };
+  },
+});
+
 const ElFormStub = defineComponent({
   name: 'ElForm',
   setup(_, { attrs, slots }) {
@@ -369,8 +408,11 @@ const createWrapper = (options?: {
   nestedSlotFooterNoiseMatrix?: boolean;
   labelDriftFakeCommandNoiseMatrix?: boolean;
   commandOrderClassDriftNoiseMatrix?: boolean;
+  footerOrderDriftSameClassFakeAnchorNoiseMatrix?: boolean;
 }) => {
-  const dialogStub = options?.commandOrderClassDriftNoiseMatrix
+  const dialogStub = options?.footerOrderDriftSameClassFakeAnchorNoiseMatrix
+    ? ElDialogWithFooterOrderDriftAndSameClassFakeAnchorNoiseMatrixStub
+    : options?.commandOrderClassDriftNoiseMatrix
     ? ElDialogWithCommandOrderAndClassDriftNoiseMatrixStub
     : options?.labelDriftFakeCommandNoiseMatrix
     ? ElDialogWithLabelDriftAndFakeCommandNoiseMatrixStub
@@ -1139,6 +1181,104 @@ describe('toolbar wiring regression', () => {
       await vm.$nextTick();
       vm.importSource = 'teamCode';
       vm.teamCodeInput = `#TA#CLOSED-COMMAND-ORDER-CLASS-DRIFT-${round}`;
+      await vm.$nextTick();
+    }
+
+    expect(wiringSpies.openImportDialog).toHaveBeenCalledTimes(expectedOpenCount);
+    expect(wiringSpies.triggerJsonFileImport).toHaveBeenCalledTimes(expectedJsonCount);
+    expect(wiringSpies.handleTeamCodeImport).toHaveBeenCalledTimes(expectedTeamCodeCount);
+    expect(wiringSpies.triggerTeamCodeQrImport).toHaveBeenCalledTimes(expectedQrCount);
+
+    wrapper.unmount();
+  });
+
+  it('keeps import-dialog anchoring exclusive and command counts aligned under footer-order drift and same-class fake-anchor noise matrix reopen cycles', async () => {
+    const wrapper = createWrapper({ footerOrderDriftSameClassFakeAnchorNoiseMatrix: true });
+    const vm = wrapper.vm as unknown as ToolbarVm;
+    const importButton = findButtonByText(wrapper, '导入');
+    expect(importButton).toBeTruthy();
+
+    expect(wrapper.findAll('.footer-order-drift-same-class-noise-matrix').length).toBeGreaterThan(0);
+    expect(wrapper.findAll('.footer-order-drift-same-class-fake-scope').length).toBeGreaterThan(1);
+    expect(wrapper.findAll('.footer-order-drift-same-class-import-form-fake-anchor').length).toBeGreaterThan(1);
+    expect(wrapper.findAll('.footer-order-drift-same-class-dialog-footer-fake-anchor').length).toBeGreaterThan(1);
+    expect(wrapper.findAll('.footer-order-drift-same-class-team-code-qr-actions-fake-anchor').length).toBeGreaterThan(0);
+    expect(wrapper.findAll('.import-form').length).toBeGreaterThan(2);
+    expect(wrapper.findAll('.team-code-qr-actions').length).toBeGreaterThan(1);
+
+    wrapper.findAll('.footer-order-drift-same-class-dialog-footer-fake-anchor-json').forEach((noiseFooter) => {
+      const buttonTexts = noiseFooter.findAll('button').map((button) => button.text().trim());
+      expect(buttonTexts[0]).toBe('选择 JSON 文件');
+      expect(buttonTexts).toContain('取消');
+      expect(buttonTexts).toContain('footer-order-drift-same-class-extra-noise-json');
+    });
+    wrapper.findAll('.footer-order-drift-same-class-dialog-footer-fake-anchor-team-code').forEach((noiseFooter) => {
+      const buttonTexts = noiseFooter.findAll('button').map((button) => button.text().trim());
+      expect(buttonTexts[0]).toBe('导入阵容码');
+      expect(buttonTexts).toContain('取消');
+      expect(buttonTexts).toContain('footer-order-drift-same-class-extra-noise-team-code');
+    });
+
+    let expectedOpenCount = 0;
+    let expectedJsonCount = 0;
+    let expectedTeamCodeCount = 0;
+    let expectedQrCount = 0;
+
+    for (let round = 1; round <= 6; round += 1) {
+      await importButton!.trigger('click');
+      expectedOpenCount += 1;
+      expect(wiringSpies.openImportDialog).toHaveBeenCalledTimes(expectedOpenCount);
+      expect(vm.importSource).toBe('json');
+      expect(vm.teamCodeInput).toBe('');
+      expect(vm.state.showImportDialog).toBe(true);
+
+      let sourceBoundVisibility = assertImportSourceBoundVisibility(wrapper, vm, 'json');
+      await sourceBoundVisibility.sourceCommandButton.trigger('click');
+      expectedJsonCount += 1;
+      expect(wiringSpies.triggerJsonFileImport).toHaveBeenCalledTimes(expectedJsonCount);
+
+      vm.importSource = 'teamCode';
+      vm.teamCodeInput = `#TA#FOOTER-ORDER-DRIFT-SAME-CLASS-${round}`;
+      await vm.$nextTick();
+
+      sourceBoundVisibility = assertImportSourceBoundVisibility(wrapper, vm, 'teamCode');
+      const importDialogScope = getImportDialogScope(wrapper, 'teamCode');
+      const broadTeamCodeQrCandidates = wrapper.findAll('.team-code-qr-actions').filter((actionsScope) => {
+        const teamCodeQrButton = actionsScope
+          .findAll('button')
+          .find((button) => button.text().trim() === '选择二维码图片');
+        return actionsScope.find('input[accept="image/*"]').exists() && Boolean(teamCodeQrButton);
+      });
+      expect(broadTeamCodeQrCandidates.length).toBeGreaterThan(1);
+      const scopedRealTeamCodeQrCandidates = broadTeamCodeQrCandidates.filter((actionsScope) => {
+        return importDialogScope.element.contains(actionsScope.element);
+      });
+      expect(scopedRealTeamCodeQrCandidates).toHaveLength(1);
+
+      wrapper.findAll('.footer-order-drift-same-class-fake-scope').forEach((noiseNode) => {
+        expect(importDialogScope.element.contains(noiseNode.element)).toBe(false);
+      });
+      wrapper.findAll('.footer-order-drift-same-class-team-code-qr-actions-fake-anchor').forEach((noiseNode) => {
+        const noiseQrButton = noiseNode
+          .findAll('button')
+          .find((button) => button.text().trim() === '选择二维码图片');
+        expect(noiseNode.find('input[accept="image/*"]').exists()).toBe(true);
+        expect(Boolean(noiseQrButton)).toBe(true);
+        expect(importDialogScope.element.contains(noiseNode.element)).toBe(false);
+      });
+
+      await sourceBoundVisibility.sourceCommandButton.trigger('click');
+      expectedTeamCodeCount += 1;
+      expect(wiringSpies.handleTeamCodeImport).toHaveBeenCalledTimes(expectedTeamCodeCount);
+      expect(sourceBoundVisibility.teamCodeQrButton.exists()).toBe(true);
+      await sourceBoundVisibility.teamCodeQrButton.trigger('click');
+      expectedQrCount += 1;
+      expect(wiringSpies.triggerTeamCodeQrImport).toHaveBeenCalledTimes(expectedQrCount);
+
+      vm.state.showImportDialog = false;
+      await vm.$nextTick();
+      vm.importSource = 'teamCode';
+      vm.teamCodeInput = `#TA#CLOSED-FOOTER-ORDER-DRIFT-SAME-CLASS-${round}`;
       await vm.$nextTick();
     }
 

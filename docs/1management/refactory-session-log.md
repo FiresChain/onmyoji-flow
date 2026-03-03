@@ -40,6 +40,37 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-03] Session 92 - Harden Import-Dialog Anchoring Under Footer-Order Drift and Same-Class Fake-Anchor Noise Matrix
+
+- Refactory Scope:
+  - Phase: Phase 2
+  - Task: Toolbar 导入弹窗结构锚点：footer 分支顺序漂移 + 同 class 假锚点组合噪声（`toolbar-wiring.regression`，仅测试补强）
+- In Scope Files:
+  - `src/__tests__/toolbar-wiring.regression.test.ts`
+  - `docs/2design/ToolbarArchitecture.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `FlowEditor` 新增重构任务
+  - `groupRules` 规则语义调整
+  - `docs/1management/plan.md` 更新
+  - Phase 1 / Phase 3 内容
+- Decisions:
+  - 新增 footer-order-drift same-class fake-anchor noise matrix `ElDialog` stub：在非导入弹窗注入同 class 假锚点（`import-form` / `dialog-footer` / `team-code-qr-actions`）与同文案假按钮（`选择 JSON 文件` / `导入阵容码` / `选择二维码图片`），并叠加额外噪声按钮。
+  - 新增 footer 顺序漂移断言：假 footer 内动作按钮顺序显式与真实导入弹窗分支顺序不同，仍只允许真实导入弹窗结构锚点唯一命中。
+  - 在 `teamCode` 分支继续校验“广义候选 + 作用域收敛”：含 `accept="image/*"` 的假 actions 不被误命中，真实二维码动作块仅归属导入弹窗作用域。
+  - 新增 6 轮“打开/切换来源/关闭/重开（含关闭后污染态）”回归，持续校验 `openImportDialog + json/teamCode/qr` 三路径命令计数对齐。
+  - 更新 `ToolbarArchitecture.md` Task 51，记录本轮 footer-order drift + same-class fake-anchor 噪声矩阵边界。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 结构锚点守卫仍依赖导入区按钮文本与二维码 input 属性；若后续模板文案或按钮结构重排，需要同步更新定位条件与计数断言。
+- Next Recommended Unit:
+  - Phase 2 下一原子任务：继续收紧 `toolbar-architecture.guard` 的导入弹窗局部模板不变量（表单归属 + footer 顺序与互斥 AST 守卫，含二维码接线唯一性）。
+
 ## [2026-03-03] Session 91 - Reinforce Timer Determinism Under Alternating Pre-Threshold Flush Loops and Immediate Rebatch Isolation
 
 - Refactory Scope:
