@@ -117,6 +117,23 @@ const getObjectBindingElementNames = (declaration: ts.VariableDeclaration) => {
     .filter((name) => name.length > 0);
 };
 
+const getObjectLiteralPropertyNames = (objectLiteralExpression: ts.ObjectLiteralExpression) => {
+  return objectLiteralExpression.properties
+    .map((property) => {
+      if (ts.isShorthandPropertyAssignment(property)) {
+        return property.name.text;
+      }
+      if (ts.isPropertyAssignment(property) || ts.isMethodDeclaration(property)) {
+        const propertyName = property.name;
+        if (ts.isIdentifier(propertyName) || ts.isStringLiteral(propertyName)) {
+          return propertyName.text;
+        }
+      }
+      return '';
+    })
+    .filter((name) => name.length > 0);
+};
+
 describe('Toolbar architecture guard', () => {
   it('keeps toolbar as composable wiring layer', () => {
     const toolbarRequiredSnippets = [
@@ -258,6 +275,9 @@ describe('Toolbar architecture guard', () => {
     const toolbarTemplateSource = extractTemplateContent(toolbarSource);
     const toolbarScriptSource = extractScriptSetupContent(toolbarSource);
 
+    expect(toolbarTemplateSource).toMatch(/<el-radio-group(?=[^>]*v-model="importSource")[^>]*>/);
+    expect(toolbarTemplateSource).toMatch(/<el-radio-button(?=[^>]*label="json")[^>]*>/);
+    expect(toolbarTemplateSource).toMatch(/<el-radio-button(?=[^>]*label="teamCode")[^>]*>/);
     expect(toolbarTemplateSource).toMatch(
       /<el-button(?=[^>]*v-if="importSource === 'json'")(?=[^>]*@click="triggerJsonFileImport")[^>]*>/,
     );
@@ -410,6 +430,32 @@ describe('Toolbar architecture guard', () => {
       'downloadImage',
       'handleClose',
     ]));
+
+    const importExportCallArgument = importExportDeclaration!.initializer
+      && ts.isCallExpression(importExportDeclaration!.initializer)
+      ? importExportDeclaration!.initializer.arguments[0]
+      : null;
+    expect(importExportCallArgument && ts.isObjectLiteralExpression(importExportCallArgument)).toBe(true);
+    const importExportCallArgumentKeys = getObjectLiteralPropertyNames(importExportCallArgument as ts.ObjectLiteralExpression);
+    expect(importExportCallArgumentKeys).toEqual(expect.arrayContaining([
+      'state',
+      'importSource',
+      'teamCodeInput',
+      'teamCodeQrInputRef',
+    ]));
+
+    const importSourceDeclaration = toolbarScriptAst.variableDeclarations.find((declaration) => {
+      return ts.isIdentifier(declaration.name) && declaration.name.text === 'importSource';
+    });
+    expect(importSourceDeclaration).toBeTruthy();
+    expect(importSourceDeclaration!.initializer && ts.isCallExpression(importSourceDeclaration!.initializer)).toBe(true);
+    const importSourceInitializer = importSourceDeclaration!.initializer as ts.CallExpression;
+    expect(getCallExpressionText(importSourceInitializer, toolbarScriptAst.sourceFile)).toBe('ref');
+    expect(importSourceInitializer.arguments[0]?.getText(toolbarScriptAst.sourceFile)).toBe("'json'");
+    expect(importSourceInitializer.typeArguments).toBeTruthy();
+    expect(importSourceInitializer.typeArguments?.length).toBe(1);
+    const importSourceTypeArgument = importSourceInitializer.typeArguments?.[0]?.getText(toolbarScriptAst.sourceFile).replace(/\s+/g, ' ');
+    expect(importSourceTypeArgument).toBe("'json' | 'teamCode'");
 
     const toolbarImportModules = toolbarScriptAst.importDeclarations.map(getImportModuleSpecifier);
     expect(toolbarImportModules.some((specifier) => /teamCodeService/.test(specifier))).toBe(false);

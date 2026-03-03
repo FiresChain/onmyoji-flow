@@ -43,6 +43,7 @@
 28. Toolbar 导入弹窗模板接线结构守卫补强：来源分支不变量与二维码双入口接线守卫：`toolbar-architecture.guard`
 29. ImportExport 定时窗口边界确定性补强：分段推进与多批次交错计数守卫：`useToolbarImportExportCommands`
 30. Toolbar 导入弹窗结构作用域排他性回归：结构锚点 exclusivity 与多轮计数对齐守卫：`toolbar-wiring.regression`
+31. Toolbar 导入接线参数不变量守卫补强：调用参数键 + 来源分支 + 接线层边界守卫：`toolbar-architecture.guard`
 
 ## Task 1 落地（导入/导出/预览）
 
@@ -394,3 +395,14 @@
 - 导入弹窗作用域定位继续使用结构锚点组合（`import-form` + `dialog-footer`），并在 `teamCode` 来源下显式校验 `team-code-qr-actions` 仍位于同一导入弹窗作用域内。
 - 显式校验导入弹窗作用域对 `.dialog-footer` 的排他性：导入作用域唯一，且存在其它非导入弹窗 footer，不应被误命中。
 - 保持并验证 `json/teamCode` 来源绑定可见性断言与 `openImportDialog + json/teamCode/qr` 三路径命令在多轮切换/重开场景中的计数持续对齐。
+
+## Task 31 落地（Toolbar 导入接线参数不变量守卫补强）
+
+增强：`src/__tests__/toolbar-architecture.guard.test.ts`
+
+回归目标：
+
+- 新增 AST 守卫：`useToolbarImportExportCommands` 调用参数对象必须保留 `state/importSource/teamCodeInput/teamCodeQrInputRef` 接线键。
+- 新增 AST 守卫：`importSource` 默认初始化必须保持 `ref<'json' | 'teamCode'>('json')`。
+- 新增模板守卫：`importSource` 的 `json/teamCode` 分支与二维码入口双接线（`@click="triggerTeamCodeQrImport"` + `@change="handleTeamCodeQrImport"`）继续存在。
+- 保持 `Toolbar.vue` 仅做接线层边界，不回流 import/export 实现依赖。

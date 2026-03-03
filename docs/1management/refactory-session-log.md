@@ -40,6 +40,37 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-03] Session 72 - Add Import-Dialog Wiring Parameter Invariants to Toolbar Architecture Guard
+
+- Refactory Scope:
+  - Phase: Phase 2
+  - Task: Toolbar 导入接线参数不变量守卫补强（`toolbar-architecture.guard`，仅测试补强）
+- In Scope Files:
+  - `src/__tests__/toolbar-architecture.guard.test.ts`
+  - `docs/2design/ToolbarArchitecture.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `FlowEditor` 新增重构任务
+  - `groupRules` 规则语义调整
+  - `docs/1management/plan.md` 更新
+  - Phase 1 / Phase 3 内容
+- Decisions:
+  - 新增 AST 守卫：`useToolbarImportExportCommands` 调用参数对象必须保留 `state/importSource/teamCodeInput/teamCodeQrInputRef` 接线键。
+  - 新增 AST 守卫：`importSource` 默认初始化保持 `ref<'json' | 'teamCode'>('json')`，防止来源默认值与类型约束漂移。
+  - 模板守卫补强：锁定 `importSource` 的 `json/teamCode` 分支接线与二维码入口双接线（`@click` + `@change`）继续存在。
+  - 保持 `Toolbar.vue` 仅接线层，不回流 `convertTeamCodeToRootDocument` / `decodeTeamCodeFromQrImage` / 截图水印实现依赖。
+  - 更新 `ToolbarArchitecture.md` Task 31，记录本轮导入接线参数不变量边界。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - AST 守卫依赖当前 `script setup` 结构与 `ref` 初始化写法；若后续迁移到工厂函数或重命名，需要同步更新守卫断言。
+- Next Recommended Unit:
+  - Phase 2 下一原子任务：补强 `useToolbarImportExportCommands` 在分段推进 + flush + 新批次下的定时清理确定性守卫（仅测试补强）。
+
 ## [2026-03-03] Session 71 - Harden Import-Dialog Structural Scope Exclusivity in Toolbar Wiring Regression
 
 - Refactory Scope:
