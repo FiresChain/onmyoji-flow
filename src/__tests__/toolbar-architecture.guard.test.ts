@@ -93,6 +93,17 @@ describe('Toolbar architecture guard', () => {
       expect(toolbarSource).not.toContain(snippet);
     });
 
+    const toolbarShouldNotContainImportExportPatterns = [
+      /document\.createElement\(\s*['"](input|a)['"]\s*\)/,
+      /new\s+FileReader\(\)/,
+      /navigator\.clipboard\.writeText\(/,
+      /filesStore\.exportData\(\);\s*\}\s*,\s*2000\);/,
+      /state\.showDataPreviewDialog\s*=\s*true;\s*\}\s*catch[\s\S]*\}\s*,\s*100\);/,
+    ];
+    toolbarShouldNotContainImportExportPatterns.forEach((pattern) => {
+      expect(toolbarSource).not.toMatch(pattern);
+    });
+
     const composableRequiredSnippets = [
       'convertTeamCodeToRootDocument',
       'const withDynamicGroupsHiddenForSnapshot = async <T>(',
@@ -123,6 +134,13 @@ describe('Toolbar architecture guard', () => {
     composableRequiredSnippets.forEach((snippet) => {
       expect(importExportCommandsSource).toContain(snippet);
     });
+
+    expect(importExportCommandsSource).toMatch(
+      /const handleExport = \(\) => \{\s*filesStore\.updateTab\(\);\s*setTimeout\(\(\) => \{\s*filesStore\.exportData\(\);\s*\},\s*2000\);\s*\};/s,
+    );
+    expect(importExportCommandsSource).toMatch(
+      /const handlePreviewData = \(\) => \{\s*filesStore\.updateTab\(\);\s*setTimeout\(\(\) => \{[\s\S]*state\.showDataPreviewDialog = true;[\s\S]*\},\s*100\);\s*\};/s,
+    );
   });
 
   it('keeps asset management implementations in useToolbarAssetManagement', () => {

@@ -40,6 +40,36 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-03] Session 59 - Refine Toolbar Architecture Guard with Pattern-Level Timing and DOM Ownership Assertions
+
+- Refactory Scope:
+  - Phase: Phase 2
+  - Task: 继续收紧 `toolbar-architecture.guard`，通过模式级断言锁定 import/export 的定时与 DOM 实现归属（仅测试补强）
+- In Scope Files:
+  - `src/__tests__/toolbar-architecture.guard.test.ts`
+  - `docs/2design/ToolbarArchitecture.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `FlowEditor` 新增重构任务
+  - `groupRules` 规则语义调整
+  - `docs/1management/plan.md` 进度更新
+  - Phase 1 / Phase 3 内容
+- Decisions:
+  - 在既有片段匹配守卫基础上，补充正则模式守卫，禁止 `Toolbar.vue` 回流 import/export DOM 细节：`document.createElement('input'/'a')`、`FileReader`、`navigator.clipboard.writeText`。
+  - 补充正则模式守卫，禁止 `Toolbar.vue` 回流 import/export 定时语义实现（导出 `2000ms`、预览 `100ms` 片段）。
+  - 新增 composable 定时实现归属断言：`handleExport` 的 `2000ms` 与 `handlePreviewData` 的 `100ms` 必须保留在 `useToolbarImportExportCommands.ts`。
+  - 更新 `ToolbarArchitecture.md` Task 18，记录本轮模式级守卫补强。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 该守卫仍属于源码模式匹配策略，若实现重排或函数命名变化，需同步更新模式断言以避免误报。
+- Next Recommended Unit:
+  - Phase 2 下一原子任务：补强 `useToolbarImportExportCommands` 生命周期清理边界（in-flight 状态回收与重复失败幂等守卫）。
+
 ## [2026-03-03] Session 58 - Extend Toolbar Wiring Regression for Repeated Import Dialog State-Reset Cycles
 
 - Refactory Scope:
