@@ -40,6 +40,37 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-03] Session 57 - Harden Import/Export Lifecycle Cleanup and Dialog Reset Regression Coverage
+
+- Refactory Scope:
+  - Phase: Phase 2
+  - Task: 补齐 `useToolbarImportExportCommands` 生命周期清理与状态复位边界回归（仅测试补强，不改语义）
+- In Scope Files:
+  - `src/__tests__/useToolbarImportExportCommands.test.ts`
+  - `docs/2design/ToolbarArchitecture.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `FlowEditor` 新增重构任务
+  - `groupRules` 规则语义调整
+  - `docs/1management/plan.md` 进度更新
+  - Phase 1 / Phase 3 内容
+- Decisions:
+  - 新增 `triggerTeamCodeQrImport` 空 ref no-op 回归，锁定空引用时无副作用。
+  - 扩展 `openImportDialog` 重复调用幂等回归，持续断言来源恢复 `json`、输入清空与弹窗打开语义。
+  - 强化 `triggerJsonFileImport` 失败分支，断言失败后导入弹窗维持关闭，并保持来源/输入状态不被污染。
+  - 保持并补强 `handleTeamCodeQrImport` 三分支回归（成功/失败/无文件）对 `decoding` 回收与 input 清理断言。
+  - 更新 `ToolbarArchitecture.md` Task 16，记录本次生命周期清理边界补强。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 当前生命周期回归仍以 DOM/FileReader mock 驱动，后续若浏览器 API 包装层调整，需同步维护 mock 注入方式。
+- Next Recommended Unit:
+  - Phase 2 下一原子任务：扩展 `toolbar-wiring.regression`，覆盖导入对话框多轮开关循环后的默认来源恢复与命令接线稳定性。
+
 ## [2026-03-03] Session 56 - Refine Toolbar Architecture Guard for Import/Export Timing and DOM Ownership Details
 
 - Refactory Scope:

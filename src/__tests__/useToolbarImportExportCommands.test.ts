@@ -209,6 +209,30 @@ describe('useToolbarImportExportCommands', () => {
     expect(context.state.showImportDialog).toBe(true);
   });
 
+  it('openImportDialog keeps reset behavior idempotent across repeated calls', () => {
+    const context = createContext();
+
+    context.importSource.value = 'teamCode';
+    context.teamCodeInput.value = '#TA#DIRTY-A';
+    context.state.showImportDialog = false;
+
+    context.commands.openImportDialog();
+
+    expect(context.importSource.value).toBe('json');
+    expect(context.teamCodeInput.value).toBe('');
+    expect(context.state.showImportDialog).toBe(true);
+
+    context.importSource.value = 'teamCode';
+    context.teamCodeInput.value = '#TA#DIRTY-B';
+    context.state.showImportDialog = true;
+
+    context.commands.openImportDialog();
+
+    expect(context.importSource.value).toBe('json');
+    expect(context.teamCodeInput.value).toBe('');
+    expect(context.state.showImportDialog).toBe(true);
+  });
+
   it('triggerJsonFileImport keeps parse-failure error behavior', () => {
     const context = createContext();
     const input = {
@@ -239,11 +263,15 @@ describe('useToolbarImportExportCommands', () => {
       }
     }
     (globalThis as typeof globalThis & { FileReader: typeof FileReader }).FileReader = MockFileReader as unknown as typeof FileReader;
+    context.importSource.value = 'json';
+    context.teamCodeInput.value = '#TA#DIRTY';
     context.state.showImportDialog = true;
 
     context.commands.triggerJsonFileImport();
 
     expect(context.state.showImportDialog).toBe(false);
+    expect(context.importSource.value).toBe('json');
+    expect(context.teamCodeInput.value).toBe('#TA#DIRTY');
     expect(context.filesStore.importData).not.toHaveBeenCalled();
     expect(context.refreshLogicFlowCanvas).not.toHaveBeenCalled();
     expect(context.showMessage).toHaveBeenCalledWith('error', '文件格式错误');
@@ -280,6 +308,16 @@ describe('useToolbarImportExportCommands', () => {
     expect(context.showMessage).not.toHaveBeenCalled();
     expect(input.value).toBe('');
     createElementSpy.mockRestore();
+  });
+
+  it('triggerTeamCodeQrImport keeps no-op behavior when qr input ref is null', () => {
+    const context = createContext();
+
+    context.teamCodeQrInputRef.value = null;
+
+    expect(() => context.commands.triggerTeamCodeQrImport()).not.toThrow();
+    expect(context.state.decodingTeamCodeQr).toBe(false);
+    expect(context.showMessage).not.toHaveBeenCalled();
   });
 
   it('handleTeamCodeImport keeps warning path when team code is empty', async () => {

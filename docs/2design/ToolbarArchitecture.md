@@ -28,6 +28,7 @@
 13. 导入对话框状态复位接线回归：`toolbar-wiring.regression`
 14. import/export 架构守卫再收紧：`toolbar-architecture.guard`
 15. import/export 定时与 DOM 归属守卫细化：`toolbar-architecture.guard`
+16. import/export 生命周期清理与状态复位边界补强：`useToolbarImportExportCommands`
 
 ## Task 1 落地（导入/导出/预览）
 
@@ -228,3 +229,14 @@
 - `Toolbar.vue` 不应出现 import/export 的 DOM 细节语句（`document.createElement('input'/'a')`、`FileReader`、`navigator.clipboard.writeText`）。
 - `Toolbar.vue` 不应出现 import/export 的定时语义片段（导出 `2000ms`、预览 `100ms`）。
 - `useToolbarImportExportCommands.ts` 必须保留上述 DOM 与定时实现片段，确保实现责任边界继续稳定在 composable。
+
+## Task 16 落地（ImportExport 生命周期清理与状态复位边界补强）
+
+增强：`src/__tests__/useToolbarImportExportCommands.test.ts`
+
+回归目标：
+
+- `triggerTeamCodeQrImport` 在 `teamCodeQrInputRef` 为空时保持 no-op，不触发副作用。
+- `openImportDialog` 重复调用时持续保持来源重置为 `json`、输入清空、弹窗打开语义（幂等）。
+- `triggerJsonFileImport` 失败路径后保持导入弹窗状态语义不变（维持关闭），且不污染来源与输入状态。
+- `handleTeamCodeQrImport` 成功/失败/无文件三分支均保持 `decoding` 状态回收与文件 input 清理语义不变。
