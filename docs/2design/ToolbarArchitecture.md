@@ -31,6 +31,7 @@
 16. import/export 生命周期清理与状态复位边界补强：`useToolbarImportExportCommands`
 17. 导入对话框多轮循环接线回归：`toolbar-wiring.regression`
 18. import/export 架构守卫细化（二次）：定时语义与 DOM 归属模式守卫：`toolbar-architecture.guard`
+19. import/export 生命周期清理边界补强（二次）：重复失败幂等与 in-flight 回收守卫：`useToolbarImportExportCommands`
 
 ## Task 1 落地（导入/导出/预览）
 
@@ -262,3 +263,13 @@
 - 在既有片段守卫之外，新增模式级守卫，防止 `Toolbar.vue` 回流 `document.createElement('input'/'a')`、`FileReader`、`navigator.clipboard.writeText` 等 import/export DOM 实现细节。
 - 新增模式级守卫，防止 `Toolbar.vue` 回流导出 `2000ms` 与预览 `100ms` 的 import/export 定时实现语义。
 - 约束 `useToolbarImportExportCommands.ts` 必须保留 `handleExport` 与 `handlePreviewData` 对应的定时实现（`2000ms` / `100ms`）及既有实现归属。
+
+## Task 19 落地（ImportExport 生命周期清理边界补强：重复失败与 in-flight 回收）
+
+增强：`src/__tests__/useToolbarImportExportCommands.test.ts`
+
+回归目标：
+
+- 补充 `triggerJsonFileImport` 连续失败回归，锁定失败后导入弹窗持续关闭、来源保持 `json`、输入不被污染（幂等语义不回退）。
+- 补充 `handleTeamCodeQrImport` in-flight 状态回归，验证成功/失败异步分支在处理中 `decoding` 置为 `true`，收尾后统一回收为 `false`。
+- 在上述异步分支中统一断言文件 input 清理语义保持不变，避免生命周期清理边界回退。

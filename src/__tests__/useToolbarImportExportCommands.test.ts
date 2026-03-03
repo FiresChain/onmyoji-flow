@@ -105,6 +105,16 @@ const createContext = (): ToolbarTestContext => {
   };
 };
 
+const createDeferred = <T>() => {
+  let resolve!: (value: T | PromiseLike<T>) => void;
+  let reject!: (reason?: unknown) => void;
+  const promise = new Promise<T>((res, rej) => {
+    resolve = res;
+    reject = rej;
+  });
+  return { promise, resolve, reject };
+};
+
 describe('useToolbarImportExportCommands', () => {
   beforeEach(() => {
     vi.useFakeTimers();
@@ -279,6 +289,61 @@ describe('useToolbarImportExportCommands', () => {
     createElementSpy.mockRestore();
   });
 
+  it('triggerJsonFileImport keeps dialog state semantics across repeated parse failures', () => {
+    const context = createContext();
+    const input = {
+      type: '',
+      accept: '',
+      files: [new File(['not-json'], 'broken.json', { type: 'application/json' })],
+      value: 'filled',
+      onchange: null as ((event: Event) => void) | null,
+      click: vi.fn(() => {
+        input.onchange?.({ target: input } as unknown as Event);
+      }),
+    };
+    const originalCreateElement = document.createElement.bind(document);
+    const createElementSpy = vi.spyOn(document, 'createElement').mockImplementation((tagName: string) => {
+      if (tagName === 'input') {
+        return input as unknown as HTMLInputElement;
+      }
+      return originalCreateElement(tagName);
+    });
+    class MockFileReader {
+      public onload: ((event: ProgressEvent<FileReader>) => void) | null = null;
+
+      public result: string | ArrayBuffer | null = null;
+
+      readAsText() {
+        this.result = '{invalid-json';
+        this.onload?.({ target: this } as unknown as ProgressEvent<FileReader>);
+      }
+    }
+    (globalThis as typeof globalThis & { FileReader: typeof FileReader }).FileReader = MockFileReader as unknown as typeof FileReader;
+    context.importSource.value = 'json';
+    context.teamCodeInput.value = '#TA#KEEP';
+    context.state.showImportDialog = true;
+
+    context.commands.triggerJsonFileImport();
+
+    expect(context.state.showImportDialog).toBe(false);
+    expect(context.importSource.value).toBe('json');
+    expect(context.teamCodeInput.value).toBe('#TA#KEEP');
+
+    context.state.showImportDialog = true;
+    context.commands.triggerJsonFileImport();
+
+    expect(context.state.showImportDialog).toBe(false);
+    expect(context.importSource.value).toBe('json');
+    expect(context.teamCodeInput.value).toBe('#TA#KEEP');
+    expect(context.filesStore.importData).not.toHaveBeenCalled();
+    expect(context.refreshLogicFlowCanvas).not.toHaveBeenCalled();
+    expect(context.showMessage).toHaveBeenCalledTimes(2);
+    expect(context.showMessage).toHaveBeenNthCalledWith(1, 'error', '文件格式错误');
+    expect(context.showMessage).toHaveBeenNthCalledWith(2, 'error', '文件格式错误');
+    expect(input.value).toBe('');
+    createElementSpy.mockRestore();
+  });
+
   it('triggerJsonFileImport keeps no-file no-op behavior', () => {
     const context = createContext();
     const input = {
@@ -386,6 +451,47 @@ describe('useToolbarImportExportCommands', () => {
     expect(context.state.decodingTeamCodeQr).toBe(false);
     expect(target.value).toBe('');
     expect(context.showMessage).toHaveBeenCalledWith('success', '二维码识别成功，已填入阵容码');
+  });
+
+  it('handleTeamCodeQrImport keeps decoding state recovery for async success/failure branches', async () => {
+    const context = createContext();
+    const successFile = new File(['qr-success'], 'team-code-success.png', { type: 'image/png' });
+    const successTarget = {
+      files: [successFile],
+      value: 'filled-success',
+    } as unknown as HTMLInputElement;
+    const successDeferred = createDeferred<string>();
+    vi.mocked(decodeTeamCodeFromQrImage).mockReturnValueOnce(successDeferred.promise as never);
+
+    const successPromise = context.commands.handleTeamCodeQrImport({ target: successTarget } as unknown as Event);
+    expect(context.state.decodingTeamCodeQr).toBe(true);
+
+    successDeferred.resolve('#TA#SUCCESS');
+    await successPromise;
+
+    expect(context.state.decodingTeamCodeQr).toBe(false);
+    expect(context.teamCodeInput.value).toBe('#TA#SUCCESS');
+    expect(successTarget.value).toBe('');
+    expect(context.showMessage).toHaveBeenCalledWith('success', '二维码识别成功，已填入阵容码');
+
+    const failureFile = new File(['qr-failure'], 'team-code-failure.png', { type: 'image/png' });
+    const failureTarget = {
+      files: [failureFile],
+      value: 'filled-failure',
+    } as unknown as HTMLInputElement;
+    const failureDeferred = createDeferred<string>();
+    vi.mocked(decodeTeamCodeFromQrImage).mockReturnValueOnce(failureDeferred.promise as never);
+
+    const failurePromise = context.commands.handleTeamCodeQrImport({ target: failureTarget } as unknown as Event);
+    expect(context.state.decodingTeamCodeQr).toBe(true);
+
+    failureDeferred.reject(new Error('二维码识别失败-异步'));
+    await failurePromise;
+
+    expect(context.state.decodingTeamCodeQr).toBe(false);
+    expect(context.teamCodeInput.value).toBe('#TA#SUCCESS');
+    expect(failureTarget.value).toBe('');
+    expect(context.showMessage).toHaveBeenCalledWith('error', '二维码识别失败-异步');
   });
 
   it('handleTeamCodeQrImport keeps no-file no-op behavior', async () => {

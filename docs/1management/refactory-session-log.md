@@ -40,6 +40,36 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-03] Session 60 - Harden Import/Export Lifecycle Cleanup with Repeated-Failure and In-Flight Recovery Guards
+
+- Refactory Scope:
+  - Phase: Phase 2
+  - Task: 补强 `useToolbarImportExportCommands` 生命周期清理与状态复位边界（重复失败幂等 + in-flight 回收，纯测试补强）
+- In Scope Files:
+  - `src/__tests__/useToolbarImportExportCommands.test.ts`
+  - `docs/2design/ToolbarArchitecture.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `FlowEditor` 新增重构任务
+  - `groupRules` 规则语义调整
+  - `docs/1management/plan.md` 进度更新
+  - Phase 1 / Phase 3 内容
+- Decisions:
+  - 新增 `triggerJsonFileImport` 连续解析失败回归，锁定失败后导入弹窗保持关闭、来源保持 `json`、输入保持原值的幂等语义。
+  - 新增 `handleTeamCodeQrImport` 异步 in-flight 回归，验证成功/失败分支处理中 `decodingTeamCodeQr=true`，结束后统一回收为 `false`。
+  - 在 in-flight 成功/失败分支统一断言文件 input 清理语义（`target.value=''`）不回退。
+  - 更新 `ToolbarArchitecture.md` Task 19，记录本轮生命周期边界补强。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 该组回归依赖 `FileReader` 与二维码解析 mock，后续若浏览器 API 适配层改造，需要同步更新 mock 注入路径。
+- Next Recommended Unit:
+  - Phase 2 下一原子任务：扩展 `toolbar-wiring.regression`，补多轮循环中的命令计数对齐与来源复位守卫（保持语义不变）。
+
 ## [2026-03-03] Session 59 - Refine Toolbar Architecture Guard with Pattern-Level Timing and DOM Ownership Assertions
 
 - Refactory Scope:
