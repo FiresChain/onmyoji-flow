@@ -40,6 +40,36 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-03] Session 86 - Reinforce Import-Dialog Anchoring Under Label-Drift and Fake-Command Noise Matrix
+
+- Refactory Scope:
+  - Phase: Phase 2
+  - Task: Toolbar 导入弹窗结构锚点：文案漂移 + 假命令噪声矩阵补强（`toolbar-wiring.regression`，仅测试补强）
+- In Scope Files:
+  - `src/__tests__/toolbar-wiring.regression.test.ts`
+  - `docs/2design/ToolbarArchitecture.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `FlowEditor` 新增重构任务
+  - `groupRules` 规则语义调整
+  - `docs/1management/plan.md` 更新
+  - Phase 1 / Phase 3 内容
+- Decisions:
+  - 新增 label-drift fake-command noise matrix `ElDialog` stub：在非导入弹窗注入同文案假按钮（`选择 JSON 文件`/`导入阵容码`/`选择二维码图片`）与假 `import-form`/`team-code-qr-actions` 锚点。
+  - 新增多轮“打开/切换来源/关闭/重开（含关闭后污染态）”回归，持续校验 `openImportDialog + json/teamCode/qr` 三路径命令计数对齐。
+  - 在 `teamCode` 分支增加“同文案 + 同 `accept="image/*"`”广义候选校验，锁定真实二维码 actions 仅归属导入弹窗作用域，假 actions 不误归属。
+  - 更新 `ToolbarArchitecture.md` Task 45，记录本轮 label-drift + fake-command 噪声矩阵作用域守卫边界。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 结构锚点守卫仍依赖导入 footer 按钮顺序与文案；若后续模板改为子组件封装或文案迁移，需要同步更新作用域匹配断言。
+- Next Recommended Unit:
+  - Phase 2 下一原子任务：继续收紧 `toolbar-architecture.guard` 的导入弹窗局部不变量（结构相邻性 + 接线唯一性 AST 守卫）。
+
 ## [2026-03-03] Session 85 - Harden Timer Determinism Across Repeated Pre-Threshold Flush Matrices and Rebatch Isolation
 
 - Refactory Scope:

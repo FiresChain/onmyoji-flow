@@ -57,6 +57,7 @@
 42. Toolbar 导入弹窗结构锚点再补强：嵌套 slot-wrapper + slot/footer 混合噪声矩阵下唯一命中与多轮计数对齐守卫：`toolbar-wiring.regression`
 43. Toolbar 导入模板局部不变量再收紧：footer 分支互斥、相邻结构稳定与局部唯一绑定守卫：`toolbar-architecture.guard`
 44. ImportExport 阈值前 flush 变体矩阵（二次）+ 批次隔离补强：重复变体下分段推进计数稳定与零残留定时器守卫：`useToolbarImportExportCommands`
+45. Toolbar 导入弹窗结构锚点补强：文案漂移 + 假命令噪声矩阵下作用域唯一命中与多轮计数对齐守卫：`toolbar-wiring.regression`
 
 ## Task 1 落地（导入/导出/预览）
 
@@ -552,3 +553,13 @@
 - 在三组以上交错变体中，首批统一推进到 `99ms` 并执行 `runOnlyPendingTimers`，持续锁定 `preview/export` 计数与 `updateTab` 计数无漂移。
 - 每组首批 flush 后触发新批次，并按 `99ms -> 1ms -> 1899ms -> 1ms` 分段推进，持续验证 `updateTab/preview/export` 计数稳定且无提前触发。
 - 在每次 flush 后、每组批次收束后、全流程结束后都断言 `vi.getTimerCount() === 0`，确保批次隔离下无幽灵定时器残留。
+
+## Task 45 落地（Toolbar 导入弹窗结构锚点：文案漂移 + 假命令噪声矩阵）
+
+增强：`src/__tests__/toolbar-wiring.regression.test.ts`
+
+回归目标：
+
+- 在非导入弹窗注入同文案假按钮（`选择 JSON 文件` / `导入阵容码` / `选择二维码图片`）以及假 `import-form`/`team-code-qr-actions` 锚点时，导入弹窗作用域仍唯一命中真实 `import-form + dialog-footer` 结构锚点。
+- 在 `teamCode` 来源下，真实二维码动作块继续仅归属导入弹窗作用域，带同文案与同 `accept="image/*"` 的假 actions 不被误归属。
+- 在 label-drift fake-command 噪声矩阵的多轮“打开/切换来源/关闭/重开（含关闭后污染态）”循环中，`openImportDialog + json/teamCode/qr` 三路径命令计数持续对齐。
