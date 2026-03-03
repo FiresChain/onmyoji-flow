@@ -174,15 +174,15 @@ const ElButtonStub = defineComponent({
 
 const ElDialogStub = defineComponent({
   name: 'ElDialog',
-  setup(_, { attrs, slots }) {
-    return () => h('div', { 'data-dialog-title': String(attrs.title ?? '') }, [slots.default?.(), slots.footer?.()]);
+  setup(_, { slots }) {
+    return () => h('div', [slots.default?.(), slots.footer?.()]);
   },
 });
 
 const ElFormStub = defineComponent({
   name: 'ElForm',
-  setup(_, { slots }) {
-    return () => h('div', slots.default?.());
+  setup(_, { attrs, slots }) {
+    return () => h('div', attrs, slots.default?.());
   },
 });
 
@@ -239,17 +239,24 @@ const clickButtonByText = async (buttonText: string) => {
 };
 
 const getImportDialogScope = (wrapper: ReturnType<typeof createWrapper>) => {
-  const importDialogScope = wrapper.find('[data-dialog-title="导入数据"]');
-  expect(importDialogScope.exists()).toBe(true);
-  return importDialogScope;
+  const importDialogScopes = wrapper.findAll('div').filter((scope) => {
+    return scope.find('.import-form').exists()
+      && scope.findAll('.import-form').length === 1
+      && scope.find('.dialog-footer').exists()
+      && scope.findAll('.dialog-footer').length === 1;
+  });
+  expect(importDialogScopes).toHaveLength(1);
+  return importDialogScopes[0];
 };
 
 const getImportDialogCommandButtons = (wrapper: ReturnType<typeof createWrapper>) => {
   const importDialogScope = getImportDialogScope(wrapper);
   const footerButtons = importDialogScope.findAll('.dialog-footer button');
+  const teamCodeQrActions = importDialogScope.find('.team-code-qr-actions');
   const teamCodeQrButton = importDialogScope.find('.team-code-qr-actions button');
   return {
     footerButtons,
+    teamCodeQrActions,
     teamCodeQrButton,
   };
 };
@@ -260,15 +267,17 @@ const assertImportSourceBoundVisibility = (
   expectedSource: 'json' | 'teamCode',
 ) => {
   expect(vm.importSource).toBe(expectedSource);
-  const { footerButtons, teamCodeQrButton } = getImportDialogCommandButtons(wrapper);
+  const { footerButtons, teamCodeQrActions, teamCodeQrButton } = getImportDialogCommandButtons(wrapper);
   expect(footerButtons).toHaveLength(2);
 
   const sourceCommandButton = footerButtons[1];
   expect(sourceCommandButton).toBeTruthy();
 
   if (expectedSource === 'json') {
+    expect(teamCodeQrActions.exists()).toBe(false);
     expect(teamCodeQrButton.exists()).toBe(false);
   } else {
+    expect(teamCodeQrActions.exists()).toBe(true);
     expect(teamCodeQrButton.exists()).toBe(true);
   }
 

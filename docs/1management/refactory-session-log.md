@@ -40,6 +40,36 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-03] Session 68 - Decouple Import Dialog Scope Regression from Title-Based Selector
+
+- Refactory Scope:
+  - Phase: Phase 2
+  - Task: Toolbar 导入弹窗作用域去标题耦合回归（`toolbar-wiring.regression`，仅测试补强）
+- In Scope Files:
+  - `src/__tests__/toolbar-wiring.regression.test.ts`
+  - `docs/2design/ToolbarArchitecture.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `FlowEditor` 新增重构任务
+  - `groupRules` 规则语义调整
+  - `docs/1management/plan.md` 更新
+  - Phase 1 / Phase 3 内容
+- Decisions:
+  - 移除导入弹窗作用域对 `title="导入数据"` 的依赖，改为结构锚点组合定位：`import-form` + `dialog-footer`（并结合 `team-code-qr-actions` 做来源分支可见性守卫）。
+  - `ElForm` stub 保留模板属性透传，确保结构锚点定位与真实模板类名对齐，避免回归断言误依赖 stub 实现细节。
+  - 保持 `json/teamCode` 来源可见性断言与 `openImportDialog` + `triggerJsonFileImport` / `handleTeamCodeImport` / `triggerTeamCodeQrImport` 多轮计数对齐语义不变。
+  - 更新 `ToolbarArchitecture.md` Task 27，记录本轮去标题耦合回归边界。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 新断言依赖导入弹窗结构类名（`import-form` / `dialog-footer` / `team-code-qr-actions`）；若未来模板命名调整，需要同步更新结构锚点。
+- Next Recommended Unit:
+  - Phase 2 下一原子任务：在 `toolbar-architecture.guard` 增加导入弹窗来源分支接线不变量守卫（json/teamCode 分支 + 二维码入口接线）。
+
 ## [2026-03-03] Session 67 - Strengthen Interleaved Import/Export Timing Determinism Regression
 
 - Refactory Scope:

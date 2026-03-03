@@ -39,6 +39,7 @@
 24. Toolbar 接线回归抗脆弱补强：来源状态绑定可见性断言与跨轮计数漂移守卫：`toolbar-wiring.regression`
 25. Toolbar 架构守卫 AST 完整性补强：composable 导入/调用归属与命令解构完整性守卫：`toolbar-architecture.guard`
 26. ImportExport 交错触发时序确定性补强：`useToolbarImportExportCommands`
+27. Toolbar 导入弹窗作用域去标题耦合回归：结构锚点定位守卫：`toolbar-wiring.regression`
 
 ## Task 1 落地（导入/导出/预览）
 
@@ -350,3 +351,13 @@
 - 在 `handleExport` 与 `handlePreviewData` 多轮交错触发下，持续断言 `updateTab` 立即执行，`100ms` 预览与 `2000ms` 导出计数关系稳定且无漂移。
 - 在同一轮内覆盖“先预览后导出”与“先导出后预览”两种顺序，确保双顺序下计数一致且定时语义不回退。
 - 保持既有失败分支语义与实现行为不变，仅补齐时序确定性断言。
+
+## Task 27 落地（Toolbar 导入弹窗作用域去标题耦合回归）
+
+增强：`src/__tests__/toolbar-wiring.regression.test.ts`
+
+回归目标：
+
+- 导入弹窗作用域定位从标题文案依赖迁移为结构锚点组合守卫（`import-form` + `dialog-footer` + `team-code-qr-actions`），避免对 `title="导入数据"` 单点耦合。
+- 保持并验证 `json/teamCode` 来源绑定的可见性断言不回退：`json` 仅暴露 JSON 导入入口，`teamCode` 暴露阵容码与二维码入口。
+- 保持并验证 `openImportDialog` 与 `json/teamCode/qr` 三路径命令在多轮切换/重开场景中的计数持续对齐，不发生漂移。
