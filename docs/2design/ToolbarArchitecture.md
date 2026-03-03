@@ -824,3 +824,13 @@
 - 在 `>= 6` 组交错变体中，前两批均在 `99ms` 阈值前执行 `runOnlyPendingTimers`，持续锁定 `preview/export/updateTab` 计数无漂移。
 - 每次 pre-threshold flush 收束后立即触发新批次（链式 rebatch），并对后续两批持续按 `99ms -> 1ms -> 1899ms -> 1ms` 分段推进，验证无提前触发。
 - 在每次 flush 后、每组收束后、全流程结束后均断言 `vi.getTimerCount() === 0`，并持续补 `runOnlyPendingTimers` 幂等清理断言，确保零残留定时器循环稳定。
+
+## Task 69 落地（Toolbar 导入弹窗结构锚点：slot/footer 分支顺序漂移 + class 漂移 + duplicate-accept hidden-input 扩展噪声矩阵 v3）
+
+增强：`src/__tests__/toolbar-wiring.regression.test.ts`
+
+回归目标：
+
+- 在非导入弹窗注入复合噪声（slot/footer 分支顺序漂移 + class 漂移 + 同文案按钮 + duplicate `accept="image/*"` + hidden fake inputs + extra footer/action）时，导入弹窗作用域仍唯一命中真实结构锚点。
+- 在 `teamCode` 来源下，真实 `team-code-qr-actions` 继续仅归属导入弹窗作用域，primary/secondary/tertiary 假候选全部排除。
+- 在多轮“打开/切换来源/关闭/重开（含关闭后污染态）”循环中，`openImportDialog + json/teamCode/qr` 三路径命令计数持续对齐（`>= 10` 轮）。
