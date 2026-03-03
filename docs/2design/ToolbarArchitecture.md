@@ -68,6 +68,7 @@
 53. ImportExport 计时确定性再补强：重复 pre-threshold flush + 链式即时 rebatch 隔离下分段推进与零残留定时器守卫：`useToolbarImportExportCommands`
 54. Toolbar 导入弹窗结构锚点再补强：slot/footer 组合漂移 + 同文案同属性假动作噪声矩阵下作用域唯一命中与多轮计数对齐守卫：`toolbar-wiring.regression`
 55. Toolbar 导入模板局部不变量再收紧：slot-footer 归属 + 分支顺序互斥 + 接线配对 AST 守卫：`toolbar-architecture.guard`
+56. ImportExport 计时确定性再补强：混合 flush 窗口 + 链式即时 rebatch 隔离下分段推进与零残留定时器守卫：`useToolbarImportExportCommands`
 
 ## Task 1 落地（导入/导出/预览）
 
@@ -677,3 +678,13 @@
 - 锁定 footer 三按钮结构顺序稳定：关闭按钮 + `json(v-if)` + `teamCode(v-else)`，显式禁止分支互换与 `v-else-if` 漂移。
 - 锁定 `team-code-qr-actions` 与二维码 input 接线保持唯一（`ref + @change + accept="image/*"`），并新增“按钮/输入配对存在但不依赖固定先后顺序”守卫。
 - 通过 AST 守卫继续约束 `Toolbar.vue` 为接线层，不回流 `teamCodeService` 与 import/export 实现依赖，且 `useToolbarImportExportCommands` 入参键保持完整。
+
+## Task 56 落地（ImportExport 混合 flush 窗口 + 链式即时 rebatch 隔离）
+
+增强：`src/__tests__/useToolbarImportExportCommands.test.ts`
+
+回归目标：
+
+- 在 4 组以上交错变体中，前两批都在 `99ms` 阈值前执行 `runOnlyPendingTimers`，持续锁定 `preview/export/updateTab` 计数无漂移。
+- 每次 flush 后立即触发新批次（至少两次链式 rebatch），并将后续批次按 `99ms -> 1ms -> 1899ms -> 1ms` 分段推进，持续验证无提前触发。
+- 在每次 flush 后、每组批次收束后、全流程结束后均断言 `vi.getTimerCount() === 0`，确保无残留定时器泄漏。

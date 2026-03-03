@@ -40,6 +40,36 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-03] Session 97 - Reinforce Timer Determinism Under Hybrid Flush-Window Loops and Chained Rebatch Zero-Residual Isolation
+
+- Refactory Scope:
+  - Phase: Phase 2
+  - Task: ImportExport 混合 flush 窗口 + 链式即时 rebatch 隔离（`useToolbarImportExportCommands`，仅测试补强）
+- In Scope Files:
+  - `src/__tests__/useToolbarImportExportCommands.test.ts`
+  - `docs/2design/ToolbarArchitecture.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `FlowEditor` 新增重构任务
+  - `groupRules` 规则语义调整
+  - `docs/1management/plan.md` 更新
+  - Phase 1 / Phase 3 内容
+- Decisions:
+  - 新增 hybrid flush-window loops + chained rebatch zero-residual isolation 回归：在 4 组交错变体中，前两批均于 `99ms` 阈值前执行 `runOnlyPendingTimers`，持续锁定 `preview/export/updateTab` 计数无漂移。
+  - 每组在两次 flush 后继续链式触发后续批次（至少两次 rebatch），并对后续批次按 `99ms -> 1ms -> 1899ms -> 1ms` 分段推进，显式验证无提前触发。
+  - 在每次 flush 后、每组批次收束后、全流程结束后均断言 `vi.getTimerCount() === 0`，强化零残留定时器清理约束。
+  - 更新 `ToolbarArchitecture.md` Task 56，记录本轮混合 flush 窗口与链式 rebatch 计时确定性边界。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 断言依赖 fake timers 与当前 `setTimeout` 调度语义；若后续导入/导出调度机制改变，需要同步调整分段窗口与计数期望。
+- Next Recommended Unit:
+  - Phase 2 下一原子任务：回到 `toolbar-wiring.regression`，继续补强导入弹窗结构锚点在“slot/footer 组合漂移 + 同文案同属性假动作”噪声矩阵下的作用域唯一命中与计数对齐守卫（仅测试补强）。
+
 ## [2026-03-03] Session 96 - Enforce Import-Dialog Slot-Footer Ownership and Action-Pair AST Guards
 
 - Refactory Scope:
