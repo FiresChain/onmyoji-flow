@@ -37,6 +37,7 @@
 22. import/export 命令确定性与 ref 事件边界补强：`useToolbarImportExportCommands`
 23. 导入来源切换可见性与命令计数漂移回归：`toolbar-wiring.regression`
 24. Toolbar 接线回归抗脆弱补强：来源状态绑定可见性断言与跨轮计数漂移守卫：`toolbar-wiring.regression`
+25. Toolbar 架构守卫 AST 完整性补强：composable 导入/调用归属与命令解构完整性守卫：`toolbar-architecture.guard`
 
 ## Task 1 落地（导入/导出/预览）
 
@@ -328,3 +329,13 @@
 - 导入弹窗可见性断言从“单一文案匹配”收敛为“来源状态 + 结构选择器”联合守卫：`json` 来源仅暴露 JSON 导入命令入口，`teamCode` 来源暴露阵容码与二维码入口。
 - 在多轮来源切换与重开导入弹窗场景下，持续断言 `openImportDialog` 与 `triggerJsonFileImport` / `handleTeamCodeImport` / `triggerTeamCodeQrImport` 调用计数同轮对齐，避免计数漂移。
 - 保持 `Toolbar.vue` 仅接线语义，不引入 UI/业务语义变更，仅提升测试稳定性与可维护性。
+
+## Task 25 落地（Toolbar 架构守卫 AST 完整性补强：composable 导入/命令解构）
+
+增强：`src/__tests__/toolbar-architecture.guard.test.ts`
+
+回归目标：
+
+- 通过 AST 守卫 `Toolbar.vue` script 必须保留 5 个 composable 的导入与调用归属：`ImportExport` / `Asset` / `Rule` / `Workspace` / `Dialog`。
+- 通过 AST 守卫 `useToolbarImportExportCommands` 的解构命令集合完整（导入/导出/预览/截图相关命令不可缺失）。
+- 通过 AST 守卫 `Toolbar.vue` script 不应直接导入 `teamCodeService` 或 import/export 实现依赖，保持接线层职责边界稳定。

@@ -40,6 +40,37 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-03] Session 66 - Add AST Guard for Toolbar Composable Import Ownership and Command Destructuring Completeness
+
+- Refactory Scope:
+  - Phase: Phase 2
+  - Task: Toolbar 架构守卫 AST 完整性补强（composable 导入/调用归属 + import/export 命令解构完整性）
+- In Scope Files:
+  - `src/__tests__/toolbar-architecture.guard.test.ts`
+  - `docs/2design/ToolbarArchitecture.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `FlowEditor` 新增重构任务
+  - `groupRules` 规则语义调整
+  - `docs/1management/plan.md` 更新
+  - Phase 1 / Phase 3 内容
+- Decisions:
+  - 为架构守卫 AST 扫描补充 `importDeclarations` 与 `variableDeclarations` 采集，支持“导入声明 + 调用归属 + 解构字段”三层结构断言。
+  - 新增守卫：`Toolbar.vue` script 必须保留并调用 5 个 composable（ImportExport/Asset/Rule/Workspace/Dialog），且调用参数维持对象编排入口。
+  - 新增守卫：`useToolbarImportExportCommands` 的解构命令集合必须完整覆盖导入/导出/预览/截图链路命令，防止接线缺项。
+  - 新增守卫：`Toolbar.vue` script 不得直接导入 `teamCodeService` 或 import/export 实现依赖标识，保持实现职责不回流。
+  - 更新 `ToolbarArchitecture.md` Task 25，记录本轮 AST 完整性边界。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 新增 AST 守卫依赖当前 `script setup` 与命令命名；若后续批量重命名或迁移到独立模块，需同步更新断言项。
+- Next Recommended Unit:
+  - Phase 2 下一原子任务：补强 `useToolbarImportExportCommands` 在 `handleExport` 与 `handlePreviewData` 交错触发下的时序确定性回归（仅测试补强）。
+
 ## [2026-03-03] Session 65 - Harden Toolbar Wiring Regression Against Selector Brittleness and Call-Count Drift
 
 - Refactory Scope:

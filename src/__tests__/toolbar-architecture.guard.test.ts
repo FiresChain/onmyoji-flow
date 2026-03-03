@@ -11,6 +11,8 @@ interface AstScanResult {
   sourceFile: ts.SourceFile;
   callExpressions: ts.CallExpression[];
   newExpressions: ts.NewExpression[];
+  importDeclarations: ts.ImportDeclaration[];
+  variableDeclarations: ts.VariableDeclaration[];
 }
 
 const extractScriptSetupContent = (sfcSource: string) => {
@@ -25,6 +27,8 @@ const scanAst = (sourceText: string, fileName: string): AstScanResult => {
   const sourceFile = ts.createSourceFile(fileName, sourceText, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
   const callExpressions: ts.CallExpression[] = [];
   const newExpressions: ts.NewExpression[] = [];
+  const importDeclarations: ts.ImportDeclaration[] = [];
+  const variableDeclarations: ts.VariableDeclaration[] = [];
 
   const visit = (node: ts.Node) => {
     if (ts.isCallExpression(node)) {
@@ -33,11 +37,23 @@ const scanAst = (sourceText: string, fileName: string): AstScanResult => {
     if (ts.isNewExpression(node)) {
       newExpressions.push(node);
     }
+    if (ts.isImportDeclaration(node)) {
+      importDeclarations.push(node);
+    }
+    if (ts.isVariableDeclaration(node)) {
+      variableDeclarations.push(node);
+    }
     ts.forEachChild(node, visit);
   };
 
   visit(sourceFile);
-  return { sourceFile, callExpressions, newExpressions };
+  return {
+    sourceFile,
+    callExpressions,
+    newExpressions,
+    importDeclarations,
+    variableDeclarations,
+  };
 };
 
 const isSetTimeoutCall = (callExpression: ts.CallExpression) => {
@@ -62,6 +78,35 @@ const getSetTimeoutCallbackText = (callExpression: ts.CallExpression, sourceFile
 
 const getCallExpressionText = (callExpression: ts.CallExpression, sourceFile: ts.SourceFile) => {
   return callExpression.expression.getText(sourceFile);
+};
+
+const getImportModuleSpecifier = (importDeclaration: ts.ImportDeclaration) => {
+  if (!ts.isStringLiteral(importDeclaration.moduleSpecifier)) {
+    return '';
+  }
+  return importDeclaration.moduleSpecifier.text;
+};
+
+const getNamedImportIdentifiers = (importDeclaration: ts.ImportDeclaration) => {
+  const namedBindings = importDeclaration.importClause?.namedBindings;
+  if (!namedBindings || !ts.isNamedImports(namedBindings)) {
+    return [] as string[];
+  }
+  return namedBindings.elements.map((element) => element.name.text);
+};
+
+const getObjectBindingElementNames = (declaration: ts.VariableDeclaration) => {
+  if (!ts.isObjectBindingPattern(declaration.name)) {
+    return [] as string[];
+  }
+  return declaration.name.elements
+    .map((element) => {
+      if (!ts.isIdentifier(element.name)) {
+        return '';
+      }
+      return element.name.text;
+    })
+    .filter((name) => name.length > 0);
 };
 
 describe('Toolbar architecture guard', () => {
@@ -263,6 +308,94 @@ describe('Toolbar architecture guard', () => {
       return delay === 100 && callbackText.includes('state.showDataPreviewDialog = true');
     });
     expect(hasPreviewTimerOwnership).toBe(true);
+  });
+
+  it('keeps composable import/call ownership and import-export command destructuring complete with AST guards', () => {
+    const toolbarScriptSource = extractScriptSetupContent(toolbarSource);
+    const toolbarScriptAst = scanAst(toolbarScriptSource, 'Toolbar.script.ts');
+
+    const requiredComposableBindings = [
+      {
+        importName: 'useToolbarImportExportCommands',
+        moduleSpecifier: '@/components/composables/useToolbarImportExportCommands',
+      },
+      {
+        importName: 'useToolbarAssetManagement',
+        moduleSpecifier: '@/components/composables/useToolbarAssetManagement',
+      },
+      {
+        importName: 'useToolbarRuleManagement',
+        moduleSpecifier: '@/components/composables/useToolbarRuleManagement',
+      },
+      {
+        importName: 'useToolbarWorkspaceCommands',
+        moduleSpecifier: '@/components/composables/useToolbarWorkspaceCommands',
+      },
+      {
+        importName: 'useToolbarDialogState',
+        moduleSpecifier: '@/components/composables/useToolbarDialogState',
+      },
+    ] as const;
+
+    requiredComposableBindings.forEach(({ importName, moduleSpecifier }) => {
+      const importDeclaration = toolbarScriptAst.importDeclarations.find((declaration) => {
+        return getImportModuleSpecifier(declaration) === moduleSpecifier;
+      });
+      expect(importDeclaration).toBeTruthy();
+      expect(getNamedImportIdentifiers(importDeclaration!)).toContain(importName);
+
+      const composableCallDeclarations = toolbarScriptAst.variableDeclarations.filter((declaration) => {
+        if (!declaration.initializer || !ts.isCallExpression(declaration.initializer)) {
+          return false;
+        }
+        return getCallExpressionText(declaration.initializer, toolbarScriptAst.sourceFile) === importName;
+      });
+      expect(composableCallDeclarations.length).toBeGreaterThan(0);
+      composableCallDeclarations.forEach((declaration) => {
+        const firstArgument = declaration.initializer && ts.isCallExpression(declaration.initializer)
+          ? declaration.initializer.arguments[0]
+          : null;
+        expect(firstArgument && ts.isObjectLiteralExpression(firstArgument)).toBe(true);
+      });
+    });
+
+    const importExportDeclaration = toolbarScriptAst.variableDeclarations.find((declaration) => {
+      if (!declaration.initializer || !ts.isCallExpression(declaration.initializer)) {
+        return false;
+      }
+      return getCallExpressionText(declaration.initializer, toolbarScriptAst.sourceFile) === 'useToolbarImportExportCommands';
+    });
+    expect(importExportDeclaration).toBeTruthy();
+    expect(ts.isObjectBindingPattern(importExportDeclaration!.name)).toBe(true);
+
+    const importExportCommandBindings = getObjectBindingElementNames(importExportDeclaration!);
+    expect(importExportCommandBindings).toEqual(expect.arrayContaining([
+      'handleExport',
+      'handlePreviewData',
+      'copyDataToClipboard',
+      'openImportDialog',
+      'triggerJsonFileImport',
+      'triggerTeamCodeQrImport',
+      'handleTeamCodeImport',
+      'handleTeamCodeQrImport',
+      'prepareCapture',
+      'downloadImage',
+      'handleClose',
+    ]));
+
+    const toolbarImportModules = toolbarScriptAst.importDeclarations.map(getImportModuleSpecifier);
+    expect(toolbarImportModules.some((specifier) => /teamCodeService/.test(specifier))).toBe(false);
+
+    const toolbarImportedIdentifiers = toolbarScriptAst.importDeclarations.flatMap(getNamedImportIdentifiers);
+    const forbiddenImportExportIdentifiers = [
+      'convertTeamCodeToRootDocument',
+      'decodeTeamCodeFromQrImage',
+      'withDynamicGroupsHiddenForSnapshot',
+      'addWatermarkToImage',
+    ];
+    forbiddenImportExportIdentifiers.forEach((identifier) => {
+      expect(toolbarImportedIdentifiers).not.toContain(identifier);
+    });
   });
 
   it('keeps asset management implementations in useToolbarAssetManagement', () => {
