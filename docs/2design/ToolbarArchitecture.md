@@ -814,3 +814,13 @@
 - 锁定 `triggerJsonFileImport` / `handleTeamCodeImport` 在导入 footer 分支中唯一绑定，且模板全局仅保留该唯一路径。
 - 锁定 `team-code-qr-actions` 与二维码 input 接线唯一（`ref + @change + accept="image/*"`），并守卫 action/input 配对存在且不依赖固定先后顺序。
 - 持续守卫 `Toolbar.vue` 仅为接线层：不回流 `teamCodeService` 与 import/export 实现依赖，`useToolbarImportExportCommands` 入参键保持完整。
+
+## Task 68 落地（ImportExport 交替双窗口 + repeated pre-threshold flush + chained immediate rebatch 定时确定性 v2）
+
+增强：`src/__tests__/useToolbarImportExportCommands.test.ts`
+
+回归目标：
+
+- 在 `>= 6` 组交错变体中，前两批均在 `99ms` 阈值前执行 `runOnlyPendingTimers`，持续锁定 `preview/export/updateTab` 计数无漂移。
+- 每次 pre-threshold flush 收束后立即触发新批次（链式 rebatch），并对后续两批持续按 `99ms -> 1ms -> 1899ms -> 1ms` 分段推进，验证无提前触发。
+- 在每次 flush 后、每组收束后、全流程结束后均断言 `vi.getTimerCount() === 0`，并持续补 `runOnlyPendingTimers` 幂等清理断言，确保零残留定时器循环稳定。
