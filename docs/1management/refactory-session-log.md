@@ -40,6 +40,36 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-03] Session 95 - Harden Import-Dialog Anchoring Under Slot-Footer Drift and Same-Attr Fake-Action Noise Matrix
+
+- Refactory Scope:
+  - Phase: Phase 2
+  - Task: Toolbar 导入弹窗结构锚点：slot/footer 组合漂移 + 同文案同属性假动作块噪声（`toolbar-wiring.regression`，仅测试补强）
+- In Scope Files:
+  - `src/__tests__/toolbar-wiring.regression.test.ts`
+  - `docs/2design/ToolbarArchitecture.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `FlowEditor` 新增重构任务
+  - `groupRules` 规则语义调整
+  - `docs/1management/plan.md` 更新
+  - Phase 1 / Phase 3 内容
+- Decisions:
+  - 新增 slot-footer drift same-attr fake-action noise matrix `ElDialog` stub：在非导入弹窗注入同文案假按钮（`选择 JSON 文件` / `导入阵容码` / `选择二维码图片`）、假 `import-form` / 假 `team-code-qr-actions`（含 `accept="image/*"`）与额外噪声按钮，并叠加 slot/footer 组合漂移。
+  - 在 `teamCode` 分支继续收紧“广义候选 + 作用域收敛”断言：含同 `accept="image/*"` 的假 actions 不被误命中，真实二维码动作块仍仅归属导入弹窗作用域。
+  - 新增 7 轮“打开/切换来源/关闭/重开（含关闭后污染态）”回归，持续校验 `openImportDialog + json/teamCode/qr` 三路径命令计数对齐。
+  - 更新 `ToolbarArchitecture.md` Task 54，记录本轮 slot/footer 组合漂移 + 同属性假动作噪声矩阵边界。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 结构锚点守卫仍依赖导入区按钮文案与二维码 input 属性；若后续模板文案或结构重排，需要同步更新作用域匹配和计数断言。
+- Next Recommended Unit:
+  - Phase 2 下一原子任务：继续收紧 `toolbar-architecture.guard` 的导入弹窗局部模板不变量（slot-footer 归属 + 分支顺序互斥 + action-pair AST 守卫，仅测试补强）。
+
 ## [2026-03-03] Session 94 - Reinforce Timer Determinism Under Repeated Pre-Threshold Flush and Chained Immediate Rebatch Isolation
 
 - Refactory Scope:
