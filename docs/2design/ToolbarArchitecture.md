@@ -50,6 +50,7 @@
 35. ImportExport 分段推进 + 局部 flush + 重批次确定性补强：计数稳定与零残留定时器守卫：`useToolbarImportExportCommands`
 36. Toolbar 导入弹窗结构锚点混合噪声回归补强：多 footer 噪声 + 额外结构噪声节点下作用域排他与计数对齐守卫：`toolbar-wiring.regression`
 37. Toolbar 导入模板局部结构不变量再收紧：局部 `import-form` 唯一来源绑定 + QR actions 同域接线 + 接线层依赖边界守卫：`toolbar-architecture.guard`
+38. ImportExport 阈值前 flush + 重批次隔离确定性补强：99ms 前 flush 与新批次分段窗口计数/定时器零残留守卫：`useToolbarImportExportCommands`
 
 ## Task 1 落地（导入/导出/预览）
 
@@ -473,3 +474,13 @@
 - 锁定 `json/teamCode` 来源选项在导入表单局部模板中保持唯一且完整（无额外来源分支）。
 - 锁定 `team-code-qr-actions` 结构锚点唯一，二维码 input 接线持续保持 `ref="teamCodeQrInputRef" + @change="handleTeamCodeQrImport" + accept="image/*"`，且与 `triggerTeamCodeQrImport` 同域。
 - 持续守卫 `Toolbar.vue` 为接线层，不回流 `teamCodeService` 与 import/export 实现依赖。
+
+## Task 38 落地（ImportExport 阈值前 flush + 重批次隔离确定性补强）
+
+增强：`src/__tests__/useToolbarImportExportCommands.test.ts`
+
+回归目标：
+
+- 在交错触发后先推进 `99ms`，随后执行 `runOnlyPendingTimers`（阈值前 flush），验证 `preview/export` 计数在首批次收束时无漂移，且 `vi.getTimerCount()` 归零。
+- flush 后触发新批次，按 `99ms -> 1ms -> 1899ms -> 1ms` 分段推进，持续锁定 `updateTab` 即时计数、`preview/export` 延时计数稳定且无提前触发。
+- 在 flush 收束后与批次收尾后分别断言 `vi.getTimerCount() === 0`，确保无幽灵定时器残留。

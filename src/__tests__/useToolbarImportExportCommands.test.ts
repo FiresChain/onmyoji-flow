@@ -507,6 +507,80 @@ describe('useToolbarImportExportCommands', () => {
     stringifySpy.mockRestore();
   });
 
+  it('handleExport and handlePreviewData keep deterministic counts under pre-threshold flush and rebatch isolation', () => {
+    const context = createContext();
+    const stringifySpy = vi.spyOn(JSON, 'stringify');
+    let expectedUpdateTabCount = 0;
+    let expectedPreviewTriggerCount = 0;
+    let expectedExportTriggerCount = 0;
+
+    const triggerInterleavedBatch = (batch: Array<'preview' | 'export'>) => {
+      batch.forEach((action) => {
+        if (action === 'preview') {
+          context.commands.handlePreviewData();
+          expectedPreviewTriggerCount += 1;
+        } else {
+          context.commands.handleExport();
+          expectedExportTriggerCount += 1;
+        }
+        expectedUpdateTabCount += 1;
+        expect(context.filesStore.updateTab).toHaveBeenCalledTimes(expectedUpdateTabCount);
+      });
+    };
+
+    const firstBatch: Array<'preview' | 'export'> = ['preview', 'export', 'preview', 'export', 'preview'];
+    triggerInterleavedBatch(firstBatch);
+    expect(vi.getTimerCount()).toBe(firstBatch.length);
+    expect(stringifySpy).toHaveBeenCalledTimes(0);
+    expect(context.filesStore.exportData).toHaveBeenCalledTimes(0);
+
+    vi.advanceTimersByTime(99);
+    expect(vi.getTimerCount()).toBe(firstBatch.length);
+    expect(stringifySpy).toHaveBeenCalledTimes(0);
+    expect(context.filesStore.exportData).toHaveBeenCalledTimes(0);
+
+    const previewCountAfterFirstBatchFlush = firstBatch.filter((action) => action === 'preview').length;
+    const exportCountAfterFirstBatchFlush = firstBatch.filter((action) => action === 'export').length;
+
+    vi.runOnlyPendingTimers();
+    expect(vi.getTimerCount()).toBe(0);
+    expect(stringifySpy).toHaveBeenCalledTimes(previewCountAfterFirstBatchFlush);
+    expect(context.filesStore.exportData).toHaveBeenCalledTimes(exportCountAfterFirstBatchFlush);
+
+    const secondBatch: Array<'preview' | 'export'> = ['export', 'preview', 'export', 'preview'];
+    triggerInterleavedBatch(secondBatch);
+    expect(vi.getTimerCount()).toBe(secondBatch.length);
+    expect(context.filesStore.updateTab).toHaveBeenCalledTimes(expectedUpdateTabCount);
+    expect(stringifySpy).toHaveBeenCalledTimes(previewCountAfterFirstBatchFlush);
+    expect(context.filesStore.exportData).toHaveBeenCalledTimes(exportCountAfterFirstBatchFlush);
+
+    vi.advanceTimersByTime(99);
+    expect(vi.getTimerCount()).toBe(secondBatch.length);
+    expect(stringifySpy).toHaveBeenCalledTimes(previewCountAfterFirstBatchFlush);
+    expect(context.filesStore.exportData).toHaveBeenCalledTimes(exportCountAfterFirstBatchFlush);
+
+    vi.advanceTimersByTime(1);
+    expect(vi.getTimerCount()).toBe(2);
+    expect(stringifySpy).toHaveBeenCalledTimes(expectedPreviewTriggerCount);
+    expect(context.filesStore.exportData).toHaveBeenCalledTimes(exportCountAfterFirstBatchFlush);
+
+    vi.advanceTimersByTime(1899);
+    expect(vi.getTimerCount()).toBe(2);
+    expect(stringifySpy).toHaveBeenCalledTimes(expectedPreviewTriggerCount);
+    expect(context.filesStore.exportData).toHaveBeenCalledTimes(exportCountAfterFirstBatchFlush);
+
+    vi.advanceTimersByTime(1);
+    expect(vi.getTimerCount()).toBe(0);
+    expect(context.filesStore.exportData).toHaveBeenCalledTimes(expectedExportTriggerCount);
+    expect(context.filesStore.updateTab).toHaveBeenCalledTimes(expectedUpdateTabCount);
+
+    vi.runOnlyPendingTimers();
+    expect(vi.getTimerCount()).toBe(0);
+    expect(stringifySpy).toHaveBeenCalledTimes(expectedPreviewTriggerCount);
+    expect(context.filesStore.exportData).toHaveBeenCalledTimes(expectedExportTriggerCount);
+    stringifySpy.mockRestore();
+  });
+
   it('handlePreviewData keeps serialize-failure error behavior', () => {
     const context = createContext();
     context.filesStore.fileList = [

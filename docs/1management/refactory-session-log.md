@@ -40,6 +40,36 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-03] Session 79 - Reinforce Timer Determinism Under Pre-Threshold Flush and Rebatch Isolation
+
+- Refactory Scope:
+  - Phase: Phase 2
+  - Task: ImportExport 阈值前 flush + 重批次隔离确定性补强（`useToolbarImportExportCommands`，仅测试补强）
+- In Scope Files:
+  - `src/__tests__/useToolbarImportExportCommands.test.ts`
+  - `docs/2design/ToolbarArchitecture.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `FlowEditor` 新增重构任务
+  - `groupRules` 规则语义调整
+  - `docs/1management/plan.md` 更新
+  - Phase 1 / Phase 3 内容
+- Decisions:
+  - 新增“阈值前 flush”回归：首批交错触发后仅推进 `99ms`，随后执行 `runOnlyPendingTimers`，验证 `preview/export` 计数在局部 flush 收束后不漂移。
+  - 在首批次 flush 后触发新批次，按 `99ms -> 1ms -> 1899ms -> 1ms` 分段推进，持续锁定 `updateTab` 即时计数、`preview/export` 延时计数稳定且无提前触发。
+  - 在局部 flush 后和批次收尾后分别补充 `vi.getTimerCount() === 0` 清理断言，确保无幽灵定时器残留。
+  - 更新 `ToolbarArchitecture.md` Task 38，记录本轮 pre-threshold flush + rebatch 隔离确定性边界。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 定时守卫依赖 fake timers 与当前 `setTimeout` 宏任务调度语义；若后续迁移到其他调度机制，需要同步调整分段窗口与计数断言。
+- Next Recommended Unit:
+  - Phase 2 下一原子任务：继续补强 `toolbar-wiring.regression` / `toolbar-architecture.guard` 的导入弹窗结构变体守卫（仅测试补强，不改语义）。
+
 ## [2026-03-03] Session 78 - Tighten Import-Dialog Local Template Invariants in Toolbar Architecture Guard
 
 - Refactory Scope:
