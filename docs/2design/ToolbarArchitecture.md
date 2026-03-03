@@ -42,6 +42,7 @@
 27. Toolbar 导入弹窗作用域去标题耦合回归：结构锚点定位守卫：`toolbar-wiring.regression`
 28. Toolbar 导入弹窗模板接线结构守卫补强：来源分支不变量与二维码双入口接线守卫：`toolbar-architecture.guard`
 29. ImportExport 定时窗口边界确定性补强：分段推进与多批次交错计数守卫：`useToolbarImportExportCommands`
+30. Toolbar 导入弹窗结构作用域排他性回归：结构锚点 exclusivity 与多轮计数对齐守卫：`toolbar-wiring.regression`
 
 ## Task 1 落地（导入/导出/预览）
 
@@ -383,3 +384,13 @@
 - 在 `handleExport` / `handlePreviewData` 交错触发后，按 `99ms -> 1ms -> 1899ms -> 1ms` 分段推进，锁定 `updateTab` 即时计数、`100ms` 预览计数、`2000ms` 导出计数均稳定且无提前触发。
 - 增加“多批次交错 + 中途 flush 后再触发新一批”回归，验证第二批的预览/导出计数在同一分段窗口下持续对齐、不漂移。
 - 保持既有失败分支语义不变（序列化失败、导入失败、二维码失败等），仅补确定性断言，不改实现逻辑。
+
+## Task 30 落地（Toolbar 导入弹窗结构作用域排他性回归）
+
+增强：`src/__tests__/toolbar-wiring.regression.test.ts`
+
+回归目标：
+
+- 导入弹窗作用域定位继续使用结构锚点组合（`import-form` + `dialog-footer`），并在 `teamCode` 来源下显式校验 `team-code-qr-actions` 仍位于同一导入弹窗作用域内。
+- 显式校验导入弹窗作用域对 `.dialog-footer` 的排他性：导入作用域唯一，且存在其它非导入弹窗 footer，不应被误命中。
+- 保持并验证 `json/teamCode` 来源绑定可见性断言与 `openImportDialog + json/teamCode/qr` 三路径命令在多轮切换/重开场景中的计数持续对齐。

@@ -40,6 +40,36 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-03] Session 71 - Harden Import-Dialog Structural Scope Exclusivity in Toolbar Wiring Regression
+
+- Refactory Scope:
+  - Phase: Phase 2
+  - Task: Toolbar 导入弹窗结构作用域排他性回归（`toolbar-wiring.regression`，仅测试补强）
+- In Scope Files:
+  - `src/__tests__/toolbar-wiring.regression.test.ts`
+  - `docs/2design/ToolbarArchitecture.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `FlowEditor` 新增重构任务
+  - `groupRules` 规则语义调整
+  - `docs/1management/plan.md` 更新
+  - Phase 1 / Phase 3 内容
+- Decisions:
+  - 在导入弹窗作用域 helper 中增加 `.dialog-footer` 排他性守卫：导入作用域必须唯一，且显式断言存在其它非导入 footer，防止结构定位误命中。
+  - 保持结构锚点定位策略（`import-form` + `dialog-footer`），并在 `teamCode` 来源下显式校验 `team-code-qr-actions` 仍位于同一导入弹窗作用域。
+  - 保持 `json/teamCode` 来源绑定可见性断言与 `openImportDialog + json/teamCode/qr` 多轮切换/重开计数对齐语义不变。
+  - 更新 `ToolbarArchitecture.md` Task 30，记录本轮结构作用域排他性回归边界。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 排他性守卫依赖当前 `dialog-footer` 与导入弹窗结构类名；若后续模板结构变更，需要同步更新结构锚点断言。
+- Next Recommended Unit:
+  - Phase 2 下一原子任务：在 `toolbar-architecture.guard` 增加导入接线参数与来源分支不变量守卫（仅测试补强）。
+
 ## [2026-03-03] Session 70 - Harden Import/Export Timer Window Boundary Determinism Regression
 
 - Refactory Scope:

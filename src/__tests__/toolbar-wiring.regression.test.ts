@@ -238,7 +238,13 @@ const clickButtonByText = async (buttonText: string) => {
   wrapper.unmount();
 };
 
-const getImportDialogScope = (wrapper: ReturnType<typeof createWrapper>) => {
+const getImportDialogScope = (
+  wrapper: ReturnType<typeof createWrapper>,
+  expectedSource: 'json' | 'teamCode',
+) => {
+  const allDialogFooters = wrapper.findAll('.dialog-footer');
+  expect(allDialogFooters.length).toBeGreaterThan(1);
+
   const importDialogScopes = wrapper.findAll('div').filter((scope) => {
     return scope.find('.import-form').exists()
       && scope.findAll('.import-form').length === 1
@@ -246,11 +252,27 @@ const getImportDialogScope = (wrapper: ReturnType<typeof createWrapper>) => {
       && scope.findAll('.dialog-footer').length === 1;
   });
   expect(importDialogScopes).toHaveLength(1);
-  return importDialogScopes[0];
+  const importDialogScope = importDialogScopes[0];
+
+  const nonImportDialogFooters = allDialogFooters.filter((footer) => {
+    return !importDialogScope.element.contains(footer.element);
+  });
+  expect(nonImportDialogFooters.length).toBeGreaterThan(0);
+
+  if (expectedSource === 'teamCode') {
+    const teamCodeQrActions = importDialogScope.findAll('.team-code-qr-actions');
+    expect(teamCodeQrActions).toHaveLength(1);
+    expect(importDialogScope.element.contains(teamCodeQrActions[0].element)).toBe(true);
+  }
+
+  return importDialogScope;
 };
 
-const getImportDialogCommandButtons = (wrapper: ReturnType<typeof createWrapper>) => {
-  const importDialogScope = getImportDialogScope(wrapper);
+const getImportDialogCommandButtons = (
+  wrapper: ReturnType<typeof createWrapper>,
+  expectedSource: 'json' | 'teamCode',
+) => {
+  const importDialogScope = getImportDialogScope(wrapper, expectedSource);
   const footerButtons = importDialogScope.findAll('.dialog-footer button');
   const teamCodeQrActions = importDialogScope.find('.team-code-qr-actions');
   const teamCodeQrButton = importDialogScope.find('.team-code-qr-actions button');
@@ -267,7 +289,7 @@ const assertImportSourceBoundVisibility = (
   expectedSource: 'json' | 'teamCode',
 ) => {
   expect(vm.importSource).toBe(expectedSource);
-  const { footerButtons, teamCodeQrActions, teamCodeQrButton } = getImportDialogCommandButtons(wrapper);
+  const { footerButtons, teamCodeQrActions, teamCodeQrButton } = getImportDialogCommandButtons(wrapper, expectedSource);
   expect(footerButtons).toHaveLength(2);
 
   const sourceCommandButton = footerButtons[1];
