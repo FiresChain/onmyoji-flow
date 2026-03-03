@@ -40,6 +40,36 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-03] Session 89 - Harden Import-Dialog Anchoring Under Command-Order and Class-Drift Noise Matrix
+
+- Refactory Scope:
+  - Phase: Phase 2
+  - Task: Toolbar 导入弹窗结构锚点：命令顺序漂移 + class 漂移噪声矩阵（`toolbar-wiring.regression`，仅测试补强）
+- In Scope Files:
+  - `src/__tests__/toolbar-wiring.regression.test.ts`
+  - `docs/2design/ToolbarArchitecture.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `FlowEditor` 新增重构任务
+  - `groupRules` 规则语义调整
+  - `docs/1management/plan.md` 更新
+  - Phase 1 / Phase 3 内容
+- Decisions:
+  - 新增 command-order + class-drift noise matrix `ElDialog` stub：在非导入弹窗注入同 class 假结构（`import-form` / `dialog-footer` / `team-code-qr-actions`）与同文案假按钮（`选择 JSON 文件` / `导入阵容码` / `选择二维码图片`），并叠加额外噪声按钮与命令顺序漂移。
+  - 在 `teamCode` 分支增加“广义候选 + 作用域收敛”断言：同 `accept="image/*"` 的假 `team-code-qr-actions` 不被误命中，真实二维码动作块继续仅归属导入弹窗作用域。
+  - 新增 5 轮“打开/切换来源/关闭/重开（含关闭后污染态）”回归，持续校验 `openImportDialog + json/teamCode/qr` 三路径命令计数无漂移。
+  - 更新 `ToolbarArchitecture.md` Task 48，记录本轮 command-order/class-drift 噪声矩阵结构锚点边界。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 结构锚点守卫仍依赖导入区按钮文本与二维码 input 属性；若后续模板文案或按钮结构重排，需要同步更新定位条件与计数断言。
+- Next Recommended Unit:
+  - Phase 2 下一原子任务：继续收紧 `toolbar-architecture.guard` 的导入弹窗局部模板不变量（表单归属 + footer 相邻互斥 AST 守卫，含二维码接线唯一性）。
+
 ## [2026-03-03] Session 88 - Extend Timer Determinism with Repeated Pre-Threshold Flush Loops and Multi-Rebatch Isolation
 
 - Refactory Scope:
