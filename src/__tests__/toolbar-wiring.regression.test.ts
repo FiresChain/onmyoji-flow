@@ -67,11 +67,20 @@ vi.mock('@/utils/assetUrl', () => ({
 }));
 
 vi.mock('@/components/composables/useToolbarImportExportCommands', () => ({
-  useToolbarImportExportCommands: vi.fn(() => ({
+  useToolbarImportExportCommands: vi.fn((options: {
+    importSource: { value: 'json' | 'teamCode' };
+    teamCodeInput: { value: string };
+    state: { showImportDialog: boolean };
+  }) => ({
     handleExport: wiringSpies.handleExport,
     handlePreviewData: wiringSpies.handlePreviewData,
     copyDataToClipboard: vi.fn(),
-    openImportDialog: wiringSpies.openImportDialog,
+    openImportDialog: () => {
+      wiringSpies.openImportDialog();
+      options.importSource.value = 'json';
+      options.teamCodeInput.value = '';
+      options.state.showImportDialog = true;
+    },
     triggerJsonFileImport: wiringSpies.triggerJsonFileImport,
     triggerTeamCodeQrImport: wiringSpies.triggerTeamCodeQrImport,
     handleTeamCodeImport: wiringSpies.handleTeamCodeImport,
@@ -229,6 +238,15 @@ const clickButtonByText = async (buttonText: string) => {
   wrapper.unmount();
 };
 
+type ToolbarVm = {
+  importSource: 'json' | 'teamCode';
+  teamCodeInput: string;
+  state: {
+    showImportDialog: boolean;
+  };
+  $nextTick: () => Promise<void>;
+};
+
 describe('toolbar wiring regression', () => {
   beforeEach(() => {
     Object.values(wiringSpies).forEach((spy) => spy.mockReset());
@@ -283,21 +301,35 @@ describe('toolbar wiring regression', () => {
     expect(wiringSpies.handleClearCanvas).toHaveBeenCalledTimes(1);
   });
 
-  it('keeps import dialog command paths stable after source switch', async () => {
+  it('keeps import dialog state-reset and command paths stable after source switch', async () => {
     const wrapper = createWrapper();
+    const vm = wrapper.vm as unknown as ToolbarVm;
 
     const importButton = findButtonByText(wrapper, '导入');
     expect(importButton).toBeTruthy();
     await importButton!.trigger('click');
     expect(wiringSpies.openImportDialog).toHaveBeenCalledTimes(1);
+    expect(vm.importSource).toBe('json');
+    expect(vm.state.showImportDialog).toBe(true);
 
     const jsonButton = findButtonByText(wrapper, '选择 JSON 文件');
     expect(jsonButton).toBeTruthy();
     await jsonButton!.trigger('click');
     expect(wiringSpies.triggerJsonFileImport).toHaveBeenCalledTimes(1);
 
-    (wrapper.vm as unknown as Record<string, unknown>).importSource = 'teamCode';
-    await wrapper.vm.$nextTick();
+    vm.importSource = 'teamCode';
+    vm.teamCodeInput = '#TA#DIRTY';
+    vm.state.showImportDialog = false;
+    await vm.$nextTick();
+
+    await importButton!.trigger('click');
+    expect(wiringSpies.openImportDialog).toHaveBeenCalledTimes(2);
+    expect(vm.importSource).toBe('json');
+    expect(vm.teamCodeInput).toBe('');
+    expect(vm.state.showImportDialog).toBe(true);
+
+    vm.importSource = 'teamCode';
+    await vm.$nextTick();
 
     const teamCodeButton = findButtonByText(wrapper, '导入阵容码');
     expect(teamCodeButton).toBeTruthy();

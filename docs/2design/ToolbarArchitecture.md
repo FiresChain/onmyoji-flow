@@ -25,6 +25,7 @@
 10. 导入对话框接线回归：`toolbar-wiring.regression`（json/teamCode/qr）
 11. import/export 架构守卫补强：`toolbar-architecture.guard`
 12. import/export 定时与清理分支补强：`useToolbarImportExportCommands`
+13. 导入对话框状态复位接线回归：`toolbar-wiring.regression`
 
 ## Task 1 落地（导入/导出/预览）
 
@@ -195,3 +196,13 @@
 - `copyDataToClipboard` 补齐剪贴板失败分支，保持错误提示语义不变。
 - `downloadImage` 补齐空预览 no-op 与下载后关闭预览分支。
 - `handleClose` 补齐预览关闭清理分支（`previewImage` 清空 + `done` 回调执行）。
+
+## Task 13 落地（Toolbar 导入对话框状态复位接线回归）
+
+增强：`src/__tests__/toolbar-wiring.regression.test.ts`
+
+回归目标：
+
+- “导入”按钮继续命中 `openImportDialog`，并保持导入弹窗打开链路不变。
+- 来源切换到 `teamCode` 并关闭弹窗后，再次打开时仍恢复默认来源 `json`，且输入状态复位不变。
+- 导入弹窗命令链路保持 `json/teamCode/qr` 三路径接线：`triggerJsonFileImport` / `handleTeamCodeImport` / `triggerTeamCodeQrImport`。
