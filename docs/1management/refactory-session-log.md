@@ -40,6 +40,36 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-04] Session 107 - Harden Import-Dialog Anchoring Under Nested Slot-Footer Secondary-Order Class-Alias-Drift Duplicate-Accept Extended Fake-Action Noise Matrix v2
+
+- Refactory Scope:
+  - Phase: Phase 2
+  - Task: Toolbar 导入弹窗结构锚点：嵌套 slot-footer 次级顺序 + class alias 漂移 + duplicate-accept 扩展假动作噪声 v2（`toolbar-wiring.regression`，仅测试补强）
+- In Scope Files:
+  - `src/__tests__/toolbar-wiring.regression.test.ts`
+  - `docs/2design/ToolbarArchitecture.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `FlowEditor` 新增重构任务
+  - `groupRules` 规则语义调整
+  - `docs/1management/plan.md` 更新
+  - Phase 1 / Phase 3 内容
+- Decisions:
+  - 新增 nested slot-footer secondary-order + class-alias-drift + duplicate-accept extended fake-action noise matrix v2 `ElDialog` stub：在非导入弹窗注入多层假 `import-form` / `dialog-footer` / `team-code-qr-actions`，叠加 class alias 漂移、secondary/footer 次级顺序漂移、同文案按钮与隐藏 fake inputs。
+  - 在 `teamCode` 分支补强“广义候选 + 作用域收敛”断言：primary/secondary/tertiary 假 actions 均含同文案与 duplicate `accept="image/*"`，且不被导入弹窗真实作用域误命中。
+  - 新增 10 轮“打开/切换来源/关闭/重开（含关闭后污染态）”回归，持续校验 `openImportDialog + json/teamCode/qr` 三路径命令计数对齐。
+  - 更新 `ToolbarArchitecture.md` Task 66，记录本轮 class alias 漂移 + duplicate-accept 扩展噪声矩阵结构锚点边界。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 结构锚点守卫仍依赖导入区按钮文案、`dialog-footer`/`team-code-qr-actions` class 与二维码 input 属性；若后续模板结构或文案重排，需要同步更新作用域匹配与计数断言。
+- Next Recommended Unit:
+  - Phase 2 下一原子任务：继续收紧 `toolbar-architecture.guard` 导入弹窗局部模板不变量（slot-footer 分支互斥与顺序稳定、event-uniqueness/action-pair AST 守卫，仅测试补强）。
+
 ## [2026-03-04] Session 106 - Reinforce Timer Determinism Under Alternating Dual-Window Hybrid Flush Repeated Pre-Threshold Loops and Chained Immediate Rebatch Zero-Residual Cycles
 
 - Refactory Scope:

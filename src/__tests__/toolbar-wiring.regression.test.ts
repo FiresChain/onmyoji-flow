@@ -746,6 +746,124 @@ const ElDialogWithNestedSlotFooterSecondaryOrderClassDriftDuplicateAcceptExtende
   },
 });
 
+const ElDialogWithNestedSlotFooterSecondaryOrderClassAliasDriftDuplicateAcceptExtendedFakeActionNoiseMatrixV2Stub = defineComponent({
+  name: 'ElDialog',
+  setup(_, { attrs, slots }) {
+    return () => {
+      const title = typeof attrs.title === 'string' ? attrs.title : '';
+      const isImportDialog = title === '导入数据';
+      const nestedSecondaryOrderClassAliasDuplicateAcceptExtendedNoiseNodes = isImportDialog
+        ? []
+        : [
+          h('section', { class: 'nested-slot-footer-secondary-order-class-alias-drift-duplicate-accept-extended-fake-action-noise-matrix-v2' }, [
+            h('div', {
+              class: 'nested-slot-footer-secondary-order-class-alias-drift-duplicate-accept-extended-fake-action-noise-layer-v2 nested-slot-footer-secondary-order-class-alias-drift-duplicate-accept-extended-fake-action-noise-layer-json-v2',
+              slot: 'footer',
+              'data-slot-footer-drift': 'nested-secondary-class-alias-json-layer-v2',
+            }, [
+              h('div', {
+                class: 'nested-slot-footer-secondary-order-class-alias-drift-duplicate-accept-extended-fake-action-fake-scope-v2 nested-slot-footer-secondary-order-class-alias-drift-duplicate-accept-extended-fake-action-fake-scope-json-v2',
+                slot: 'footer',
+                'data-secondary-footer-order': 'json-v2',
+              }, [
+                h('div', {
+                  class: 'import-form nested-slot-footer-secondary-order-class-alias-drift-duplicate-accept-extended-fake-action-import-form-fake-anchor-v2 nested-slot-footer-secondary-order-class-alias-drift-duplicate-accept-extended-fake-action-import-form-class-alias-drift-v2 import-form-alias-drift-v2',
+                }, 'nested-slot-footer-secondary-order-class-alias-drift-duplicate-accept-extended-fake-action-import-form-fake-anchor-json-v2'),
+                h('span', {
+                  class: 'dialog-footer nested-slot-footer-secondary-order-class-alias-drift-duplicate-accept-extended-fake-action-dialog-footer-fake-anchor-v2 nested-slot-footer-secondary-order-class-alias-drift-duplicate-accept-extended-fake-action-dialog-footer-class-alias-drift-v2',
+                  slot: 'footer',
+                  'data-slot-footer-drift': 'nested-secondary-class-alias-json-footer-v2',
+                }, [
+                  h('button', '选择 JSON 文件'),
+                  h('button', '取消'),
+                  h('button', 'nested-slot-footer-secondary-order-class-alias-drift-duplicate-accept-extended-fake-action-extra-noise-json-v2-a'),
+                  h('button', 'nested-slot-footer-secondary-order-class-alias-drift-duplicate-accept-extended-fake-action-extra-noise-json-v2-b'),
+                ]),
+                h('span', {
+                  class: 'dialog-footer nested-slot-footer-secondary-order-class-alias-drift-duplicate-accept-extended-fake-action-dialog-footer-secondary-order-noise-v2 nested-slot-footer-secondary-order-class-alias-drift-duplicate-accept-extended-fake-action-dialog-footer-class-alias-drift-secondary-v2',
+                  slot: 'footer',
+                  'data-secondary-footer-order': 'json-secondary-v2',
+                }, [
+                  h('button', 'nested-slot-footer-secondary-order-class-alias-drift-duplicate-accept-extended-fake-action-extra-noise-json-secondary-v2'),
+                  h('button', '选择 JSON 文件'),
+                  h('button', '取消'),
+                ]),
+              ]),
+            ]),
+            h('div', {
+              class: 'nested-slot-footer-secondary-order-class-alias-drift-duplicate-accept-extended-fake-action-noise-layer-v2 nested-slot-footer-secondary-order-class-alias-drift-duplicate-accept-extended-fake-action-noise-layer-team-code-v2',
+            }, [
+              h('div', {
+                class: 'nested-slot-footer-secondary-order-class-alias-drift-duplicate-accept-extended-fake-action-fake-scope-v2 nested-slot-footer-secondary-order-class-alias-drift-duplicate-accept-extended-fake-action-fake-scope-team-code-v2',
+                slot: 'footer',
+                'data-secondary-footer-order': 'team-code-v2',
+              }, [
+                h('div', {
+                  class: 'import-form nested-slot-footer-secondary-order-class-alias-drift-duplicate-accept-extended-fake-action-import-form-fake-anchor-v2 nested-slot-footer-secondary-order-class-alias-drift-duplicate-accept-extended-fake-action-import-form-class-alias-drift-v2 import-form-shadow-alias-v2',
+                }, 'nested-slot-footer-secondary-order-class-alias-drift-duplicate-accept-extended-fake-action-import-form-fake-anchor-team-code-v2'),
+                h('span', {
+                  class: 'dialog-footer nested-slot-footer-secondary-order-class-alias-drift-duplicate-accept-extended-fake-action-dialog-footer-fake-anchor-v2 nested-slot-footer-secondary-order-class-alias-drift-duplicate-accept-extended-fake-action-dialog-footer-class-alias-drift-v2',
+                }, [
+                  h('button', '导入阵容码'),
+                  h('button', '取消'),
+                  h('button', 'nested-slot-footer-secondary-order-class-alias-drift-duplicate-accept-extended-fake-action-extra-noise-team-code-v2-a'),
+                  h('button', 'nested-slot-footer-secondary-order-class-alias-drift-duplicate-accept-extended-fake-action-extra-noise-team-code-v2-b'),
+                ]),
+                h('div', {
+                  class: 'team-code-qr-actions nested-slot-footer-secondary-order-class-alias-drift-duplicate-accept-extended-fake-action-team-code-qr-actions-fake-anchor-v2-primary nested-slot-footer-secondary-order-class-alias-drift-duplicate-accept-extended-fake-action-team-code-qr-actions-class-alias-drift-v2',
+                  slot: 'footer',
+                  'data-slot-footer-drift': 'nested-secondary-class-alias-team-code-qr-primary-v2',
+                }, [
+                  h('button', 'nested-slot-footer-secondary-order-class-alias-drift-duplicate-accept-extended-fake-action-extra-noise-qr-v2-pre'),
+                  h('input', { type: 'file', accept: 'image/*' }),
+                  h('button', '选择二维码图片'),
+                  h('input', { type: 'file', accept: 'image/*' }),
+                  h('input', {
+                    type: 'file',
+                    accept: 'image/*',
+                    class: 'nested-slot-footer-secondary-order-class-alias-drift-duplicate-accept-extended-fake-action-hidden-input-noise-v2',
+                    style: 'display:none',
+                  }),
+                  h('button', 'nested-slot-footer-secondary-order-class-alias-drift-duplicate-accept-extended-fake-action-extra-noise-qr-v2-post'),
+                ]),
+                h('div', {
+                  class: 'dialog-footer nested-slot-footer-secondary-order-class-alias-drift-duplicate-accept-extended-fake-action-footer-extra-noise-v2',
+                  slot: 'footer',
+                  'data-slot-footer-drift': 'nested-secondary-class-alias-team-code-footer-extra-v2',
+                }, [
+                  h('button', '导入阵容码'),
+                  h('button', 'nested-slot-footer-secondary-order-class-alias-drift-duplicate-accept-extended-fake-action-footer-extra-command-v2'),
+                ]),
+              ]),
+              h('div', {
+                class: 'team-code-qr-actions nested-slot-footer-secondary-order-class-alias-drift-duplicate-accept-extended-fake-action-team-code-qr-actions-fake-anchor-v2-secondary nested-slot-footer-secondary-order-class-alias-drift-duplicate-accept-extended-fake-action-team-code-qr-actions-class-alias-drift-v2-secondary',
+                slot: 'footer',
+                'data-slot-footer-drift': 'nested-secondary-class-alias-team-code-qr-secondary-v2',
+              }, [
+                h('input', { type: 'file', accept: 'image/*' }),
+                h('button', '选择二维码图片'),
+                h('input', { type: 'file', accept: 'image/*' }),
+                h('button', 'nested-slot-footer-secondary-order-class-alias-drift-duplicate-accept-extended-fake-action-extra-noise-qr-secondary-v2-a'),
+                h('input', { type: 'file', accept: 'image/*' }),
+                h('button', 'nested-slot-footer-secondary-order-class-alias-drift-duplicate-accept-extended-fake-action-extra-noise-qr-secondary-v2-b'),
+              ]),
+              h('div', {
+                class: 'team-code-qr-actions nested-slot-footer-secondary-order-class-alias-drift-duplicate-accept-extended-fake-action-team-code-qr-actions-fake-anchor-v2-tertiary',
+              }, [
+                h('button', 'nested-slot-footer-secondary-order-class-alias-drift-duplicate-accept-extended-fake-action-extra-noise-qr-tertiary-v2-pre'),
+                h('input', { type: 'file', accept: 'image/*' }),
+                h('button', '选择二维码图片'),
+                h('input', { type: 'file', accept: 'image/*' }),
+                h('button', 'nested-slot-footer-secondary-order-class-alias-drift-duplicate-accept-extended-fake-action-extra-noise-qr-tertiary-v2-post'),
+              ]),
+            ]),
+          ]),
+        ];
+      return h('div', [...nestedSecondaryOrderClassAliasDuplicateAcceptExtendedNoiseNodes, slots.default?.(), slots.footer?.()]);
+    };
+  },
+});
+
 const ElFormStub = defineComponent({
   name: 'ElForm',
   setup(_, { attrs, slots }) {
@@ -772,8 +890,11 @@ const createWrapper = (options?: {
   combinedSlotFooterClassDriftFooterOrderFakeActionNoiseMatrix?: boolean;
   nestedSlotFooterSecondaryOrderDuplicateAcceptFakeActionNoiseMatrix?: boolean;
   nestedSlotFooterSecondaryOrderClassDriftDuplicateAcceptExtendedFakeActionNoiseMatrix?: boolean;
+  nestedSlotFooterSecondaryOrderClassAliasDriftDuplicateAcceptExtendedFakeActionNoiseMatrixV2?: boolean;
 }) => {
-  const dialogStub = options?.nestedSlotFooterSecondaryOrderClassDriftDuplicateAcceptExtendedFakeActionNoiseMatrix
+  const dialogStub = options?.nestedSlotFooterSecondaryOrderClassAliasDriftDuplicateAcceptExtendedFakeActionNoiseMatrixV2
+    ? ElDialogWithNestedSlotFooterSecondaryOrderClassAliasDriftDuplicateAcceptExtendedFakeActionNoiseMatrixV2Stub
+    : options?.nestedSlotFooterSecondaryOrderClassDriftDuplicateAcceptExtendedFakeActionNoiseMatrix
     ? ElDialogWithNestedSlotFooterSecondaryOrderClassDriftDuplicateAcceptExtendedFakeActionNoiseMatrixStub
     : options?.nestedSlotFooterSecondaryOrderDuplicateAcceptFakeActionNoiseMatrix
     ? ElDialogWithNestedSlotFooterSecondaryOrderAndDuplicateAcceptFakeActionNoiseMatrixStub
@@ -2129,6 +2250,125 @@ describe('toolbar wiring regression', () => {
       await vm.$nextTick();
       vm.importSource = 'teamCode';
       vm.teamCodeInput = `#TA#CLOSED-NESTED-SLOT-FOOTER-SECONDARY-ORDER-CLASS-DRIFT-DUPLICATE-ACCEPT-EXTENDED-${round}`;
+      await vm.$nextTick();
+    }
+
+    expect(wiringSpies.openImportDialog).toHaveBeenCalledTimes(expectedOpenCount);
+    expect(wiringSpies.triggerJsonFileImport).toHaveBeenCalledTimes(expectedJsonCount);
+    expect(wiringSpies.handleTeamCodeImport).toHaveBeenCalledTimes(expectedTeamCodeCount);
+    expect(wiringSpies.triggerTeamCodeQrImport).toHaveBeenCalledTimes(expectedQrCount);
+
+    wrapper.unmount();
+  });
+
+  it('keeps import-dialog anchoring exclusive and command counts aligned under nested slot-footer secondary-order class-alias-drift duplicate-accept extended fake-action noise matrix v2 reopen cycles', async () => {
+    const wrapper = createWrapper({ nestedSlotFooterSecondaryOrderClassAliasDriftDuplicateAcceptExtendedFakeActionNoiseMatrixV2: true });
+    const vm = wrapper.vm as unknown as ToolbarVm;
+    const importButton = findButtonByText(wrapper, '导入');
+    expect(importButton).toBeTruthy();
+
+    expect(wrapper.findAll('.nested-slot-footer-secondary-order-class-alias-drift-duplicate-accept-extended-fake-action-noise-matrix-v2').length).toBeGreaterThan(0);
+    expect(wrapper.findAll('.nested-slot-footer-secondary-order-class-alias-drift-duplicate-accept-extended-fake-action-noise-layer-v2').length).toBeGreaterThan(1);
+    expect(wrapper.findAll('.nested-slot-footer-secondary-order-class-alias-drift-duplicate-accept-extended-fake-action-fake-scope-v2').length).toBeGreaterThan(1);
+    expect(wrapper.findAll('.nested-slot-footer-secondary-order-class-alias-drift-duplicate-accept-extended-fake-action-import-form-fake-anchor-v2').length).toBeGreaterThan(1);
+    expect(wrapper.findAll('.nested-slot-footer-secondary-order-class-alias-drift-duplicate-accept-extended-fake-action-import-form-class-alias-drift-v2').length).toBeGreaterThan(1);
+    expect(wrapper.findAll('.nested-slot-footer-secondary-order-class-alias-drift-duplicate-accept-extended-fake-action-dialog-footer-fake-anchor-v2').length).toBeGreaterThan(1);
+    expect(wrapper.findAll('.nested-slot-footer-secondary-order-class-alias-drift-duplicate-accept-extended-fake-action-dialog-footer-secondary-order-noise-v2').length).toBeGreaterThan(0);
+    expect(wrapper.findAll('.nested-slot-footer-secondary-order-class-alias-drift-duplicate-accept-extended-fake-action-team-code-qr-actions-fake-anchor-v2-primary').length).toBeGreaterThan(0);
+    expect(wrapper.findAll('.nested-slot-footer-secondary-order-class-alias-drift-duplicate-accept-extended-fake-action-team-code-qr-actions-fake-anchor-v2-secondary').length).toBeGreaterThan(0);
+    expect(wrapper.findAll('.nested-slot-footer-secondary-order-class-alias-drift-duplicate-accept-extended-fake-action-team-code-qr-actions-fake-anchor-v2-tertiary').length).toBeGreaterThan(0);
+    expect(wrapper.findAll('.nested-slot-footer-secondary-order-class-alias-drift-duplicate-accept-extended-fake-action-hidden-input-noise-v2').length).toBeGreaterThan(0);
+    expect(wrapper.findAll('.nested-slot-footer-secondary-order-class-alias-drift-duplicate-accept-extended-fake-action-footer-extra-noise-v2').length).toBeGreaterThan(0);
+    expect(wrapper.findAll('[data-slot-footer-drift]').length).toBeGreaterThan(10);
+    expect(wrapper.findAll('.import-form').length).toBeGreaterThan(2);
+    expect(wrapper.findAll('.dialog-footer').length).toBeGreaterThan(6);
+    expect(wrapper.findAll('.team-code-qr-actions').length).toBeGreaterThan(3);
+
+    let expectedOpenCount = 0;
+    let expectedJsonCount = 0;
+    let expectedTeamCodeCount = 0;
+    let expectedQrCount = 0;
+
+    for (let round = 1; round <= 10; round += 1) {
+      await importButton!.trigger('click');
+      expectedOpenCount += 1;
+      expect(wiringSpies.openImportDialog).toHaveBeenCalledTimes(expectedOpenCount);
+      expect(vm.importSource).toBe('json');
+      expect(vm.teamCodeInput).toBe('');
+      expect(vm.state.showImportDialog).toBe(true);
+
+      let sourceBoundVisibility = assertImportSourceBoundVisibility(wrapper, vm, 'json');
+      await sourceBoundVisibility.sourceCommandButton.trigger('click');
+      expectedJsonCount += 1;
+      expect(wiringSpies.triggerJsonFileImport).toHaveBeenCalledTimes(expectedJsonCount);
+
+      vm.importSource = 'teamCode';
+      vm.teamCodeInput = `#TA#NESTED-SLOT-FOOTER-SECONDARY-ORDER-CLASS-ALIAS-DRIFT-DUPLICATE-ACCEPT-EXTENDED-V2-${round}`;
+      await vm.$nextTick();
+
+      sourceBoundVisibility = assertImportSourceBoundVisibility(wrapper, vm, 'teamCode');
+      const importDialogScope = getImportDialogScope(wrapper, 'teamCode');
+      const broadTeamCodeQrCandidates = wrapper.findAll('.team-code-qr-actions').filter((actionsScope) => {
+        const teamCodeQrButton = actionsScope
+          .findAll('button')
+          .find((button) => button.text().trim() === '选择二维码图片');
+        return actionsScope.find('input[accept="image/*"]').exists() && Boolean(teamCodeQrButton);
+      });
+      expect(broadTeamCodeQrCandidates.length).toBeGreaterThan(3);
+      const scopedRealTeamCodeQrCandidates = broadTeamCodeQrCandidates.filter((actionsScope) => {
+        return importDialogScope.element.contains(actionsScope.element);
+      });
+      expect(scopedRealTeamCodeQrCandidates).toHaveLength(1);
+
+      wrapper.findAll('.nested-slot-footer-secondary-order-class-alias-drift-duplicate-accept-extended-fake-action-fake-scope-v2').forEach((noiseNode) => {
+        expect(importDialogScope.element.contains(noiseNode.element)).toBe(false);
+      });
+      wrapper.findAll('.nested-slot-footer-secondary-order-class-alias-drift-duplicate-accept-extended-fake-action-team-code-qr-actions-fake-anchor-v2-primary').forEach((noiseNode) => {
+        const noiseQrButton = noiseNode
+          .findAll('button')
+          .find((button) => button.text().trim() === '选择二维码图片');
+        expect(noiseNode.findAll('input[accept="image/*"]').length).toBeGreaterThanOrEqual(3);
+        expect(Boolean(noiseQrButton)).toBe(true);
+        expect(importDialogScope.element.contains(noiseNode.element)).toBe(false);
+      });
+      wrapper.findAll('.nested-slot-footer-secondary-order-class-alias-drift-duplicate-accept-extended-fake-action-team-code-qr-actions-fake-anchor-v2-secondary').forEach((noiseNode) => {
+        const noiseQrButton = noiseNode
+          .findAll('button')
+          .find((button) => button.text().trim() === '选择二维码图片');
+        expect(noiseNode.findAll('input[accept="image/*"]').length).toBeGreaterThanOrEqual(3);
+        expect(Boolean(noiseQrButton)).toBe(true);
+        expect(importDialogScope.element.contains(noiseNode.element)).toBe(false);
+      });
+      wrapper.findAll('.nested-slot-footer-secondary-order-class-alias-drift-duplicate-accept-extended-fake-action-team-code-qr-actions-fake-anchor-v2-tertiary').forEach((noiseNode) => {
+        const noiseQrButton = noiseNode
+          .findAll('button')
+          .find((button) => button.text().trim() === '选择二维码图片');
+        expect(noiseNode.findAll('input[accept="image/*"]').length).toBeGreaterThanOrEqual(2);
+        expect(Boolean(noiseQrButton)).toBe(true);
+        expect(importDialogScope.element.contains(noiseNode.element)).toBe(false);
+      });
+      wrapper.findAll('.nested-slot-footer-secondary-order-class-alias-drift-duplicate-accept-extended-fake-action-hidden-input-noise-v2').forEach((noiseInput) => {
+        expect(importDialogScope.element.contains(noiseInput.element)).toBe(false);
+      });
+      wrapper.findAll('.nested-slot-footer-secondary-order-class-alias-drift-duplicate-accept-extended-fake-action-footer-extra-noise-v2').forEach((noiseFooter) => {
+        expect(importDialogScope.element.contains(noiseFooter.element)).toBe(false);
+      });
+      wrapper.findAll('.nested-slot-footer-secondary-order-class-alias-drift-duplicate-accept-extended-fake-action-dialog-footer-fake-anchor-v2').forEach((noiseFooter) => {
+        expect(importDialogScope.element.contains(noiseFooter.element)).toBe(false);
+      });
+
+      await sourceBoundVisibility.sourceCommandButton.trigger('click');
+      expectedTeamCodeCount += 1;
+      expect(wiringSpies.handleTeamCodeImport).toHaveBeenCalledTimes(expectedTeamCodeCount);
+      expect(sourceBoundVisibility.teamCodeQrButton.exists()).toBe(true);
+      await sourceBoundVisibility.teamCodeQrButton.trigger('click');
+      expectedQrCount += 1;
+      expect(wiringSpies.triggerTeamCodeQrImport).toHaveBeenCalledTimes(expectedQrCount);
+
+      vm.state.showImportDialog = false;
+      await vm.$nextTick();
+      vm.importSource = 'teamCode';
+      vm.teamCodeInput = `#TA#CLOSED-NESTED-SLOT-FOOTER-SECONDARY-ORDER-CLASS-ALIAS-DRIFT-DUPLICATE-ACCEPT-EXTENDED-V2-${round}`;
       await vm.$nextTick();
     }
 
