@@ -802,3 +802,15 @@
 - 在非导入弹窗注入更深层级的假 `import-form` / 假 `dialog-footer` / 假 `team-code-qr-actions`，并叠加 slot-footer 次级顺序漂移与 class alias 漂移时，导入弹窗作用域仍唯一命中真实结构锚点。
 - 在 `teamCode` 来源下，含同文案按钮与多个 `accept="image/*"` 的 primary/secondary/tertiary 假 actions 不被误命中，真实二维码动作块继续仅归属导入弹窗作用域。
 - 在上述扩展噪声矩阵的多轮“打开/切换来源/关闭/重开（含关闭后污染态）”循环中，`openImportDialog + json/teamCode/qr` 三路径命令计数持续对齐（`>= 10` 轮）。
+
+## Task 67 落地（Toolbar 导入模板局部不变量：slot-footer 分支互斥 + footer-scoped event-uniqueness + action-pair AST 守卫 v2）
+
+增强：`src/__tests__/toolbar-architecture.guard.test.ts`
+
+回归目标：
+
+- 锁定 `import-form` / `importSource` / `teamCodeInput` 在全模板、导入弹窗局部、导入表单局部持续唯一，且绑定严格归属导入表单。
+- 锁定 footer 三按钮顺序稳定：关闭按钮 + `json(v-if)` + `teamCode(v-else)`，显式禁止 `v-else-if`、分支互换与 footer 外漂移。
+- 锁定 `triggerJsonFileImport` / `handleTeamCodeImport` 在导入 footer 分支中唯一绑定，且模板全局仅保留该唯一路径。
+- 锁定 `team-code-qr-actions` 与二维码 input 接线唯一（`ref + @change + accept="image/*"`），并守卫 action/input 配对存在且不依赖固定先后顺序。
+- 持续守卫 `Toolbar.vue` 仅为接线层：不回流 `teamCodeService` 与 import/export 实现依赖，`useToolbarImportExportCommands` 入参键保持完整。

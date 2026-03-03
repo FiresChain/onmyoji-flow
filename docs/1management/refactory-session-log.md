@@ -40,6 +40,38 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-04] Session 108 - Enforce Import-Dialog Local Ownership with Slot-Footer Branch-Exclusivity and Footer-Scoped Event-Uniqueness Action-Pair AST Guards v2
+
+- Refactory Scope:
+  - Phase: Phase 2
+  - Task: Toolbar 导入模板局部不变量：slot-footer 分支互斥 + footer-scoped event-uniqueness + action-pair AST 守卫 v2（`toolbar-architecture.guard`，仅测试补强）
+- In Scope Files:
+  - `src/__tests__/toolbar-architecture.guard.test.ts`
+  - `docs/2design/ToolbarArchitecture.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `FlowEditor` 新增重构任务
+  - `groupRules` 规则语义调整
+  - `docs/1management/plan.md` 更新
+  - Phase 1 / Phase 3 内容
+- Decisions:
+  - 新增导入弹窗局部 ownership AST 守卫 v2：`import-form/importSource/teamCodeInput` 在全模板、导入弹窗局部、导入表单局部持续唯一，且绑定继续归属导入表单。
+  - 新增 slot-footer 分支互斥与顺序守卫 v2：footer 三按钮继续锁定“关闭 + `json(v-if)` + `teamCode(v-else)`”，显式禁止 `v-else-if` 与分支漂移。
+  - 强化 footer-scoped event-uniqueness：`triggerJsonFileImport/handleTeamCodeImport` 在导入 footer 分支中保持唯一绑定，且不漂移到 footer 外。
+  - 持续守卫 `team-code-qr-actions` 与二维码 input 接线唯一（`ref + @change + accept="image/*"`），并保持 action/input 配对存在但不依赖固定先后顺序。
+  - 持续守卫 `Toolbar.vue` 接线层边界：不回流 `teamCodeService` 与 import/export 实现依赖，`useToolbarImportExportCommands` 入参键保持完整。
+  - 更新 `ToolbarArchitecture.md` Task 67，记录本轮导入模板局部 ownership + slot-footer branch-exclusivity + footer-scoped event-uniqueness/action-pair AST 边界。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - AST 守卫仍依赖 `Toolbar.vue` 当前模板结构与事件命名；若后续导入弹窗模板拆分为子组件，需要同步更新局部匹配与断言。
+- Next Recommended Unit:
+  - Phase 2 下一原子任务：补强 `useToolbarImportExportCommands` 在“交替双窗口 + repeated pre-threshold flush + chained immediate rebatch”场景下的计时确定性与零残留定时器守卫（仅测试补强）。
+
 ## [2026-03-04] Session 107 - Harden Import-Dialog Anchoring Under Nested Slot-Footer Secondary-Order Class-Alias-Drift Duplicate-Accept Extended Fake-Action Noise Matrix v2
 
 - Refactory Scope:
