@@ -38,6 +38,7 @@
 23. 导入来源切换可见性与命令计数漂移回归：`toolbar-wiring.regression`
 24. Toolbar 接线回归抗脆弱补强：来源状态绑定可见性断言与跨轮计数漂移守卫：`toolbar-wiring.regression`
 25. Toolbar 架构守卫 AST 完整性补强：composable 导入/调用归属与命令解构完整性守卫：`toolbar-architecture.guard`
+26. ImportExport 交错触发时序确定性补强：`useToolbarImportExportCommands`
 
 ## Task 1 落地（导入/导出/预览）
 
@@ -339,3 +340,13 @@
 - 通过 AST 守卫 `Toolbar.vue` script 必须保留 5 个 composable 的导入与调用归属：`ImportExport` / `Asset` / `Rule` / `Workspace` / `Dialog`。
 - 通过 AST 守卫 `useToolbarImportExportCommands` 的解构命令集合完整（导入/导出/预览/截图相关命令不可缺失）。
 - 通过 AST 守卫 `Toolbar.vue` script 不应直接导入 `teamCodeService` 或 import/export 实现依赖，保持接线层职责边界稳定。
+
+## Task 26 落地（ImportExport 交错触发时序确定性补强）
+
+增强：`src/__tests__/useToolbarImportExportCommands.test.ts`
+
+回归目标：
+
+- 在 `handleExport` 与 `handlePreviewData` 多轮交错触发下，持续断言 `updateTab` 立即执行，`100ms` 预览与 `2000ms` 导出计数关系稳定且无漂移。
+- 在同一轮内覆盖“先预览后导出”与“先导出后预览”两种顺序，确保双顺序下计数一致且定时语义不回退。
+- 保持既有失败分支语义与实现行为不变，仅补齐时序确定性断言。

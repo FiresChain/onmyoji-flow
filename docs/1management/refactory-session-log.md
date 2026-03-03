@@ -40,6 +40,36 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-03] Session 67 - Strengthen Interleaved Import/Export Timing Determinism Regression
+
+- Refactory Scope:
+  - Phase: Phase 2
+  - Task: ImportExport 交错触发时序确定性补强（`handleExport` / `handlePreviewData`，仅测试补强）
+- In Scope Files:
+  - `src/__tests__/useToolbarImportExportCommands.test.ts`
+  - `docs/2design/ToolbarArchitecture.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `FlowEditor` 新增重构任务
+  - `groupRules` 规则语义调整
+  - `docs/1management/plan.md` 更新
+  - Phase 1 / Phase 3 内容
+- Decisions:
+  - 新增“多轮交错触发”回归：交替触发 `handlePreviewData` 与 `handleExport`，逐步断言 `updateTab` 立即计数、`100ms` 预览计数、`2000ms` 导出计数关系稳定不漂移。
+  - 新增“同轮双顺序”回归：在单轮内覆盖 `preview -> export` 与 `export -> preview` 两种顺序，断言两类顺序下延时计数与即时计数一致。
+  - 保持既有失败分支断言与语义不变，仅补充时序确定性断言。
+  - 更新 `ToolbarArchitecture.md` Task 26，记录本轮交错时序边界。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 时序回归依赖 `setTimeout` + fake timers；若后续调度机制迁移（例如队列/微任务/节流器），需同步更新断言窗口与计数策略。
+- Next Recommended Unit:
+  - Phase 2 下一原子任务：继续补 `toolbar-wiring.regression` 的导入弹窗结构定位鲁棒性（降低对标题属性定位耦合，保持语义不变）。
+
 ## [2026-03-03] Session 66 - Add AST Guard for Toolbar Composable Import Ownership and Command Destructuring Completeness
 
 - Refactory Scope:
