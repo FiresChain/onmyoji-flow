@@ -26,6 +26,7 @@
 11. import/export 架构守卫补强：`toolbar-architecture.guard`
 12. import/export 定时与清理分支补强：`useToolbarImportExportCommands`
 13. 导入对话框状态复位接线回归：`toolbar-wiring.regression`
+14. import/export 架构守卫再收紧：`toolbar-architecture.guard`
 
 ## Task 1 落地（导入/导出/预览）
 
@@ -206,3 +207,13 @@
 - “导入”按钮继续命中 `openImportDialog`，并保持导入弹窗打开链路不变。
 - 来源切换到 `teamCode` 并关闭弹窗后，再次打开时仍恢复默认来源 `json`，且输入状态复位不变。
 - 导入弹窗命令链路保持 `json/teamCode/qr` 三路径接线：`triggerJsonFileImport` / `handleTeamCodeImport` / `triggerTeamCodeQrImport`。
+
+## Task 14 落地（ImportExport 架构守卫再收紧）
+
+增强：`src/__tests__/toolbar-architecture.guard.test.ts`
+
+回归目标：
+
+- `Toolbar.vue` 不应出现 import/export 的 DOM 与定时实现片段（`document.createElement('input'/'a')`、`FileReader`、剪贴板写入与导出/预览定时细节）。
+- `useToolbarImportExportCommands.ts` 需保留上述实现片段，确保 import/export 实现归属仍在 composable。
+- 补齐 import/export 关键错误处理路径守卫（数据预览失败、复制失败、文件格式错误、截图关键错误）以防实现回流或语义漂移。

@@ -40,6 +40,36 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-03] Session 55 - Tighten Toolbar Architecture Guard for Import/Export Timer and DOM Ownership
+
+- Refactory Scope:
+  - Phase: Phase 2
+  - Task: 收紧 `toolbar-architecture.guard`，约束 import/export 的 DOM/定时实现归属在 composable，`Toolbar.vue` 仅保留接线与模板（仅测试补强）
+- In Scope Files:
+  - `src/__tests__/toolbar-architecture.guard.test.ts`
+  - `docs/2design/ToolbarArchitecture.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `FlowEditor` 新增重构任务
+  - `groupRules` 规则语义调整
+  - `docs/1management/plan.md` 进度更新
+  - Phase 1 / Phase 3 内容
+- Decisions:
+  - 扩展 `Toolbar` 禁止片段，覆盖 import/export 的 DOM 细节（`document.createElement('input'/'a')`）、`FileReader`、剪贴板写入与导出/预览定时实现片段。
+  - 扩展 composable 必须片段，要求保留上述 DOM/定时实现与 `navigator.clipboard.writeText` 细节。
+  - 补充 import/export 关键错误处理守卫：`数据预览失败`、`复制失败`、`文件格式错误`、截图关键错误路径。
+  - 更新 `ToolbarArchitecture.md` Task 14，记录本次架构守卫收紧边界。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 架构守卫仍基于源码片段匹配，后续若重命名或调整实现顺序需同步更新守卫片段以避免误报。
+- Next Recommended Unit:
+  - Phase 2 下一原子任务：补一轮 import/export 守卫的 AST 级断言（替代部分字符串片段匹配）以降低误报风险，保持行为不变。
+
 ## [2026-03-03] Session 54 - Extend Toolbar Wiring Regression for Import Dialog State-Reset Paths
 
 - Refactory Scope:
