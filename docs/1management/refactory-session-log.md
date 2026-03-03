@@ -40,6 +40,36 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-03] Session 62 - Add AST-Level Toolbar Architecture Guard for Import/Export Ownership Boundaries
+
+- Refactory Scope:
+  - Phase: Phase 2
+  - Task: `toolbar-architecture.guard` 增加 AST 级边界守卫，降低字符串/模式匹配误报（仅测试补强）
+- In Scope Files:
+  - `src/__tests__/toolbar-architecture.guard.test.ts`
+  - `docs/2design/ToolbarArchitecture.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `FlowEditor` 新增重构任务
+  - `groupRules` 规则语义调整
+  - `docs/1management/plan.md` 更新
+  - Phase 1 / Phase 3 内容
+- Decisions:
+  - 在架构守卫中新增 AST 扫描工具，针对 `Toolbar.vue` script setup 做调用级边界断言，避免仅依赖字符串/正则导致误报。
+  - AST 级守卫明确限制 `Toolbar.vue` script 不承载 import/export 实现调用（`document.createElement`、`FileReader`、`navigator.clipboard.writeText` 与 import/export 语义定时回调）。
+  - AST 级守卫明确 `useToolbarImportExportCommands.ts` 仍持有上述实现归属，并保留导出 `2000ms` / 预览 `100ms` 定时语义。
+  - 更新 `ToolbarArchitecture.md` Task 21，记录本轮 AST 边界守卫补强内容。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - AST 守卫依赖当前 `script setup` 结构与调用名称；若后续发生结构性迁移（例如拆分到独立 TS 模块），需同步更新扫描目标与断言策略。
+- Next Recommended Unit:
+  - Phase 2 下一原子任务：补齐 `useToolbarImportExportCommands` 的确定性与 ref 事件边界回归（no-op 防污染 + 计数时序稳定性）。
+
 ## [2026-03-03] Session 61 - Extend Toolbar Wiring Regression with Closed-State Pollution Reset and Counter Alignment Guards
 
 - Refactory Scope:

@@ -1,10 +1,68 @@
 import { describe, expect, it } from 'vitest';
+import * as ts from 'typescript';
 import toolbarSource from '@/components/Toolbar.vue?raw';
 import importExportCommandsSource from '@/components/composables/useToolbarImportExportCommands.ts?raw';
 import assetManagementSource from '@/components/composables/useToolbarAssetManagement.ts?raw';
 import ruleManagementSource from '@/components/composables/useToolbarRuleManagement.ts?raw';
 import workspaceCommandsSource from '@/components/composables/useToolbarWorkspaceCommands.ts?raw';
 import dialogStateSource from '@/components/composables/useToolbarDialogState.ts?raw';
+
+interface AstScanResult {
+  sourceFile: ts.SourceFile;
+  callExpressions: ts.CallExpression[];
+  newExpressions: ts.NewExpression[];
+}
+
+const extractScriptSetupContent = (sfcSource: string) => {
+  const scriptSetupMatch = sfcSource.match(/<script setup[^>]*>([\s\S]*?)<\/script>/);
+  if (!scriptSetupMatch) {
+    throw new Error('Toolbar.vue script setup block not found');
+  }
+  return scriptSetupMatch[1];
+};
+
+const scanAst = (sourceText: string, fileName: string): AstScanResult => {
+  const sourceFile = ts.createSourceFile(fileName, sourceText, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
+  const callExpressions: ts.CallExpression[] = [];
+  const newExpressions: ts.NewExpression[] = [];
+
+  const visit = (node: ts.Node) => {
+    if (ts.isCallExpression(node)) {
+      callExpressions.push(node);
+    }
+    if (ts.isNewExpression(node)) {
+      newExpressions.push(node);
+    }
+    ts.forEachChild(node, visit);
+  };
+
+  visit(sourceFile);
+  return { sourceFile, callExpressions, newExpressions };
+};
+
+const isSetTimeoutCall = (callExpression: ts.CallExpression) => {
+  return ts.isIdentifier(callExpression.expression) && callExpression.expression.text === 'setTimeout';
+};
+
+const getSetTimeoutDelay = (callExpression: ts.CallExpression) => {
+  const delayArg = callExpression.arguments[1];
+  if (!delayArg || !ts.isNumericLiteral(delayArg)) {
+    return null;
+  }
+  return Number(delayArg.text);
+};
+
+const getSetTimeoutCallbackText = (callExpression: ts.CallExpression, sourceFile: ts.SourceFile) => {
+  const callbackArg = callExpression.arguments[0];
+  if (!callbackArg || (!ts.isArrowFunction(callbackArg) && !ts.isFunctionExpression(callbackArg))) {
+    return '';
+  }
+  return callbackArg.getText(sourceFile);
+};
+
+const getCallExpressionText = (callExpression: ts.CallExpression, sourceFile: ts.SourceFile) => {
+  return callExpression.expression.getText(sourceFile);
+};
 
 describe('Toolbar architecture guard', () => {
   it('keeps toolbar as composable wiring layer', () => {
@@ -141,6 +199,70 @@ describe('Toolbar architecture guard', () => {
     expect(importExportCommandsSource).toMatch(
       /const handlePreviewData = \(\) => \{\s*filesStore\.updateTab\(\);\s*setTimeout\(\(\) => \{[\s\S]*state\.showDataPreviewDialog = true;[\s\S]*\},\s*100\);\s*\};/s,
     );
+  });
+
+  it('keeps import/export ownership boundaries with AST-level guards', () => {
+    const toolbarScriptSource = extractScriptSetupContent(toolbarSource);
+    const toolbarScriptAst = scanAst(toolbarScriptSource, 'Toolbar.script.ts');
+    const toolbarCallExpressionTexts = toolbarScriptAst.callExpressions.map((callExpression) => {
+      return getCallExpressionText(callExpression, toolbarScriptAst.sourceFile);
+    });
+
+    expect(toolbarCallExpressionTexts).not.toContain('document.createElement');
+    expect(toolbarCallExpressionTexts).not.toContain('navigator.clipboard.writeText');
+    expect(
+      toolbarScriptAst.newExpressions.some((newExpression) => {
+        return newExpression.expression.getText(toolbarScriptAst.sourceFile) === 'FileReader';
+      }),
+    ).toBe(false);
+
+    const toolbarHasImportExportSetTimeout = toolbarScriptAst.callExpressions.some((callExpression) => {
+      if (!isSetTimeoutCall(callExpression)) {
+        return false;
+      }
+      const callbackText = getSetTimeoutCallbackText(callExpression, toolbarScriptAst.sourceFile);
+      return callbackText.includes('filesStore.exportData')
+        || callbackText.includes('state.showDataPreviewDialog')
+        || callbackText.includes('state.previewDataContent');
+    });
+    expect(toolbarHasImportExportSetTimeout).toBe(false);
+
+    const importExportAst = scanAst(importExportCommandsSource, 'useToolbarImportExportCommands.ts');
+    const importExportCallExpressionTexts = importExportAst.callExpressions.map((callExpression) => {
+      return getCallExpressionText(callExpression, importExportAst.sourceFile);
+    });
+    const importExportCreateElementArgs = importExportAst.callExpressions
+      .filter((callExpression) => getCallExpressionText(callExpression, importExportAst.sourceFile) === 'document.createElement')
+      .map((callExpression) => callExpression.arguments[0]?.getText(importExportAst.sourceFile));
+
+    expect(importExportCallExpressionTexts).toContain('document.createElement');
+    expect(importExportCallExpressionTexts).toContain('navigator.clipboard.writeText');
+    expect(importExportCreateElementArgs).toEqual(expect.arrayContaining(["'input'", "'a'"]));
+    expect(
+      importExportAst.newExpressions.some((newExpression) => {
+        return newExpression.expression.getText(importExportAst.sourceFile) === 'FileReader';
+      }),
+    ).toBe(true);
+
+    const hasExportTimerOwnership = importExportAst.callExpressions.some((callExpression) => {
+      if (!isSetTimeoutCall(callExpression)) {
+        return false;
+      }
+      const delay = getSetTimeoutDelay(callExpression);
+      const callbackText = getSetTimeoutCallbackText(callExpression, importExportAst.sourceFile);
+      return delay === 2000 && callbackText.includes('filesStore.exportData');
+    });
+    expect(hasExportTimerOwnership).toBe(true);
+
+    const hasPreviewTimerOwnership = importExportAst.callExpressions.some((callExpression) => {
+      if (!isSetTimeoutCall(callExpression)) {
+        return false;
+      }
+      const delay = getSetTimeoutDelay(callExpression);
+      const callbackText = getSetTimeoutCallbackText(callExpression, importExportAst.sourceFile);
+      return delay === 100 && callbackText.includes('state.showDataPreviewDialog = true');
+    });
+    expect(hasPreviewTimerOwnership).toBe(true);
   });
 
   it('keeps asset management implementations in useToolbarAssetManagement', () => {
