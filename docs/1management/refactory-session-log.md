@@ -40,6 +40,37 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-03] Session 102 - Enforce Import-Dialog Local Ownership and Slot-Footer Branch-Exclusivity Event-Uniqueness Action-Pair AST Invariants
+
+- Refactory Scope:
+  - Phase: Phase 2
+  - Task: Toolbar 导入模板局部不变量：slot-footer 归属 + 分支互斥 + event-uniqueness action-pair AST（`toolbar-architecture.guard`，仅测试补强）
+- In Scope Files:
+  - `src/__tests__/toolbar-architecture.guard.test.ts`
+  - `docs/2design/ToolbarArchitecture.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `FlowEditor` 新增重构任务
+  - `groupRules` 规则语义调整
+  - `docs/1management/plan.md` 更新
+  - Phase 1 / Phase 3 内容
+- Decisions:
+  - 新增导入弹窗局部 AST 守卫：`import-form/importSource/teamCodeInput` 在全模板、导入弹窗局部与导入表单局部保持唯一，且绑定继续归属导入表单，不漂移到 form 外或导入弹窗外。
+  - 新增 slot-footer 分支互斥与 event-uniqueness 守卫：footer 三按钮保持“关闭 + `json(v-if)` + `teamCode(v-else)`”顺序稳定，显式禁止分支互换与 `v-else-if` 漂移，并约束 `triggerJsonFileImport/handleTeamCodeImport` 仅在 footer 分支内唯一绑定。
+  - 新增二维码 action/input 配对守卫：`team-code-qr-actions` 内继续锁定 `ref + @change + accept="image/*"` 唯一接线，并显式校验 action/input 配对存在且不依赖固定先后顺序。
+  - 收敛误伤断言：移除对全模板 `accept="image/*"` 全局唯一性的限制，仅约束导入弹窗局部二维码接线，避免影响导入弹窗外文件上传输入。
+  - 更新 `ToolbarArchitecture.md` Task 61，记录本轮导入模板局部 ownership 与 event-uniqueness/action-pair AST 边界。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 局部模板守卫仍依赖当前导入弹窗模板结构与命令命名；若后续改为子组件封装或模板重排，需要同步更新局部匹配与 AST 断言。
+- Next Recommended Unit:
+  - Phase 2 下一原子任务：补强 `useToolbarImportExportCommands` 在“交替双窗口混合 flush + 链式即时 rebatch”场景下的计时确定性与零残留定时器守卫（仅测试补强）。
+
 ## [2026-03-03] Session 101 - Harden Import-Dialog Anchoring Under Nested Slot-Footer Secondary-Order and Duplicate-Accept Fake-Action Noise Matrix
 
 - Refactory Scope:

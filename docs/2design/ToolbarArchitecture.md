@@ -73,6 +73,7 @@
 58. Toolbar 导入模板局部不变量再收紧：slot-footer 归属 + 分支互斥 + action-pair AST 不变量守卫：`toolbar-architecture.guard`
 59. ImportExport 计时确定性再补强：双窗口混合 flush + 链式即时 rebatch 零残留循环下分段推进守卫：`useToolbarImportExportCommands`
 60. Toolbar 导入弹窗结构锚点再补强：嵌套 slot-footer 次级顺序 + duplicate-accept 假动作噪声矩阵下作用域唯一命中与多轮计数对齐守卫：`toolbar-wiring.regression`
+61. Toolbar 导入模板局部不变量再收紧：slot-footer 归属 + 分支互斥 + event-uniqueness action-pair AST 守卫：`toolbar-architecture.guard`
 
 ## Task 1 落地（导入/导出/预览）
 
@@ -733,3 +734,15 @@
 - 在非导入弹窗注入嵌套 `slot-footer` 噪声层并叠加次级 footer 顺序漂移时，即使共存假 `import-form` / 假 `dialog-footer` / 假 `team-code-qr-actions`，导入弹窗作用域仍唯一命中真实结构锚点。
 - 在 `teamCode` 来源下，含同文案按钮与多个 `accept="image/*"` duplicate input 的 primary/secondary 假 actions 不被误命中，真实 `team-code-qr-actions` 继续仅归属导入弹窗作用域。
 - 在上述复合噪声矩阵的多轮“打开/切换来源/关闭/重开（含关闭后污染态）”循环中，`openImportDialog + json/teamCode/qr` 三路径命令计数持续对齐（`>= 8` 轮）。
+
+## Task 61 落地（Toolbar 导入模板局部不变量：slot-footer 归属 + 分支互斥 + event-uniqueness action-pair AST）
+
+增强：`src/__tests__/toolbar-architecture.guard.test.ts`
+
+回归目标：
+
+- 锁定 `import-form` / `importSource` / `teamCodeInput` 在全模板、导入弹窗局部与导入表单局部均保持唯一，并继续严格归属导入表单，不漂移到 form 外或导入弹窗外。
+- 锁定 footer 三按钮顺序与互斥稳定：关闭按钮 + `json(v-if)` + `teamCode(v-else)`，显式禁止分支互换与 `v-else-if` 漂移。
+- 强化 event-uniqueness：`triggerJsonFileImport` 与 `handleTeamCodeImport` 事件绑定在导入 footer 分支内保持唯一，且不漂移到 footer 外。
+- 锁定 `team-code-qr-actions` 与二维码 input 接线唯一（`ref + @change + accept="image/*"`），并显式守卫 action/input 配对存在性且不依赖固定先后顺序。
+- 通过 AST 守卫继续约束 `Toolbar.vue` 仅接线层，不回流 `teamCodeService` 与 import/export 实现依赖，`useToolbarImportExportCommands` 入参键保持完整。
