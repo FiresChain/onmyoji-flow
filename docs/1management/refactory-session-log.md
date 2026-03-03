@@ -40,6 +40,37 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-03] Session 69 - Add Import-Dialog Source-Branch Wiring Invariants to Toolbar Architecture Guard
+
+- Refactory Scope:
+  - Phase: Phase 2
+  - Task: Toolbar 导入弹窗模板接线结构守卫补强（`toolbar-architecture.guard`，仅测试补强）
+- In Scope Files:
+  - `src/__tests__/toolbar-architecture.guard.test.ts`
+  - `docs/2design/ToolbarArchitecture.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `FlowEditor` 新增重构任务
+  - `groupRules` 规则语义调整
+  - `docs/1management/plan.md` 更新
+  - Phase 1 / Phase 3 内容
+- Decisions:
+  - 新增模板级守卫，锁定导入来源分支接线不变量：`json` 分支保留 `v-if="importSource === 'json'" + @click="triggerJsonFileImport"`，`teamCode` 分支保留 `v-else + @click="handleTeamCodeImport"`。
+  - 新增二维码入口双接线守卫：`@click="triggerTeamCodeQrImport"` 与 `@change="handleTeamCodeQrImport"` 必须同时存在，并保留 `team-code-qr-actions` 结构锚点。
+  - 模板提取逻辑改为匹配外层完整 `<template>`，避免被内层 `template #footer` 提前截断造成守卫误报。
+  - 保持并重申 `Toolbar.vue` script 不回流 import/export 实现依赖（`convertTeamCodeToRootDocument` / `decodeTeamCodeFromQrImage` / 截图水印实现辅助）。
+  - 更新 `ToolbarArchitecture.md` Task 28，记录本轮接线结构不变量边界。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 模板级守卫依赖当前模板结构与属性命名；若后续切换为子组件封装或指令重命名，需要同步调整不变量断言。
+- Next Recommended Unit:
+  - Phase 2 下一原子任务：补强 `useToolbarImportExportCommands` 在分段推进计时窗口（99ms/1ms/1899ms/1ms）与多批次交错下的确定性回归。
+
 ## [2026-03-03] Session 68 - Decouple Import Dialog Scope Regression from Title-Based Selector
 
 - Refactory Scope:

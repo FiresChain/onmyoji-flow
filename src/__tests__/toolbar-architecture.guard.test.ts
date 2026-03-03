@@ -23,6 +23,14 @@ const extractScriptSetupContent = (sfcSource: string) => {
   return scriptSetupMatch[1];
 };
 
+const extractTemplateContent = (sfcSource: string) => {
+  const templateMatch = sfcSource.match(/<template>([\s\S]*)<\/template>/);
+  if (!templateMatch) {
+    throw new Error('Toolbar.vue template block not found');
+  }
+  return templateMatch[1];
+};
+
 const scanAst = (sourceText: string, fileName: string): AstScanResult => {
   const sourceFile = ts.createSourceFile(fileName, sourceText, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
   const callExpressions: ts.CallExpression[] = [];
@@ -244,6 +252,26 @@ describe('Toolbar architecture guard', () => {
     expect(importExportCommandsSource).toMatch(
       /const handlePreviewData = \(\) => \{\s*filesStore\.updateTab\(\);\s*setTimeout\(\(\) => \{[\s\S]*state\.showDataPreviewDialog = true;[\s\S]*\},\s*100\);\s*\};/s,
     );
+  });
+
+  it('keeps import dialog source-branch and qr entry wiring invariants in template', () => {
+    const toolbarTemplateSource = extractTemplateContent(toolbarSource);
+    const toolbarScriptSource = extractScriptSetupContent(toolbarSource);
+
+    expect(toolbarTemplateSource).toMatch(
+      /<el-button(?=[^>]*v-if="importSource === 'json'")(?=[^>]*@click="triggerJsonFileImport")[^>]*>/,
+    );
+    expect(toolbarTemplateSource).toMatch(
+      /<el-button(?=[^>]*v-else)(?=[^>]*@click="handleTeamCodeImport")[^>]*>/,
+    );
+    expect(toolbarTemplateSource).toContain('class="team-code-qr-actions"');
+    expect(toolbarTemplateSource).toMatch(/<el-button(?=[^>]*@click="triggerTeamCodeQrImport")[^>]*>/);
+    expect(toolbarTemplateSource).toMatch(/<input(?=[^>]*@change="handleTeamCodeQrImport")[^>]*>/);
+
+    expect(toolbarScriptSource).not.toContain('convertTeamCodeToRootDocument');
+    expect(toolbarScriptSource).not.toContain('decodeTeamCodeFromQrImage');
+    expect(toolbarScriptSource).not.toContain('withDynamicGroupsHiddenForSnapshot');
+    expect(toolbarScriptSource).not.toContain('addWatermarkToImage');
   });
 
   it('keeps import/export ownership boundaries with AST-level guards', () => {

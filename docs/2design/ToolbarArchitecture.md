@@ -40,6 +40,7 @@
 25. Toolbar 架构守卫 AST 完整性补强：composable 导入/调用归属与命令解构完整性守卫：`toolbar-architecture.guard`
 26. ImportExport 交错触发时序确定性补强：`useToolbarImportExportCommands`
 27. Toolbar 导入弹窗作用域去标题耦合回归：结构锚点定位守卫：`toolbar-wiring.regression`
+28. Toolbar 导入弹窗模板接线结构守卫补强：来源分支不变量与二维码双入口接线守卫：`toolbar-architecture.guard`
 
 ## Task 1 落地（导入/导出/预览）
 
@@ -361,3 +362,13 @@
 - 导入弹窗作用域定位从标题文案依赖迁移为结构锚点组合守卫（`import-form` + `dialog-footer` + `team-code-qr-actions`），避免对 `title="导入数据"` 单点耦合。
 - 保持并验证 `json/teamCode` 来源绑定的可见性断言不回退：`json` 仅暴露 JSON 导入入口，`teamCode` 暴露阵容码与二维码入口。
 - 保持并验证 `openImportDialog` 与 `json/teamCode/qr` 三路径命令在多轮切换/重开场景中的计数持续对齐，不发生漂移。
+
+## Task 28 落地（Toolbar 导入弹窗模板接线结构守卫补强）
+
+增强：`src/__tests__/toolbar-architecture.guard.test.ts`
+
+回归目标：
+
+- 在 `Toolbar.vue` 模板守卫中锁定导入来源分支不变量：`json` 分支按钮必须保留 `v-if="importSource === 'json'" + @click="triggerJsonFileImport"`，`teamCode` 分支按钮必须保留 `v-else + @click="handleTeamCodeImport"`。
+- 锁定二维码入口双接线不变量：`@click="triggerTeamCodeQrImport"` 与 `@change="handleTeamCodeQrImport"` 必须同时保留，且 `team-code-qr-actions` 结构锚点存在。
+- 保持 `Toolbar.vue` 仅做接线层边界，不回流 `convertTeamCodeToRootDocument` / `decodeTeamCodeFromQrImage` / 截图水印实现依赖到 script 层。
