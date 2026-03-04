@@ -33,5 +33,61 @@
   "selector.title.shikigami": "式神を選択",
   "selector.title.yuhun": "御魂を選択",
   "selector.title.onmyoji": "陰陽師を選択",
-  "selector.title.onmyojiSkill": "陰陽師スキルを選択"
+  "selector.title.onmyojiSkill": "陰陽師スキルを選択",
+  "yuhunSelect": "御魂を選択",
+  "yuhunTarget": "指標",
+  "yuhun_target": {
+    "shortName": {
+      "0": "任意",
+      "1": "火力",
+      "2": "命中",
+      "3": "抵抗",
+      "4": "生命",
+      "5": "攻撃",
+      "6": "防御",
+      "7": "速度",
+      "8": "会心",
+      "9": "会心DMG",
+      "10": "回復",
+      "11": "命抵",
+      "12": "防御火力"
+    },
+    "fullName": {
+      "0": "任意",
+      "1": "ダメージ",
+      "2": "効果命中",
+      "3": "効果抵抗",
+      "4": "生命",
+      "5": "攻撃",
+      "6": "防御",
+      "7": "速度",
+      "8": "会心",
+      "9": "会心ダメージ",
+      "10": "回復量",
+      "11": "命中抵抗",
+      "12": "防御火力"
+    }
+  },
+  "yuhun_property": {
+    "shortName": {
+      "Attack": "攻",
+      "Defense": "防",
+      "Health": "生",
+      "Speed": "速",
+      "ControlHit": "命",
+      "ControlMiss": "抵",
+      "Crit": "会",
+      "CritDamage": "会ダ"
+    },
+    "fullName": {
+      "Attack": "攻撃加成",
+      "Defense": "防御加成",
+      "Health": "生命加成",
+      "Speed": "速度",
+      "ControlHit": "効果命中",
+      "ControlMiss": "効果抵抗",
+      "Crit": "会心",
+      "CritDamage": "会心ダメージ"
+    }
+  }
 }

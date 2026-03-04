@@ -33,5 +33,61 @@
   "selector.title.shikigami": "Select Shikigami",
   "selector.title.yuhun": "Select Yuhun",
   "selector.title.onmyoji": "Select Onmyoji",
-  "selector.title.onmyojiSkill": "Select Onmyoji Skill"
+  "selector.title.onmyojiSkill": "Select Onmyoji Skill",
+  "yuhunSelect": "Select Yuhun",
+  "yuhunTarget": "Target",
+  "yuhun_target": {
+    "shortName": {
+      "0": "Any",
+      "1": "Dmg",
+      "2": "Hit",
+      "3": "Res",
+      "4": "HP",
+      "5": "ATK",
+      "6": "DEF",
+      "7": "SPD",
+      "8": "Crit",
+      "9": "CritDmg",
+      "10": "Heal",
+      "11": "HitRes",
+      "12": "DefDmg"
+    },
+    "fullName": {
+      "0": "Any",
+      "1": "Damage",
+      "2": "Effect Hit",
+      "3": "Effect Res",
+      "4": "HP",
+      "5": "ATK",
+      "6": "DEF",
+      "7": "Speed",
+      "8": "Crit",
+      "9": "Crit Damage",
+      "10": "Healing",
+      "11": "Hit and Res",
+      "12": "Defense Damage"
+    }
+  },
+  "yuhun_property": {
+    "shortName": {
+      "Attack": "ATK",
+      "Defense": "DEF",
+      "Health": "HP",
+      "Speed": "SPD",
+      "ControlHit": "Hit",
+      "ControlMiss": "Res",
+      "Crit": "Crit",
+      "CritDamage": "CDmg"
+    },
+    "fullName": {
+      "Attack": "Attack Bonus",
+      "Defense": "Defense Bonus",
+      "Health": "Health Bonus",
+      "Speed": "Speed",
+      "ControlHit": "Effect Hit",
+      "ControlMiss": "Effect Res",
+      "Crit": "Crit",
+      "CritDamage": "Crit Damage"
+    }
+  }
 }
