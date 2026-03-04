@@ -133,7 +133,6 @@
 </template>
 <script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
-import shikigami from "../data/Shikigami.json";
 import ShikigamiSelect from "@/components/flow/nodes/yys/ShikigamiSelect.vue";
 import ShikigamiProperty from "@/components/flow/nodes/yys/ShikigamiProperty.vue";
 import _ from "lodash";
