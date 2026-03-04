@@ -3,11 +3,17 @@ import { ref, watch } from "vue";
 import { QuillEditor } from "@vueup/vue-quill";
 import "@vueup/vue-quill/dist/vue-quill.snow.css";
 import { getLogicFlowInstance, useLogicFlowScope } from "@/ts/useLogicFlow";
+import { useSafeI18n } from "@/ts/useSafeI18n";
 
 const props = defineProps<{ node: any }>();
 const logicFlowScope = useLogicFlowScope();
+const { t } = useSafeI18n({
+  "flow.text.defaultHtml": "<p>请输入文本</p>",
+  "flow.text.title": "文本节点",
+  "flow.text.content": "内容",
+});
 
-const DEFAULT_HTML = "<p>请输入文本</p>";
+const DEFAULT_HTML = t("flow.text.defaultHtml");
 
 const editorHtml = ref(DEFAULT_HTML);
 
@@ -82,10 +88,10 @@ const handleContentChange = (value: string) => {
 
 <template>
   <div class="property-section">
-    <div class="section-header">文本节点</div>
+    <div class="section-header">{{ t("flow.text.title") }}</div>
 
     <div class="property-item">
-      <label class="property-label">内容</label>
+      <label class="property-label">{{ t("flow.text.content") }}</label>
       <div class="editor-wrapper">
         <QuillEditor
           :content="editorHtml"

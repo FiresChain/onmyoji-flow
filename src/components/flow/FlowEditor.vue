@@ -16,34 +16,32 @@
             type="button"
             @click="flowControlsCollapsed = !flowControlsCollapsed"
           >
-            {{
-              flowControlsCollapsed
-                ? `显示画布控制${groupRuleWarnings.length ? `(${groupRuleWarnings.length})` : ""}`
-                : "收起画布控制"
-            }}
+            {{ flowControlsToggleLabel }}
           </button>
         </div>
         <template v-if="!flowControlsCollapsed">
           <div class="control-row toggles">
             <label class="control-toggle">
               <input type="checkbox" v-model="selectionEnabled" />
-              <span>框选</span>
+              <span>{{ t("flowEditor.controls.selection") }}</span>
             </label>
             <label class="control-toggle">
               <input type="checkbox" v-model="snapGridEnabled" />
-              <span>吸附网格</span>
+              <span>{{ t("flowEditor.controls.snapGrid") }}</span>
             </label>
             <label class="control-toggle">
               <input type="checkbox" v-model="snaplineEnabled" />
-              <span>对齐线</span>
+              <span>{{ t("flowEditor.controls.snapline") }}</span>
             </label>
-            <span class="control-hint">已选 {{ selectedCount }}</span>
+            <span class="control-hint">{{
+              t("flowEditor.controls.selectedCount", { count: selectedCount })
+            }}</span>
             <button class="control-button" type="button" @click="showAllNodes">
-              显示全部
+              {{ t("flowEditor.controls.showAll") }}
             </button>
           </div>
           <div class="control-row">
-            <div class="control-label">对齐</div>
+            <div class="control-label">{{ t("flowEditor.controls.align") }}</div>
             <div class="control-buttons">
               <button
                 v-for="btn in alignmentButtons"
@@ -53,12 +51,12 @@
                 :disabled="selectedCount < 2"
                 @click="() => alignSelected(btn.key)"
               >
-                {{ btn.label }}
+                {{ t(btn.labelKey) }}
               </button>
             </div>
           </div>
           <div class="control-row">
-            <div class="control-label">分布</div>
+            <div class="control-label">{{ t("flowEditor.controls.distribute") }}</div>
             <div class="control-buttons">
               <button
                 v-for="btn in distributeButtons"
@@ -68,7 +66,7 @@
                 :disabled="selectedCount < 3"
                 @click="() => distributeSelected(btn.key)"
               >
-                {{ btn.label }}
+                {{ t(btn.labelKey) }}
               </button>
             </div>
           </div>
@@ -89,17 +87,19 @@
             type="button"
             @click="problemsPanelOpen = !problemsPanelOpen"
           >
-            Problems
+            {{ t("flowEditor.problems.tab") }}
             <span class="problems-badge">{{ groupRuleWarnings.length }}</span>
           </button>
         </div>
         <div v-if="problemsPanelOpen" class="problems-panel">
           <div class="problems-header">
-            <span>规则告警</span>
-            <span>{{ groupRuleWarnings.length }} 条</span>
+            <span>{{ t("flowEditor.problems.header") }}</span>
+            <span>{{
+              t("flowEditor.problems.count", { count: groupRuleWarnings.length })
+            }}</span>
           </div>
           <div v-if="!groupRuleWarnings.length" class="problems-empty">
-            当前没有告警
+            {{ t("flowEditor.problems.empty") }}
           </div>
           <div v-else class="problems-list">
             <div
@@ -137,7 +137,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, onBeforeUnmount, nextTick } from "vue";
+import { ref, watch, onMounted, onBeforeUnmount, nextTick, computed } from "vue";
 import type LogicFlow from "@logicflow/core";
 import type {
   NodeData,
@@ -167,6 +167,7 @@ import {
   destroyCanvasSettingsScope,
   useCanvasSettings,
 } from "@/ts/useCanvasSettings";
+import { useSafeI18n } from "@/ts/useSafeI18n";
 
 const MOVE_STEP = 2;
 const MOVE_STEP_LARGE = 10;
@@ -200,6 +201,30 @@ const selectedCount = ref(0);
 const { selectionEnabled, snapGridEnabled, snaplineEnabled } =
   useCanvasSettings();
 const { showMessage } = useGlobalMessage();
+const { t } = useSafeI18n({
+  "flowEditor.controls.expand": "显示画布控制",
+  "flowEditor.controls.collapse": "收起画布控制",
+  "flowEditor.controls.selection": "框选",
+  "flowEditor.controls.snapGrid": "吸附网格",
+  "flowEditor.controls.snapline": "对齐线",
+  "flowEditor.controls.selectedCount": "已选 {count}",
+  "flowEditor.controls.showAll": "显示全部",
+  "flowEditor.controls.align": "对齐",
+  "flowEditor.controls.distribute": "分布",
+  "flowEditor.problems.tab": "Problems",
+  "flowEditor.problems.header": "规则告警",
+  "flowEditor.problems.count": "{count} 条",
+  "flowEditor.problems.empty": "当前没有告警",
+  "flowEditor.message.lockedNodesSkipped": "部分节点已锁定，未删除",
+  "flowEditor.message.nodeLockedCannotDelete": "节点已锁定，无法删除",
+  "flowEditor.message.selectNodeToToggleLock": "请选择节点后再执行锁定/解锁",
+  "flowEditor.message.selectNodeToToggleVisibility": "请选择节点后再执行显示/隐藏",
+  "flowEditor.message.showAllSuccess": "已显示 {count} 个节点",
+  "flowEditor.message.noHiddenNodes": "没有隐藏的节点",
+  "flowEditor.message.groupNeedTwo":
+    "请选择至少两个未锁定的节点进行分组",
+  "flowEditor.message.selectNodeToUngroup": "请选择节点后再执行解组",
+});
 
 // 当前选中节点
 const selectedNode = ref<any>(null);
@@ -222,6 +247,15 @@ const {
   lf,
   selectedNode,
   showMessage,
+});
+const flowControlsToggleLabel = computed(() => {
+  if (flowControlsCollapsed.value) {
+    const countSuffix = groupRuleWarnings.value.length
+      ? `(${groupRuleWarnings.value.length})`
+      : "";
+    return `${t("flowEditor.controls.expand")}${countSuffix}`;
+  }
+  return t("flowEditor.controls.collapse");
 });
 const { resizeCanvas, mountCanvasInteraction, disposeCanvasInteraction } =
   useFlowCanvasInteraction({
@@ -528,7 +562,7 @@ function deleteSelectedElements(event?: KeyboardEvent) {
     .forEach((node) => node.id && lfInstance.deleteNode(node.id));
 
   if (lockedNodes.length) {
-    showMessage("warning", "部分节点已锁定，未删除");
+    showMessage("warning", t("flowEditor.message.lockedNodesSkipped"));
   }
   updateSelectedCount();
   selectedNode.value = null;
@@ -543,7 +577,7 @@ function deleteNode(nodeId: string) {
 
   const meta = ensureMeta((node as any).properties?.meta);
   if (meta.locked) {
-    showMessage("warning", "节点已锁定，无法删除");
+    showMessage("warning", t("flowEditor.message.nodeLockedCannotDelete"));
     return;
   }
 
@@ -554,7 +588,7 @@ function toggleLockSelected(event?: KeyboardEvent) {
   if (shouldSkipShortcut(event)) return true;
   const models = getSelectedNodeModels();
   if (!models.length) {
-    showMessage("info", "请选择节点后再执行锁定/解锁");
+    showMessage("info", t("flowEditor.message.selectNodeToToggleLock"));
     return true;
   }
   const hasUnlocked = models.some(
@@ -573,7 +607,7 @@ function toggleVisibilitySelected(event?: KeyboardEvent) {
   if (shouldSkipShortcut(event)) return true;
   const models = getSelectedNodeModelsFiltered({ includeLocked: true });
   if (!models.length) {
-    showMessage("info", "请选择节点后再执行显示/隐藏");
+    showMessage("info", t("flowEditor.message.selectNodeToToggleVisibility"));
     return true;
   }
   const hasVisible = models.some(
@@ -609,9 +643,9 @@ function showAllNodes() {
     }
   });
   if (changed > 0) {
-    showMessage("success", `已显示 ${changed} 个节点`);
+    showMessage("success", t("flowEditor.message.showAllSuccess", { count: changed }));
   } else {
-    showMessage("info", "没有隐藏的节点");
+    showMessage("info", t("flowEditor.message.noHiddenNodes"));
   }
   updateSelectedCount();
 }
@@ -620,7 +654,7 @@ function groupSelectedNodes(event?: KeyboardEvent) {
   if (shouldSkipShortcut(event)) return true;
   const models = getSelectedNodeModelsFiltered();
   if (models.length < 2) {
-    showMessage("warning", "请选择至少两个未锁定的节点进行分组");
+    showMessage("warning", t("flowEditor.message.groupNeedTwo"));
     return true;
   }
   const groupId = `group_${Date.now().toString(36)}`;
@@ -635,7 +669,7 @@ function ungroupSelectedNodes(event?: KeyboardEvent) {
   if (shouldSkipShortcut(event)) return true;
   const models = getSelectedNodeModels();
   if (!models.length) {
-    showMessage("info", "请选择节点后再执行解组");
+    showMessage("info", t("flowEditor.message.selectNodeToUngroup"));
     return true;
   }
   models.forEach((model) => {

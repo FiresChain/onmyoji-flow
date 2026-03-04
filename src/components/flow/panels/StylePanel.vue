@@ -2,11 +2,30 @@
 import { reactive, watch } from "vue";
 import { getLogicFlowInstance, useLogicFlowScope } from "@/ts/useLogicFlow";
 import { normalizeNodeStyle, type NodeStyle } from "@/ts/nodeStyle";
+import { useSafeI18n } from "@/ts/useSafeI18n";
 
 const props = defineProps<{
   node: any;
 }>();
 const logicFlowScope = useLogicFlowScope();
+const { t } = useSafeI18n({
+  "flow.style.title": "样式",
+  "flow.style.fill": "填充",
+  "flow.style.stroke": "描边",
+  "flow.style.radius": "圆角",
+  "flow.style.shadow": "阴影",
+  "flow.style.opacity": "透明度",
+  "flow.style.textAlign": "文字对齐",
+  "flow.style.lineHeightWeight": "行高 / 字重",
+  "flow.style.align.left": "左对齐",
+  "flow.style.align.center": "居中",
+  "flow.style.align.right": "右对齐",
+  "flow.style.weight.300": "细（300）",
+  "flow.style.weight.400": "常规（400）",
+  "flow.style.weight.500": "中等（500）",
+  "flow.style.weight.600": "半粗（600）",
+  "flow.style.weight.700": "粗体（700）",
+});
 
 type StyleForm = {
   fill: string;
@@ -133,10 +152,10 @@ const applyTextStyle = (override?: Partial<NodeStyle["textStyle"]>) => {
 
 <template>
   <div class="property-section">
-    <div class="section-header">样式</div>
+    <div class="section-header">{{ t("flow.style.title") }}</div>
 
     <div class="property-item">
-      <div class="property-label">填充</div>
+      <div class="property-label">{{ t("flow.style.fill") }}</div>
       <div class="property-value">
         <el-color-picker
           v-model="form.fill"
@@ -147,7 +166,7 @@ const applyTextStyle = (override?: Partial<NodeStyle["textStyle"]>) => {
     </div>
 
     <div class="property-item">
-      <div class="property-label">描边</div>
+      <div class="property-label">{{ t("flow.style.stroke") }}</div>
       <div class="property-value row">
         <el-color-picker
           v-model="form.stroke"
@@ -169,7 +188,7 @@ const applyTextStyle = (override?: Partial<NodeStyle["textStyle"]>) => {
     </div>
 
     <div class="property-item">
-      <div class="property-label">圆角</div>
+      <div class="property-label">{{ t("flow.style.radius") }}</div>
       <div class="property-value">
         <el-input-number
           v-model="form.radius"
@@ -183,7 +202,7 @@ const applyTextStyle = (override?: Partial<NodeStyle["textStyle"]>) => {
     </div>
 
     <div class="property-item">
-      <div class="property-label">阴影</div>
+      <div class="property-label">{{ t("flow.style.shadow") }}</div>
       <div class="property-value shadow-grid">
         <el-color-picker
           v-model="form.shadowColor"
@@ -218,7 +237,7 @@ const applyTextStyle = (override?: Partial<NodeStyle["textStyle"]>) => {
     </div>
 
     <div class="property-item">
-      <div class="property-label">透明度</div>
+      <div class="property-label">{{ t("flow.style.opacity") }}</div>
       <div class="property-value slider-row">
         <el-slider
           v-model="form.opacity"
@@ -233,7 +252,7 @@ const applyTextStyle = (override?: Partial<NodeStyle["textStyle"]>) => {
     </div>
 
     <div class="property-item">
-      <div class="property-label">文字对齐</div>
+      <div class="property-label">{{ t("flow.style.textAlign") }}</div>
       <div class="property-value">
         <el-select
           v-model="form.textAlign"
@@ -243,15 +262,15 @@ const applyTextStyle = (override?: Partial<NodeStyle["textStyle"]>) => {
             (val) => applyTextStyle({ align: val as StyleForm['textAlign'] })
           "
         >
-          <el-option label="左对齐" value="left" />
-          <el-option label="居中" value="center" />
-          <el-option label="右对齐" value="right" />
+          <el-option :label="t('flow.style.align.left')" value="left" />
+          <el-option :label="t('flow.style.align.center')" value="center" />
+          <el-option :label="t('flow.style.align.right')" value="right" />
         </el-select>
       </div>
     </div>
 
     <div class="property-item">
-      <div class="property-label">行高 / 字重</div>
+      <div class="property-label">{{ t("flow.style.lineHeightWeight") }}</div>
       <div class="property-value row">
         <el-input-number
           v-model="form.lineHeight"
@@ -270,11 +289,11 @@ const applyTextStyle = (override?: Partial<NodeStyle["textStyle"]>) => {
             (val) => applyTextStyle({ fontWeight: val as number | string })
           "
         >
-          <el-option label="细（300）" :value="300" />
-          <el-option label="常规（400）" :value="400" />
-          <el-option label="中等（500）" :value="500" />
-          <el-option label="半粗（600）" :value="600" />
-          <el-option label="粗体（700）" :value="700" />
+          <el-option :label="t('flow.style.weight.300')" :value="300" />
+          <el-option :label="t('flow.style.weight.400')" :value="400" />
+          <el-option :label="t('flow.style.weight.500')" :value="500" />
+          <el-option :label="t('flow.style.weight.600')" :value="600" />
+          <el-option :label="t('flow.style.weight.700')" :value="700" />
         </el-select>
       </div>
     </div>

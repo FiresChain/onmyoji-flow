@@ -1,6 +1,7 @@
 import type LogicFlow from "@logicflow/core";
 import type { BaseNodeModel } from "@logicflow/core";
 import type { Ref } from "vue";
+import { useSafeI18n } from "@/ts/useSafeI18n";
 
 export type AlignType =
   | "left"
@@ -35,19 +36,31 @@ interface SelectedRect {
 
 export function useFlowArrangeCommands(options: UseFlowArrangeCommandsOptions) {
   const { lf, showMessage, getSelectedNodeModelsFiltered } = options;
+  const { t } = useSafeI18n({
+    "flowEditor.align.left": "左对齐",
+    "flowEditor.align.right": "右对齐",
+    "flowEditor.align.top": "上对齐",
+    "flowEditor.align.bottom": "下对齐",
+    "flowEditor.align.hcenter": "水平居中",
+    "flowEditor.align.vcenter": "垂直居中",
+    "flowEditor.distribute.horizontal": "水平等距",
+    "flowEditor.distribute.vertical": "垂直等距",
+    "flowEditor.message.alignNeedTwo": "请选择至少两个节点再执行对齐",
+    "flowEditor.message.distributeNeedThree": "请选择至少三个节点再执行分布",
+  });
 
-  const alignmentButtons: { key: AlignType; label: string }[] = [
-    { key: "left", label: "左对齐" },
-    { key: "right", label: "右对齐" },
-    { key: "top", label: "上对齐" },
-    { key: "bottom", label: "下对齐" },
-    { key: "hcenter", label: "水平居中" },
-    { key: "vcenter", label: "垂直居中" },
+  const alignmentButtons: { key: AlignType; labelKey: string }[] = [
+    { key: "left", labelKey: "flowEditor.align.left" },
+    { key: "right", labelKey: "flowEditor.align.right" },
+    { key: "top", labelKey: "flowEditor.align.top" },
+    { key: "bottom", labelKey: "flowEditor.align.bottom" },
+    { key: "hcenter", labelKey: "flowEditor.align.hcenter" },
+    { key: "vcenter", labelKey: "flowEditor.align.vcenter" },
   ];
 
-  const distributeButtons: { key: DistributeType; label: string }[] = [
-    { key: "horizontal", label: "水平等距" },
-    { key: "vertical", label: "垂直等距" },
+  const distributeButtons: { key: DistributeType; labelKey: string }[] = [
+    { key: "horizontal", labelKey: "flowEditor.distribute.horizontal" },
+    { key: "vertical", labelKey: "flowEditor.distribute.vertical" },
   ];
 
   const getSelectedRects = (): SelectedRect[] => {
@@ -72,7 +85,7 @@ export function useFlowArrangeCommands(options: UseFlowArrangeCommandsOptions) {
   const alignSelected = (direction: AlignType) => {
     const rects = getSelectedRects();
     if (rects.length < 2) {
-      showMessage("warning", "请选择至少两个节点再执行对齐");
+      showMessage("warning", t("flowEditor.message.alignNeedTwo"));
       return;
     }
 
@@ -115,7 +128,7 @@ export function useFlowArrangeCommands(options: UseFlowArrangeCommandsOptions) {
   const distributeSelected = (type: DistributeType) => {
     const rects = getSelectedRects();
     if (rects.length < 3) {
-      showMessage("warning", "请选择至少三个节点再执行分布");
+      showMessage("warning", t("flowEditor.message.distributeNeedThree"));
       return;
     }
 

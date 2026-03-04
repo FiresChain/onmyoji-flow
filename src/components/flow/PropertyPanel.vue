@@ -9,8 +9,29 @@ import VectorPanel from "./panels/VectorPanel.vue";
 import DynamicGroupPanel from "./panels/DynamicGroupPanel.vue";
 import { ASSET_LIBRARIES } from "@/types/nodeTypes";
 import { getLogicFlowInstance, useLogicFlowScope } from "@/ts/useLogicFlow";
+import { useSafeI18n } from "@/ts/useSafeI18n";
 
 const logicFlowScope = useLogicFlowScope();
+const { t } = useSafeI18n({
+  "flow.property.title": "属性编辑",
+  "flow.property.empty.selectNode": "请选择一个节点以编辑其属性",
+  "flow.property.empty.assetTip":
+    "素材入口：添加并选中 assetSelector 节点后，点击“选择资产”。",
+  "flow.property.tab.game": "游戏属性",
+  "flow.property.tab.style": "图像属性",
+  "flow.property.section.basic": "基本信息",
+  "flow.property.label.nodeId": "节点ID",
+  "flow.property.label.nodeType": "节点类型",
+  "flow.property.section.selectorType": "节点类型",
+  "flow.property.label.assetType": "资产类型",
+  "flow.property.placeholder.assetType": "选择资产类型",
+  "flow.property.section.none": "暂无特定属性",
+  "flow.property.value.none": "当前节点类型无需额外配置。",
+  "assetLibrary.shikigami": "式神",
+  "assetLibrary.yuhun": "御魂",
+  "assetLibrary.onmyoji": "阴阳师",
+  "assetLibrary.onmyojiSkill": "阴阳师技能",
+});
 
 const props = defineProps({
   height: {
@@ -61,19 +82,22 @@ const currentAssetLibrary = computed({
     });
   },
 });
+
+const getAssetLibraryLabel = (libraryId: string) =>
+  t(`assetLibrary.${libraryId}`);
 </script>
 
 <template>
   <div class="property-panel" :style="{ height }">
     <div class="panel-header">
-      <h3>属性编辑</h3>
+      <h3>{{ t("flow.property.title") }}</h3>
     </div>
 
     <div v-if="!hasNodeSelected" class="no-selection">
       <div class="no-selection-text">
-        <p>请选择一个节点以编辑其属性</p>
+        <p>{{ t("flow.property.empty.selectNode") }}</p>
         <p class="no-selection-tip">
-          素材入口：添加并选中 assetSelector 节点后，点击“选择资产”。
+          {{ t("flow.property.empty.assetTip") }}
         </p>
       </div>
     </div>
@@ -82,33 +106,35 @@ const currentAssetLibrary = computed({
       <!-- Tab 切换 -->
       <el-tabs v-model="activeTab" class="property-tabs">
         <!-- 游戏属性 Tab -->
-        <el-tab-pane label="游戏属性" name="game">
+        <el-tab-pane :label="t('flow.property.tab.game')" name="game">
           <div class="property-section">
-            <div class="section-header">基本信息</div>
+            <div class="section-header">{{ t("flow.property.section.basic") }}</div>
             <div class="property-item">
-              <div class="property-label">节点ID</div>
+              <div class="property-label">{{ t("flow.property.label.nodeId") }}</div>
               <div class="property-value">{{ selectedNode.id }}</div>
             </div>
             <div class="property-item">
-              <div class="property-label">节点类型</div>
+              <div class="property-label">{{ t("flow.property.label.nodeType") }}</div>
               <div class="property-value">{{ nodeType }}</div>
             </div>
           </div>
 
           <!-- 节点类型切换（仅资产选择器支持） -->
           <div v-if="supportsTypeSwitch" class="property-section">
-            <div class="section-header">节点类型</div>
+            <div class="section-header">
+              {{ t("flow.property.section.selectorType") }}
+            </div>
             <div class="property-item">
-              <div class="property-label">资产类型</div>
+              <div class="property-label">{{ t("flow.property.label.assetType") }}</div>
               <el-select
                 v-model="currentAssetLibrary"
-                placeholder="选择资产类型"
+                :placeholder="t('flow.property.placeholder.assetType')"
                 style="width: 100%"
               >
                 <el-option
                   v-for="lib in ASSET_LIBRARIES"
                   :key="lib.id"
-                  :label="lib.label"
+                  :label="getAssetLibraryLabel(lib.id)"
                   :value="lib.id"
                 />
               </el-select>
@@ -122,15 +148,15 @@ const currentAssetLibrary = computed({
             :node="selectedNode"
           />
           <div v-else class="property-section">
-            <div class="section-header">暂无特定属性</div>
+            <div class="section-header">{{ t("flow.property.section.none") }}</div>
             <div class="property-item">
-              <div class="property-value">当前节点类型无需额外配置。</div>
+              <div class="property-value">{{ t("flow.property.value.none") }}</div>
             </div>
           </div>
         </el-tab-pane>
 
         <!-- 图像属性 Tab -->
-        <el-tab-pane label="图像属性" name="style">
+        <el-tab-pane :label="t('flow.property.tab.style')" name="style">
           <StylePanel :node="selectedNode" />
         </el-tab-pane>
       </el-tabs>

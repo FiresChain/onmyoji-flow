@@ -1,9 +1,27 @@
 <script setup lang="ts">
-import { reactive, watch } from "vue";
+import { computed, reactive, watch } from "vue";
 import { getLogicFlowInstance, useLogicFlowScope } from "@/ts/useLogicFlow";
+import { useSafeI18n } from "@/ts/useSafeI18n";
 
 const props = defineProps<{ node: any }>();
 const logicFlowScope = useLogicFlowScope();
+const { t } = useSafeI18n({
+  "flow.vector.title": "矢量配置",
+  "flow.vector.kind": "图形类型",
+  "flow.vector.kind.rect": "矩形",
+  "flow.vector.kind.ellipse": "椭圆",
+  "flow.vector.kind.polygon": "多边形",
+  "flow.vector.kind.path": "路径",
+  "flow.vector.kind.svg": "自定义SVG",
+  "flow.vector.tileSize": "平铺尺寸 (宽×高)",
+  "flow.vector.fill": "填充颜色",
+  "flow.vector.stroke": "描边颜色",
+  "flow.vector.strokeWidth": "描边宽度",
+  "flow.vector.pathData": "Path 数据",
+  "flow.vector.pathPlaceholder": "M 0 0 L 50 50 Z",
+  "flow.vector.svgContent": "SVG 内容",
+  "flow.vector.svgPlaceholder": "<rect x='0' y='0' width='50' height='50' />",
+});
 
 const form = reactive({
   kind: "rect",
@@ -42,22 +60,22 @@ const applyChanges = (partial: Record<string, any>) => {
   });
 };
 
-const kindOptions = [
-  { label: "矩形", value: "rect" },
-  { label: "椭圆", value: "ellipse" },
-  { label: "多边形", value: "polygon" },
-  { label: "路径", value: "path" },
-  { label: "自定义SVG", value: "svg" },
-];
+const kindOptions = computed(() => [
+  { label: t("flow.vector.kind.rect"), value: "rect" },
+  { label: t("flow.vector.kind.ellipse"), value: "ellipse" },
+  { label: t("flow.vector.kind.polygon"), value: "polygon" },
+  { label: t("flow.vector.kind.path"), value: "path" },
+  { label: t("flow.vector.kind.svg"), value: "svg" },
+]);
 </script>
 
 <template>
   <div class="property-section">
-    <div class="section-header">矢量配置</div>
+    <div class="section-header">{{ t("flow.vector.title") }}</div>
 
     <!-- 图形类型 -->
     <div class="property-item">
-      <div class="property-label">图形类型</div>
+      <div class="property-label">{{ t("flow.vector.kind") }}</div>
       <div class="property-value">
         <el-select
           v-model="form.kind"
@@ -76,7 +94,7 @@ const kindOptions = [
 
     <!-- 平铺尺寸 -->
     <div class="property-item">
-      <div class="property-label">平铺尺寸 (宽×高)</div>
+      <div class="property-label">{{ t("flow.vector.tileSize") }}</div>
       <div class="property-value row">
         <el-input-number
           v-model="form.tileWidth"
@@ -98,7 +116,7 @@ const kindOptions = [
 
     <!-- 填充颜色 -->
     <div class="property-item">
-      <div class="property-label">填充颜色</div>
+      <div class="property-label">{{ t("flow.vector.fill") }}</div>
       <div class="property-value">
         <el-color-picker
           v-model="form.fill"
@@ -110,7 +128,7 @@ const kindOptions = [
 
     <!-- 描边颜色 -->
     <div class="property-item">
-      <div class="property-label">描边颜色</div>
+      <div class="property-label">{{ t("flow.vector.stroke") }}</div>
       <div class="property-value">
         <el-color-picker
           v-model="form.stroke"
@@ -122,7 +140,7 @@ const kindOptions = [
 
     <!-- 描边宽度 -->
     <div class="property-item">
-      <div class="property-label">描边宽度</div>
+      <div class="property-label">{{ t("flow.vector.strokeWidth") }}</div>
       <div class="property-value">
         <el-input-number
           v-model="form.strokeWidth"
@@ -136,14 +154,14 @@ const kindOptions = [
 
     <!-- Path 数据（仅当 kind='path' 时显示） -->
     <div v-if="form.kind === 'path'" class="property-item">
-      <div class="property-label">Path 数据</div>
+      <div class="property-label">{{ t("flow.vector.pathData") }}</div>
       <div class="property-value">
         <el-input
           v-model="form.path"
           type="textarea"
           :rows="3"
           size="small"
-          placeholder="M 0 0 L 50 50 Z"
+          :placeholder="t('flow.vector.pathPlaceholder')"
           @change="() => applyChanges({ path: form.path })"
         />
       </div>
@@ -151,14 +169,14 @@ const kindOptions = [
 
     <!-- SVG 内容（仅当 kind='svg' 时显示） -->
     <div v-if="form.kind === 'svg'" class="property-item">
-      <div class="property-label">SVG 内容</div>
+      <div class="property-label">{{ t("flow.vector.svgContent") }}</div>
       <div class="property-value">
         <el-input
           v-model="form.svgContent"
           type="textarea"
           :rows="5"
           size="small"
-          placeholder="<rect x='0' y='0' width='50' height='50' />"
+          :placeholder="t('flow.vector.svgPlaceholder')"
           @change="() => applyChanges({ svgContent: form.svgContent })"
         />
       </div>

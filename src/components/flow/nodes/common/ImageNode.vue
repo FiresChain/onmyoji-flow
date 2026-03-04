@@ -1,11 +1,17 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useNodeAppearance } from "@/ts/useNodeAppearance";
+import { useSafeI18n } from "@/ts/useSafeI18n";
 
 type FitMode = "contain" | "cover" | "fill";
 
 const imageUrl = ref("");
 const fit = ref<FitMode>("contain");
+const { t } = useSafeI18n({
+  "flow.imageNode.alt": "图片节点",
+  "flow.imageNode.placeholder": "未上传图片",
+  "flow.imageNode.hint": "在右侧属性面板上传或填写 URL",
+});
 
 const { containerStyle } = useNodeAppearance({
   onPropsChange(props) {
@@ -21,13 +27,13 @@ const { containerStyle } = useNodeAppearance({
       <img
         v-if="imageUrl"
         :src="imageUrl"
-        alt="图片节点"
+        :alt="t('flow.imageNode.alt')"
         :style="{ objectFit: fit }"
         draggable="false"
       />
       <div v-else class="placeholder">
-        <div class="placeholder-text">未上传图片</div>
-        <div class="placeholder-hint">在右侧属性面板上传或填写 URL</div>
+        <div class="placeholder-text">{{ t("flow.imageNode.placeholder") }}</div>
+        <div class="placeholder-hint">{{ t("flow.imageNode.hint") }}</div>
       </div>
     </div>
   </div>
