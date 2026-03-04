@@ -1,36 +1,46 @@
-# Shikigami Scraper
+# Asset Sync Scripts
 
-This script scrapes Shikigami data from the official Onmyoji website and updates the configuration.
+## Install
 
-## Usage
-
-1. Install dependencies:
 ```bash
 cd scripts
 npm install
 ```
 
-2. Run the scraper:
+## Commands
+
 ```bash
-npm run scrape
+# sync all libraries
+npm run sync-assets
+
+# sync one library
+npm run sync-assets:shikigami
+npm run sync-assets:yuhun
+npm run sync-assets:onmyoji
+npm run sync-assets:onmyojiSkill
+
+# verify generated assets
+npm run verify-assets
 ```
 
-The script will:
-- Fetch all Shikigami from different rarity types (SSR, SP, UR, SR, R, N, L, G)
-- Download images to `public/assets/Shikigami/{rarity}/`
-- Update `src/data/Shikigami.json` with the new data
+## Optional flags
 
-## Output Structure
-
-Images: `public/assets/Shikigami/{rarity}/{id}.png`
-JSON: `src/data/Shikigami.json`
-
-```json
-[
-  {
-    "avatar": "/assets/Shikigami/ssr/596.png",
-    "name": "神无月",
-    "rarity": "SSR"
-  }
-]
+```bash
+node sync-assets.js --library all --dry-run
+node sync-assets.js --library shikigami --no-download
+node sync-assets.js --library all --prune
+node sync-assets.js --library all --report ../tmp/asset-sync-report.json
 ```
+
+## Output
+
+- Static data: `src/data/assets/*.json`
+- Manifest: `src/data/assets/manifest.json`
+- Fallback snapshots: `scripts/fallback/*.json`
+
+## Strategy
+
+- Official source first
+- Fallback snapshot when official parser fails
+- Schema validation before write
+- Atomic file write for data outputs
