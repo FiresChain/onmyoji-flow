@@ -1,3 +1,8 @@
+import {
+  normalizeAssetLibraryId,
+  normalizeAssetLibraryIdWithFallback,
+} from "@/utils/assetLibrary";
+
 export const CUSTOM_ASSET_STORAGE_KEY = "yys-editor.custom-assets.v1";
 const CUSTOM_ASSET_UPDATED_EVENT = "yys-editor.custom-assets.updated";
 
@@ -16,8 +21,8 @@ const isClient = () =>
   typeof window !== "undefined" && typeof localStorage !== "undefined";
 const normalizeText = (value: unknown): string =>
   typeof value === "string" ? value.trim() : "";
-const normalizeLibraryKey = (library: string): string =>
-  normalizeText(library).toLowerCase();
+const normalizeLibraryKey = (library: unknown): string =>
+  normalizeAssetLibraryId(library);
 
 const createLegacyAssetId = (
   library: string,
@@ -53,6 +58,9 @@ const normalizeAssetItem = (
   }
 
   const normalizedLibrary = normalizeLibraryKey(library);
+  if (!normalizedLibrary) {
+    return null;
+  }
   const id =
     normalizeText(raw.id) ||
     createLegacyAssetId(normalizedLibrary, name, avatar);
@@ -223,7 +231,7 @@ export const createCustomAssetFromFile = async (
 ): Promise<CustomAssetItem> => {
   const avatar = await readFileAsDataUrl(file);
   const now = new Date().toISOString();
-  const normalizedLibrary = normalizeLibraryKey(library);
+  const normalizedLibrary = normalizeAssetLibraryIdWithFallback(library);
   const id = buildCustomAssetId();
   const asset: CustomAssetItem = {
     id,

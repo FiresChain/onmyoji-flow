@@ -1,3 +1,5 @@
+import { normalizeAssetLibraryId } from "@/utils/assetLibrary";
+
 export const GROUP_META_VERSION = 1;
 export const DEFAULT_GROUP_RULE_SCOPE = [
   "shikigami-yuhun",
@@ -16,8 +18,6 @@ export type DynamicGroupMeta = {
 
 const normalizeText = (value: unknown): string =>
   typeof value === "string" ? value.trim() : "";
-const normalizeLibrary = (value: unknown): string =>
-  normalizeText(value).toLowerCase();
 
 const inferLibraryFromAvatar = (avatar: string): string => {
   if (!avatar) return "";
@@ -111,25 +111,32 @@ export const normalizeSelectedAssetRecord = (
   const raw = input as Record<string, unknown>;
   const name = normalizeText(raw.name);
   const avatar = normalizeText(raw.avatar);
+  const existingAssetId = normalizeText(raw.assetId);
+  const fallbackLibraryFromPayload = normalizeText(raw.skillId)
+    ? "onmyojiSkill"
+    : "";
   const library =
-    normalizeLibrary(raw.library) ||
-    normalizeLibrary(preferredLibrary) ||
-    inferLibraryFromAvatar(avatar);
+    normalizeAssetLibraryId(raw.library) ||
+    normalizeAssetLibraryId(preferredLibrary) ||
+    normalizeAssetLibraryId(fallbackLibraryFromPayload) ||
+    normalizeAssetLibraryId(inferLibraryFromAvatar(avatar)) ||
+    "shikigami";
   const sourceId =
-    normalizeText(raw.assetId) ||
     normalizeText(raw.id) ||
     normalizeText(raw.skillId) ||
     normalizeText(raw.onmyojiId);
   const identitySeed = sourceId || `${name}|${avatar}|${library}`;
-  const assetId = sourceId
-    ? `${library || "asset"}:${sourceId}`
+  const assetId = existingAssetId
+    ? existingAssetId
+    : sourceId
+      ? `${library || "asset"}:${sourceId}`
     : `asset_${createStableHash(identitySeed || String(Date.now()))}`;
 
   return {
     ...raw,
     ...(name ? { name } : {}),
     ...(avatar ? { avatar } : {}),
-    library: library || "shikigami",
+    library,
     assetId,
   };
 };
@@ -191,7 +198,7 @@ export const normalizeGraphRawDataSchema = (
 
     if (node?.type === "assetSelector") {
       const currentLibrary =
-        normalizeLibrary(properties.assetLibrary) || "shikigami";
+        normalizeAssetLibraryId(properties.assetLibrary) || "shikigami";
       const selectedAsset = normalizeSelectedAssetRecord(
         properties.selectedAsset,
         currentLibrary,

@@ -1,4 +1,5 @@
 import rootDocumentV1SchemaJson from "@/schemas/root-document.v1.json";
+import type { AssetLibraryId } from "@/types/assets";
 
 export const CURRENT_SCHEMA_VERSION = "1.0.0";
 export const ROOT_DOCUMENT_V1_SCHEMA = rootDocumentV1SchemaJson;
@@ -80,10 +81,10 @@ export interface NodeProperties {
     ruleEnabled: boolean;
     ruleScope: string[];
   };
-  assetLibrary?: string;
+  assetLibrary?: AssetLibraryId;
   selectedAsset?: {
     assetId: string;
-    library: string;
+    library: AssetLibraryId;
     name?: string;
     avatar?: string;
     [key: string]: any;

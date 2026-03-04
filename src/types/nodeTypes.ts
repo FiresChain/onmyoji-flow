@@ -1,3 +1,5 @@
+import type { AssetLibraryId } from "@/types/assets";
+
 /**
  * 节点类型系统
  * 将节点分为三大类：布局容器、图形资产、结构化文本
@@ -27,9 +29,9 @@ export enum NodeType {
 }
 
 export interface AssetLibrary {
-  id: string;
+  id: AssetLibraryId;
   label: string;
-  selectorPreset: string;
+  selectorPreset: AssetLibraryId;
 }
 
 export const ASSET_LIBRARIES: AssetLibrary[] = [

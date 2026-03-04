@@ -1,7 +1,9 @@
 <template>
   <el-dialog v-model="show" :title="config.title">
     <span v-if="config.currentItem">
-      当前选择：{{ config.currentItem[config.itemRender.labelField] }}
+      {{ t("selector.currentSelection") }}：{{
+        config.currentItem[config.itemRender.labelField]
+      }}
     </span>
 
     <div v-if="config.allowUserAssetUpload" class="user-asset-actions">
@@ -12,9 +14,9 @@
         class="hidden-input"
         @change="handleUploadAsset"
       />
-      <el-button size="small" type="primary" @click="triggerUpload"
-        >上传我的素材</el-button
-      >
+      <el-button size="small" type="primary" @click="triggerUpload">
+        {{ t("selector.uploadMine") }}
+      </el-button>
     </div>
 
     <!-- 搜索框 -->
@@ -24,7 +26,7 @@
     >
       <el-input
         v-model="searchText"
-        placeholder="请输入内容"
+        :placeholder="t('selector.searchPlaceholder')"
         style="width: 200px; margin-right: 10px"
       />
     </div>
@@ -40,8 +42,8 @@
         <div style="max-height: 600px; overflow-y: auto">
           <el-space wrap size="large">
             <div
-              v-for="item in filteredItems(group)"
-              :key="item.id || item[config.itemRender.labelField]"
+              v-for="(item, index) in filteredItems(group)"
+              :key="getItemKey(item, index)"
               style="
                 display: flex;
                 flex-direction: column;
@@ -68,7 +70,7 @@
                 size="small"
                 @click.stop="removeUserAsset(item)"
               >
-                删除
+                {{ t("selector.delete") }}
               </el-button>
             </div>
           </el-space>
@@ -82,6 +84,8 @@
 import { ref, computed, watch, onMounted, onBeforeUnmount } from "vue";
 import type { SelectorConfig, GroupConfig } from "@/types/selector";
 import { resolveAssetUrl } from "@/utils/assetUrl";
+import { buildSelectorItemKey } from "@/utils/selectorItemKey";
+import { useSafeI18n } from "@/ts/useSafeI18n";
 import {
   createCustomAssetFromFile,
   listCustomAssets,
@@ -97,6 +101,12 @@ const emit = defineEmits<{
   "update:modelValue": [value: boolean];
   select: [item: any];
 }>();
+const { t } = useSafeI18n({
+  "selector.currentSelection": "当前选择",
+  "selector.uploadMine": "上传我的素材",
+  "selector.searchPlaceholder": "请输入内容",
+  "selector.delete": "删除",
+});
 
 const show = computed({
   get: () => props.modelValue,
@@ -202,6 +212,10 @@ const handleSelect = (item: any) => {
 
 const getItemImageUrl = (item: any) =>
   resolveAssetUrl(item?.[imageField.value]) as string;
+
+const getItemKey = (item: any, index: number) => {
+  return buildSelectorItemKey(item, index, props.config);
+};
 
 const triggerUpload = () => {
   uploadInputRef.value?.click();

@@ -17,6 +17,7 @@ export interface SelectorConfig<T = any> {
   groupField?: string | null;
   groups: GroupConfig<T>[];
   itemRender: SelectorItemRender;
+  itemKeyField?: string;
   searchable?: boolean;
   searchFields?: string[];
   currentItem?: T | null;
