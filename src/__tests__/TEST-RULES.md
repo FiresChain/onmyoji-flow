@@ -61,10 +61,7 @@ src/__tests__/
 ├── setup.ts                          # 测试环境配置
 ├── README-测试报告.md                 # 测试报告
 ├── layer-management/                 # 图层管理测试
-│   ├── real-scenario.spec.ts        # ✅ 真实场景测试（推荐）
-│   ├── mock-test.spec.ts.bak        # ❌ Mock 测试（已废弃）
-│   ├── integration-test.spec.ts.bak # ❌ 组件集成测试（已废弃）
-│   └── unit-test.spec.ts.bak        # ❌ 单元测试（已废弃）
+│   └── real-scenario.spec.ts         # ✅ 真实场景测试（推荐）
 ├── schema.test.ts                    # Schema 验证测试
 └── useStore.test.ts                  # Store 测试
 ```
@@ -72,7 +69,7 @@ src/__tests__/
 ### 文件命名规范
 
 - `*.spec.ts` - 活跃的测试文件
-- `*.spec.ts.bak` - 已废弃的测试文件（保留作为参考）
+- 历史废弃测试不在仓库存放 `.bak`，如需追溯请使用 Git 历史
 - `real-scenario.spec.ts` - 真实场景测试（推荐命名）
 
 ---

@@ -10,9 +10,7 @@ src/__tests__/
 ├── layer-management/          # 图层管理测试
 │   ├── real-scenario.spec.ts  # ✅ 真实场景测试（推荐）
 │   ├── README.md              # 图层管理测试说明
-│   ├── mock-test.spec.ts.bak  # 已废弃的 Mock 测试
-│   ├── integration-test.spec.ts.bak  # 已废弃的集成测试
-│   └── unit-test.spec.ts.bak  # 已废弃的单元测试
+│   └── （历史 .bak 测试文件已清理，详见 layer-management/README.md）
 ├── schema.test.ts             # Schema 验证测试
 └── useStore.test.ts           # Store 测试
 ```

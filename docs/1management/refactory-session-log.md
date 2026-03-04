@@ -44,6 +44,46 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-04] Session 119 - RFX-005 Repository Hygiene Cleanup
+
+- Refactory Scope:
+  - Phase: Phase 0
+  - Task: 清理仓库杂质文件（`.bak`/`.DS_Store`）并补齐 ignore 与文档说明，降低误用与污染风险
+- In Scope Files:
+  - `.gitignore`
+  - `.DS_Store`（删除）
+  - `src/.DS_Store`（删除）
+  - `src/components/.DS_Store`（删除）
+  - `src/__tests__/layer-management/mock-test.spec.ts.bak`（删除）
+  - `src/__tests__/layer-management/integration-test.spec.ts.bak`（删除）
+  - `src/__tests__/layer-management/unit-test.spec.ts.bak`（删除）
+  - `src/__tests__/README.md`
+  - `src/__tests__/SUMMARY.md`
+  - `src/__tests__/TEST-RULES.md`
+  - `src/__tests__/layer-management/README.md`
+  - `docs/1management/refactory-fix-backlog.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `src/**` 运行时代码语义改动
+  - 功能性测试逻辑改动
+  - 进度百分比字段更新
+- Decisions:
+  - 所有跟踪中的 `.DS_Store` 与 `.bak` 文件直接出仓库；历史参考统一转为“通过 Git 历史追溯”。
+  - `.gitignore` 新增 `/dist-app`、`.DS_Store`、`*.bak`，避免构建产物与系统杂质回流。
+  - 测试文档移除对已删除 `.bak` 物理文件的结构依赖，仅保留历史说明。
+- Checks:
+  - `Get-ChildItem -Recurse -Include *.bak,.DS_Store -File`: pass（无结果）
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - `src/__tests__` 文档中仍有部分历史状态描述（例如旧通过率）与当前现状不一致，后续可单独做文档收敛任务。
+  - `dist-app` 当前由 ignore 屏蔽，若后续需要产物留档应改用发布工件而非入库跟踪。
+- Next Recommended Unit:
+  - `RFX-006（P0）ESLint 规则强度治理`
+
 ## [2026-03-04] Session 118 - RFX-004 Test Stub Noise Parameterization
 
 - Refactory Scope:

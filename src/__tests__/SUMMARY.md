@@ -11,9 +11,7 @@ src/__tests__/
 ├── layer-management/                  # 📂 图层管理测试
 │   ├── README.md                      # 图层管理测试说明
 │   ├── real-scenario.spec.ts          # ✅ 真实场景测试（活跃）
-│   ├── mock-test.spec.ts.bak          # 🗄️ Mock 测试（已废弃）
-│   ├── integration-test.spec.ts.bak   # 🗄️ 集成测试（已废弃）
-│   └── unit-test.spec.ts.bak          # 🗄️ 单元测试（已废弃）
+│   └── （历史 .bak 测试文件已清理，可通过 Git 历史追溯）
 ├── schema.test.ts                     # Schema 验证测试
 └── useStore.test.ts                   # Store 测试
 ```
@@ -25,7 +23,7 @@ src/__tests__/
 ### 1. 文件组织
 
 - ✅ 创建了 `layer-management/` 目录，集中管理图层相关测试
-- ✅ 将 Mock 测试重命名为 `.bak`，标记为已废弃
+- ✅ 废弃测试文件已从仓库清理（历史可通过 Git 追溯）
 - ✅ 保留了真实场景测试作为推荐方案
 
 ### 2. 文档完善
@@ -186,7 +184,7 @@ npm test -- --reporter=verbose
 
 - [x] 创建 `layer-management/` 目录
 - [x] 移动并重命名测试文件
-- [x] 废弃 Mock 测试（重命名为 .bak）
+- [x] 废弃测试文件清理出仓库（历史保留在 Git）
 - [x] 创建 README.md（总览）
 - [x] 创建 TEST-RULES.md（规范）
 - [x] 创建 layer-management/README.md（模块说明）
