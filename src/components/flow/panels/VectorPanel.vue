@@ -1,19 +1,19 @@
 <script setup lang="ts">
-import { reactive, watch } from 'vue';
-import { getLogicFlowInstance, useLogicFlowScope } from '@/ts/useLogicFlow';
+import { reactive, watch } from "vue";
+import { getLogicFlowInstance, useLogicFlowScope } from "@/ts/useLogicFlow";
 
 const props = defineProps<{ node: any }>();
 const logicFlowScope = useLogicFlowScope();
 
 const form = reactive({
-  kind: 'rect',
+  kind: "rect",
   tileWidth: 50,
   tileHeight: 50,
-  fill: '#409EFF',
-  stroke: '#303133',
+  fill: "#409EFF",
+  stroke: "#303133",
   strokeWidth: 1,
-  path: '',
-  svgContent: ''
+  path: "",
+  svgContent: "",
 });
 
 // 从节点同步数据
@@ -24,7 +24,7 @@ watch(
       Object.assign(form, node.properties.vector);
     }
   },
-  { immediate: true, deep: true }
+  { immediate: true, deep: true },
 );
 
 // 应用更改
@@ -37,17 +37,17 @@ const applyChanges = (partial: Record<string, any>) => {
     ...props.node.properties,
     vector: {
       ...currentVector,
-      ...partial
-    }
+      ...partial,
+    },
   });
 };
 
 const kindOptions = [
-  { label: '矩形', value: 'rect' },
-  { label: '椭圆', value: 'ellipse' },
-  { label: '多边形', value: 'polygon' },
-  { label: '路径', value: 'path' },
-  { label: '自定义SVG', value: 'svg' }
+  { label: "矩形", value: "rect" },
+  { label: "椭圆", value: "ellipse" },
+  { label: "多边形", value: "polygon" },
+  { label: "路径", value: "path" },
+  { label: "自定义SVG", value: "svg" },
 ];
 </script>
 

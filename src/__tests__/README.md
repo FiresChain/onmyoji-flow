@@ -35,26 +35,30 @@ src/__tests__/
 
 ```typescript
 // ✅ 推荐：使用真实的 LogicFlow 实例
-import LogicFlow from '@logicflow/core'
+import LogicFlow from "@logicflow/core";
 
 const lf = new LogicFlow({
-  container: document.createElement('div'),
-  grid: { type: 'dot', size: 10 }
-})
+  container: document.createElement("div"),
+  grid: { type: "dot", size: 10 },
+});
 
-const node = lf.addNode({ type: 'rect', x: 100, y: 100 })
-lf.setElementZIndex(node.id, 'top')
+const node = lf.addNode({ type: "rect", x: 100, y: 100 });
+lf.setElementZIndex(node.id, "top");
 
 // 这会发现真实问题！
-const graphData = lf.getGraphRawData()
-expect(graphData.nodes[0].zIndex).toBeDefined() // ❌ 失败！发现 bug
+const graphData = lf.getGraphRawData();
+expect(graphData.nodes[0].zIndex).toBeDefined(); // ❌ 失败！发现 bug
 ```
 
 ```typescript
 // ❌ 不推荐：使用 Mock 对象
 class MockLogicFlow {
-  addNode() { return { id: '1' } }
-  setElementZIndex() { /* 理想逻辑 */ }
+  addNode() {
+    return { id: "1" };
+  }
+  setElementZIndex() {
+    /* 理想逻辑 */
+  }
 }
 
 // 这只能验证 Mock 的逻辑，无法发现真实代码的问题
@@ -160,34 +164,35 @@ src/__tests__/your-module/real-scenario.spec.ts
 ### 2. 使用真实的依赖
 
 ```typescript
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
-import LogicFlow from '@logicflow/core'
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import LogicFlow from "@logicflow/core";
 
-describe('你的功能测试', () => {
-  let lf: LogicFlow | null = null
+describe("你的功能测试", () => {
+  let lf: LogicFlow | null = null;
 
   beforeEach(() => {
     // 创建真实的实例
-    const container = document.createElement('div')
-    document.body.appendChild(container)
-    lf = new LogicFlow({ container })
-  })
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+    lf = new LogicFlow({ container });
+  });
 
   afterEach(() => {
     // 清理
-    lf?.destroy()
-  })
+    lf?.destroy();
+  });
 
-  it('应该能够...', () => {
+  it("应该能够...", () => {
     // 模拟真实的用户操作
     // 验证真实的结果
-  })
-})
+  });
+});
 ```
 
 ### 3. 参考示例
 
 参考 `layer-management/real-scenario.spec.ts` 了解如何：
+
 - 使用真实的实例
 - 模拟用户操作流程
 - 提供清晰的调试信息
@@ -199,6 +204,7 @@ describe('你的功能测试', () => {
 ### Q: 为什么废弃 Mock 测试？
 
 A: Mock 测试只能验证理想逻辑，无法发现真实代码的问题。例如：
+
 - Mock 测试通过 ✅
 - 但真实场景测试失败 ❌
 - 发现了 zIndex 不持久化的 bug
@@ -206,6 +212,7 @@ A: Mock 测试只能验证理想逻辑，无法发现真实代码的问题。例
 ### Q: 什么时候可以使用 Mock？
 
 A: 只在以下情况使用：
+
 - 外部 API 调用（HTTP 请求）
 - 时间相关的测试（定时器）
 - 文件系统操作
@@ -216,6 +223,7 @@ A: 只在以下情况使用：
 ### Q: 测试运行很慢怎么办？
 
 A:
+
 1. 使用 `it.only()` 运行单个测试
 2. 使用 `npm run test:watch` 监听模式
 3. 只在关键路径使用真实场景测试

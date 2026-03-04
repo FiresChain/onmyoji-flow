@@ -1,71 +1,124 @@
 <template>
   <ShikigamiSelect
-      :showSelectShikigami="state.showSelectShikigami"
-      :currentShikigami="state.currentShikigami"
-      @closeSelectShikigami="closeSelectShikigami"
-      @updateShikigami="updateShikigami"
+    :showSelectShikigami="state.showSelectShikigami"
+    :currentShikigami="state.currentShikigami"
+    @closeSelectShikigami="closeSelectShikigami"
+    @updateShikigami="updateShikigami"
   />
 
   <ShikigamiProperty
-      :showProperty="state.showProperty"
-      :currentShikigami="state.currentShikigami"
-      @closeProperty="closeProperty"
-      @updateProperty="updateProperty"
+    :showProperty="state.showProperty"
+    :currentShikigami="state.currentShikigami"
+    @closeProperty="closeProperty"
+    @updateProperty="updateProperty"
   />
 
-
   <div class="yys-rank">
-    <div class="pvp-mindmap">
-
-    </div>
+    <div class="pvp-mindmap"></div>
     <div class="pvp-shikigami-editor">
-      <el-button type="primary" @click="addGroupElement()">{{ t('AddShikigami') }}</el-button>
+      <el-button type="primary" @click="addGroupElement()">{{
+        t("AddShikigami")
+      }}</el-button>
 
-      <div style="max-height: 600px; overflow-y: auto;">
+      <div style="max-height: 600px; overflow-y: auto">
         <el-space wrap size="large">
-          <draggable :list="props.groups[0].groupInfo" item-key="name" class="body-content">
-            <template #item="{element : position, index:positionIndex}">
+          <draggable
+            :list="props.groups[0].groupInfo"
+            item-key="name"
+            class="body-content"
+          >
+            <template #item="{ element: position, index: positionIndex }">
               <div class="group-card">
                 <div class="opt-btn" data-html2canvas-ignore="true">
                   <!-- Add delete button here -->
-                  <el-button type="danger" icon="Delete" circle @click="removeGroupElement(positionIndex)"/>
+                  <el-button
+                    type="danger"
+                    icon="Delete"
+                    circle
+                    @click="removeGroupElement(positionIndex)"
+                  />
                   <!-- <el-button type="primary" icon="Plus" circle @click="addGroupElement(groupIndex)"/> -->
                 </div>
                 <div class="avatar-container">
                   <!-- 头像图片 -->
-                  <img :src="position.avatar || '/assets/Shikigami/default.png'"
-                       style="cursor: pointer; vertical-align: bottom;"
-                       class="avatar-image"
-                       @click="editShikigami(positionIndex)"/>
+                  <img
+                    :src="position.avatar || '/assets/Shikigami/default.png'"
+                    style="cursor: pointer; vertical-align: bottom"
+                    class="avatar-image"
+                    @click="editShikigami(positionIndex)"
+                  />
 
                   <!-- 文字图层 -->
                   <!--              <span v-if="position.properties">{{ position.properties.levelRequired }}级 {{ position.properties.skillRequired.join('') }}</span>-->
                 </div>
                 <div class="opt-foot">
                   <div class="property-wrap">
-                    <div style="display: flex; justify-content: center;" data-html2canvas-ignore="true">
+                    <div
+                      style="display: flex; justify-content: center"
+                      data-html2canvas-ignore="true"
+                    >
                       <span>{{ position.name || "" }}</span>
                     </div>
-                    <div style="display: flex; justify-content: center;" class="bottom" data-html2canvas-ignore="true">
-                      <el-button @click="editProperty(positionIndex)">{{ t('editProperties') }}
+                    <div
+                      style="display: flex; justify-content: center"
+                      class="bottom"
+                      data-html2canvas-ignore="true"
+                    >
+                      <el-button @click="editProperty(positionIndex)"
+                        >{{ t("editProperties") }}
                       </el-button>
                     </div>
                     <div v-if="position.properties">
-                      <div style="display: flex; justify-content: center;">
-                            <span
-                                style="width: 100px;height: 50px;background-color: #666;
-                                border-radius: 5px; margin-right: 5px; color: white;
-                                text-align: center; white-space: pre-wrap; display: flex; align-items: center; justify-content: center; flex-direction: column ">
-                              {{ getYuhunNames(position.properties.yuhun.yuhunSetEffect) }}<br/>{{
-                                t('yuhun_target.shortName.' + position.properties.yuhun.target)
-                              }}·{{ getYuhunPropertyNames(position.properties.yuhun) }}
-                            </span>
+                      <div style="display: flex; justify-content: center">
+                        <span
+                          style="
+                            width: 100px;
+                            height: 50px;
+                            background-color: #666;
+                            border-radius: 5px;
+                            margin-right: 5px;
+                            color: white;
+                            text-align: center;
+                            white-space: pre-wrap;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            flex-direction: column;
+                          "
+                        >
+                          {{
+                            getYuhunNames(
+                              position.properties.yuhun.yuhunSetEffect,
+                            )
+                          }}<br />{{
+                            t(
+                              "yuhun_target.shortName." +
+                                position.properties.yuhun.target,
+                            )
+                          }}·{{
+                            getYuhunPropertyNames(position.properties.yuhun)
+                          }}
+                        </span>
                       </div>
                       <div>
-                            <span
-                                style="display: inline-block; width: 100px; height: 30px;  border-radius: 5px; margin-right: 5px; color: red; text-align: center; white-space: pre-wrap; display: flex; align-items: center; justify-content: center; flex-direction: column ">
-                              {{ position.properties.desc }}
-                            </span>
+                        <span
+                          style="
+                            display: inline-block;
+                            width: 100px;
+                            height: 30px;
+                            border-radius: 5px;
+                            margin-right: 5px;
+                            color: red;
+                            text-align: center;
+                            white-space: pre-wrap;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            flex-direction: column;
+                          "
+                        >
+                          {{ position.properties.desc }}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -79,16 +132,15 @@
   </div>
 </template>
 <script setup lang="ts">
-import {ref, reactive, onMounted} from 'vue';
-import shikigami from "../data/Shikigami.json"
+import { ref, reactive, onMounted } from "vue";
+import shikigami from "../data/Shikigami.json";
 import ShikigamiSelect from "@/components/flow/nodes/yys/ShikigamiSelect.vue";
 import ShikigamiProperty from "@/components/flow/nodes/yys/ShikigamiProperty.vue";
 import _ from "lodash";
-import { useSafeI18n } from '@/ts/useSafeI18n';
-import draggable from 'vuedraggable';
+import { useSafeI18n } from "@/ts/useSafeI18n";
+import draggable from "vuedraggable";
 
-
-const { t } = useSafeI18n()
+const { t } = useSafeI18n();
 
 const props = defineProps<{
   groups: any[];
@@ -136,10 +188,10 @@ const closeSelectShikigami = () => {
 const updateShikigami = (shikigami) => {
   state.showSelectShikigami = false;
 
-  const oldProperties = props.groups[0].groupInfo[state.positionIndex].properties;
+  const oldProperties =
+    props.groups[0].groupInfo[state.positionIndex].properties;
   props.groups[0].groupInfo[state.positionIndex] = _.cloneDeep(shikigami);
   props.groups[0].groupInfo[state.positionIndex].properties = oldProperties;
-
 };
 
 const closeProperty = () => {
@@ -150,7 +202,8 @@ const closeProperty = () => {
 const updateProperty = (property) => {
   state.showProperty = false;
   state.currentShikigami = {};
-  props.groups[0].groupInfo[state.positionIndex].properties = _.cloneDeep(property);
+  props.groups[0].groupInfo[state.positionIndex].properties =
+    _.cloneDeep(property);
 };
 
 const editProperty = (positionIndex) => {
@@ -160,43 +213,39 @@ const editProperty = (positionIndex) => {
 };
 
 const getYuhunNames = (yuhunSetEffect) => {
-  const names = yuhunSetEffect.map(item => item.name).join('');
+  const names = yuhunSetEffect.map((item) => item.name).join("");
   if (names.length <= 6) {
     return names;
   } else {
-    return yuhunSetEffect.map(item => item.shortName || item.name).join('');
+    return yuhunSetEffect.map((item) => item.shortName || item.name).join("");
   }
-}
-
+};
 
 const getYuhunPropertyNames = (yuhun) => {
   // 根据条件处理 yuhun.property2
   let property2Value, property4Value, property6Value;
   if (yuhun.property2.length >= 4) {
-    property2Value = 'X';
+    property2Value = "X";
   } else {
-    property2Value = t('yuhun_property.shortName.' + yuhun.property2[0]);
+    property2Value = t("yuhun_property.shortName." + yuhun.property2[0]);
   }
 
   if (yuhun.property4.length >= 5) {
-    property4Value = 'X';
+    property4Value = "X";
   } else {
-    property4Value = t('yuhun_property.shortName.' + yuhun.property4[0]);
+    property4Value = t("yuhun_property.shortName." + yuhun.property4[0]);
   }
 
   if (yuhun.property6.length >= 5) {
-    property6Value = 'X';
+    property6Value = "X";
   } else {
-    property6Value = t('yuhun_property.shortName.' + yuhun.property6[0]);
+    property6Value = t("yuhun_property.shortName." + yuhun.property6[0]);
   }
   // 构建 propertyNames 字符串
-  const propertyNames =
-      property2Value + property4Value + property6Value
+  const propertyNames = property2Value + property4Value + property6Value;
 
   return propertyNames;
-}
-
-
+};
 </script>
 <style scoped>
 .yys-rank {
@@ -215,7 +264,6 @@ const getYuhunPropertyNames = (yuhun) => {
 }
 
 .pvp-shikigami-editor {
-
   border: 2px solid black;
   height: 50%;
   width: 80%;
@@ -243,7 +291,11 @@ const getYuhunPropertyNames = (yuhun) => {
     transform: translateX(-50%) translateY(50%);
     font-size: 24px;
     color: white;
-    text-shadow: -1px -1px 0 black, 1px -1px 0 black, -1px 1px 0 black, 1px 1px 0 black;
+    text-shadow:
+      -1px -1px 0 black,
+      1px -1px 0 black,
+      -1px 1px 0 black,
+      1px 1px 0 black;
     white-space: nowrap;
     padding: 0 8px;
     margin: 0;

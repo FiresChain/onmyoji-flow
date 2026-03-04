@@ -1,87 +1,167 @@
 <template>
   <ShikigamiSelect
-      :showSelectShikigami="state.showSelectShikigami"
-      :currentShikigami="state.currentShikigami"
-      @closeSelectShikigami="closeSelectShikigami"
-      @updateShikigami="updateShikigami"
+    :showSelectShikigami="state.showSelectShikigami"
+    :currentShikigami="state.currentShikigami"
+    @closeSelectShikigami="closeSelectShikigami"
+    @updateShikigami="updateShikigami"
   />
 
   <ShikigamiProperty
-      :showProperty="state.showProperty"
-      :currentShikigami="state.currentShikigami"
-      @closeProperty="closeProperty"
-      @updateProperty="updateProperty"
+    :showProperty="state.showProperty"
+    :currentShikigami="state.currentShikigami"
+    @closeProperty="closeProperty"
+    @updateProperty="updateProperty"
   />
 
   <div class="group-item">
     <div class="group-header">
       <div class="group-opt" data-html2canvas-ignore="true">
         <div class="opt-left">
-          <el-button type="primary" icon="CopyDocument" @click="copy(group.shortDescription)">{{ t('Copy') }}
+          <el-button
+            type="primary"
+            icon="CopyDocument"
+            @click="copy(group.shortDescription)"
+            >{{ t("Copy") }}
           </el-button>
-          <el-button type="primary" icon="Document" @click="paste(groupIndex,'shortDescription')">{{
-              t('Paste')
-            }}
+          <el-button
+            type="primary"
+            icon="Document"
+            @click="paste(groupIndex, 'shortDescription')"
+            >{{ t("Paste") }}
           </el-button>
         </div>
         <div class="opt-right">
-          <el-button class="drag-handle" type="primary" icon="Rank" circle></el-button>
-          <el-button type="primary" @click="addGroup">{{ t('AddGroup') }}</el-button>
-          <el-button type="primary" @click="addGroupElement(groupIndex)">{{ t('AddShikigami') }}</el-button>
-          <el-button type="danger" icon="Delete" circle @click="removeGroup(groupIndex)"></el-button>
+          <el-button
+            class="drag-handle"
+            type="primary"
+            icon="Rank"
+            circle
+          ></el-button>
+          <el-button type="primary" @click="addGroup">{{
+            t("AddGroup")
+          }}</el-button>
+          <el-button type="primary" @click="addGroupElement(groupIndex)">{{
+            t("AddShikigami")
+          }}</el-button>
+          <el-button
+            type="danger"
+            icon="Delete"
+            circle
+            @click="removeGroup(groupIndex)"
+          ></el-button>
         </div>
       </div>
-      <QuillEditor ref="shortDescriptionEditor" v-model:content="group.shortDescription" contentType="html" theme="snow"
-                   :toolbar="toolbarOptions"/>
+      <QuillEditor
+        ref="shortDescriptionEditor"
+        v-model:content="group.shortDescription"
+        contentType="html"
+        theme="snow"
+        :toolbar="toolbarOptions"
+      />
     </div>
     <div class="group-body">
-      <draggable :list="props.group.groupInfo" item-key="name" class="body-content">
-        <template #item="{element : position, index:positionIndex}">
+      <draggable
+        :list="props.group.groupInfo"
+        item-key="name"
+        class="body-content"
+      >
+        <template #item="{ element: position, index: positionIndex }">
           <div>
             <el-col>
               <el-card class="group-card" shadow="never">
                 <div class="opt-btn" data-html2canvas-ignore="true">
                   <!-- Add delete button here -->
-                  <el-button type="danger" icon="Delete" circle @click="removeGroupElement(positionIndex)"/>
+                  <el-button
+                    type="danger"
+                    icon="Delete"
+                    circle
+                    @click="removeGroupElement(positionIndex)"
+                  />
                   <!-- <el-button type="primary" icon="Plus" circle @click="addGroupElement(groupIndex)"/> -->
                 </div>
                 <div class="avatar-container">
                   <!-- 头像图片 -->
-                  <img :src="position.avatar || '/assets/Shikigami/default.png'"
-                       style="cursor: pointer; vertical-align: bottom;"
-                       class="avatar-image"
-                       @click="editShikigami(positionIndex)"/>
+                  <img
+                    :src="position.avatar || '/assets/Shikigami/default.png'"
+                    style="cursor: pointer; vertical-align: bottom"
+                    class="avatar-image"
+                    @click="editShikigami(positionIndex)"
+                  />
 
                   <!-- 文字图层 -->
-                  <span v-if="position.properties">{{
-                      position.properties.levelRequired
-                    }}级 {{ position.properties.skillRequired.join('') }}</span>
+                  <span v-if="position.properties"
+                    >{{ position.properties.levelRequired }}级
+                    {{ position.properties.skillRequired.join("") }}</span
+                  >
                 </div>
 
                 <div class="property-wrap">
-                  <div style="display: flex; justify-content: center;" data-html2canvas-ignore="true">
+                  <div
+                    style="display: flex; justify-content: center"
+                    data-html2canvas-ignore="true"
+                  >
                     <span>{{ position.name || "" }}</span>
                   </div>
-                  <div style="display: flex; justify-content: center;" class="bottom" data-html2canvas-ignore="true">
-                    <el-button @click="editProperty(groupIndex,positionIndex)">{{ t('editProperties') }}
+                  <div
+                    style="display: flex; justify-content: center"
+                    class="bottom"
+                    data-html2canvas-ignore="true"
+                  >
+                    <el-button @click="editProperty(groupIndex, positionIndex)"
+                      >{{ t("editProperties") }}
                     </el-button>
                   </div>
                   <div v-if="position.properties">
-                    <div style="display: flex; justify-content: center;">
-                            <span
-                                style="width: 100px;height: 50px;background-color: #666;
-                                border-radius: 5px; margin-right: 5px; color: white;
-                                text-align: center; white-space: pre-wrap; display: flex; align-items: center; justify-content: center; flex-direction: column ">
-                              {{ getYuhunNames(position.properties.yuhun.yuhunSetEffect) }}<br/>{{
-                                t('yuhun_target.shortName.' + position.properties.yuhun.target)
-                              }}·{{ getYuhunPropertyNames(position.properties.yuhun) }}
-                            </span>
+                    <div style="display: flex; justify-content: center">
+                      <span
+                        style="
+                          width: 100px;
+                          height: 50px;
+                          background-color: #666;
+                          border-radius: 5px;
+                          margin-right: 5px;
+                          color: white;
+                          text-align: center;
+                          white-space: pre-wrap;
+                          display: flex;
+                          align-items: center;
+                          justify-content: center;
+                          flex-direction: column;
+                        "
+                      >
+                        {{
+                          getYuhunNames(
+                            position.properties.yuhun.yuhunSetEffect,
+                          )
+                        }}<br />{{
+                          t(
+                            "yuhun_target.shortName." +
+                              position.properties.yuhun.target,
+                          )
+                        }}·{{
+                          getYuhunPropertyNames(position.properties.yuhun)
+                        }}
+                      </span>
                     </div>
                     <div>
-                            <span
-                                style="display: inline-block; width: 100px; height: 30px;  border-radius: 5px; margin-right: 5px; color: red; text-align: center; white-space: pre-wrap; display: flex; align-items: center; justify-content: center; flex-direction: column ">
-                              {{ position.properties.desc }}
-                            </span>
+                      <span
+                        style="
+                          display: inline-block;
+                          width: 100px;
+                          height: 30px;
+                          border-radius: 5px;
+                          margin-right: 5px;
+                          color: red;
+                          text-align: center;
+                          white-space: pre-wrap;
+                          display: flex;
+                          align-items: center;
+                          justify-content: center;
+                          flex-direction: column;
+                        "
+                      >
+                        {{ position.properties.desc }}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -94,43 +174,54 @@
     <div class="group-footer">
       <div class="group-opt" data-html2canvas-ignore="true">
         <div class="opt-left">
-          <el-button type="primary" icon="CopyDocument" @click="copy(group.details)">{{ t('Copy') }}</el-button>
-          <el-button type="primary" icon="Document" @click="paste(groupIndex,'details')">{{
-              t('Paste')
-            }}
+          <el-button
+            type="primary"
+            icon="CopyDocument"
+            @click="copy(group.details)"
+            >{{ t("Copy") }}</el-button
+          >
+          <el-button
+            type="primary"
+            icon="Document"
+            @click="paste(groupIndex, 'details')"
+            >{{ t("Paste") }}
           </el-button>
         </div>
       </div>
-      <QuillEditor ref="detailsEditor" v-model:content="group.details" contentType="html" theme="snow"
-                   :toolbar="toolbarOptions"/>
+      <QuillEditor
+        ref="detailsEditor"
+        v-model:content="group.details"
+        contentType="html"
+        theme="snow"
+        :toolbar="toolbarOptions"
+      />
     </div>
   </div>
   <div class="divider-horizontal"></div>
 </template>
 <script setup lang="ts">
-import {ref, reactive, toRefs, nextTick} from 'vue';
-import ShikigamiSelect from './ShikigamiSelect.vue';
-import ShikigamiProperty from './ShikigamiProperty.vue';
-import html2canvas from 'html2canvas';
-import { useSafeI18n } from '@/ts/useSafeI18n';
-import { Quill, QuillEditor } from '@vueup/vue-quill'
-import '@vueup/vue-quill/dist/vue-quill.bubble.css'
-import '@vueup/vue-quill/dist/vue-quill.snow.css' // 引入样式文件
-import * as ElementPlusIconsVue from '@element-plus/icons-vue'
-import shikigamiData from '../../../../data/Shikigami.json';
-import _ from 'lodash';
-import {Action, ElMessage, ElMessageBox} from "element-plus";
-import { useGlobalMessage } from '../../../../ts/useGlobalMessage';
-import draggable from 'vuedraggable';
+import { ref, reactive, toRefs, nextTick } from "vue";
+import ShikigamiSelect from "./ShikigamiSelect.vue";
+import ShikigamiProperty from "./ShikigamiProperty.vue";
+import html2canvas from "html2canvas";
+import { useSafeI18n } from "@/ts/useSafeI18n";
+import { Quill, QuillEditor } from "@vueup/vue-quill";
+import "@vueup/vue-quill/dist/vue-quill.bubble.css";
+import "@vueup/vue-quill/dist/vue-quill.snow.css"; // 引入样式文件
+import * as ElementPlusIconsVue from "@element-plus/icons-vue";
+import shikigamiData from "../../../../data/Shikigami.json";
+import _ from "lodash";
+import { Action, ElMessage, ElMessageBox } from "element-plus";
+import { useGlobalMessage } from "../../../../ts/useGlobalMessage";
+import draggable from "vuedraggable";
 
 const props = defineProps<{
-  groups:any[];
+  groups: any[];
   group: any;
   groupIndex;
 }>();
 
-const groupIndex = props.groupIndex
-
+const groupIndex = props.groupIndex;
 
 // 定义响应式数据
 const state = reactive({
@@ -138,76 +229,73 @@ const state = reactive({
   showProperty: false,
   groupIndex: 0,
   positionIndex: 0,
-  currentShikigami: {}
+  currentShikigami: {},
 });
 
-const clipboard = ref('');
+const clipboard = ref("");
 
-const dialogTableVisible = ref(false)
-const {showMessage} = useGlobalMessage();
+const dialogTableVisible = ref(false);
+const { showMessage } = useGlobalMessage();
 
 // 获取当前的 i18n 实例
-const { t } = useSafeI18n()
+const { t } = useSafeI18n();
 
 // 定义 QuillEditor 的 ref
-const shortDescriptionEditor = ref<InstanceType<typeof QuillEditor>>()
-const detailsEditor = ref<InstanceType<typeof QuillEditor>>()
+const shortDescriptionEditor = ref<InstanceType<typeof QuillEditor>>();
+const detailsEditor = ref<InstanceType<typeof QuillEditor>>();
 
-const removeGroupElement = async ( positionIndex: number) => {
-
-
+const removeGroupElement = async (positionIndex: number) => {
   if (props.group.groupInfo.length === 1) {
-    showMessage('warning', '无法删除');
+    showMessage("warning", "无法删除");
     return;
   }
 
   try {
-    await ElMessageBox.confirm('确定要删除此元素吗?', '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning',
+    await ElMessageBox.confirm("确定要删除此元素吗?", "提示", {
+      confirmButtonText: "确定",
+      cancelButtonText: "取消",
+      type: "warning",
     });
     props.group.groupInfo.splice(positionIndex, 1);
-    showMessage('success', '删除成功!');
+    showMessage("success", "删除成功!");
   } catch (error) {
-    showMessage('info', '已取消删除');
+    showMessage("info", "已取消删除");
   }
 };
 
 const removeGroup = async (groupIndex: number) => {
   if (props.groups.length === 1) {
-    showMessage('warning', '无法删除最后一个队伍');
+    showMessage("warning", "无法删除最后一个队伍");
     return;
   }
 
   try {
-    await ElMessageBox.confirm('确定要删除此组吗?', '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning',
+    await ElMessageBox.confirm("确定要删除此组吗?", "提示", {
+      confirmButtonText: "确定",
+      cancelButtonText: "取消",
+      type: "warning",
     });
     props.groups.splice(groupIndex, 1);
-    showMessage('success', '删除成功!');
+    showMessage("success", "删除成功!");
   } catch (error) {
-    showMessage('info', '已取消删除');
+    showMessage("info", "已取消删除");
   }
 };
 const addGroup = () => {
   props.group.groupInfo.push({
-    shortDescription: '',
+    shortDescription: "",
     groupInfo: [{}, {}, {}, {}, {}],
-    details: ''
+    details: "",
   });
 
-  const container = document.getElementById('main-container');
-
+  const container = document.getElementById("main-container");
 
   nextTick(() => {
     container.scrollTo({
       top: container.scrollHeight,
-      behavior: 'smooth' // 可选平滑滚动
+      behavior: "smooth", // 可选平滑滚动
     });
-  })
+  });
 };
 
 const addGroupElement = (groupIndex) => {
@@ -215,7 +303,7 @@ const addGroupElement = (groupIndex) => {
   editShikigami(props.group.groupInfo.length - 1);
 };
 
-const editShikigami = ( positionIndex) => {
+const editShikigami = (positionIndex) => {
   console.log("==== 选择式神 ===", groupIndex, positionIndex);
   state.showSelectShikigami = true;
   state.positionIndex = positionIndex;
@@ -223,105 +311,129 @@ const editShikigami = ( positionIndex) => {
 };
 
 const getYuhunNames = (yuhunSetEffect) => {
-  const names = yuhunSetEffect.map(item => item.name).join('');
+  const names = yuhunSetEffect.map((item) => item.name).join("");
   if (names.length <= 6) {
     return names;
   } else {
-    return yuhunSetEffect.map(item => item.shortName || item.name).join('');
+    return yuhunSetEffect.map((item) => item.shortName || item.name).join("");
   }
-}
+};
 
 const getYuhunPropertyNames = (yuhun) => {
   // 根据条件处理 yuhun.property2
   let property2Value, property4Value, property6Value;
   if (yuhun.property2.length >= 4) {
-    property2Value = 'X';
+    property2Value = "X";
   } else {
-    property2Value = t('yuhun_property.shortName.' + yuhun.property2[0]);
+    property2Value = t("yuhun_property.shortName." + yuhun.property2[0]);
   }
 
   if (yuhun.property4.length >= 5) {
-    property4Value = 'X';
+    property4Value = "X";
   } else {
-    property4Value = t('yuhun_property.shortName.' + yuhun.property4[0]);
+    property4Value = t("yuhun_property.shortName." + yuhun.property4[0]);
   }
 
   if (yuhun.property6.length >= 5) {
-    property6Value = 'X';
+    property6Value = "X";
   } else {
-    property6Value = t('yuhun_property.shortName.' + yuhun.property6[0]);
+    property6Value = t("yuhun_property.shortName." + yuhun.property6[0]);
   }
   // 构建 propertyNames 字符串
-  const propertyNames =
-      property2Value + property4Value + property6Value
+  const propertyNames = property2Value + property4Value + property6Value;
 
   return propertyNames;
-}
+};
 
 const copy = (str) => {
-  clipboard.value = str
-}
+  clipboard.value = str;
+};
 
 const paste = (groupIndex, type) => {
-  console.log("paste", groupIndex, type, clipboard.value)
-  if ('shortDescription' == type)
-    props.group.shortDescription = clipboard.value
-  else if ('details' == type)
-    props.group.details = clipboard.value
-}
+  console.log("paste", groupIndex, type, clipboard.value);
+  if ("shortDescription" == type)
+    props.group.shortDescription = clipboard.value;
+  else if ("details" == type) props.group.details = clipboard.value;
+};
 
 const registerFonts = () => {
-  const Font = Quill.import('attributors/style/font')
-  Font.whitelist = ['SimSun', 'SimHei', 'KaiTi', 'FangSong', 'Microsoft YaHei', 'PingFang SC']
-  Quill.register(Font, true)
-}
+  const Font = Quill.import("attributors/style/font");
+  Font.whitelist = [
+    "SimSun",
+    "SimHei",
+    "KaiTi",
+    "FangSong",
+    "Microsoft YaHei",
+    "PingFang SC",
+  ];
+  Quill.register(Font, true);
+};
 
 // 自定义字号注册
 const registerSizes = () => {
-  const Size = Quill.import('attributors/style/size')
-  Size.whitelist = ['12px', '14px', '16px', '18px', '21px', '29px', '32px', '34px']
-  Quill.register(Size, true)
-}
+  const Size = Quill.import("attributors/style/size");
+  Size.whitelist = [
+    "12px",
+    "14px",
+    "16px",
+    "18px",
+    "21px",
+    "29px",
+    "32px",
+    "34px",
+  ];
+  Quill.register(Size, true);
+};
 
 // 执行注册
-registerFonts()
-registerSizes()
+registerFonts();
+registerSizes();
 
 // 工具栏配置
 const toolbarOptions = ref([
-  [{font: ['SimSun', 'SimHei', 'KaiTi', 'FangSong', 'Microsoft YaHei', 'PingFang SC']}],
-  [{header: 1}, {header: 2}],
-  [{size: ['12px', '14px', '16px', '18px', '21px', '29px', '32px', '34px']}],
-  ['bold', 'italic', 'underline', 'strike'],
-  [{color: []}, {background: []}],
+  [
+    {
+      font: [
+        "SimSun",
+        "SimHei",
+        "KaiTi",
+        "FangSong",
+        "Microsoft YaHei",
+        "PingFang SC",
+      ],
+    },
+  ],
+  [{ header: 1 }, { header: 2 }],
+  [{ size: ["12px", "14px", "16px", "18px", "21px", "29px", "32px", "34px"] }],
+  ["bold", "italic", "underline", "strike"],
+  [{ color: [] }, { background: [] }],
   // ['blockquote', 'code-block'],
-  [{list: 'bullet'}, {list: 'ordered'}, {'list': 'check'}],
+  [{ list: "bullet" }, { list: "ordered" }, { list: "check" }],
 
-  [{indent: '-1'}, {indent: '+1'}],
-  [{align: []}],
-  [{direction: 'rtl'}],
+  [{ indent: "-1" }, { indent: "+1" }],
+  [{ align: [] }],
+  [{ direction: "rtl" }],
   // [{ header: [1, 2, 3, 4, 5, 6, false] }],
   // ['link', 'image', 'video'],
   // ['clean']
-] as const)
+] as const);
 
 const saveQuillDesc = async (): Promise<string> => {
   if (!shortDescriptionEditor.value) {
-    throw new Error('Quill editor instance not found')
+    throw new Error("Quill editor instance not found");
   }
-  return shortDescriptionEditor.value.getHTML()
-}
+  return shortDescriptionEditor.value.getHTML();
+};
 
 // 保存方法
 const saveQuillDetail = async (): Promise<string> => {
   if (!detailsEditor.value) {
-    throw new Error('Quill detailsEditor instance not found')
+    throw new Error("Quill detailsEditor instance not found");
   }
-  return detailsEditor.value.getHTML()
-}
+  return detailsEditor.value.getHTML();
+};
 
 const updateShikigami = (shikigami) => {
-
   state.showSelectShikigami = false;
   const oldProperties = props.group.groupInfo[state.positionIndex].properties;
   props.group.groupInfo[state.positionIndex] = _.cloneDeep(shikigami);
@@ -354,9 +466,8 @@ const closeSelectShikigami = () => {
 // 暴露方法给父组件
 defineExpose({
   saveQuillDesc,
-  saveQuillDetail
+  saveQuillDetail,
 });
-
 </script>
 <style scoped>
 .drag-handle {
@@ -378,7 +489,8 @@ defineExpose({
   position: relative;
   overflow: hidden; /* 隐藏超出部分 */
   border-radius: 50%; /* 圆形裁剪 */
-//border: 2px solid #fff; /* 可选：添加边框 */ //box-shadow: 0 2px 8px rgba(0,0,0,0.1); /* 可选：添加阴影 */
+  //border: 2px solid #fff; /* 可选：添加边框 */
+  //box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* 可选：添加阴影 */
 }
 
 /* 图片样式 */
@@ -390,7 +502,6 @@ defineExpose({
   display: block;
   cursor: pointer;
 }
-
 
 .el-card {
   border: 0;
@@ -415,7 +526,6 @@ defineExpose({
   padding: 20px;
   width: 80%;
 }
-
 
 .body-content {
   display: flex;
@@ -442,7 +552,11 @@ defineExpose({
     transform: translateX(-50%) translateY(50%);
     font-size: 24px;
     color: white;
-    text-shadow: -1px -1px 0 black, 1px -1px 0 black, -1px 1px 0 black, 1px 1px 0 black;
+    text-shadow:
+      -1px -1px 0 black,
+      1px -1px 0 black,
+      -1px 1px 0 black,
+      1px 1px 0 black;
     white-space: nowrap;
     padding: 0 8px;
     margin: 0;
@@ -501,29 +615,29 @@ defineExpose({
   }
 
   .ql-picker.ql-font {
-    .ql-picker-label[data-value=SimSun]::before,
-    .ql-picker-item[data-value=SimSun]::before {
+    .ql-picker-label[data-value="SimSun"]::before,
+    .ql-picker-item[data-value="SimSun"]::before {
       content: "宋体";
       font-family: SimSun;
       font-size: 15px;
     }
 
-    .ql-picker-label[data-value=SimHei]::before,
-    .ql-picker-item[data-value=SimHei]::before {
+    .ql-picker-label[data-value="SimHei"]::before,
+    .ql-picker-item[data-value="SimHei"]::before {
       content: "黑体";
       font-family: SimHei;
       font-size: 15px;
     }
 
-    .ql-picker-label[data-value=KaiTi]::before,
-    .ql-picker-item[data-value=KaiTi]::before {
+    .ql-picker-label[data-value="KaiTi"]::before,
+    .ql-picker-item[data-value="KaiTi"]::before {
       content: "楷体";
       font-family: KaiTi;
       font-size: 15px;
     }
 
-    .ql-picker-label[data-value=FangSong]::before,
-    .ql-picker-item[data-value=FangSong]::before {
+    .ql-picker-label[data-value="FangSong"]::before,
+    .ql-picker-item[data-value="FangSong"]::before {
       content: "仿宋";
       font-family: FangSong;
       font-size: 15px;
@@ -532,14 +646,14 @@ defineExpose({
     .ql-picker-label[data-value="Microsoft YaHei"]::before,
     .ql-picker-item[data-value="Microsoft YaHei"]::before {
       content: "微软雅黑";
-      font-family: 'Microsoft YaHei';
+      font-family: "Microsoft YaHei";
       font-size: 15px;
     }
 
     .ql-picker-label[data-value="PingFang SC"]::before,
     .ql-picker-item[data-value="PingFang SC"]::before {
       content: "苹方";
-      font-family: 'PingFang SC';
+      font-family: "PingFang SC";
       font-size: 15px;
     }
   }

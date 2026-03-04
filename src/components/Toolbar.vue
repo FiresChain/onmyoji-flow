@@ -1,18 +1,45 @@
 <template>
   <div class="toolbar" :class="{ 'toolbar--embed': props.isEmbed }">
     <div class="toolbar-actions">
-      <el-button icon="Upload" type="primary" @click="openImportDialog">{{ t('import') }}</el-button>
-      <el-button icon="Download" type="primary" @click="handleExport">{{ t('export') }}</el-button>
-      <el-button icon="View" type="success" @click="handlePreviewData">数据预览</el-button>
-      <el-button icon="Share" type="primary" @click="prepareCapture">{{ t('prepareCapture') }}</el-button>
-      <el-button icon="Setting" type="primary" @click="openWatermarkDialog">{{ t('setWatermark') }}</el-button>
-      <el-button icon="Picture" type="primary" plain @click="openAssetManager">素材管理</el-button>
-      <el-button icon="EditPen" type="primary" plain @click="openRuleManager">规则管理</el-button>
-      <el-button v-if="!props.isEmbed" type="info" @click="loadExample">{{ t('loadExample') }}</el-button>
-      <el-button v-if="!props.isEmbed" type="info" @click="showUpdateLog">{{ t('updateLog') }}</el-button>
-      <el-button v-if="!props.isEmbed" type="warning" @click="showFeedbackForm">{{ t('feedback') }}</el-button>
-      <el-button type="danger" @click="handleResetWorkspace">重置工作区</el-button>
-      <el-button type="warning" plain @click="handleClearCanvas">清空画布</el-button>
+      <el-button icon="Upload" type="primary" @click="openImportDialog">{{
+        t("import")
+      }}</el-button>
+      <el-button icon="Download" type="primary" @click="handleExport">{{
+        t("export")
+      }}</el-button>
+      <el-button icon="View" type="success" @click="handlePreviewData"
+        >数据预览</el-button
+      >
+      <el-button icon="Share" type="primary" @click="prepareCapture">{{
+        t("prepareCapture")
+      }}</el-button>
+      <el-button icon="Setting" type="primary" @click="openWatermarkDialog">{{
+        t("setWatermark")
+      }}</el-button>
+      <el-button icon="Picture" type="primary" plain @click="openAssetManager"
+        >素材管理</el-button
+      >
+      <el-button icon="EditPen" type="primary" plain @click="openRuleManager"
+        >规则管理</el-button
+      >
+      <el-button v-if="!props.isEmbed" type="info" @click="loadExample">{{
+        t("loadExample")
+      }}</el-button>
+      <el-button v-if="!props.isEmbed" type="info" @click="showUpdateLog">{{
+        t("updateLog")
+      }}</el-button>
+      <el-button
+        v-if="!props.isEmbed"
+        type="warning"
+        @click="showFeedbackForm"
+        >{{ t("feedback") }}</el-button
+      >
+      <el-button type="danger" @click="handleResetWorkspace"
+        >重置工作区</el-button
+      >
+      <el-button type="warning" plain @click="handleClearCanvas"
+        >清空画布</el-button
+      >
     </div>
     <div class="toolbar-controls">
       <el-switch
@@ -39,30 +66,59 @@
     </div>
 
     <!-- 更新日志对话框 -->
-    <el-dialog v-if="!props.isEmbed" v-model="state.showUpdateLogDialog" title="更新日志" width="60%">
+    <el-dialog
+      v-if="!props.isEmbed"
+      v-model="state.showUpdateLogDialog"
+      title="更新日志"
+      width="60%"
+    >
       <ul>
         <li v-for="(log, index) in updateLogs" :key="index">
           <strong>版本 {{ log.version }} - {{ log.date }}</strong>
           <ul>
-            <li v-for="(change, idx) in log.changes" :key="idx">{{ change }}</li>
+            <li v-for="(change, idx) in log.changes" :key="idx">
+              {{ change }}
+            </li>
           </ul>
         </li>
       </ul>
     </el-dialog>
 
     <!-- 问题反馈对话框 -->
-    <el-dialog v-if="!props.isEmbed" v-model="state.showFeedbackFormDialog" title="更新日志" width="60%">
-      <span style="font-size: 24px;">备注阴阳师</span>
-      <br/>
-      <img :src="contactImageUrl"
-           style="cursor: pointer; vertical-align: bottom; width: 200px; height: auto;"/>
+    <el-dialog
+      v-if="!props.isEmbed"
+      v-model="state.showFeedbackFormDialog"
+      title="更新日志"
+      width="60%"
+    >
+      <span style="font-size: 24px">备注阴阳师</span>
+      <br />
+      <img
+        :src="contactImageUrl"
+        style="
+          cursor: pointer;
+          vertical-align: bottom;
+          width: 200px;
+          height: auto;
+        "
+      />
     </el-dialog>
 
     <!-- 预览弹窗 -->
-    <el-dialog id="preview-container" v-model="state.previewVisible" width="80%" height="80%"
-               :before-close="handleClose">
-      <div style="max-height: 500px; overflow-y: auto;">
-        <img v-if="state.previewImage" :src="state.previewImage" alt="Preview" style="width: 100%; display: block;"/>
+    <el-dialog
+      id="preview-container"
+      v-model="state.previewVisible"
+      width="80%"
+      height="80%"
+      :before-close="handleClose"
+    >
+      <div style="max-height: 500px; overflow-y: auto">
+        <img
+          v-if="state.previewImage"
+          :src="state.previewImage"
+          alt="Preview"
+          style="width: 100%; display: block"
+        />
       </div>
       <span slot="footer" class="dialog-footer">
         <el-button @click="state.previewVisible = false">取 消</el-button>
@@ -77,38 +133,73 @@
           <el-input v-model="watermark.text"></el-input>
         </el-form-item>
         <el-form-item label="字体大小">
-          <el-input-number v-model="watermark.fontSize" :min="10" :max="100"></el-input-number>
+          <el-input-number
+            v-model="watermark.fontSize"
+            :min="10"
+            :max="100"
+          ></el-input-number>
         </el-form-item>
         <el-form-item label="颜色">
           <el-color-picker v-model="watermark.color"></el-color-picker>
         </el-form-item>
         <el-form-item label="水印行数">
-          <el-input-number v-model="watermark.rows" :min="1" :max="10"></el-input-number>
+          <el-input-number
+            v-model="watermark.rows"
+            :min="1"
+            :max="10"
+          ></el-input-number>
         </el-form-item>
         <el-form-item label="水印列数">
-          <el-input-number v-model="watermark.cols" :min="1" :max="10"></el-input-number>
+          <el-input-number
+            v-model="watermark.cols"
+            :min="1"
+            :max="10"
+          ></el-input-number>
         </el-form-item>
         <el-form-item label="角度">
-          <el-input-number v-model="watermark.angle" :min="-90" :max="90"></el-input-number>
+          <el-input-number
+            v-model="watermark.angle"
+            :min="-90"
+            :max="90"
+          ></el-input-number>
         </el-form-item>
       </el-form>
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="state.showWatermarkDialog = false">取消</el-button>
-          <el-button type="primary" @click="applyWatermarkSettings">确认</el-button>
+          <el-button type="primary" @click="applyWatermarkSettings"
+            >确认</el-button
+          >
         </span>
       </template>
     </el-dialog>
 
     <!-- 数据预览对话框 -->
-    <el-dialog v-model="state.showDataPreviewDialog" title="数据预览" width="70%">
-      <div style="max-height: 600px; overflow-y: auto;">
-        <pre style="background: #f5f5f5; padding: 16px; border-radius: 4px; font-size: 12px; line-height: 1.5;">{{ state.previewDataContent }}</pre>
+    <el-dialog
+      v-model="state.showDataPreviewDialog"
+      title="数据预览"
+      width="70%"
+    >
+      <div style="max-height: 600px; overflow-y: auto">
+        <pre
+          style="
+            background: #f5f5f5;
+            padding: 16px;
+            border-radius: 4px;
+            font-size: 12px;
+            line-height: 1.5;
+          "
+          >{{ state.previewDataContent }}</pre
+        >
       </div>
       <template #footer>
         <span class="dialog-footer">
-          <el-button @click="state.showDataPreviewDialog = false">关闭</el-button>
-          <el-button type="primary" @click="copyDataToClipboard">复制到剪贴板</el-button>
+          <el-button @click="state.showDataPreviewDialog = false"
+            >关闭</el-button
+          >
+          <el-button type="primary" @click="copyDataToClipboard"
+            >复制到剪贴板</el-button
+          >
         </span>
       </template>
     </el-dialog>
@@ -146,7 +237,9 @@
             >
               选择二维码图片
             </el-button>
-            <span class="team-code-qr-tip">支持从截图或相册图片识别官方阵容码二维码</span>
+            <span class="team-code-qr-tip"
+              >支持从截图或相册图片识别官方阵容码二维码</span
+            >
           </div>
         </el-form-item>
         <el-alert
@@ -180,7 +273,11 @@
     </el-dialog>
 
     <!-- 素材管理对话框 -->
-    <el-dialog v-model="state.showAssetManagerDialog" title="素材管理" width="70%">
+    <el-dialog
+      v-model="state.showAssetManagerDialog"
+      title="素材管理"
+      width="70%"
+    >
       <div class="asset-manager-actions">
         <input
           ref="assetUploadInputRef"
@@ -189,7 +286,11 @@
           class="asset-upload-input"
           @change="handleAssetManagerUpload"
         />
-        <el-button size="small" type="primary" @click="triggerAssetManagerUpload">
+        <el-button
+          size="small"
+          type="primary"
+          @click="triggerAssetManagerUpload"
+        >
           上传当前分类素材
         </el-button>
       </div>
@@ -209,7 +310,9 @@
             >
               <div
                 class="asset-manager-image"
-                :style="{ backgroundImage: `url('${resolveAssetUrl(item.avatar)}')` }"
+                :style="{
+                  backgroundImage: `url('${resolveAssetUrl(item.avatar)}')`,
+                }"
               />
               <div class="asset-manager-name">{{ item.name }}</div>
               <el-button
@@ -231,15 +334,37 @@
     </el-dialog>
 
     <!-- 规则管理对话框 -->
-    <el-dialog v-model="state.showRuleManagerDialog" title="规则管理" width="80%">
+    <el-dialog
+      v-model="state.showRuleManagerDialog"
+      title="规则管理"
+      width="80%"
+    >
       <div class="rule-manager-actions">
-        <el-button size="small" type="primary" @click="addExpressionRule">新增规则</el-button>
-        <el-button size="small" type="primary" plain @click="addRuleVariable">新增变量</el-button>
-        <el-button size="small" @click="exportRuleBundle">导出规则变量</el-button>
-        <el-button size="small" @click="triggerRuleBundleImport">导入规则变量</el-button>
-        <el-button size="small" @click="reloadRuleManagerDraft">重载当前配置</el-button>
-        <el-button size="small" type="success" @click="applyRuleManagerConfig">应用并生效</el-button>
-        <el-button size="small" type="warning" plain @click="restoreDefaultRuleConfig">恢复默认</el-button>
+        <el-button size="small" type="primary" @click="addExpressionRule"
+          >新增规则</el-button
+        >
+        <el-button size="small" type="primary" plain @click="addRuleVariable"
+          >新增变量</el-button
+        >
+        <el-button size="small" @click="exportRuleBundle"
+          >导出规则变量</el-button
+        >
+        <el-button size="small" @click="triggerRuleBundleImport"
+          >导入规则变量</el-button
+        >
+        <el-button size="small" @click="reloadRuleManagerDraft"
+          >重载当前配置</el-button
+        >
+        <el-button size="small" type="success" @click="applyRuleManagerConfig"
+          >应用并生效</el-button
+        >
+        <el-button
+          size="small"
+          type="warning"
+          plain
+          @click="restoreDefaultRuleConfig"
+          >恢复默认</el-button
+        >
         <input
           ref="ruleBundleImportInputRef"
           type="file"
@@ -269,7 +394,11 @@
                   <el-select
                     v-model="row.severity"
                     size="small"
-                    :class="['rule-inline-select', 'severity-select', `severity-select--${row.severity || 'warning'}`]"
+                    :class="[
+                      'rule-inline-select',
+                      'severity-select',
+                      `severity-select--${row.severity || 'warning'}`,
+                    ]"
                   >
                     <el-option label="warning" value="warning" />
                     <el-option label="error" value="error" />
@@ -277,21 +406,46 @@
                   </el-select>
                 </template>
               </el-table-column>
-              <el-table-column prop="id" label="规则 ID" min-width="180" show-overflow-tooltip />
-              <el-table-column label="条件" min-width="260" show-overflow-tooltip>
+              <el-table-column
+                prop="id"
+                label="规则 ID"
+                min-width="180"
+                show-overflow-tooltip
+              />
+              <el-table-column
+                label="条件"
+                min-width="260"
+                show-overflow-tooltip
+              >
                 <template #default="{ row }">
                   <span class="rule-cell-ellipsis">{{ row.condition }}</span>
                 </template>
               </el-table-column>
-              <el-table-column label="提示" min-width="180" show-overflow-tooltip>
+              <el-table-column
+                label="提示"
+                min-width="180"
+                show-overflow-tooltip
+              >
                 <template #default="{ row }">
                   <span class="rule-cell-ellipsis">{{ row.message }}</span>
                 </template>
               </el-table-column>
               <el-table-column label="操作" width="140" fixed="right">
                 <template #default="{ $index }">
-                  <el-button size="small" text type="primary" @click="openExpressionRuleEditor($index)">编辑</el-button>
-                  <el-button size="small" text type="danger" @click="removeExpressionRule($index)">删除</el-button>
+                  <el-button
+                    size="small"
+                    text
+                    type="primary"
+                    @click="openExpressionRuleEditor($index)"
+                    >编辑</el-button
+                  >
+                  <el-button
+                    size="small"
+                    text
+                    type="danger"
+                    @click="removeExpressionRule($index)"
+                    >删除</el-button
+                  >
                 </template>
               </el-table-column>
             </el-table>
@@ -307,7 +461,10 @@
               class="variable-item"
             >
               <el-form-item label="Key" class="variable-key">
-                <el-input v-model="item.key" placeholder="如: fire_supporters" />
+                <el-input
+                  v-model="item.key"
+                  placeholder="如: fire_supporters"
+                />
               </el-form-item>
               <el-form-item label="Value" class="variable-value">
                 <el-input
@@ -317,9 +474,18 @@
                   placeholder="逗号或换行分隔，如：辉夜姬,座敷童子"
                 />
               </el-form-item>
-              <el-button size="small" text type="danger" @click="removeRuleVariable(index)">删除</el-button>
+              <el-button
+                size="small"
+                text
+                type="danger"
+                @click="removeRuleVariable(index)"
+                >删除</el-button
+              >
             </div>
-            <el-empty v-if="ruleConfigDraft.ruleVariables.length === 0" description="暂无变量，点击“新增变量”创建" />
+            <el-empty
+              v-if="ruleConfigDraft.ruleVariables.length === 0"
+              description="暂无变量，点击“新增变量”创建"
+            />
           </div>
         </el-tab-pane>
 
@@ -341,7 +507,11 @@
     </el-dialog>
 
     <el-dialog v-model="ruleEditorVisible" title="编辑规则" width="56%">
-      <el-form v-if="ruleEditorDraft" label-width="96px" class="rule-editor-form">
+      <el-form
+        v-if="ruleEditorDraft"
+        label-width="96px"
+        class="rule-editor-form"
+      >
         <el-form-item label="启用">
           <el-switch v-model="ruleEditorDraft.enabled" />
         </el-form-item>
@@ -351,7 +521,10 @@
         <el-form-item label="级别">
           <el-select
             v-model="ruleEditorDraft.severity"
-            :class="['severity-select', `severity-select--${ruleEditorDraft.severity || 'warning'}`]"
+            :class="[
+              'severity-select',
+              `severity-select--${ruleEditorDraft.severity || 'warning'}`,
+            ]"
             style="width: 100%"
           >
             <el-option label="warning" value="warning" />
@@ -360,7 +533,10 @@
           </el-select>
         </el-form-item>
         <el-form-item label="告警 code">
-          <el-input v-model="ruleEditorDraft.code" placeholder="CUSTOM_EXPRESSION" />
+          <el-input
+            v-model="ruleEditorDraft.code"
+            placeholder="CUSTOM_EXPRESSION"
+          />
         </el-form-item>
         <el-form-item label="条件表达式">
           <el-input
@@ -371,7 +547,10 @@
           />
         </el-form-item>
         <el-form-item label="提示文案">
-          <el-input v-model="ruleEditorDraft.message" placeholder="规则提示文案" />
+          <el-input
+            v-model="ruleEditorDraft.message"
+            placeholder="规则提示文案"
+          />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -381,48 +560,53 @@
         </span>
       </template>
     </el-dialog>
-
   </div>
 </template>
 
 <script setup lang="ts">
-import { reactive, onMounted, onBeforeUnmount, ref } from 'vue';
-import updateLogs from "../data/updateLog.json"
+import { reactive, onMounted, onBeforeUnmount, ref } from "vue";
+import updateLogs from "../data/updateLog.json";
 import { useFilesStore } from "@/ts/useStore";
 import { useGlobalMessage } from "@/ts/useGlobalMessage";
-import { getLogicFlowInstance, useLogicFlowScope } from '@/ts/useLogicFlow';
-import { useCanvasSettings } from '@/ts/useCanvasSettings';
-import { useSafeI18n } from '@/ts/useSafeI18n';
-import type { Pinia } from 'pinia';
-import { resolveAssetUrl } from '@/utils/assetUrl';
-import { useToolbarImportExportCommands } from '@/components/composables/useToolbarImportExportCommands';
-import { useToolbarAssetManagement } from '@/components/composables/useToolbarAssetManagement';
-import { useToolbarRuleManagement } from '@/components/composables/useToolbarRuleManagement';
-import { useToolbarWorkspaceCommands } from '@/components/composables/useToolbarWorkspaceCommands';
-import { useToolbarDialogState } from '@/components/composables/useToolbarDialogState';
+import { getLogicFlowInstance, useLogicFlowScope } from "@/ts/useLogicFlow";
+import { useCanvasSettings } from "@/ts/useCanvasSettings";
+import { useSafeI18n } from "@/ts/useSafeI18n";
+import type { Pinia } from "pinia";
+import { resolveAssetUrl } from "@/utils/assetUrl";
+import { useToolbarImportExportCommands } from "@/components/composables/useToolbarImportExportCommands";
+import { useToolbarAssetManagement } from "@/components/composables/useToolbarAssetManagement";
+import { useToolbarRuleManagement } from "@/components/composables/useToolbarRuleManagement";
+import { useToolbarWorkspaceCommands } from "@/components/composables/useToolbarWorkspaceCommands";
+import { useToolbarDialogState } from "@/components/composables/useToolbarDialogState";
 
-const props = withDefaults(defineProps<{
-  isEmbed?: boolean;
-  piniaInstance?: Pinia;
-}>(), {
-  isEmbed: false
-});
+const props = withDefaults(
+  defineProps<{
+    isEmbed?: boolean;
+    piniaInstance?: Pinia;
+  }>(),
+  {
+    isEmbed: false,
+  },
+);
 
-const filesStore = props.piniaInstance ? useFilesStore(props.piniaInstance) : useFilesStore();
+const filesStore = props.piniaInstance
+  ? useFilesStore(props.piniaInstance)
+  : useFilesStore();
 const logicFlowScope = useLogicFlowScope();
 filesStore.bindLogicFlowScope(logicFlowScope);
-const contactImageUrl = resolveAssetUrl('/assets/Other/Contact.png') as string;
+const contactImageUrl = resolveAssetUrl("/assets/Other/Contact.png") as string;
 const { showMessage } = useGlobalMessage();
-const { selectionEnabled, snapGridEnabled, snaplineEnabled } = useCanvasSettings();
+const { selectionEnabled, snapGridEnabled, snaplineEnabled } =
+  useCanvasSettings();
 
 const { t } = useSafeI18n({
-  import: '导入',
-  export: '导出',
-  prepareCapture: '准备截图',
-  setWatermark: '设置水印',
-  loadExample: '加载样例',
-  updateLog: '更新日志',
-  feedback: '问题反馈'
+  import: "导入",
+  export: "导出",
+  prepareCapture: "准备截图",
+  setWatermark: "设置水印",
+  loadExample: "加载样例",
+  updateLog: "更新日志",
+  feedback: "问题反馈",
 });
 
 // 定义响应式数据
@@ -438,10 +622,10 @@ const state = reactive({
   decodingTeamCodeQr: false, // 阵容码二维码识别中
   showAssetManagerDialog: false, // 控制素材管理对话框的显示状态
   showRuleManagerDialog: false, // 控制规则管理对话框的显示状态
-  previewDataContent: '', // 存储预览的数据内容
+  previewDataContent: "", // 存储预览的数据内容
 });
-const importSource = ref<'json' | 'teamCode'>('json');
-const teamCodeInput = ref('');
+const importSource = ref<"json" | "teamCode">("json");
+const teamCodeInput = ref("");
 const teamCodeQrInputRef = ref<HTMLInputElement | null>(null);
 const {
   watermark,
@@ -513,22 +697,19 @@ const refreshLogicFlowCanvas = (message?: string) => {
         // 注意：此处根据你的画布 API 传入 graphRawData 或整个文件数据
         const data = (currentFileData as any).graphRawData || currentFileData;
         logicFlowInstance.render(data);
-        console.log(message || 'LogicFlow 画布已重新渲染');
+        console.log(message || "LogicFlow 画布已重新渲染");
       }
     }
   }, 100); // 延迟一点确保数据更新完成
 };
 
-const {
-  loadExample,
-  handleResetWorkspace,
-  handleClearCanvas,
-} = useToolbarWorkspaceCommands({
-  filesStore,
-  logicFlowScope,
-  showMessage,
-  refreshLogicFlowCanvas,
-});
+const { loadExample, handleResetWorkspace, handleClearCanvas } =
+  useToolbarWorkspaceCommands({
+    filesStore,
+    logicFlowScope,
+    showMessage,
+    refreshLogicFlowCanvas,
+  });
 
 onMounted(() => {
   mountAssetManagement();
@@ -621,7 +802,8 @@ const {
   font-size: 16px;
 }
 
-.left, .right {
+.left,
+.right {
   flex-basis: 120px;
   display: flex;
   gap: 8px;

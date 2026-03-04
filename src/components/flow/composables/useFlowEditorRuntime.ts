@@ -1,16 +1,29 @@
-import LogicFlow, { EventType } from '@logicflow/core';
-import type { BaseNodeModel, EdgeData, NodeData, Position } from '@logicflow/core';
-import type { Ref } from 'vue';
-import { Menu, Label, Snapshot, SelectionSelect, MiniMap, Control, DynamicGroup } from '@logicflow/extension';
-import { register } from '@logicflow/vue-node-registry';
-import PropertySelectNode from '../nodes/yys/PropertySelectNode.vue';
-import ImageNode from '../nodes/common/ImageNode.vue';
-import AssetSelectorNode from '../nodes/common/AssetSelectorNode.vue';
-import TextNode from '../nodes/common/TextNode.vue';
-import TextNodeModel from '../nodes/common/TextNodeModel';
-import VectorNode from '../nodes/common/VectorNode.vue';
-import VectorNodeModel from '../nodes/common/VectorNodeModel';
-import { setLogicFlowInstance, type LogicFlowScope } from '@/ts/useLogicFlow';
+import LogicFlow, { EventType } from "@logicflow/core";
+import type {
+  BaseNodeModel,
+  EdgeData,
+  NodeData,
+  Position,
+} from "@logicflow/core";
+import type { Ref } from "vue";
+import {
+  Menu,
+  Label,
+  Snapshot,
+  SelectionSelect,
+  MiniMap,
+  Control,
+  DynamicGroup,
+} from "@logicflow/extension";
+import { register } from "@logicflow/vue-node-registry";
+import PropertySelectNode from "../nodes/yys/PropertySelectNode.vue";
+import ImageNode from "../nodes/common/ImageNode.vue";
+import AssetSelectorNode from "../nodes/common/AssetSelectorNode.vue";
+import TextNode from "../nodes/common/TextNode.vue";
+import TextNodeModel from "../nodes/common/TextNodeModel";
+import VectorNode from "../nodes/common/VectorNode.vue";
+import VectorNodeModel from "../nodes/common/VectorNodeModel";
+import { setLogicFlowInstance, type LogicFlowScope } from "@/ts/useLogicFlow";
 
 type ShortcutHandler = (event?: KeyboardEvent) => boolean | void;
 
@@ -36,7 +49,10 @@ export interface FlowEditorRuntimeOptions {
   ungroupSelectedNodes: ShortcutHandler;
   toggleLockSelected: ShortcutHandler;
   toggleVisibilitySelected: ShortcutHandler;
-  handleArrowMove: (direction: 'left' | 'right' | 'up' | 'down', event?: KeyboardEvent) => boolean | void;
+  handleArrowMove: (
+    direction: "left" | "right" | "up" | "down",
+    event?: KeyboardEvent,
+  ) => boolean | void;
   normalizeNodeModel: (model: BaseNodeModel) => void;
   scheduleGroupRuleValidation: (delay?: number) => void;
   emitGraphDataChange: () => void;
@@ -49,11 +65,20 @@ export interface FlowEditorRuntimeOptions {
 }
 
 function registerNodes(lfInstance: LogicFlow) {
-  register({ type: 'propertySelect', component: PropertySelectNode }, lfInstance);
-  register({ type: 'imageNode', component: ImageNode }, lfInstance);
-  register({ type: 'assetSelector', component: AssetSelectorNode }, lfInstance);
-  register({ type: 'textNode', component: TextNode, model: TextNodeModel }, lfInstance);
-  register({ type: 'vectorNode', component: VectorNode, model: VectorNodeModel }, lfInstance);
+  register(
+    { type: "propertySelect", component: PropertySelectNode },
+    lfInstance,
+  );
+  register({ type: "imageNode", component: ImageNode }, lfInstance);
+  register({ type: "assetSelector", component: AssetSelectorNode }, lfInstance);
+  register(
+    { type: "textNode", component: TextNode, model: TextNodeModel },
+    lfInstance,
+  );
+  register(
+    { type: "vectorNode", component: VectorNode, model: VectorNodeModel },
+    lfInstance,
+  );
 }
 
 export function useFlowEditorRuntime() {
@@ -89,35 +114,35 @@ export function useFlowEditorRuntime() {
       normalizeAllNodes,
       logClipboardDebug,
       applyKeyboardEnabled,
-      applySelectionSelect
+      applySelectionSelect,
     } = options;
 
     lf.value = new LogicFlow({
       container: containerRef.value,
-      grid: { type: 'dot', size: 10 },
+      grid: { type: "dot", size: 10 },
       stopMoveGraph: true,
       allowResize: true,
       allowRotate: true,
       overlapMode: -1,
       snapline: snaplineEnabled.value,
       keyboard: {
-        enabled: true
+        enabled: true,
       },
       style: {
         text: {
-          color: '#333333',
+          color: "#333333",
           fontSize: 14,
           background: {
-            fill: '#ffffff',
-            stroke: '#dcdfe6',
+            fill: "#ffffff",
+            stroke: "#dcdfe6",
             strokeWidth: 1,
-            radius: 4
-          }
+            radius: 4,
+          },
         },
         nodeText: {
-          color: '#333333',
-          fontSize: 14
-        }
+          color: "#333333",
+          fontSize: 14,
+        },
       },
       plugins: [
         DynamicGroup,
@@ -126,12 +151,12 @@ export function useFlowEditorRuntime() {
         Snapshot,
         SelectionSelect,
         MiniMap,
-        Control
+        Control,
       ],
       pluginsOptions: {
         label: {
           isMultiple: false,
-          textOverflowMode: 'wrap'
+          textOverflowMode: "wrap",
         },
         miniMap: {
           isShowHeader: false,
@@ -139,9 +164,9 @@ export function useFlowEditorRuntime() {
           width: 200,
           height: 140,
           rightPosition: 16,
-          bottomPosition: 16
-        }
-      }
+          bottomPosition: 16,
+        },
+      },
     });
 
     const lfInstance = lf.value;
@@ -149,153 +174,159 @@ export function useFlowEditorRuntime() {
       return () => {};
     }
 
-    lfInstance.keyboard.off(['backspace']);
+    lfInstance.keyboard.off(["backspace"]);
 
-    const bindShortcut = (keys: string | string[], handler: (event?: KeyboardEvent) => boolean | void) => {
+    const bindShortcut = (
+      keys: string | string[],
+      handler: (event?: KeyboardEvent) => boolean | void,
+    ) => {
       lfInstance.keyboard.on(keys, (event: KeyboardEvent) => handler(event));
     };
 
-    bindShortcut(['del', 'backspace'], deleteSelectedElements);
-    bindShortcut(['left'], (event) => handleArrowMove('left', event));
-    bindShortcut(['right'], (event) => handleArrowMove('right', event));
-    bindShortcut(['up'], (event) => handleArrowMove('up', event));
-    bindShortcut(['down'], (event) => handleArrowMove('down', event));
-    bindShortcut(['cmd + g', 'ctrl + g'], groupSelectedNodes);
-    bindShortcut(['cmd + u', 'ctrl + u'], ungroupSelectedNodes);
-    bindShortcut(['cmd + l', 'ctrl + l'], toggleLockSelected);
-    bindShortcut(['cmd + shift + h', 'ctrl + shift + h'], toggleVisibilitySelected);
+    bindShortcut(["del", "backspace"], deleteSelectedElements);
+    bindShortcut(["left"], (event) => handleArrowMove("left", event));
+    bindShortcut(["right"], (event) => handleArrowMove("right", event));
+    bindShortcut(["up"], (event) => handleArrowMove("up", event));
+    bindShortcut(["down"], (event) => handleArrowMove("down", event));
+    bindShortcut(["cmd + g", "ctrl + g"], groupSelectedNodes);
+    bindShortcut(["cmd + u", "ctrl + u"], ungroupSelectedNodes);
+    bindShortcut(["cmd + l", "ctrl + l"], toggleLockSelected);
+    bindShortcut(
+      ["cmd + shift + h", "ctrl + shift + h"],
+      toggleVisibilitySelected,
+    );
 
     lfInstance.extension.menu.addMenuConfig({
       nodeMenu: [
         {
-          text: '置于顶层',
+          text: "置于顶层",
           callback(node: NodeData) {
             bringToFront(node.id);
-          }
+          },
         },
         {
-          text: '上移一层',
+          text: "上移一层",
           callback(node: NodeData) {
             bringForward(node.id);
-          }
+          },
         },
         {
-          text: '下移一层',
+          text: "下移一层",
           callback(node: NodeData) {
             sendBackward(node.id);
-          }
+          },
         },
         {
-          text: '置于底层',
+          text: "置于底层",
           callback(node: NodeData) {
             sendToBack(node.id);
-          }
+          },
         },
         {
-          text: '---'
+          text: "---",
         },
         {
-          text: '组合 (Ctrl+G)',
+          text: "组合 (Ctrl+G)",
           callback() {
             groupSelectedNodes();
-          }
+          },
         },
         {
-          text: '解组 (Ctrl+U)',
+          text: "解组 (Ctrl+U)",
           callback() {
             ungroupSelectedNodes();
-          }
+          },
         },
         {
-          text: '---'
+          text: "---",
         },
         {
-          text: '锁定/解锁 (Ctrl+L)',
+          text: "锁定/解锁 (Ctrl+L)",
           callback() {
             toggleLockSelected();
-          }
+          },
         },
         {
-          text: '显示/隐藏 (Ctrl+Shift+H)',
+          text: "显示/隐藏 (Ctrl+Shift+H)",
           callback() {
             toggleVisibilitySelected();
-          }
+          },
         },
         {
-          text: '---'
+          text: "---",
         },
         {
-          text: '删除节点 (Del)',
+          text: "删除节点 (Del)",
           callback(node: NodeData) {
             deleteNode(node.id);
-          }
-        }
+          },
+        },
       ],
       edgeMenu: [
         {
-          text: '删除边',
+          text: "删除边",
           callback(edge: EdgeData) {
             lfInstance.deleteEdge(edge.id);
-          }
-        }
+          },
+        },
       ],
       graphMenu: [
         {
-          text: '添加节点',
+          text: "添加节点",
           callback(data: Position) {
             lfInstance.addNode({
-              type: 'rect',
+              type: "rect",
               x: data.x,
-              y: data.y
+              y: data.y,
             });
-          }
+          },
         },
         {
-          text: '提示：使用 Ctrl+V 粘贴'
-        }
-      ]
+          text: "提示：使用 Ctrl+V 粘贴",
+        },
+      ],
     });
 
     lfInstance.extension.menu.setMenuByType({
-      type: 'lf:defaultSelectionMenu',
+      type: "lf:defaultSelectionMenu",
       menu: [
         {
-          text: '组合 (Ctrl+G)',
+          text: "组合 (Ctrl+G)",
           callback() {
             groupSelectedNodes();
-          }
+          },
         },
         {
-          text: '解组 (Ctrl+U)',
+          text: "解组 (Ctrl+U)",
           callback() {
             ungroupSelectedNodes();
-          }
+          },
         },
         {
-          text: '---'
+          text: "---",
         },
         {
-          text: '锁定/解锁 (Ctrl+L)',
+          text: "锁定/解锁 (Ctrl+L)",
           callback() {
             toggleLockSelected();
-          }
+          },
         },
         {
-          text: '显示/隐藏 (Ctrl+Shift+H)',
+          text: "显示/隐藏 (Ctrl+Shift+H)",
           callback() {
             toggleVisibilitySelected();
-          }
+          },
         },
         {
-          text: '---'
+          text: "---",
         },
         {
-          text: '删除选中 (Del)',
+          text: "删除选中 (Del)",
           callback() {
             deleteSelectedElements();
-          }
-        }
-      ]
+          },
+        },
+      ],
     });
 
     registerNodes(lfInstance);
@@ -307,8 +338,8 @@ export function useFlowEditorRuntime() {
 
     lfInstance.on(EventType.NODE_ADD, ({ data }) => {
       if (!data?.id) {
-        logClipboardDebug('node:add-invalid-payload', {
-          payload: data ?? null
+        logClipboardDebug("node:add-invalid-payload", {
+          payload: data ?? null,
         });
         return;
       }
@@ -322,7 +353,7 @@ export function useFlowEditorRuntime() {
       emitGraphDataChange();
     });
 
-    lfInstance.on('node:dnd-add', ({ data }) => {
+    lfInstance.on("node:dnd-add", ({ data }) => {
       if (!data?.id) return;
       const model = lfInstance.getNodeModelById(data.id);
       if (model) {
@@ -355,7 +386,7 @@ export function useFlowEditorRuntime() {
         if (data.properties) {
           selectedNode.value = {
             ...selectedNode.value,
-            properties: data.properties
+            properties: data.properties,
           };
         }
       }
@@ -401,21 +432,21 @@ export function useFlowEditorRuntime() {
       emitGraphDataChange();
     });
 
-    lfInstance.on('selection:selected', () => {
+    lfInstance.on("selection:selected", () => {
       sanitizeGraphLabels();
       updateSelectedCount();
-      logClipboardDebug('selection:selected');
+      logClipboardDebug("selection:selected");
     });
-    lfInstance.on('selection:drop', () => {
+    lfInstance.on("selection:drop", () => {
       sanitizeGraphLabels();
       updateSelectedCount();
-      logClipboardDebug('selection:drop');
+      logClipboardDebug("selection:drop");
     });
 
     return () => {};
   };
 
   return {
-    mountFlowEditorRuntime
+    mountFlowEditorRuntime,
   };
 }

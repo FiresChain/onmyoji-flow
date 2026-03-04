@@ -1,16 +1,16 @@
 <script setup lang="ts">
-import { ref, computed, onBeforeUnmount } from 'vue';
-import { useNodeAppearance } from '@/ts/useNodeAppearance';
+import { ref, computed, onBeforeUnmount } from "vue";
+import { useNodeAppearance } from "@/ts/useNodeAppearance";
 
 const vectorConfig = ref({
-  kind: 'rect',
-  svgContent: '',
-  path: '',
+  kind: "rect",
+  svgContent: "",
+  path: "",
   tileWidth: 50,
   tileHeight: 50,
-  fill: '#409EFF',
-  stroke: '#303133',
-  strokeWidth: 1
+  fill: "#409EFF",
+  stroke: "#303133",
+  strokeWidth: 1,
 });
 
 const nodeSize = ref({ width: 200, height: 200 });
@@ -31,7 +31,7 @@ const flushPendingSync = () => {
 };
 
 const scheduleSync = () => {
-  if (typeof requestAnimationFrame === 'undefined') {
+  if (typeof requestAnimationFrame === "undefined") {
     flushPendingSync();
     return;
   }
@@ -49,16 +49,16 @@ const { containerStyle } = useNodeAppearance({
     if (node) {
       pendingNodeSize = {
         width: node.width,
-        height: node.height
+        height: node.height,
       };
     }
     // 使用 requestAnimationFrame 防抖，减少快速缩放时的重复重绘
     scheduleSync();
-  }
+  },
 });
 
 onBeforeUnmount(() => {
-  if (syncRafId !== null && typeof cancelAnimationFrame !== 'undefined') {
+  if (syncRafId !== null && typeof cancelAnimationFrame !== "undefined") {
     cancelAnimationFrame(syncRafId);
     syncRafId = null;
   }
@@ -68,28 +68,29 @@ const patternId = `vector-pattern-${Math.random().toString(36).slice(2, 11)}`;
 
 // 生成 SVG 内容
 const svgContent = computed(() => {
-  const { kind, path, tileWidth, tileHeight, fill, stroke, strokeWidth } = vectorConfig.value;
+  const { kind, path, tileWidth, tileHeight, fill, stroke, strokeWidth } =
+    vectorConfig.value;
 
-  let shapeElement = '';
+  let shapeElement = "";
   switch (kind) {
-    case 'rect':
+    case "rect":
       shapeElement = `<rect x="0" y="0" width="${tileWidth}" height="${tileHeight}"
                             fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}" />`;
       break;
-    case 'ellipse':
-      shapeElement = `<ellipse cx="${tileWidth/2}" cy="${tileHeight/2}"
-                               rx="${tileWidth/2 - strokeWidth}" ry="${tileHeight/2 - strokeWidth}"
+    case "ellipse":
+      shapeElement = `<ellipse cx="${tileWidth / 2}" cy="${tileHeight / 2}"
+                               rx="${tileWidth / 2 - strokeWidth}" ry="${tileHeight / 2 - strokeWidth}"
                                fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}" />`;
       break;
-    case 'path':
-      shapeElement = `<path d="${path || 'M 0 0'}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}" />`;
+    case "path":
+      shapeElement = `<path d="${path || "M 0 0"}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}" />`;
       break;
-    case 'svg':
-      shapeElement = vectorConfig.value.svgContent || '';
+    case "svg":
+      shapeElement = vectorConfig.value.svgContent || "";
       break;
-    case 'polygon':
+    case "polygon":
       // 默认三角形
-      const points = `0,${tileHeight} ${tileWidth/2},0 ${tileWidth},${tileHeight}`;
+      const points = `0,${tileHeight} ${tileWidth / 2},0 ${tileWidth},${tileHeight}`;
       shapeElement = `<polygon points="${points}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}" />`;
       break;
   }

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { useDialogs } from '@/ts/useDialogs';
-import { getLogicFlowInstance, useLogicFlowScope } from '@/ts/useLogicFlow';
+import { useDialogs } from "@/ts/useDialogs";
+import { getLogicFlowInstance, useLogicFlowScope } from "@/ts/useLogicFlow";
 
 const props = defineProps<{
   node: any;
@@ -15,10 +15,10 @@ const handleOpenDialog = () => {
   if (!lf || !node) return;
 
   const currentData = node.properties?.property;
-  openDialog('property', currentData, node, (updatedData) => {
+  openDialog("property", currentData, node, (updatedData) => {
     lf.setProperties(node.id, {
       ...node.properties,
-      property: updatedData
+      property: updatedData,
     });
   });
 };
@@ -28,7 +28,9 @@ const handleOpenDialog = () => {
   <div class="property-section">
     <div class="section-header">属性设置</div>
     <div class="property-item">
-      <el-button type="primary" @click="handleOpenDialog" style="width: 100%">设置属性</el-button>
+      <el-button type="primary" @click="handleOpenDialog" style="width: 100%"
+        >设置属性</el-button
+      >
     </div>
   </div>
 </template>

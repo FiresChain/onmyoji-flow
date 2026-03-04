@@ -1,17 +1,17 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from "vitest";
 import {
   createLogicFlowScope,
   destroyLogicFlowInstance,
   getLogicFlowInstance,
-  setLogicFlowInstance
-} from '@/ts/useLogicFlow';
+  setLogicFlowInstance,
+} from "@/ts/useLogicFlow";
 
 const createMockLogicFlow = () => ({
-  destroy: vi.fn()
+  destroy: vi.fn(),
 });
 
-describe('useLogicFlow scope isolation', () => {
-  it('keeps default-scope API compatibility', () => {
+describe("useLogicFlow scope isolation", () => {
+  it("keeps default-scope API compatibility", () => {
     const lf = createMockLogicFlow();
 
     setLogicFlowInstance(lf as any);
@@ -22,7 +22,7 @@ describe('useLogicFlow scope isolation', () => {
     expect(getLogicFlowInstance()).toBeNull();
   });
 
-  it('isolates instances across scopes', () => {
+  it("isolates instances across scopes", () => {
     const scopeA = createLogicFlowScope();
     const scopeB = createLogicFlowScope();
     const lfA = createMockLogicFlow();

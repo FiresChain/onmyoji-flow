@@ -1,14 +1,14 @@
-import { reactive, ref } from 'vue';
-import { ASSET_LIBRARIES } from '@/types/nodeTypes';
+import { reactive, ref } from "vue";
+import { ASSET_LIBRARIES } from "@/types/nodeTypes";
 import {
   createCustomAssetFromFile,
   deleteCustomAsset,
   listCustomAssets,
   subscribeCustomAssetStore,
   type CustomAssetItem,
-} from '@/utils/customAssets';
+} from "@/utils/customAssets";
 
-type MessageType = 'success' | 'warning' | 'info' | 'error';
+type MessageType = "success" | "warning" | "info" | "error";
 
 type ShowMessage = (type: MessageType, message: string) => void;
 
@@ -21,13 +21,15 @@ interface UseToolbarAssetManagementOptions {
   showMessage: ShowMessage;
 }
 
-export function useToolbarAssetManagement(options: UseToolbarAssetManagementOptions) {
+export function useToolbarAssetManagement(
+  options: UseToolbarAssetManagementOptions,
+) {
   const { state, showMessage } = options;
   const assetLibraries = ASSET_LIBRARIES.map((item) => ({
     id: item.id,
     label: `${item.label}素材`,
   }));
-  const assetManagerLibrary = ref(assetLibraries[0]?.id || 'shikigami');
+  const assetManagerLibrary = ref(assetLibraries[0]?.id || "shikigami");
   const assetUploadInputRef = ref<HTMLInputElement | null>(null);
   const managedAssets = reactive<Record<string, CustomAssetItem[]>>({});
 
@@ -77,19 +79,19 @@ export function useToolbarAssetManagement(options: UseToolbarAssetManagementOpti
     const target = event.target as HTMLInputElement | null;
     const file = target?.files?.[0];
     if (!file) {
-      if (target) target.value = '';
+      if (target) target.value = "";
       return;
     }
 
     try {
       await createCustomAssetFromFile(assetManagerLibrary.value, file);
       refreshManagedAssets(assetManagerLibrary.value);
-      showMessage('success', '素材上传成功');
+      showMessage("success", "素材上传成功");
     } catch (error) {
-      console.error('素材上传失败:', error);
-      showMessage('error', '素材上传失败');
+      console.error("素材上传失败:", error);
+      showMessage("error", "素材上传失败");
     } finally {
-      if (target) target.value = '';
+      if (target) target.value = "";
     }
   };
 

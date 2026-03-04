@@ -1,17 +1,22 @@
-import type LogicFlow from '@logicflow/core';
-import type { InjectionKey } from 'vue';
-import { getCurrentInstance, inject, provide } from 'vue';
+import type LogicFlow from "@logicflow/core";
+import type { InjectionKey } from "vue";
+import { getCurrentInstance, inject, provide } from "vue";
 
 export type LogicFlowScope = symbol;
 
-const DEFAULT_LOGIC_FLOW_SCOPE: LogicFlowScope = Symbol.for('onmyoji-flow:logicflow:default-scope');
-const LOGIC_FLOW_SCOPE_KEY: InjectionKey<LogicFlowScope> = Symbol('onmyoji-flow:logicflow:scope-key');
+const DEFAULT_LOGIC_FLOW_SCOPE: LogicFlowScope = Symbol.for(
+  "onmyoji-flow:logicflow:default-scope",
+);
+const LOGIC_FLOW_SCOPE_KEY: InjectionKey<LogicFlowScope> = Symbol(
+  "onmyoji-flow:logicflow:scope-key",
+);
 const logicFlowInstances = new Map<LogicFlowScope, LogicFlow>();
 
-const resolveLogicFlowScope = (scope?: LogicFlowScope): LogicFlowScope => scope ?? DEFAULT_LOGIC_FLOW_SCOPE;
+const resolveLogicFlowScope = (scope?: LogicFlowScope): LogicFlowScope =>
+  scope ?? DEFAULT_LOGIC_FLOW_SCOPE;
 
 export function createLogicFlowScope(): LogicFlowScope {
-  return Symbol('onmyoji-flow:logicflow:scope');
+  return Symbol("onmyoji-flow:logicflow:scope");
 }
 
 export function provideLogicFlowScope(scope: LogicFlowScope) {

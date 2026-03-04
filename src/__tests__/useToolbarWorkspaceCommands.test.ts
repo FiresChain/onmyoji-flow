@@ -1,16 +1,19 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { ElMessageBox } from 'element-plus';
-import { useToolbarWorkspaceCommands } from '@/components/composables/useToolbarWorkspaceCommands';
-import { getLogicFlowInstance } from '@/ts/useLogicFlow';
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { ElMessageBox } from "element-plus";
+import { useToolbarWorkspaceCommands } from "@/components/composables/useToolbarWorkspaceCommands";
+import { getLogicFlowInstance } from "@/ts/useLogicFlow";
 
-vi.mock('element-plus', () => ({
+vi.mock("element-plus", () => ({
   ElMessageBox: {
     confirm: vi.fn(),
   },
 }));
 
-vi.mock('@/ts/useLogicFlow', async () => {
-  const actual = await vi.importActual<typeof import('@/ts/useLogicFlow')>('@/ts/useLogicFlow');
+vi.mock("@/ts/useLogicFlow", async () => {
+  const actual =
+    await vi.importActual<typeof import("@/ts/useLogicFlow")>(
+      "@/ts/useLogicFlow",
+    );
   return {
     ...actual,
     getLogicFlowInstance: vi.fn(),
@@ -40,12 +43,14 @@ interface ToolbarWorkspaceTestContext {
 }
 
 interface CreateWorkspaceContextOptions {
-  activeFile?: ToolbarWorkspaceTestContext['activeFile'] | null;
+  activeFile?: ToolbarWorkspaceTestContext["activeFile"] | null;
 }
 
-const createContext = (options: CreateWorkspaceContextOptions = {}): ToolbarWorkspaceTestContext => {
+const createContext = (
+  options: CreateWorkspaceContextOptions = {},
+): ToolbarWorkspaceTestContext => {
   const defaultActiveFile = {
-    graphRawData: { nodes: [{ id: 'n1' }], edges: [] },
+    graphRawData: { nodes: [{ id: "n1" }], edges: [] },
     transform: {
       SCALE_X: 2,
       SCALE_Y: 2,
@@ -53,8 +58,8 @@ const createContext = (options: CreateWorkspaceContextOptions = {}): ToolbarWork
       TRANSLATE_Y: 24,
     },
   };
-  const activeFile = Object.prototype.hasOwnProperty.call(options, 'activeFile')
-    ? options.activeFile ?? undefined
+  const activeFile = Object.prototype.hasOwnProperty.call(options, "activeFile")
+    ? (options.activeFile ?? undefined)
     : defaultActiveFile;
 
   const filesStore = {
@@ -62,7 +67,7 @@ const createContext = (options: CreateWorkspaceContextOptions = {}): ToolbarWork
     resetWorkspace: vi.fn(),
     updateTab: vi.fn(),
     getTab: vi.fn(() => activeFile),
-    activeFileId: 'file-a',
+    activeFileId: "file-a",
   };
 
   const showMessage = vi.fn();
@@ -70,7 +75,7 @@ const createContext = (options: CreateWorkspaceContextOptions = {}): ToolbarWork
 
   const commands = useToolbarWorkspaceCommands({
     filesStore,
-    logicFlowScope: Symbol('toolbar-workspace-scope'),
+    logicFlowScope: Symbol("toolbar-workspace-scope"),
     showMessage,
     refreshLogicFlowCanvas,
   });
@@ -89,40 +94,47 @@ const flushMicrotasks = async () => {
   await Promise.resolve();
 };
 
-describe('useToolbarWorkspaceCommands', () => {
+describe("useToolbarWorkspaceCommands", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('loadExample keeps confirm-import-refresh behavior', async () => {
+  it("loadExample keeps confirm-import-refresh behavior", async () => {
     const context = createContext();
-    vi.mocked(ElMessageBox.confirm).mockResolvedValue('confirm' as never);
+    vi.mocked(ElMessageBox.confirm).mockResolvedValue("confirm" as never);
 
     context.commands.loadExample();
     await flushMicrotasks();
 
     expect(context.filesStore.importData).toHaveBeenCalledTimes(1);
-    expect(context.filesStore.importData).toHaveBeenCalledWith(expect.objectContaining({
-      activeFile: 'example',
-    }));
-    expect(context.refreshLogicFlowCanvas).toHaveBeenCalledWith('LogicFlow 画布已重新渲染（示例数据）');
-    expect(context.showMessage).toHaveBeenCalledWith('success', '数据已恢复');
+    expect(context.filesStore.importData).toHaveBeenCalledWith(
+      expect.objectContaining({
+        activeFile: "example",
+      }),
+    );
+    expect(context.refreshLogicFlowCanvas).toHaveBeenCalledWith(
+      "LogicFlow 画布已重新渲染（示例数据）",
+    );
+    expect(context.showMessage).toHaveBeenCalledWith("success", "数据已恢复");
   });
 
-  it('loadExample keeps cancel-info behavior', async () => {
+  it("loadExample keeps cancel-info behavior", async () => {
     const context = createContext();
-    vi.mocked(ElMessageBox.confirm).mockRejectedValue(new Error('cancel'));
+    vi.mocked(ElMessageBox.confirm).mockRejectedValue(new Error("cancel"));
 
     context.commands.loadExample();
     await flushMicrotasks();
 
     expect(context.filesStore.importData).not.toHaveBeenCalled();
-    expect(context.showMessage).toHaveBeenCalledWith('info', '选择了不恢复旧数据');
+    expect(context.showMessage).toHaveBeenCalledWith(
+      "info",
+      "选择了不恢复旧数据",
+    );
   });
 
-  it('handleResetWorkspace keeps confirm-reset behavior', async () => {
+  it("handleResetWorkspace keeps confirm-reset behavior", async () => {
     const context = createContext();
-    vi.mocked(ElMessageBox.confirm).mockResolvedValue('confirm' as never);
+    vi.mocked(ElMessageBox.confirm).mockResolvedValue("confirm" as never);
 
     context.commands.handleResetWorkspace();
     await flushMicrotasks();
@@ -130,9 +142,9 @@ describe('useToolbarWorkspaceCommands', () => {
     expect(context.filesStore.resetWorkspace).toHaveBeenCalledTimes(1);
   });
 
-  it('handleResetWorkspace keeps cancel behavior', async () => {
+  it("handleResetWorkspace keeps cancel behavior", async () => {
     const context = createContext();
-    vi.mocked(ElMessageBox.confirm).mockRejectedValue(new Error('cancel'));
+    vi.mocked(ElMessageBox.confirm).mockRejectedValue(new Error("cancel"));
 
     context.commands.handleResetWorkspace();
     await flushMicrotasks();
@@ -140,7 +152,7 @@ describe('useToolbarWorkspaceCommands', () => {
     expect(context.filesStore.resetWorkspace).not.toHaveBeenCalled();
   });
 
-  it('handleClearCanvas keeps clear-active-tab behavior', async () => {
+  it("handleClearCanvas keeps clear-active-tab behavior", async () => {
     const context = createContext();
     const lfInstance = {
       clearData: vi.fn(),
@@ -148,7 +160,7 @@ describe('useToolbarWorkspaceCommands', () => {
       zoom: vi.fn(),
     };
 
-    vi.mocked(ElMessageBox.confirm).mockResolvedValue('confirm' as never);
+    vi.mocked(ElMessageBox.confirm).mockResolvedValue("confirm" as never);
     vi.mocked(getLogicFlowInstance).mockReturnValue(lfInstance as never);
 
     context.commands.handleClearCanvas();
@@ -165,11 +177,14 @@ describe('useToolbarWorkspaceCommands', () => {
       TRANSLATE_X: 0,
       TRANSLATE_Y: 0,
     });
-    expect(context.filesStore.updateTab).toHaveBeenCalledWith('file-a');
-    expect(context.showMessage).toHaveBeenCalledWith('success', '当前画布已清空');
+    expect(context.filesStore.updateTab).toHaveBeenCalledWith("file-a");
+    expect(context.showMessage).toHaveBeenCalledWith(
+      "success",
+      "当前画布已清空",
+    );
   });
 
-  it('handleClearCanvas keeps cancel-noop behavior', async () => {
+  it("handleClearCanvas keeps cancel-noop behavior", async () => {
     const context = createContext();
     const lfInstance = {
       clearData: vi.fn(),
@@ -177,7 +192,7 @@ describe('useToolbarWorkspaceCommands', () => {
       zoom: vi.fn(),
     };
 
-    vi.mocked(ElMessageBox.confirm).mockRejectedValue(new Error('cancel'));
+    vi.mocked(ElMessageBox.confirm).mockRejectedValue(new Error("cancel"));
     vi.mocked(getLogicFlowInstance).mockReturnValue(lfInstance as never);
 
     context.commands.handleClearCanvas();
@@ -187,13 +202,16 @@ describe('useToolbarWorkspaceCommands', () => {
     expect(lfInstance.render).not.toHaveBeenCalled();
     expect(lfInstance.zoom).not.toHaveBeenCalled();
     expect(context.filesStore.updateTab).not.toHaveBeenCalled();
-    expect(context.showMessage).not.toHaveBeenCalledWith('success', '当前画布已清空');
+    expect(context.showMessage).not.toHaveBeenCalledWith(
+      "success",
+      "当前画布已清空",
+    );
   });
 
-  it('handleClearCanvas keeps active-file reset behavior when LogicFlow instance is missing', async () => {
+  it("handleClearCanvas keeps active-file reset behavior when LogicFlow instance is missing", async () => {
     const context = createContext();
 
-    vi.mocked(ElMessageBox.confirm).mockResolvedValue('confirm' as never);
+    vi.mocked(ElMessageBox.confirm).mockResolvedValue("confirm" as never);
     vi.mocked(getLogicFlowInstance).mockReturnValue(null as never);
 
     context.commands.handleClearCanvas();
@@ -207,11 +225,14 @@ describe('useToolbarWorkspaceCommands', () => {
       TRANSLATE_X: 0,
       TRANSLATE_Y: 0,
     });
-    expect(context.filesStore.updateTab).toHaveBeenCalledWith('file-a');
-    expect(context.showMessage).toHaveBeenCalledWith('success', '当前画布已清空');
+    expect(context.filesStore.updateTab).toHaveBeenCalledWith("file-a");
+    expect(context.showMessage).toHaveBeenCalledWith(
+      "success",
+      "当前画布已清空",
+    );
   });
 
-  it('handleClearCanvas keeps no-active-file guard behavior', async () => {
+  it("handleClearCanvas keeps no-active-file guard behavior", async () => {
     const context = createContext({ activeFile: null });
     const lfInstance = {
       clearData: vi.fn(),
@@ -219,7 +240,7 @@ describe('useToolbarWorkspaceCommands', () => {
       zoom: vi.fn(),
     };
 
-    vi.mocked(ElMessageBox.confirm).mockResolvedValue('confirm' as never);
+    vi.mocked(ElMessageBox.confirm).mockResolvedValue("confirm" as never);
     vi.mocked(getLogicFlowInstance).mockReturnValue(lfInstance as never);
 
     context.commands.handleClearCanvas();
@@ -230,6 +251,9 @@ describe('useToolbarWorkspaceCommands', () => {
     expect(lfInstance.render).toHaveBeenCalledWith({ nodes: [], edges: [] });
     expect(lfInstance.zoom).toHaveBeenCalledWith(1, [0, 0]);
     expect(context.filesStore.updateTab).not.toHaveBeenCalled();
-    expect(context.showMessage).toHaveBeenCalledWith('success', '当前画布已清空');
+    expect(context.showMessage).toHaveBeenCalledWith(
+      "success",
+      "当前画布已清空",
+    );
   });
 });

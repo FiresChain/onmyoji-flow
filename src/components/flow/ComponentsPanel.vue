@@ -1,47 +1,51 @@
 <script setup lang="ts">
-import { getLogicFlowInstance, useLogicFlowScope } from '@/ts/useLogicFlow';
+import { getLogicFlowInstance, useLogicFlowScope } from "@/ts/useLogicFlow";
 
 const logicFlowScope = useLogicFlowScope();
 
 // 使用嵌套结构定义组件分组
 const componentGroups = [
   {
-    id: 'basic',
-    title: '基础组件',
+    id: "basic",
+    title: "基础组件",
     components: [
       {
-        id: 'rect',
-        name: '长方形',
-        type: 'rect',
-        description: '基础长方形节点',
+        id: "rect",
+        name: "长方形",
+        type: "rect",
+        description: "基础长方形节点",
         data: {
           width: 150,
           height: 150,
-          style: { background: '#fff', border: '2px solid black' }
-        }
+          style: { background: "#fff", border: "2px solid black" },
+        },
       },
       {
-        id: 'ellipse',
-        name: '圆形',
-        type: 'ellipse',
-        description: '基础圆形节点',
+        id: "ellipse",
+        name: "圆形",
+        type: "ellipse",
+        description: "基础圆形节点",
         data: {
           width: 150,
           height: 150,
-          style: { background: '#fff', border: '2px solid black', borderRadius: '50%' }
-        }
+          style: {
+            background: "#fff",
+            border: "2px solid black",
+            borderRadius: "50%",
+          },
+        },
       },
       {
-        id: 'dynamic-group',
-        name: '动态分组',
-        type: 'dynamic-group',
-        description: '可折叠的动态分组容器',
+        id: "dynamic-group",
+        name: "动态分组",
+        type: "dynamic-group",
+        description: "可折叠的动态分组容器",
         data: {
           children: [],
           groupMeta: {
             version: 1,
-            groupKind: 'team',
-            ruleEnabled: true
+            groupKind: "team",
+            ruleEnabled: true,
           },
           collapsible: true,
           isCollapsed: false,
@@ -53,87 +57,87 @@ const componentGroups = [
           isRestrict: false,
           autoResize: false,
           transformWithContainer: false,
-          autoToFront: true
-        }
+          autoToFront: true,
+        },
       },
       {
-        id: 'image',
-        name: '图片',
-        type: 'imageNode',
-        description: '可上传图片的节点',
+        id: "image",
+        name: "图片",
+        type: "imageNode",
+        description: "可上传图片的节点",
         data: {
-          url: '',
+          url: "",
           width: 180,
-          height: 120
-        }
+          height: 120,
+        },
       },
       {
-        id: 'text',
-        name: '文字编辑框',
-        type: 'textNode',
-        description: '可编辑文本的节点',
+        id: "text",
+        name: "文字编辑框",
+        type: "textNode",
+        description: "可编辑文本的节点",
         data: {
           text: {
-            content: '<p>请输入文本</p>',
-            rich: true
+            content: "<p>请输入文本</p>",
+            rich: true,
           },
           width: 200,
-          height: 120
-        }
+          height: 120,
+        },
       },
       {
-        id: 'vector',
-        name: '矢量图块',
-        type: 'vectorNode',
-        description: '可平铺的矢量图形，用于边框装饰',
+        id: "vector",
+        name: "矢量图块",
+        type: "vectorNode",
+        description: "可平铺的矢量图形，用于边框装饰",
         data: {
           vector: {
-            kind: 'rect',
+            kind: "rect",
             tileWidth: 50,
             tileHeight: 50,
-            fill: '#409EFF',
-            stroke: '#303133',
-            strokeWidth: 1
+            fill: "#409EFF",
+            stroke: "#303133",
+            strokeWidth: 1,
           },
           width: 200,
-          height: 200
-        }
-      }
-    ]
+          height: 200,
+        },
+      },
+    ],
   },
   {
-    id: 'yys',
-    title: '阴阳师',
+    id: "yys",
+    title: "阴阳师",
     components: [
       {
-        id: 'asset-selector',
-        name: '资产选择器',
-        type: 'assetSelector',
-        description: '通用资产选择器（式神/御魂等）',
+        id: "asset-selector",
+        name: "资产选择器",
+        type: "assetSelector",
+        description: "通用资产选择器（式神/御魂等）",
         data: {
-          assetLibrary: 'shikigami',
-          selectedAsset: null
-        }
+          assetLibrary: "shikigami",
+          selectedAsset: null,
+        },
       },
       {
-        id: 'shikigami-select',
-        name: '式神选择器',
-        type: 'assetSelector',
-        description: '用于选择式神的组件',
+        id: "shikigami-select",
+        name: "式神选择器",
+        type: "assetSelector",
+        description: "用于选择式神的组件",
         data: {
-          assetLibrary: 'shikigami',
-          selectedAsset: null
-        }
+          assetLibrary: "shikigami",
+          selectedAsset: null,
+        },
       },
       {
-        id: 'yuhun-select',
-        name: '御魂选择器',
-        type: 'assetSelector',
-        description: '用于选择御魂的组件',
+        id: "yuhun-select",
+        name: "御魂选择器",
+        type: "assetSelector",
+        description: "用于选择御魂的组件",
         data: {
-          assetLibrary: 'yuhun',
-          selectedAsset: null
-        }
+          assetLibrary: "yuhun",
+          selectedAsset: null,
+        },
       },
       // 暂时隐藏属性选择器，后续可直接取消注释恢复
       /*
@@ -167,33 +171,33 @@ const componentGroups = [
       },
       */
       {
-        id: 'onmyoji-select',
-        name: '阴阳师选择器',
-        type: 'assetSelector',
-        description: '用于选择阴阳师的组件',
+        id: "onmyoji-select",
+        name: "阴阳师选择器",
+        type: "assetSelector",
+        description: "用于选择阴阳师的组件",
         data: {
-          assetLibrary: 'onmyoji',
-          selectedAsset: null
-        }
+          assetLibrary: "onmyoji",
+          selectedAsset: null,
+        },
       },
       {
-        id: 'onmyoji-skill-select',
-        name: '阴阳师技能选择器',
-        type: 'assetSelector',
-        description: '用于选择阴阳师技能的组件',
+        id: "onmyoji-skill-select",
+        name: "阴阳师技能选择器",
+        type: "assetSelector",
+        description: "用于选择阴阳师技能的组件",
         data: {
-          assetLibrary: 'onmyojiSkill',
-          selectedAsset: null
-        }
-      }
-    ]
+          assetLibrary: "onmyojiSkill",
+          selectedAsset: null,
+        },
+      },
+    ],
   },
   // 可以轻松添加新的游戏组件组
   {
-    id: 'other-game',
-    title: '其他游戏',
-    components: []
-  }
+    id: "other-game",
+    title: "其他游戏",
+    components: [],
+  },
 ];
 
 // 处理组件点击 - 可选：可直接创建节点
@@ -207,7 +211,7 @@ const handleMouseDown = (e, component) => {
   if (!lf) return;
   lf.dnd.startDrag({
     type: component.type,
-    properties: component.data
+    properties: component.data,
   });
 };
 </script>
@@ -216,8 +220,8 @@ const handleMouseDown = (e, component) => {
   <div class="components-panel">
     <h3>组件库</h3>
     <!-- 使用两层遍历生成界面元素 -->
-    <div 
-      v-for="group in componentGroups" 
+    <div
+      v-for="group in componentGroups"
       :key="group.id"
       class="components-group"
     >
@@ -311,4 +315,4 @@ const handleMouseDown = (e, component) => {
   margin-bottom: 6px;
   color: #333;
 }
-</style> 
+</style>

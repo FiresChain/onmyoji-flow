@@ -1,5 +1,5 @@
-import { ref, type Ref } from 'vue';
-import { useLogicFlowScope, type LogicFlowScope } from '@/ts/useLogicFlow';
+import { ref, type Ref } from "vue";
+import { useLogicFlowScope, type LogicFlowScope } from "@/ts/useLogicFlow";
 
 type CanvasSettingsState = {
   selectionEnabled: Ref<boolean>;
@@ -12,10 +12,11 @@ const canvasSettingsByScope = new Map<LogicFlowScope, CanvasSettingsState>();
 const createCanvasSettingsState = (): CanvasSettingsState => ({
   selectionEnabled: ref(true),
   snapGridEnabled: ref(true),
-  snaplineEnabled: ref(true)
+  snaplineEnabled: ref(true),
 });
 
-const resolveScope = (scope?: LogicFlowScope): LogicFlowScope => scope ?? useLogicFlowScope();
+const resolveScope = (scope?: LogicFlowScope): LogicFlowScope =>
+  scope ?? useLogicFlowScope();
 
 export function useCanvasSettings(scope?: LogicFlowScope) {
   const resolvedScope = resolveScope(scope);

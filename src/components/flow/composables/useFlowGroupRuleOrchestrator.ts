@@ -1,11 +1,14 @@
-import type LogicFlow from '@logicflow/core';
-import type { GraphData } from '@logicflow/core';
-import { ref, type Ref } from 'vue';
-import { validateGraphGroupRules, type GroupRuleWarning } from '@/utils/groupRules';
-import { subscribeSharedGroupRulesConfig } from '@/utils/groupRulesConfigSource';
-import { getProblemTargetCandidateIds } from '@/utils/problemTarget';
+import type LogicFlow from "@logicflow/core";
+import type { GraphData } from "@logicflow/core";
+import { ref, type Ref } from "vue";
+import {
+  validateGraphGroupRules,
+  type GroupRuleWarning,
+} from "@/utils/groupRules";
+import { subscribeSharedGroupRulesConfig } from "@/utils/groupRulesConfigSource";
+import { getProblemTargetCandidateIds } from "@/utils/problemTarget";
 
-type MessageType = 'success' | 'warning' | 'info' | 'error';
+type MessageType = "success" | "warning" | "info" | "error";
 
 interface FlowGroupRuleOrchestratorOptions {
   lf: Ref<LogicFlow | null>;
@@ -13,7 +16,9 @@ interface FlowGroupRuleOrchestratorOptions {
   showMessage: (type: MessageType, message: string) => void;
 }
 
-export function useFlowGroupRuleOrchestrator(options: FlowGroupRuleOrchestratorOptions) {
+export function useFlowGroupRuleOrchestrator(
+  options: FlowGroupRuleOrchestratorOptions,
+) {
   const { lf, selectedNode, showMessage } = options;
   const groupRuleWarnings = ref<GroupRuleWarning[]>([]);
   let groupRuleValidationTimer: ReturnType<typeof setTimeout> | null = null;
@@ -43,9 +48,11 @@ export function useFlowGroupRuleOrchestrator(options: FlowGroupRuleOrchestratorO
     if (!lfInstance) return;
 
     const candidateIds = getProblemTargetCandidateIds(warning);
-    const targetId = candidateIds.find((id) => !!lfInstance.getNodeModelById(id));
+    const targetId = candidateIds.find(
+      (id) => !!lfInstance.getNodeModelById(id),
+    );
     if (!targetId) {
-      showMessage('warning', '未找到告警对应节点，可能已被删除');
+      showMessage("warning", "未找到告警对应节点，可能已被删除");
       return;
     }
 
@@ -58,8 +65,8 @@ export function useFlowGroupRuleOrchestrator(options: FlowGroupRuleOrchestratorO
         selectedNode.value = nodeData;
       }
     } catch (error) {
-      console.error('定位告警节点失败:', error);
-      showMessage('error', '定位节点失败');
+      console.error("定位告警节点失败:", error);
+      showMessage("error", "定位节点失败");
     }
   }
 
@@ -85,6 +92,6 @@ export function useFlowGroupRuleOrchestrator(options: FlowGroupRuleOrchestratorO
     scheduleGroupRuleValidation,
     locateProblemNode,
     mountGroupRuleOrchestrator,
-    disposeGroupRuleOrchestrator
+    disposeGroupRuleOrchestrator,
   };
 }

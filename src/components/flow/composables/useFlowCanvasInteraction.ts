@@ -1,5 +1,5 @@
-import type LogicFlow from '@logicflow/core';
-import { nextTick, type Ref } from 'vue';
+import type LogicFlow from "@logicflow/core";
+import { nextTick, type Ref } from "vue";
 
 const RIGHT_MOUSE_BUTTON = 2;
 const RIGHT_DRAG_THRESHOLD = 2;
@@ -11,7 +11,9 @@ interface FlowCanvasInteractionOptions {
   containerRef: Ref<HTMLElement | null>;
 }
 
-export function useFlowCanvasInteraction(options: FlowCanvasInteractionOptions) {
+export function useFlowCanvasInteraction(
+  options: FlowCanvasInteractionOptions,
+) {
   const { lf, flowHostRef, containerRef } = options;
   let containerResizeObserver: ResizeObserver | null = null;
   let isRightDragging = false;
@@ -24,13 +26,17 @@ export function useFlowCanvasInteraction(options: FlowCanvasInteractionOptions) 
   const resolveResizeHost = () => {
     const container = containerRef.value;
     if (!container) return null;
-    return flowHostRef.value ?? (container.parentElement as HTMLElement | null) ?? container;
+    return (
+      flowHostRef.value ??
+      (container.parentElement as HTMLElement | null) ??
+      container
+    );
   };
 
   const resizeCanvas = () => {
     const lfInstance = lf.value as any;
     const resizeHost = resolveResizeHost();
-    if (!lfInstance || !resizeHost || typeof lfInstance.resize !== 'function') {
+    if (!lfInstance || !resizeHost || typeof lfInstance.resize !== "function") {
       return;
     }
     const width = resizeHost.clientWidth;
@@ -47,7 +53,7 @@ export function useFlowCanvasInteraction(options: FlowCanvasInteractionOptions) 
 
   const queueCanvasResize = () => {
     resizeCanvas();
-    if (typeof window === 'undefined') return;
+    if (typeof window === "undefined") return;
     window.requestAnimationFrame(() => resizeCanvas());
     setTimeout(() => resizeCanvas(), 120);
   };
@@ -77,12 +83,13 @@ export function useFlowCanvasInteraction(options: FlowCanvasInteractionOptions) 
     if (!isRightDragging) return;
 
     isRightDragging = false;
-    flowHostRef.value?.classList.remove('flow-container--panning');
-    window.removeEventListener('mousemove', handleRightDragMouseMove);
-    window.removeEventListener('mouseup', handleRightDragMouseUp);
+    flowHostRef.value?.classList.remove("flow-container--panning");
+    window.removeEventListener("mousemove", handleRightDragMouseMove);
+    window.removeEventListener("mouseup", handleRightDragMouseUp);
 
     if (rightDragMoved) {
-      suppressContextMenuUntil = Date.now() + RIGHT_DRAG_CONTEXTMENU_SUPPRESS_MS;
+      suppressContextMenuUntil =
+        Date.now() + RIGHT_DRAG_CONTEXTMENU_SUPPRESS_MS;
     }
   }
 
@@ -94,7 +101,7 @@ export function useFlowCanvasInteraction(options: FlowCanvasInteractionOptions) 
     if (event.button !== RIGHT_MOUSE_BUTTON) return;
 
     const target = event.target as HTMLElement | null;
-    if (target?.closest('.lf-menu')) return;
+    if (target?.closest(".lf-menu")) return;
     if (!containerRef.value?.contains(target)) return;
 
     isRightDragging = true;
@@ -104,9 +111,9 @@ export function useFlowCanvasInteraction(options: FlowCanvasInteractionOptions) 
     rightDragLastY = event.clientY;
     suppressContextMenuUntil = 0;
 
-    flowHostRef.value?.classList.add('flow-container--panning');
-    window.addEventListener('mousemove', handleRightDragMouseMove);
-    window.addEventListener('mouseup', handleRightDragMouseUp);
+    flowHostRef.value?.classList.add("flow-container--panning");
+    window.addEventListener("mousemove", handleRightDragMouseMove);
+    window.addEventListener("mouseup", handleRightDragMouseUp);
   }
 
   function handleCanvasContextMenu(event: MouseEvent) {
@@ -118,10 +125,14 @@ export function useFlowCanvasInteraction(options: FlowCanvasInteractionOptions) 
   }
 
   function mountCanvasInteraction() {
-    containerRef.value?.addEventListener('mousedown', handleCanvasMouseDown);
-    containerRef.value?.addEventListener('contextmenu', handleCanvasContextMenu, true);
+    containerRef.value?.addEventListener("mousedown", handleCanvasMouseDown);
+    containerRef.value?.addEventListener(
+      "contextmenu",
+      handleCanvasContextMenu,
+      true,
+    );
 
-    if (typeof ResizeObserver !== 'undefined') {
+    if (typeof ResizeObserver !== "undefined") {
       containerResizeObserver = new ResizeObserver(() => {
         resizeCanvas();
       });
@@ -132,7 +143,7 @@ export function useFlowCanvasInteraction(options: FlowCanvasInteractionOptions) 
         containerResizeObserver.observe(containerRef.value);
       }
     }
-    window.addEventListener('resize', handleWindowResize);
+    window.addEventListener("resize", handleWindowResize);
     nextTick(() => {
       queueCanvasResize();
     });
@@ -142,14 +153,18 @@ export function useFlowCanvasInteraction(options: FlowCanvasInteractionOptions) 
     stopRightDrag();
     containerResizeObserver?.disconnect();
     containerResizeObserver = null;
-    window.removeEventListener('resize', handleWindowResize);
-    containerRef.value?.removeEventListener('mousedown', handleCanvasMouseDown);
-    containerRef.value?.removeEventListener('contextmenu', handleCanvasContextMenu, true);
+    window.removeEventListener("resize", handleWindowResize);
+    containerRef.value?.removeEventListener("mousedown", handleCanvasMouseDown);
+    containerRef.value?.removeEventListener(
+      "contextmenu",
+      handleCanvasContextMenu,
+      true,
+    );
   }
 
   return {
     resizeCanvas,
     mountCanvasInteraction,
-    disposeCanvasInteraction
+    disposeCanvasInteraction,
   };
 }

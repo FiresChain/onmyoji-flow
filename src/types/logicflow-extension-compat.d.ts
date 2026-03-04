@@ -1,4 +1,4 @@
-declare module '@logicflow/extension' {
+declare module "@logicflow/extension" {
   export const Menu: any;
   export const Label: any;
   export const Snapshot: any;

@@ -1,12 +1,15 @@
 <script setup lang="ts">
-import { computed } from 'vue';
-import { useDialogs } from '@/ts/useDialogs';
-import { getLogicFlowInstance, useLogicFlowScope } from '@/ts/useLogicFlow';
-import { SELECTOR_PRESETS } from '@/configs/selectorPresets';
-import type { SelectorConfig } from '@/types/selector';
-import { resolveAssetUrl, resolveAssetUrlsInDataSource } from '@/utils/assetUrl';
-import { deleteCustomAsset, listCustomAssets } from '@/utils/customAssets';
-import { normalizeSelectedAssetRecord } from '@/utils/graphSchema';
+import { computed } from "vue";
+import { useDialogs } from "@/ts/useDialogs";
+import { getLogicFlowInstance, useLogicFlowScope } from "@/ts/useLogicFlow";
+import { SELECTOR_PRESETS } from "@/configs/selectorPresets";
+import type { SelectorConfig } from "@/types/selector";
+import {
+  resolveAssetUrl,
+  resolveAssetUrlsInDataSource,
+} from "@/utils/assetUrl";
+import { deleteCustomAsset, listCustomAssets } from "@/utils/customAssets";
+import { normalizeSelectedAssetRecord } from "@/utils/graphSchema";
 
 const props = defineProps<{
   node: any;
@@ -15,10 +18,12 @@ const props = defineProps<{
 const { openGenericSelector } = useDialogs();
 const logicFlowScope = useLogicFlowScope();
 
-const currentLibrary = computed(() => props.node.properties?.assetLibrary || 'shikigami');
+const currentLibrary = computed(
+  () => props.node.properties?.assetLibrary || "shikigami",
+);
 
 const currentAsset = computed(() => {
-  return props.node.properties?.selectedAsset || { name: '未选择' };
+  return props.node.properties?.selectedAsset || { name: "未选择" };
 });
 
 const handleOpenSelector = () => {
@@ -30,28 +35,32 @@ const handleOpenSelector = () => {
   const preset = SELECTOR_PRESETS[library];
 
   if (!preset) {
-    console.error('未找到资产库配置:', library);
+    console.error("未找到资产库配置:", library);
     return;
   }
 
   const imageField = preset.itemRender.imageField;
   const selectedAsset = node.properties?.selectedAsset || null;
-  const normalizedSelectedAssetRecord = normalizeSelectedAssetRecord(selectedAsset, library);
+  const normalizedSelectedAssetRecord = normalizeSelectedAssetRecord(
+    selectedAsset,
+    library,
+  );
   const normalizedSelectedAsset = normalizedSelectedAssetRecord
     ? {
-      ...normalizedSelectedAssetRecord,
-      [imageField]: resolveAssetUrl((selectedAsset as any)?.[imageField])
-    }
+        ...normalizedSelectedAssetRecord,
+        [imageField]: resolveAssetUrl((selectedAsset as any)?.[imageField]),
+      }
     : null;
 
   const customAssets = listCustomAssets(library);
-  const mergedDataSource = [
-    ...(preset.dataSource as any[]),
-    ...customAssets
-  ];
+  const mergedDataSource = [...(preset.dataSource as any[]), ...customAssets];
   const mergedGroups = [
     ...preset.groups,
-    { label: '我的素材', name: '__CUSTOM__', filter: (item: any) => !!item?.__userAsset }
+    {
+      label: "我的素材",
+      name: "__CUSTOM__",
+      filter: (item: any) => !!item?.__userAsset,
+    },
   ];
 
   const config: SelectorConfig = {
@@ -66,22 +75,25 @@ const handleOpenSelector = () => {
     },
     onUserAssetUploaded: () => {
       // 上传后的数据刷新由选择器内部完成，这里保留扩展钩子。
-    }
+    },
   };
 
   openGenericSelector(config, (selectedItem) => {
-    const normalizedSelectedRecord = normalizeSelectedAssetRecord(selectedItem, library);
+    const normalizedSelectedRecord = normalizeSelectedAssetRecord(
+      selectedItem,
+      library,
+    );
     const normalizedSelected = normalizedSelectedRecord
       ? {
-        ...normalizedSelectedRecord,
-        [imageField]: resolveAssetUrl((selectedItem as any)?.[imageField])
-      }
+          ...normalizedSelectedRecord,
+          [imageField]: resolveAssetUrl((selectedItem as any)?.[imageField]),
+        }
       : null;
 
     lf.setProperties(node.id, {
       ...node.properties,
       selectedAsset: normalizedSelected,
-      assetLibrary: library
+      assetLibrary: library,
     });
   });
 };
@@ -94,7 +106,11 @@ const handleOpenSelector = () => {
     <div class="property-item">
       <div class="property-label">当前选择</div>
       <span>{{ currentAsset.name }}</span>
-      <el-button type="primary" @click="handleOpenSelector" style="width: 100%; margin-top: 8px">
+      <el-button
+        type="primary"
+        @click="handleOpenSelector"
+        style="width: 100%; margin-top: 8px"
+      >
         选择资产
       </el-button>
     </div>

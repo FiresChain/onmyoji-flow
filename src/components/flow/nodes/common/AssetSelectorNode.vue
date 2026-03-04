@@ -1,12 +1,16 @@
 <script setup lang="ts">
-import { computed, ref, inject, onMounted, onBeforeUnmount } from 'vue';
-import type { CSSProperties } from 'vue';
-import { toTextStyle } from '@/ts/nodeStyle';
-import { useNodeAppearance } from '@/ts/useNodeAppearance';
-import { resolveAssetUrl } from '@/utils/assetUrl';
+import { computed, ref, inject, onMounted, onBeforeUnmount } from "vue";
+import type { CSSProperties } from "vue";
+import { toTextStyle } from "@/ts/nodeStyle";
+import { useNodeAppearance } from "@/ts/useNodeAppearance";
+import { resolveAssetUrl } from "@/utils/assetUrl";
 
-const currentAsset = ref({ name: '未选择资产', avatar: '', library: 'shikigami' });
-const getNode = inject('getNode') as (() => any) | undefined;
+const currentAsset = ref({
+  name: "未选择资产",
+  avatar: "",
+  library: "shikigami",
+});
+const getNode = inject("getNode") as (() => any) | undefined;
 const zIndex = ref(1);
 let intervalId: number | null = null;
 
@@ -40,19 +44,21 @@ const { containerStyle, textStyle } = useNodeAppearance({
     if (props.assetLibrary && !props.selectedAsset) {
       // 如果切换了资产库但没有选中资产，更新占位文本
       currentAsset.value = {
-        name: '未选择资产',
-        avatar: '',
-        library: props.assetLibrary
+        name: "未选择资产",
+        avatar: "",
+        library: props.assetLibrary,
       };
     }
-  }
+  },
 });
 
 const mergedContainerStyle = computed<CSSProperties>(() => ({
   ...containerStyle.value,
-  boxSizing: 'border-box'
+  boxSizing: "border-box",
 }));
-const normalizedAvatar = computed(() => resolveAssetUrl(currentAsset.value.avatar) as string);
+const normalizedAvatar = computed(
+  () => resolveAssetUrl(currentAsset.value.avatar) as string,
+);
 </script>
 
 <template>

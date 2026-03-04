@@ -1,8 +1,11 @@
-import { getLogicFlowInstance, type LogicFlowScope } from '@/ts/useLogicFlow';
-import { convertTeamCodeToRootDocument, decodeTeamCodeFromQrImage } from '@/utils/teamCodeService';
-import type { Ref } from 'vue';
+import { getLogicFlowInstance, type LogicFlowScope } from "@/ts/useLogicFlow";
+import {
+  convertTeamCodeToRootDocument,
+  decodeTeamCodeFromQrImage,
+} from "@/utils/teamCodeService";
+import type { Ref } from "vue";
 
-type MessageType = 'success' | 'warning' | 'info' | 'error';
+type MessageType = "success" | "warning" | "info" | "error";
 
 type ShowMessage = (type: MessageType, message: string) => void;
 
@@ -43,7 +46,7 @@ interface UseToolbarImportExportCommandsOptions {
   state: ToolbarImportExportState;
   filesStore: ToolbarFilesStoreLike;
   logicFlowScope: LogicFlowScope;
-  importSource: Ref<'json' | 'teamCode'>;
+  importSource: Ref<"json" | "teamCode">;
   teamCodeInput: Ref<string>;
   teamCodeQrInputRef: Ref<HTMLInputElement | null>;
   watermark: WatermarkSettings;
@@ -55,7 +58,10 @@ type SnapshotResult = string | { data?: string };
 
 const waitForNextPaint = () => {
   return new Promise<void>((resolve) => {
-    if (typeof window === 'undefined' || typeof window.requestAnimationFrame !== 'function') {
+    if (
+      typeof window === "undefined" ||
+      typeof window.requestAnimationFrame !== "function"
+    ) {
       resolve();
       return;
     }
@@ -69,7 +75,7 @@ const withDynamicGroupsHiddenForSnapshot = async <T>(
 ): Promise<T> => {
   const graphModel = logicFlowInstance?.graphModel;
   const dynamicGroupModels = (graphModel?.nodes ?? []).filter(
-    (node: any) => node?.type === 'dynamic-group',
+    (node: any) => node?.type === "dynamic-group",
   );
 
   if (!dynamicGroupModels.length) {
@@ -103,21 +109,21 @@ const addWatermarkToImage = (base64: string, watermark: WatermarkSettings) => {
   return new Promise<string>((resolve, reject) => {
     const img = new Image();
     img.onload = () => {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
       canvas.width = img.width;
       canvas.height = img.height;
 
       if (!ctx) {
-        reject(new Error('无法创建画布上下文'));
+        reject(new Error("无法创建画布上下文"));
         return;
       }
 
       ctx.drawImage(img, 0, 0);
       ctx.font = `${watermark.fontSize}px sans-serif`;
       ctx.fillStyle = watermark.color;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
 
       const rowStep = canvas.height / rows;
       const colStep = canvas.width / cols;
@@ -134,14 +140,16 @@ const addWatermarkToImage = (base64: string, watermark: WatermarkSettings) => {
         }
       }
 
-      resolve(canvas.toDataURL('image/png'));
+      resolve(canvas.toDataURL("image/png"));
     };
-    img.onerror = () => reject(new Error('快照加载失败'));
+    img.onerror = () => reject(new Error("快照加载失败"));
     img.src = base64;
   });
 };
 
-export function useToolbarImportExportCommands(options: UseToolbarImportExportCommandsOptions) {
+export function useToolbarImportExportCommands(
+  options: UseToolbarImportExportCommandsOptions,
+) {
   const {
     state,
     filesStore,
@@ -156,28 +164,32 @@ export function useToolbarImportExportCommands(options: UseToolbarImportExportCo
 
   const captureLogicFlowSnapshot = async () => {
     const logicFlowInstance = getLogicFlowInstance(logicFlowScope) as any;
-    if (!logicFlowInstance || typeof logicFlowInstance.getSnapshotBase64 !== 'function') {
-      showMessage('error', '未找到 LogicFlow 实例，无法截图');
+    if (
+      !logicFlowInstance ||
+      typeof logicFlowInstance.getSnapshotBase64 !== "function"
+    ) {
+      showMessage("error", "未找到 LogicFlow 实例，无法截图");
       return null;
     }
 
-    const snapshotResult = await withDynamicGroupsHiddenForSnapshot<SnapshotResult>(
-      logicFlowInstance,
-      () => logicFlowInstance.getSnapshotBase64(
-        undefined,
-        undefined,
-        {
-          fileType: 'png',
-          backgroundColor: '#ffffff',
-          partial: false,
-          padding: 20,
-        },
-      ),
-    );
+    const snapshotResult =
+      await withDynamicGroupsHiddenForSnapshot<SnapshotResult>(
+        logicFlowInstance,
+        () =>
+          logicFlowInstance.getSnapshotBase64(undefined, undefined, {
+            fileType: "png",
+            backgroundColor: "#ffffff",
+            partial: false,
+            padding: 20,
+          }),
+      );
 
-    const base64 = typeof snapshotResult === 'string' ? snapshotResult : snapshotResult?.data;
+    const base64 =
+      typeof snapshotResult === "string"
+        ? snapshotResult
+        : snapshotResult?.data;
     if (!base64) {
-      showMessage('error', '未获取到截图数据');
+      showMessage("error", "未获取到截图数据");
       return null;
     }
 
@@ -192,15 +204,15 @@ export function useToolbarImportExportCommands(options: UseToolbarImportExportCo
       state.previewVisible = true;
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      showMessage('error', `截图失败: ${message}`);
+      showMessage("error", `截图失败: ${message}`);
     }
   };
 
   const downloadImage = () => {
     if (state.previewImage) {
-      const link = document.createElement('a');
+      const link = document.createElement("a");
       link.href = state.previewImage;
-      link.download = 'screenshot.png';
+      link.download = "screenshot.png";
       link.click();
       state.previewVisible = false;
     }
@@ -223,7 +235,10 @@ export function useToolbarImportExportCommands(options: UseToolbarImportExportCo
 
     setTimeout(() => {
       try {
-        const activeName = filesStore.fileList.find((file) => file.id === filesStore.activeFileId)?.name || '';
+        const activeName =
+          filesStore.fileList.find(
+            (file) => file.id === filesStore.activeFileId,
+          )?.name || "";
         const dataObj = {
           schemaVersion: 1,
           fileList: filesStore.fileList,
@@ -233,8 +248,8 @@ export function useToolbarImportExportCommands(options: UseToolbarImportExportCo
         state.previewDataContent = JSON.stringify(dataObj, null, 2);
         state.showDataPreviewDialog = true;
       } catch (error) {
-        console.error('生成预览数据失败:', error);
-        showMessage('error', '数据预览失败');
+        console.error("生成预览数据失败:", error);
+        showMessage("error", "数据预览失败");
       }
     }, 100);
   };
@@ -242,23 +257,23 @@ export function useToolbarImportExportCommands(options: UseToolbarImportExportCo
   const copyDataToClipboard = async () => {
     try {
       await navigator.clipboard.writeText(state.previewDataContent);
-      showMessage('success', '已复制到剪贴板');
+      showMessage("success", "已复制到剪贴板");
     } catch (error) {
-      console.error('复制失败:', error);
-      showMessage('error', '复制失败');
+      console.error("复制失败:", error);
+      showMessage("error", "复制失败");
     }
   };
 
   const openImportDialog = () => {
-    importSource.value = 'json';
-    teamCodeInput.value = '';
+    importSource.value = "json";
+    teamCodeInput.value = "";
     state.showImportDialog = true;
   };
 
   const handleJsonImport = () => {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.json';
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".json";
     input.onchange = (event) => {
       const target = event.target as HTMLInputElement;
       const file = target.files?.[0];
@@ -269,15 +284,15 @@ export function useToolbarImportExportCommands(options: UseToolbarImportExportCo
             const readerTarget = loadEvent.target as FileReader;
             const data = JSON.parse(readerTarget.result as string);
             filesStore.importData(data);
-            refreshLogicFlowCanvas('LogicFlow 画布已重新渲染（导入数据）');
+            refreshLogicFlowCanvas("LogicFlow 画布已重新渲染（导入数据）");
           } catch (error) {
-            console.error('Failed to import file', error);
-            showMessage('error', '文件格式错误');
+            console.error("Failed to import file", error);
+            showMessage("error", "文件格式错误");
           }
         };
         reader.readAsText(file);
       }
-      target.value = '';
+      target.value = "";
     };
     input.click();
   };
@@ -294,7 +309,7 @@ export function useToolbarImportExportCommands(options: UseToolbarImportExportCo
   const handleTeamCodeImport = async () => {
     const rawTeamCode = teamCodeInput.value.trim();
     if (!rawTeamCode) {
-      showMessage('warning', '请先粘贴阵容码');
+      showMessage("warning", "请先粘贴阵容码");
       return;
     }
 
@@ -302,14 +317,14 @@ export function useToolbarImportExportCommands(options: UseToolbarImportExportCo
     try {
       const rootDocument = await convertTeamCodeToRootDocument(rawTeamCode);
       filesStore.importData(rootDocument);
-      refreshLogicFlowCanvas('LogicFlow 画布已重新渲染（阵容码导入）');
+      refreshLogicFlowCanvas("LogicFlow 画布已重新渲染（阵容码导入）");
       state.showImportDialog = false;
-      teamCodeInput.value = '';
-      showMessage('success', '阵容码导入成功');
+      teamCodeInput.value = "";
+      showMessage("success", "阵容码导入成功");
     } catch (error) {
-      console.error('阵容码导入失败:', error);
-      const message = error instanceof Error ? error.message : '阵容码导入失败';
-      showMessage('error', message);
+      console.error("阵容码导入失败:", error);
+      const message = error instanceof Error ? error.message : "阵容码导入失败";
+      showMessage("error", message);
     } finally {
       state.importingTeamCode = false;
     }
@@ -319,7 +334,7 @@ export function useToolbarImportExportCommands(options: UseToolbarImportExportCo
     const target = event.target as HTMLInputElement | null;
     const file = target?.files?.[0];
     if (!file) {
-      if (target) target.value = '';
+      if (target) target.value = "";
       return;
     }
 
@@ -327,14 +342,14 @@ export function useToolbarImportExportCommands(options: UseToolbarImportExportCo
     try {
       const decodedTeamCode = await decodeTeamCodeFromQrImage(file);
       teamCodeInput.value = decodedTeamCode;
-      showMessage('success', '二维码识别成功，已填入阵容码');
+      showMessage("success", "二维码识别成功，已填入阵容码");
     } catch (error) {
-      console.error('二维码识别失败:', error);
-      const message = error instanceof Error ? error.message : '二维码识别失败';
-      showMessage('error', message);
+      console.error("二维码识别失败:", error);
+      const message = error instanceof Error ? error.message : "二维码识别失败";
+      showMessage("error", message);
     } finally {
       state.decodingTeamCodeQr = false;
-      if (target) target.value = '';
+      if (target) target.value = "";
     }
   };
 

@@ -6,36 +6,34 @@
 </template>
 
 <script setup>
-import { onMounted,watch, ref } from 'vue';
+import { onMounted, watch, ref } from "vue";
 
 const props = defineProps({
   text: {
     type: String,
-    default: '默认水印'
+    default: "默认水印",
   },
   font: {
     type: String,
-    default: '30px Arial'
+    default: "30px Arial",
   },
   color: {
     type: String,
-    default: 'rgba(184, 184, 184, 0.3)' // 半透明灰色
+    default: "rgba(184, 184, 184, 0.3)", // 半透明灰色
   },
   angle: {
     type: Number,
-    default: -20 // 水印倾斜角度
-  }
+    default: -20, // 水印倾斜角度
+  },
 });
 
 onMounted(() => {
   createWatermark();
 });
 
-
-
 const createWatermark = () => {
-  const canvas = document.createElement('canvas');
-  const ctx = canvas.getContext('2d');
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
 
   // 设置画布大小
   canvas.width = 200;
@@ -65,12 +63,12 @@ const createWatermark = () => {
   ctx.restore();
 
   // 将 canvas 转换为 base64 图像
-  const watermarkUrl = canvas.toDataURL('image/png');
+  const watermarkUrl = canvas.toDataURL("image/png");
 
   // 获取父容器并应用背景图
-  const container = document.querySelector('.watermark-container');
+  const container = document.querySelector(".watermark-container");
   container.style.backgroundImage = `url(${watermarkUrl})`;
-  container.style.backgroundRepeat = 'repeat';
+  container.style.backgroundRepeat = "repeat";
 
   // 在生成水印后添加 resize 监听
   // const observer = new ResizeObserver(entries => {
@@ -82,7 +80,10 @@ const createWatermark = () => {
 };
 
 // 响应props变化
-watch(() => [props.text, props.font, props.color, props.angle], createWatermark);
+watch(
+  () => [props.text, props.font, props.color, props.angle],
+  createWatermark,
+);
 </script>
 
 <style scoped>
@@ -97,7 +98,7 @@ watch(() => [props.text, props.font, props.color, props.angle], createWatermark)
 
 /* 使用伪元素添加水印背景 */
 .watermark-container::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;

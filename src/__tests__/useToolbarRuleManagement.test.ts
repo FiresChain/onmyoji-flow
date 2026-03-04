@@ -1,16 +1,19 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { GroupRulesConfig } from '@/configs/groupRules';
-import { DEFAULT_GROUP_RULES_CONFIG } from '@/configs/groupRules';
-import { useToolbarRuleManagement } from '@/components/composables/useToolbarRuleManagement';
-import { readSharedGroupRulesConfig, writeSharedGroupRulesConfig } from '@/utils/groupRulesConfigSource';
-import { ElMessageBox } from 'element-plus';
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { GroupRulesConfig } from "@/configs/groupRules";
+import { DEFAULT_GROUP_RULES_CONFIG } from "@/configs/groupRules";
+import { useToolbarRuleManagement } from "@/components/composables/useToolbarRuleManagement";
+import {
+  readSharedGroupRulesConfig,
+  writeSharedGroupRulesConfig,
+} from "@/utils/groupRulesConfigSource";
+import { ElMessageBox } from "element-plus";
 
-vi.mock('@/utils/groupRulesConfigSource', () => ({
+vi.mock("@/utils/groupRulesConfigSource", () => ({
   readSharedGroupRulesConfig: vi.fn(),
   writeSharedGroupRulesConfig: vi.fn(),
 }));
 
-vi.mock('element-plus', () => ({
+vi.mock("element-plus", () => ({
   ElMessageBox: {
     confirm: vi.fn(),
   },
@@ -26,28 +29,29 @@ interface ToolbarRuleTestContext {
 
 const createBaseConfig = (): GroupRulesConfig => ({
   version: 3,
-  fireShikigamiWhitelist: ['辉夜姬'],
+  fireShikigamiWhitelist: ["辉夜姬"],
   shikigamiYuhunBlacklist: [],
   shikigamiConflictPairs: [],
   expressionRules: [
     {
-      id: 'rule_1',
-      condition: 'true',
-      message: 'ok',
+      id: "rule_1",
+      condition: "true",
+      message: "ok",
       enabled: true,
-      severity: 'warning',
-      code: 'RULE_1',
+      severity: "warning",
+      code: "RULE_1",
     },
   ],
   ruleVariables: [
     {
-      key: 'var_1',
-      value: 'a,b',
+      key: "var_1",
+      value: "a,b",
     },
   ],
 });
 
-const cloneConfig = (config: GroupRulesConfig): GroupRulesConfig => JSON.parse(JSON.stringify(config));
+const cloneConfig = (config: GroupRulesConfig): GroupRulesConfig =>
+  JSON.parse(JSON.stringify(config));
 
 const createContext = (): ToolbarRuleTestContext => {
   const state = {
@@ -66,52 +70,54 @@ const createContext = (): ToolbarRuleTestContext => {
   };
 };
 
-describe('useToolbarRuleManagement', () => {
+describe("useToolbarRuleManagement", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     const base = createBaseConfig();
     vi.mocked(readSharedGroupRulesConfig).mockReturnValue(cloneConfig(base));
-    vi.mocked(writeSharedGroupRulesConfig).mockImplementation((config: GroupRulesConfig) => cloneConfig(config));
-    vi.mocked(ElMessageBox.confirm).mockResolvedValue('confirm' as never);
+    vi.mocked(writeSharedGroupRulesConfig).mockImplementation(
+      (config: GroupRulesConfig) => cloneConfig(config),
+    );
+    vi.mocked(ElMessageBox.confirm).mockResolvedValue("confirm" as never);
   });
 
-  it('openRuleManager keeps reload + open behavior', () => {
+  it("openRuleManager keeps reload + open behavior", () => {
     const context = createContext();
 
-    context.composable.ruleManagerTab.value = 'variables';
+    context.composable.ruleManagerTab.value = "variables";
     context.composable.ruleEditorVisible.value = true;
     context.composable.ruleEditorDraft.value = {
-      id: 'tmp',
-      condition: 'false',
-      message: 'tmp',
+      id: "tmp",
+      condition: "false",
+      message: "tmp",
     };
 
     context.composable.openRuleManager();
 
     expect(context.state.showRuleManagerDialog).toBe(true);
-    expect(context.composable.ruleManagerTab.value).toBe('rules');
+    expect(context.composable.ruleManagerTab.value).toBe("rules");
     expect(context.composable.ruleEditorVisible.value).toBe(false);
     expect(context.composable.ruleEditorDraft.value).toBeNull();
     expect(readSharedGroupRulesConfig).toHaveBeenCalled();
   });
 
-  it('handleRuleBundleImport keeps import-and-normalize behavior', async () => {
+  it("handleRuleBundleImport keeps import-and-normalize behavior", async () => {
     const context = createContext();
     const payload = {
       expressionRules: [
         {
-          id: 'rule_imported',
-          condition: 'count(ctx.team.shikigamis) > 0',
-          message: 'imported message',
+          id: "rule_imported",
+          condition: "count(ctx.team.shikigamis) > 0",
+          message: "imported message",
           enabled: true,
-          severity: 'info',
-          code: 'IMPORTED',
+          severity: "info",
+          code: "IMPORTED",
         },
       ],
       ruleVariables: [
         {
-          key: 'new_var',
-          value: 'x,y',
+          key: "new_var",
+          value: "x,y",
         },
       ],
     };
@@ -121,52 +127,76 @@ describe('useToolbarRuleManagement', () => {
     } as unknown as File;
     const target = {
       files: [file],
-      value: 'selected',
+      value: "selected",
     } as unknown as HTMLInputElement;
 
-    await context.composable.handleRuleBundleImport({ target } as unknown as Event);
+    await context.composable.handleRuleBundleImport({
+      target,
+    } as unknown as Event);
 
-    expect(context.composable.ruleConfigDraft.value.expressionRules[0].id).toBe('rule_imported');
-    expect(context.composable.ruleConfigDraft.value.ruleVariables[0].key).toBe('new_var');
-    expect(context.showMessage).toHaveBeenCalledWith('success', '规则变量已导入，请点击“应用并生效”');
-    expect(target.value).toBe('');
+    expect(context.composable.ruleConfigDraft.value.expressionRules[0].id).toBe(
+      "rule_imported",
+    );
+    expect(context.composable.ruleConfigDraft.value.ruleVariables[0].key).toBe(
+      "new_var",
+    );
+    expect(context.showMessage).toHaveBeenCalledWith(
+      "success",
+      "规则变量已导入，请点击“应用并生效”",
+    );
+    expect(target.value).toBe("");
   });
 
-  it('applyRuleManagerConfig keeps apply-and-notify behavior', () => {
+  it("applyRuleManagerConfig keeps apply-and-notify behavior", () => {
     const context = createContext();
 
     context.composable.applyRuleManagerConfig();
 
-    expect(writeSharedGroupRulesConfig).toHaveBeenCalledWith(context.composable.ruleConfigDraft.value);
-    expect(context.showMessage).toHaveBeenCalledWith('success', '规则配置已生效');
+    expect(writeSharedGroupRulesConfig).toHaveBeenCalledWith(
+      context.composable.ruleConfigDraft.value,
+    );
+    expect(context.showMessage).toHaveBeenCalledWith(
+      "success",
+      "规则配置已生效",
+    );
   });
 
-  it('restoreDefaultRuleConfig keeps confirm-and-reset behavior', async () => {
+  it("restoreDefaultRuleConfig keeps confirm-and-reset behavior", async () => {
     const context = createContext();
-    vi.mocked(writeSharedGroupRulesConfig).mockReturnValue(cloneConfig(DEFAULT_GROUP_RULES_CONFIG));
+    vi.mocked(writeSharedGroupRulesConfig).mockReturnValue(
+      cloneConfig(DEFAULT_GROUP_RULES_CONFIG),
+    );
 
     context.composable.restoreDefaultRuleConfig();
     await Promise.resolve();
 
     expect(ElMessageBox.confirm).toHaveBeenCalled();
-    expect(writeSharedGroupRulesConfig).toHaveBeenCalledWith(DEFAULT_GROUP_RULES_CONFIG);
-    expect(context.showMessage).toHaveBeenCalledWith('success', '已恢复默认规则配置');
+    expect(writeSharedGroupRulesConfig).toHaveBeenCalledWith(
+      DEFAULT_GROUP_RULES_CONFIG,
+    );
+    expect(context.showMessage).toHaveBeenCalledWith(
+      "success",
+      "已恢复默认规则配置",
+    );
   });
 
-  it('rule editor keeps validation before save behavior', () => {
+  it("rule editor keeps validation before save behavior", () => {
     const context = createContext();
 
     context.composable.addExpressionRule();
     expect(context.composable.ruleEditorVisible.value).toBe(true);
 
     if (context.composable.ruleEditorDraft.value) {
-      context.composable.ruleEditorDraft.value.id = '   ';
-      context.composable.ruleEditorDraft.value.condition = '   ';
-      context.composable.ruleEditorDraft.value.message = '   ';
+      context.composable.ruleEditorDraft.value.id = "   ";
+      context.composable.ruleEditorDraft.value.condition = "   ";
+      context.composable.ruleEditorDraft.value.message = "   ";
     }
 
     context.composable.saveRuleEditor();
 
-    expect(context.showMessage).toHaveBeenCalledWith('warning', '规则 ID、条件表达式、提示文案不能为空');
+    expect(context.showMessage).toHaveBeenCalledWith(
+      "warning",
+      "规则 ID、条件表达式、提示文案不能为空",
+    );
   });
 });

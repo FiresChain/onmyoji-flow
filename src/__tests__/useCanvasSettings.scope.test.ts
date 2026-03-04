@@ -1,9 +1,12 @@
-import { describe, expect, it } from 'vitest';
-import { createLogicFlowScope } from '@/ts/useLogicFlow';
-import { destroyCanvasSettingsScope, useCanvasSettings } from '@/ts/useCanvasSettings';
+import { describe, expect, it } from "vitest";
+import { createLogicFlowScope } from "@/ts/useLogicFlow";
+import {
+  destroyCanvasSettingsScope,
+  useCanvasSettings,
+} from "@/ts/useCanvasSettings";
 
-describe('useCanvasSettings scope isolation', () => {
-  it('shares the same refs within one scope', () => {
+describe("useCanvasSettings scope isolation", () => {
+  it("shares the same refs within one scope", () => {
     const scope = createLogicFlowScope();
     const settingsA = useCanvasSettings(scope);
     const settingsB = useCanvasSettings(scope);
@@ -23,7 +26,7 @@ describe('useCanvasSettings scope isolation', () => {
     destroyCanvasSettingsScope(scope);
   });
 
-  it('isolates settings across scopes and resets after destroy', () => {
+  it("isolates settings across scopes and resets after destroy", () => {
     const scopeA = createLogicFlowScope();
     const scopeB = createLogicFlowScope();
 

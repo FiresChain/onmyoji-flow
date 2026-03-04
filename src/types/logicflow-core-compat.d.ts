@@ -1,4 +1,4 @@
-declare module '@logicflow/core' {
+declare module "@logicflow/core" {
   export type Position = {
     x: number;
     y: number;
@@ -107,7 +107,9 @@ declare module '@logicflow/core' {
     moveNodes(ids: string[], deltaX: number, deltaY: number): void;
   }
 
-  export type GraphElementCtor = new (...args: any[]) => BaseNodeModel | BaseEdgeModel;
+  export type GraphElementCtor = new (
+    ...args: any[]
+  ) => BaseNodeModel | BaseEdgeModel;
 
   export interface ExtensionDefinition {
     pluginName?: string;
@@ -156,7 +158,7 @@ declare module '@logicflow/core' {
     getNodeModelById(id: string): BaseNodeModel | undefined;
     getNodeDataById(id: string): NodeData | undefined;
     getNodeEdges(id: string): BaseEdgeModel[];
-    setElementZIndex(id: string, zIndex: number | 'top' | 'bottom'): void;
+    setElementZIndex(id: string, zIndex: number | "top" | "bottom"): void;
     setProperties(id: string, properties: Record<string, any>): void;
     deleteEdge(id: string): boolean;
     getSelectElements(ignoreCheck?: boolean): GraphData;

@@ -1,5 +1,5 @@
-declare module '@logicflow/vue-node-registry' {
-  import type LogicFlow from '@logicflow/core';
+declare module "@logicflow/vue-node-registry" {
+  import type LogicFlow from "@logicflow/core";
 
   export type VueNodeConfig = {
     type: string;

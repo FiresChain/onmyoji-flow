@@ -1,17 +1,17 @@
-import { ElMessageBox } from 'element-plus';
-import { ref } from 'vue';
+import { ElMessageBox } from "element-plus";
+import { ref } from "vue";
 import {
   DEFAULT_GROUP_RULES_CONFIG,
   type ExpressionRuleDefinition,
   type GroupRulesConfig,
   type RuleVariableDefinition,
-} from '@/configs/groupRules';
+} from "@/configs/groupRules";
 import {
   readSharedGroupRulesConfig,
   writeSharedGroupRulesConfig,
-} from '@/utils/groupRulesConfigSource';
+} from "@/utils/groupRulesConfigSource";
 
-type MessageType = 'success' | 'warning' | 'info' | 'error';
+type MessageType = "success" | "warning" | "info" | "error";
 
 type ShowMessage = (type: MessageType, message: string) => void;
 
@@ -27,8 +27,12 @@ interface UseToolbarRuleManagementOptions {
 const cloneRuleConfig = (config: GroupRulesConfig): GroupRulesConfig => ({
   version: config.version,
   fireShikigamiWhitelist: [...config.fireShikigamiWhitelist],
-  shikigamiYuhunBlacklist: config.shikigamiYuhunBlacklist.map((rule) => ({ ...rule })),
-  shikigamiConflictPairs: config.shikigamiConflictPairs.map((rule) => ({ ...rule })),
+  shikigamiYuhunBlacklist: config.shikigamiYuhunBlacklist.map((rule) => ({
+    ...rule,
+  })),
+  shikigamiConflictPairs: config.shikigamiConflictPairs.map((rule) => ({
+    ...rule,
+  })),
   expressionRules: config.expressionRules.map((rule) => ({ ...rule })),
   ruleVariables: config.ruleVariables.map((item) => ({ ...item })),
 });
@@ -36,36 +40,41 @@ const cloneRuleConfig = (config: GroupRulesConfig): GroupRulesConfig => ({
 const createExpressionRule = (): ExpressionRuleDefinition => ({
   id: `rule_${Date.now()}`,
   enabled: true,
-  severity: 'warning',
-  code: 'CUSTOM_EXPRESSION',
-  condition: 'false',
-  message: '请补充规则提示文案',
+  severity: "warning",
+  code: "CUSTOM_EXPRESSION",
+  condition: "false",
+  message: "请补充规则提示文案",
 });
 
 const createRuleVariable = (): RuleVariableDefinition => ({
   key: `var_${Date.now()}`,
-  value: '',
+  value: "",
 });
 
-const cloneExpressionRule = (rule: ExpressionRuleDefinition): ExpressionRuleDefinition => ({
+const cloneExpressionRule = (
+  rule: ExpressionRuleDefinition,
+): ExpressionRuleDefinition => ({
   id: rule.id || `rule_${Date.now()}`,
   enabled: rule.enabled !== false,
-  severity: rule.severity || 'warning',
-  code: rule.code || 'CUSTOM_EXPRESSION',
-  condition: rule.condition || 'false',
-  message: rule.message || '请补充规则提示文案',
+  severity: rule.severity || "warning",
+  code: rule.code || "CUSTOM_EXPRESSION",
+  condition: rule.condition || "false",
+  message: rule.message || "请补充规则提示文案",
 });
 
-const normalizeText = (value: unknown): string => (typeof value === 'string' ? value.trim() : '');
-const normalizeSeverity = (value: unknown): 'warning' | 'error' | 'info' => {
-  return value === 'error' || value === 'info' ? value : 'warning';
+const normalizeText = (value: unknown): string =>
+  typeof value === "string" ? value.trim() : "";
+const normalizeSeverity = (value: unknown): "warning" | "error" | "info" => {
+  return value === "error" || value === "info" ? value : "warning";
 };
 
-const normalizeImportedExpressionRules = (value: unknown): ExpressionRuleDefinition[] => {
+const normalizeImportedExpressionRules = (
+  value: unknown,
+): ExpressionRuleDefinition[] => {
   if (!Array.isArray(value)) return [];
   return value
     .map((item): ExpressionRuleDefinition | null => {
-      if (!item || typeof item !== 'object') return null;
+      if (!item || typeof item !== "object") return null;
       const raw = item as Record<string, unknown>;
       const id = normalizeText(raw.id);
       const condition = normalizeText(raw.condition);
@@ -84,15 +93,18 @@ const normalizeImportedExpressionRules = (value: unknown): ExpressionRuleDefinit
     .filter((item): item is ExpressionRuleDefinition => item !== null);
 };
 
-const normalizeImportedRuleVariables = (value: unknown): RuleVariableDefinition[] => {
+const normalizeImportedRuleVariables = (
+  value: unknown,
+): RuleVariableDefinition[] => {
   if (!Array.isArray(value)) return [];
   return value
     .map((item) => {
-      if (!item || typeof item !== 'object') return null;
+      if (!item || typeof item !== "object") return null;
       const raw = item as Record<string, unknown>;
       const key = normalizeText(raw.key);
       if (!key) return null;
-      const variableValue = typeof raw.value === 'string' ? raw.value : String(raw.value ?? '');
+      const variableValue =
+        typeof raw.value === "string" ? raw.value : String(raw.value ?? "");
       return { key, value: variableValue };
     })
     .filter((item): item is RuleVariableDefinition => !!item);
@@ -192,11 +204,15 @@ count(unique(map(ctx.team.yuhuns, "name"))) >= 2
 4) [规划中的 shikigami scope] 当前式神是辉夜姬且其关联御魂包含破势
 ctx.unit.shikigami.name == "辉夜姬" && contains(map(ctx.unit.yuhuns, "name"), "破势")`;
 
-export function useToolbarRuleManagement(options: UseToolbarRuleManagementOptions) {
+export function useToolbarRuleManagement(
+  options: UseToolbarRuleManagementOptions,
+) {
   const { state, showMessage } = options;
   const ruleBundleImportInputRef = ref<HTMLInputElement | null>(null);
-  const ruleManagerTab = ref<'rules' | 'variables' | 'docs'>('rules');
-  const ruleConfigDraft = ref<GroupRulesConfig>(cloneRuleConfig(readSharedGroupRulesConfig()));
+  const ruleManagerTab = ref<"rules" | "variables" | "docs">("rules");
+  const ruleConfigDraft = ref<GroupRulesConfig>(
+    cloneRuleConfig(readSharedGroupRulesConfig()),
+  );
   const ruleEditorVisible = ref(false);
   const editingRuleIndex = ref<number | null>(null);
   const ruleEditorDraft = ref<ExpressionRuleDefinition | null>(null);
@@ -214,7 +230,7 @@ export function useToolbarRuleManagement(options: UseToolbarRuleManagementOption
 
   const openRuleManager = () => {
     reloadRuleManagerDraft();
-    ruleManagerTab.value = 'rules';
+    ruleManagerTab.value = "rules";
     state.showRuleManagerDialog = true;
     ruleEditorVisible.value = false;
     editingRuleIndex.value = null;
@@ -228,17 +244,19 @@ export function useToolbarRuleManagement(options: UseToolbarRuleManagementOption
         expressionRules: ruleConfigDraft.value.expressionRules,
         ruleVariables: ruleConfigDraft.value.ruleVariables,
       };
-      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      const blob = new Blob([JSON.stringify(payload, null, 2)], {
+        type: "application/json",
+      });
       const url = URL.createObjectURL(blob);
-      const anchor = document.createElement('a');
+      const anchor = document.createElement("a");
       anchor.href = url;
       anchor.download = `rule-bundle-${new Date().toISOString().slice(0, 10)}.json`;
       anchor.click();
       URL.revokeObjectURL(url);
-      showMessage('success', '规则变量已导出');
+      showMessage("success", "规则变量已导出");
     } catch (error) {
-      console.error('导出规则变量失败:', error);
-      showMessage('error', '导出失败');
+      console.error("导出规则变量失败:", error);
+      showMessage("error", "导出失败");
     }
   };
 
@@ -250,17 +268,21 @@ export function useToolbarRuleManagement(options: UseToolbarRuleManagementOption
     const target = event.target as HTMLInputElement | null;
     const file = target?.files?.[0];
     if (!file) {
-      if (target) target.value = '';
+      if (target) target.value = "";
       return;
     }
 
     try {
       const rawText = await file.text();
       const parsed = JSON.parse(rawText) as Record<string, unknown>;
-      const importedRules = normalizeImportedExpressionRules(parsed.expressionRules);
-      const importedVariables = normalizeImportedRuleVariables(parsed.ruleVariables);
+      const importedRules = normalizeImportedExpressionRules(
+        parsed.expressionRules,
+      );
+      const importedVariables = normalizeImportedRuleVariables(
+        parsed.ruleVariables,
+      );
       if (!importedRules.length && !importedVariables.length) {
-        showMessage('warning', '导入文件中没有可用的规则或变量');
+        showMessage("warning", "导入文件中没有可用的规则或变量");
         return;
       }
       ruleConfigDraft.value = {
@@ -269,12 +291,12 @@ export function useToolbarRuleManagement(options: UseToolbarRuleManagementOption
         ruleVariables: importedVariables,
       };
       cancelRuleEditor();
-      showMessage('success', '规则变量已导入，请点击“应用并生效”');
+      showMessage("success", "规则变量已导入，请点击“应用并生效”");
     } catch (error) {
-      console.error('导入规则变量失败:', error);
-      showMessage('error', '导入失败，文件格式错误');
+      console.error("导入规则变量失败:", error);
+      showMessage("error", "导入失败，文件格式错误");
     } finally {
-      if (target) target.value = '';
+      if (target) target.value = "";
     }
   };
 
@@ -290,7 +312,7 @@ export function useToolbarRuleManagement(options: UseToolbarRuleManagementOption
     const newRule = createExpressionRule();
     ruleConfigDraft.value.expressionRules.push(newRule);
     openExpressionRuleEditor(ruleConfigDraft.value.expressionRules.length - 1);
-    ruleManagerTab.value = 'rules';
+    ruleManagerTab.value = "rules";
   };
 
   const removeExpressionRule = (index: number) => {
@@ -313,7 +335,7 @@ export function useToolbarRuleManagement(options: UseToolbarRuleManagementOption
     const condition = draft.condition?.trim();
     const message = draft.message?.trim();
     if (!ruleId || !condition || !message) {
-      showMessage('warning', '规则 ID、条件表达式、提示文案不能为空');
+      showMessage("warning", "规则 ID、条件表达式、提示文案不能为空");
       return;
     }
     const normalized = cloneExpressionRule({
@@ -328,7 +350,7 @@ export function useToolbarRuleManagement(options: UseToolbarRuleManagementOption
 
   const addRuleVariable = () => {
     ruleConfigDraft.value.ruleVariables.push(createRuleVariable());
-    ruleManagerTab.value = 'variables';
+    ruleManagerTab.value = "variables";
   };
 
   const removeRuleVariable = (index: number) => {
@@ -339,26 +361,30 @@ export function useToolbarRuleManagement(options: UseToolbarRuleManagementOption
     try {
       const normalized = writeSharedGroupRulesConfig(ruleConfigDraft.value);
       ruleConfigDraft.value = cloneRuleConfig(normalized);
-      showMessage('success', '规则配置已生效');
+      showMessage("success", "规则配置已生效");
     } catch (error) {
-      console.error('应用规则配置失败:', error);
-      showMessage('error', '规则配置应用失败');
+      console.error("应用规则配置失败:", error);
+      showMessage("error", "规则配置应用失败");
     }
   };
 
   const restoreDefaultRuleConfig = () => {
-    ElMessageBox.confirm('恢复默认会覆盖当前规则和变量，是否继续？', '提示', {
-      confirmButtonText: '恢复默认',
-      cancelButtonText: '取消',
-      type: 'warning',
-    }).then(() => {
-      const normalized = writeSharedGroupRulesConfig(DEFAULT_GROUP_RULES_CONFIG);
-      ruleConfigDraft.value = cloneRuleConfig(normalized);
-      cancelRuleEditor();
-      showMessage('success', '已恢复默认规则配置');
-    }).catch(() => {
-      // 用户取消
-    });
+    ElMessageBox.confirm("恢复默认会覆盖当前规则和变量，是否继续？", "提示", {
+      confirmButtonText: "恢复默认",
+      cancelButtonText: "取消",
+      type: "warning",
+    })
+      .then(() => {
+        const normalized = writeSharedGroupRulesConfig(
+          DEFAULT_GROUP_RULES_CONFIG,
+        );
+        ruleConfigDraft.value = cloneRuleConfig(normalized);
+        cancelRuleEditor();
+        showMessage("success", "已恢复默认规则配置");
+      })
+      .catch(() => {
+        // 用户取消
+      });
   };
 
   return {

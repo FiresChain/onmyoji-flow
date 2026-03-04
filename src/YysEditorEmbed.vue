@@ -2,7 +2,10 @@
   <div
     ref="embedRootRef"
     class="yys-editor-embed"
-    :class="{ 'preview-mode': mode === 'preview', 'edit-mode': mode === 'edit' }"
+    :class="{
+      'preview-mode': mode === 'preview',
+      'edit-mode': mode === 'edit',
+    }"
     :style="containerStyle"
   >
     <!-- 编辑模式：完整 UI -->
@@ -49,290 +52,317 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick, getCurrentInstance } from 'vue'
-import ElementPlus from 'element-plus'
-import { createPinia, setActivePinia } from 'pinia'
-import LogicFlow from '@logicflow/core'
-import '@logicflow/core/lib/style/index.css'
-import '@logicflow/extension/lib/style/index.css'
+import {
+  ref,
+  computed,
+  watch,
+  onMounted,
+  onBeforeUnmount,
+  nextTick,
+  getCurrentInstance,
+} from "vue";
+import ElementPlus from "element-plus";
+import { createPinia, setActivePinia } from "pinia";
+import LogicFlow from "@logicflow/core";
+import "@logicflow/core/lib/style/index.css";
+import "@logicflow/extension/lib/style/index.css";
 
-import FlowEditor from './components/flow/FlowEditor.vue'
-import Toolbar from './components/Toolbar.vue'
-import ComponentsPanel from './components/flow/ComponentsPanel.vue'
-import DialogManager from './components/DialogManager.vue'
-import { useFilesStore } from '@/ts/useStore'
+import FlowEditor from "./components/flow/FlowEditor.vue";
+import Toolbar from "./components/Toolbar.vue";
+import ComponentsPanel from "./components/flow/ComponentsPanel.vue";
+import DialogManager from "./components/DialogManager.vue";
+import { useFilesStore } from "@/ts/useStore";
 import {
   createLogicFlowScope,
   destroyLogicFlowInstance,
   getLogicFlowInstance,
-  provideLogicFlowScope
-} from '@/ts/useLogicFlow'
+  provideLogicFlowScope,
+} from "@/ts/useLogicFlow";
 import {
   registerFlowNodes,
   resolveFlowPlugins,
   type FlowCapabilityLevel,
   type FlowNodeRegistration,
-  type FlowPlugin
-} from './flowRuntime'
-import { rewriteAssetUrlsDeep, setAssetBaseUrl } from '@/utils/assetUrl'
+  type FlowPlugin,
+} from "./flowRuntime";
+import { rewriteAssetUrlsDeep, setAssetBaseUrl } from "@/utils/assetUrl";
 
 // 类型定义
 export interface GraphData {
-  nodes: NodeData[]
-  edges: EdgeData[]
+  nodes: NodeData[];
+  edges: EdgeData[];
 }
 
 export interface NodeData {
-  id: string
-  type: string
-  x: number
-  y: number
-  properties?: Record<string, any>
-  text?: { value: string }
+  id: string;
+  type: string;
+  x: number;
+  y: number;
+  properties?: Record<string, any>;
+  text?: { value: string };
 }
 
 export interface EdgeData {
-  id: string
-  type: string
-  sourceNodeId: string
-  targetNodeId: string
-  properties?: Record<string, any>
+  id: string;
+  type: string;
+  sourceNodeId: string;
+  targetNodeId: string;
+  properties?: Record<string, any>;
 }
 
-const isPlainObject = (input: unknown): input is Record<string, any> => (
-  !!input && typeof input === 'object' && !Array.isArray(input)
-)
+const isPlainObject = (input: unknown): input is Record<string, any> =>
+  !!input && typeof input === "object" && !Array.isArray(input);
 
-const sanitizeLabelProperty = (properties: unknown): Record<string, any> | undefined => {
+const sanitizeLabelProperty = (
+  properties: unknown,
+): Record<string, any> | undefined => {
   if (!isPlainObject(properties)) {
-    return undefined
+    return undefined;
   }
-  const nextProperties: Record<string, any> = { ...properties }
+  const nextProperties: Record<string, any> = { ...properties };
   if (Array.isArray(nextProperties._label)) {
-    const normalizedLabels = nextProperties._label.filter((label: any) => (
-      isPlainObject(label) && (label.id != null || label.text != null || label.value != null || label.content != null)
-    ))
+    const normalizedLabels = nextProperties._label.filter(
+      (label: any) =>
+        isPlainObject(label) &&
+        (label.id != null ||
+          label.text != null ||
+          label.value != null ||
+          label.content != null),
+    );
     if (normalizedLabels.length === 0) {
-      delete nextProperties._label
+      delete nextProperties._label;
     } else {
-      nextProperties._label = normalizedLabels
+      nextProperties._label = normalizedLabels;
     }
   }
-  return nextProperties
-}
+  return nextProperties;
+};
 
 const sanitizeGraphData = (
   input?: GraphData | null,
-  options?: { hideDynamicGroups?: boolean }
+  options?: { hideDynamicGroups?: boolean },
 ): GraphData => {
   if (!input || !Array.isArray(input.nodes) || !Array.isArray(input.edges)) {
-    return { nodes: [], edges: [] }
+    return { nodes: [], edges: [] };
   }
 
   const rawNodes = input.nodes
     .filter((node): node is NodeData => isPlainObject(node))
     .map((node) => {
-      const nextNode: NodeData = { ...node }
-      const nextProperties = sanitizeLabelProperty(nextNode.properties)
+      const nextNode: NodeData = { ...node };
+      const nextProperties = sanitizeLabelProperty(nextNode.properties);
       if (nextProperties) {
-        nextNode.properties = rewriteAssetUrlsDeep(nextProperties)
+        nextNode.properties = rewriteAssetUrlsDeep(nextProperties);
       }
-      return nextNode
-    })
+      return nextNode;
+    });
 
-  const hiddenDynamicGroup = options?.hideDynamicGroups === true
+  const hiddenDynamicGroup = options?.hideDynamicGroups === true;
   const nodes = hiddenDynamicGroup
-    ? rawNodes.filter((node) => node.type !== 'dynamic-group')
-    : rawNodes
-  const nodeIdSet = new Set(nodes.map((node) => node.id))
+    ? rawNodes.filter((node) => node.type !== "dynamic-group")
+    : rawNodes;
+  const nodeIdSet = new Set(nodes.map((node) => node.id));
 
   const edges = input.edges
     .filter((edge): edge is EdgeData => isPlainObject(edge))
     .map((edge) => {
-      const nextEdge: EdgeData = { ...edge }
-      const nextProperties = sanitizeLabelProperty(nextEdge.properties)
+      const nextEdge: EdgeData = { ...edge };
+      const nextProperties = sanitizeLabelProperty(nextEdge.properties);
       if (nextProperties) {
-        nextEdge.properties = rewriteAssetUrlsDeep(nextProperties)
+        nextEdge.properties = rewriteAssetUrlsDeep(nextProperties);
       }
-      return nextEdge
+      return nextEdge;
     })
-    .filter((edge) => !hiddenDynamicGroup || (nodeIdSet.has(edge.sourceNodeId) && nodeIdSet.has(edge.targetNodeId)))
+    .filter(
+      (edge) =>
+        !hiddenDynamicGroup ||
+        (nodeIdSet.has(edge.sourceNodeId) && nodeIdSet.has(edge.targetNodeId)),
+    );
 
-  return { nodes, edges }
-}
+  return { nodes, edges };
+};
 
 export interface EditorConfig {
-  grid?: boolean
-  snapline?: boolean
-  keyboard?: boolean
-  theme?: 'light' | 'dark'
-  locale?: 'zh' | 'ja' | 'en'
+  grid?: boolean;
+  snapline?: boolean;
+  keyboard?: boolean;
+  theme?: "light" | "dark";
+  locale?: "zh" | "ja" | "en";
 }
 
 // Props
-const props = withDefaults(defineProps<{
-  data?: GraphData
-  mode?: 'preview' | 'edit'
-  capability?: FlowCapabilityLevel
-  width?: string | number
-  height?: string | number
-  showToolbar?: boolean
-  showPropertyPanel?: boolean
-  showComponentPanel?: boolean
-  config?: EditorConfig
-  plugins?: FlowPlugin[]
-  nodeRegistrations?: FlowNodeRegistration[]
-  assetBaseUrl?: string
-}>(), {
-  mode: 'edit',
-  width: '100%',
-  height: '600px',
-  showToolbar: true,
-  showPropertyPanel: true,
-  showComponentPanel: true,
-  config: () => ({
-    grid: true,
-    snapline: true,
-    keyboard: true,
-    theme: 'light',
-    locale: 'zh'
-  })
-})
+const props = withDefaults(
+  defineProps<{
+    data?: GraphData;
+    mode?: "preview" | "edit";
+    capability?: FlowCapabilityLevel;
+    width?: string | number;
+    height?: string | number;
+    showToolbar?: boolean;
+    showPropertyPanel?: boolean;
+    showComponentPanel?: boolean;
+    config?: EditorConfig;
+    plugins?: FlowPlugin[];
+    nodeRegistrations?: FlowNodeRegistration[];
+    assetBaseUrl?: string;
+  }>(),
+  {
+    mode: "edit",
+    width: "100%",
+    height: "600px",
+    showToolbar: true,
+    showPropertyPanel: true,
+    showComponentPanel: true,
+    config: () => ({
+      grid: true,
+      snapline: true,
+      keyboard: true,
+      theme: "light",
+      locale: "zh",
+    }),
+  },
+);
 
 // Emits
 const emit = defineEmits<{
-  'update:data': [data: GraphData]
-  'save': [data: GraphData]
-  'cancel': []
-  'error': [error: Error]
-}>()
+  "update:data": [data: GraphData];
+  save: [data: GraphData];
+  cancel: [];
+  error: [error: Error];
+}>();
 
 // 创建局部 Pinia 实例（状态隔离）
-const localPinia = createPinia()
-setActivePinia(localPinia)
-const logicFlowScope = provideLogicFlowScope(createLogicFlowScope())
-const filesStore = useFilesStore(localPinia)
-filesStore.bindLogicFlowScope(logicFlowScope)
+const localPinia = createPinia();
+setActivePinia(localPinia);
+const logicFlowScope = provideLogicFlowScope(createLogicFlowScope());
+const filesStore = useFilesStore(localPinia);
+filesStore.bindLogicFlowScope(logicFlowScope);
 
 const ensureElementPlusInstalled = () => {
-  const instance = getCurrentInstance()
-  const app = instance?.appContext?.app as any
-  if (!app) return
+  const instance = getCurrentInstance();
+  const app = instance?.appContext?.app as any;
+  if (!app) return;
 
-  const installedPlugins = app._context?.plugins
+  const installedPlugins = app._context?.plugins;
   if (installedPlugins?.has?.(ElementPlus)) {
-    return
+    return;
   }
 
   try {
-    app.use(ElementPlus)
+    app.use(ElementPlus);
   } catch {
     // 忽略重复安装或宿主限制导致的异常
   }
-}
-ensureElementPlusInstalled()
+};
+ensureElementPlusInstalled();
 
 // Refs
-const flowEditorRef = ref<InstanceType<typeof FlowEditor>>()
-const previewContainerRef = ref<HTMLElement | null>(null)
-const previewLf = ref<LogicFlow | null>(null)
-const embedRootRef = ref<HTMLElement | null>(null)
-const toolbarHostRef = ref<HTMLElement | null>(null)
-let embedResizeObserver: ResizeObserver | null = null
-const editorContentHeight = ref('100%')
+const flowEditorRef = ref<InstanceType<typeof FlowEditor>>();
+const previewContainerRef = ref<HTMLElement | null>(null);
+const previewLf = ref<LogicFlow | null>(null);
+const embedRootRef = ref<HTMLElement | null>(null);
+const toolbarHostRef = ref<HTMLElement | null>(null);
+let embedResizeObserver: ResizeObserver | null = null;
+const editorContentHeight = ref("100%");
 
 // Computed
 const effectiveCapability = computed<FlowCapabilityLevel>(() => {
   if (props.capability) {
-    return props.capability
+    return props.capability;
   }
-  return props.mode === 'preview' ? 'render-only' : 'interactive'
-})
+  return props.mode === "preview" ? "render-only" : "interactive";
+});
 
 const containerStyle = computed(() => ({
-  width: typeof props.width === 'number' ? `${props.width}px` : props.width,
-  height: typeof props.height === 'number' ? `${props.height}px` : props.height
-}))
+  width: typeof props.width === "number" ? `${props.width}px` : props.width,
+  height: typeof props.height === "number" ? `${props.height}px` : props.height,
+}));
 
 const containerHeight = computed(() => {
-  return typeof props.height === 'number' ? `${props.height}px` : props.height
-})
+  return typeof props.height === "number" ? `${props.height}px` : props.height;
+});
 
 const editorContentStyle = computed(() => ({
-  height: editorContentHeight.value
-}))
+  height: editorContentHeight.value,
+}));
 
 const resolvedEmbedConfig = computed(() => ({
   grid: props.config?.grid ?? true,
   snapline: props.config?.snapline ?? true,
-  keyboard: props.config?.keyboard ?? true
-}))
+  keyboard: props.config?.keyboard ?? true,
+}));
 
 const recalcEditContentHeight = () => {
-  if (props.mode !== 'edit') {
-    return
+  if (props.mode !== "edit") {
+    return;
   }
-  const root = embedRootRef.value
+  const root = embedRootRef.value;
   if (!root) {
-    return
+    return;
   }
-  const rootHeight = root.clientHeight
-  const toolbarHeight = props.showToolbar ? (toolbarHostRef.value?.offsetHeight ?? 0) : 0
-  const contentHeight = Math.max(0, rootHeight - toolbarHeight)
+  const rootHeight = root.clientHeight;
+  const toolbarHeight = props.showToolbar
+    ? (toolbarHostRef.value?.offsetHeight ?? 0)
+    : 0;
+  const contentHeight = Math.max(0, rootHeight - toolbarHeight);
   if (contentHeight > 0) {
-    editorContentHeight.value = `${contentHeight}px`
+    editorContentHeight.value = `${contentHeight}px`;
   } else {
-    editorContentHeight.value = '100%'
+    editorContentHeight.value = "100%";
   }
-}
+};
 
 const triggerEditorResize = () => {
   nextTick(() => {
-    recalcEditContentHeight()
-    const editor = flowEditorRef.value as any
-    editor?.resizeCanvas?.()
-  })
-}
+    recalcEditContentHeight();
+    const editor = flowEditorRef.value as any;
+    editor?.resizeCanvas?.();
+  });
+};
 
 const handleEmbedResize = () => {
-  if (props.mode === 'edit') {
-    recalcEditContentHeight()
-    triggerEditorResize()
-    return
+  if (props.mode === "edit") {
+    recalcEditContentHeight();
+    triggerEditorResize();
+    return;
   }
 
-  if (props.mode === 'preview' && previewLf.value && previewContainerRef.value) {
-    const width = previewContainerRef.value.offsetWidth
-    const height = previewContainerRef.value.offsetHeight
-    previewLf.value.resize(width, height)
+  if (
+    props.mode === "preview" &&
+    previewLf.value &&
+    previewContainerRef.value
+  ) {
+    const width = previewContainerRef.value.offsetWidth;
+    const height = previewContainerRef.value.offsetHeight;
+    previewLf.value.resize(width, height);
   }
-}
+};
 
 const setupEmbedResizeObserver = () => {
-  if (typeof ResizeObserver === 'undefined' || !embedRootRef.value) {
-    return
+  if (typeof ResizeObserver === "undefined" || !embedRootRef.value) {
+    return;
   }
 
-  embedResizeObserver?.disconnect()
+  embedResizeObserver?.disconnect();
   embedResizeObserver = new ResizeObserver(() => {
-    handleEmbedResize()
-  })
-  embedResizeObserver.observe(embedRootRef.value)
-}
+    handleEmbedResize();
+  });
+  embedResizeObserver.observe(embedRootRef.value);
+};
 
 const destroyPreviewMode = () => {
   if (previewLf.value) {
-    previewLf.value.destroy()
-    previewLf.value = null
+    previewLf.value.destroy();
+    previewLf.value = null;
   }
-}
+};
 
 // 初始化预览模式的 LogicFlow
 const initPreviewMode = () => {
-  if (!previewContainerRef.value) return
+  if (!previewContainerRef.value) return;
 
-  destroyPreviewMode()
-  const isRenderOnly = effectiveCapability.value === 'render-only'
+  destroyPreviewMode();
+  const isRenderOnly = effectiveCapability.value === "render-only";
 
   // 创建 LogicFlow 实例（只读模式）
   previewLf.value = new LogicFlow({
@@ -341,7 +371,7 @@ const initPreviewMode = () => {
     height: previewContainerRef.value.offsetHeight,
     grid: false,
     keyboard: {
-      enabled: !isRenderOnly
+      enabled: !isRenderOnly,
     },
     // render-only 模式禁用所有交互能力
     isSilentMode: isRenderOnly,
@@ -349,148 +379,164 @@ const initPreviewMode = () => {
     stopZoomGraph: isRenderOnly,
     stopMoveGraph: isRenderOnly,
     adjustNodePosition: !isRenderOnly,
-    plugins: resolveFlowPlugins(effectiveCapability.value, props.plugins)
-  })
+    plugins: resolveFlowPlugins(effectiveCapability.value, props.plugins),
+  });
 
   // 注册节点（支持外部注入）
-  registerFlowNodes(previewLf.value, props.nodeRegistrations)
+  registerFlowNodes(previewLf.value, props.nodeRegistrations);
 
   // 渲染数据
   if (props.data) {
-    previewLf.value.render(sanitizeGraphData(props.data, { hideDynamicGroups: true }))
+    previewLf.value.render(
+      sanitizeGraphData(props.data, { hideDynamicGroups: true }),
+    );
   }
-}
+};
 
 // Methods
 const handleSave = () => {
   try {
-    const data = getGraphData()
+    const data = getGraphData();
     if (data) {
-      emit('save', data)
+      emit("save", data);
     }
   } catch (error) {
-    emit('error', error as Error)
+    emit("error", error as Error);
   }
-}
+};
 
 const handleCancel = () => {
-  emit('cancel')
-}
+  emit("cancel");
+};
 
 const handleGraphDataChange = (graphData: GraphData) => {
-  emit('update:data', graphData)
-}
+  emit("update:data", graphData);
+};
 
 // 公开方法（供父组件调用）
 const getGraphData = (): GraphData | null => {
-  if (props.mode === 'edit') {
-    const lfInstance = getLogicFlowInstance(logicFlowScope)
+  if (props.mode === "edit") {
+    const lfInstance = getLogicFlowInstance(logicFlowScope);
     if (lfInstance) {
-      return lfInstance.getGraphRawData() as GraphData
+      return lfInstance.getGraphRawData() as GraphData;
     }
-  } else if (props.mode === 'preview' && previewLf.value) {
-    return previewLf.value.getGraphRawData() as GraphData
+  } else if (props.mode === "preview" && previewLf.value) {
+    return previewLf.value.getGraphRawData() as GraphData;
   }
-  return null
-}
+  return null;
+};
 
 const setGraphData = (data: GraphData) => {
-  const safeData = sanitizeGraphData(data, { hideDynamicGroups: props.mode === 'preview' })
-  if (props.mode === 'edit') {
-    const lfInstance = getLogicFlowInstance(logicFlowScope)
+  const safeData = sanitizeGraphData(data, {
+    hideDynamicGroups: props.mode === "preview",
+  });
+  if (props.mode === "edit") {
+    const lfInstance = getLogicFlowInstance(logicFlowScope);
     if (lfInstance) {
-      lfInstance.render(safeData)
+      lfInstance.render(safeData);
     }
-  } else if (props.mode === 'preview' && previewLf.value) {
-    previewLf.value.render(safeData)
+  } else if (props.mode === "preview" && previewLf.value) {
+    previewLf.value.render(safeData);
   }
-}
+};
 
 defineExpose({
   getGraphData,
   setGraphData,
-  resizeCanvas: triggerEditorResize
-})
+  resizeCanvas: triggerEditorResize,
+});
 
 // 监听 data 变化
-watch(() => props.data, (newData) => {
-  if (newData) {
-    setGraphData(newData)
-  }
-}, { deep: true })
+watch(
+  () => props.data,
+  (newData) => {
+    if (newData) {
+      setGraphData(newData);
+    }
+  },
+  { deep: true },
+);
 
 watch(
   () => props.assetBaseUrl,
   (value) => {
-    setAssetBaseUrl(value)
+    setAssetBaseUrl(value);
   },
-  { immediate: true }
-)
+  { immediate: true },
+);
 
 // 监听模式变化
-watch(() => props.mode, (newMode) => {
-  if (newMode === 'preview') {
-    // 切换到预览模式，初始化预览 LogicFlow
-    setTimeout(() => {
-      initPreviewMode()
-    }, 100)
-  } else {
-    destroyPreviewMode()
-    recalcEditContentHeight()
-    triggerEditorResize()
-  }
-  setupEmbedResizeObserver()
-})
+watch(
+  () => props.mode,
+  (newMode) => {
+    if (newMode === "preview") {
+      // 切换到预览模式，初始化预览 LogicFlow
+      setTimeout(() => {
+        initPreviewMode();
+      }, 100);
+    } else {
+      destroyPreviewMode();
+      recalcEditContentHeight();
+      triggerEditorResize();
+    }
+    setupEmbedResizeObserver();
+  },
+);
 
 watch(
   [() => props.capability, () => props.plugins, () => props.nodeRegistrations],
   () => {
-    if (props.mode === 'preview') {
+    if (props.mode === "preview") {
       setTimeout(() => {
-        initPreviewMode()
-      }, 0)
+        initPreviewMode();
+      }, 0);
     }
   },
-  { deep: true }
-)
+  { deep: true },
+);
 
 watch(
-  [() => props.width, () => props.height, () => props.showToolbar, () => props.showComponentPanel],
+  [
+    () => props.width,
+    () => props.height,
+    () => props.showToolbar,
+    () => props.showComponentPanel,
+  ],
   () => {
-    if (props.mode === 'edit') {
-      recalcEditContentHeight()
-      triggerEditorResize()
+    if (props.mode === "edit") {
+      recalcEditContentHeight();
+      triggerEditorResize();
     }
-  }
-)
+  },
+);
 
 // 初始化
 onMounted(() => {
-  setupEmbedResizeObserver()
-  if (props.mode === 'preview') {
-    initPreviewMode()
-  } else if (props.mode === 'edit') {
-    recalcEditContentHeight()
-    triggerEditorResize()
+  setupEmbedResizeObserver();
+  if (props.mode === "preview") {
+    initPreviewMode();
+  } else if (props.mode === "edit") {
+    recalcEditContentHeight();
+    triggerEditorResize();
     // 编辑模式由 FlowEditor 组件初始化
     // 等待 FlowEditor 初始化完成后加载数据
     setTimeout(() => {
       if (props.data) {
-        setGraphData(props.data)
+        setGraphData(props.data);
       }
-      recalcEditContentHeight()
-      triggerEditorResize()
-    }, 500)
+      recalcEditContentHeight();
+      triggerEditorResize();
+    }, 500);
   }
-})
+});
 
 // 清理
 onBeforeUnmount(() => {
-  embedResizeObserver?.disconnect()
-  embedResizeObserver = null
-  destroyPreviewMode()
-  destroyLogicFlowInstance(logicFlowScope)
-})
+  embedResizeObserver?.disconnect();
+  embedResizeObserver = null;
+  destroyPreviewMode();
+  destroyLogicFlowInstance(logicFlowScope);
+});
 </script>
 
 <style scoped>

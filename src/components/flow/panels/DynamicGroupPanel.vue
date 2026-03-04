@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { reactive, watch } from 'vue';
-import { getLogicFlowInstance, useLogicFlowScope } from '@/ts/useLogicFlow';
+import { reactive, watch } from "vue";
+import { getLogicFlowInstance, useLogicFlowScope } from "@/ts/useLogicFlow";
 import {
   GROUP_META_VERSION,
-  normalizeDynamicGroupMeta
-} from '@/utils/graphSchema';
+  normalizeDynamicGroupMeta,
+} from "@/utils/graphSchema";
 
 const props = defineProps<{
   node: any;
@@ -12,13 +12,13 @@ const props = defineProps<{
 const logicFlowScope = useLogicFlowScope();
 
 type DynamicGroupMeta = {
-  groupKind: 'team' | 'shikigami';
+  groupKind: "team" | "shikigami";
   ruleEnabled: boolean;
 };
 
 const form = reactive<DynamicGroupMeta>({
-  groupKind: 'team',
-  ruleEnabled: true
+  groupKind: "team",
+  ruleEnabled: true,
 });
 
 const syncFromNode = (node?: any) => {
@@ -35,7 +35,7 @@ watch(
       syncFromNode(node);
     }
   },
-  { immediate: true, deep: true }
+  { immediate: true, deep: true },
 );
 
 const applyGroupMeta = () => {
@@ -48,8 +48,8 @@ const applyGroupMeta = () => {
     groupMeta: {
       version: GROUP_META_VERSION,
       groupKind: form.groupKind,
-      ruleEnabled: form.ruleEnabled
-    }
+      ruleEnabled: form.ruleEnabled,
+    },
   });
 };
 </script>
@@ -60,7 +60,11 @@ const applyGroupMeta = () => {
 
     <div class="property-item">
       <div class="property-label">分组类型</div>
-      <el-select v-model="form.groupKind" style="width: 100%" @change="applyGroupMeta">
+      <el-select
+        v-model="form.groupKind"
+        style="width: 100%"
+        @change="applyGroupMeta"
+      >
         <el-option label="队伍组（team）" value="team" />
         <el-option label="式神组（shikigami）" value="shikigami" />
       </el-select>
@@ -73,5 +77,4 @@ const applyGroupMeta = () => {
   </div>
 </template>
 
-<style scoped>
-</style>
+<style scoped></style>

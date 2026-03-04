@@ -3,66 +3,69 @@
  * 将旧节点类型自动转换为新节点类型
  */
 
-import type { GraphData } from '@logicflow/core';
+import type { GraphData } from "@logicflow/core";
 
 /**
  * 迁移映射表
  */
-const MIGRATION_MAP: Record<string, { newType: string; transform: (node: any) => any }> = {
+const MIGRATION_MAP: Record<
+  string,
+  { newType: string; transform: (node: any) => any }
+> = {
   shikigamiSelect: {
-    newType: 'assetSelector',
+    newType: "assetSelector",
     transform: (node) => ({
       ...node,
-      type: 'assetSelector',
+      type: "assetSelector",
       properties: {
         ...node.properties,
-        assetLibrary: 'shikigami',
+        assetLibrary: "shikigami",
         selectedAsset: node.properties?.shikigami || null,
         // 保留原始数据以便回退
         _migrated: {
-          from: 'shikigamiSelect',
-          originalData: node.properties?.shikigami
-        }
-      }
-    })
+          from: "shikigamiSelect",
+          originalData: node.properties?.shikigami,
+        },
+      },
+    }),
   },
   yuhunSelect: {
-    newType: 'assetSelector',
+    newType: "assetSelector",
     transform: (node) => ({
       ...node,
-      type: 'assetSelector',
+      type: "assetSelector",
       properties: {
         ...node.properties,
-        assetLibrary: 'yuhun',
+        assetLibrary: "yuhun",
         selectedAsset: node.properties?.yuhun || null,
         // 保留原始数据以便回退
         _migrated: {
-          from: 'yuhunSelect',
-          originalData: node.properties?.yuhun
-        }
-      }
-    })
+          from: "yuhunSelect",
+          originalData: node.properties?.yuhun,
+        },
+      },
+    }),
   },
   imageNode: {
-    newType: 'imageNode',
-    transform: (node) => node // 保持不变
+    newType: "imageNode",
+    transform: (node) => node, // 保持不变
   },
   textNode: {
-    newType: 'textNode',
-    transform: (node) => node // 保持不变
+    newType: "textNode",
+    transform: (node) => node, // 保持不变
   },
   propertySelect: {
-    newType: 'propertySelect',
-    transform: (node) => node // 保持不变
+    newType: "propertySelect",
+    transform: (node) => node, // 保持不变
   },
   rect: {
-    newType: 'rect',
-    transform: (node) => node // 保持不变
+    newType: "rect",
+    transform: (node) => node, // 保持不变
   },
   ellipse: {
-    newType: 'ellipse',
-    transform: (node) => node // 保持不变
-  }
+    newType: "ellipse",
+    transform: (node) => node, // 保持不变
+  },
 };
 
 /**
@@ -105,7 +108,7 @@ export function migrateGraphData(graphData: GraphData): {
       migrations.push({
         id: node.id,
         from: node.type,
-        to: migratedNode.type
+        to: migratedNode.type,
       });
     }
 
@@ -115,10 +118,10 @@ export function migrateGraphData(graphData: GraphData): {
   return {
     graphData: {
       ...graphData,
-      nodes: migratedNodes
+      nodes: migratedNodes,
     },
     migratedCount,
-    migrations
+    migrations,
   };
 }
 
@@ -146,12 +149,12 @@ export function getMigrationSummary(graphData: GraphData): string {
   const { migratedCount, migrations } = migrateGraphData(graphData);
 
   if (migratedCount === 0) {
-    return '无需迁移';
+    return "无需迁移";
   }
 
   const summary = migrations
     .map((m) => `节点 ${m.id}: ${m.from} → ${m.to}`)
-    .join('\n');
+    .join("\n");
 
   return `迁移了 ${migratedCount} 个节点:\n${summary}`;
 }

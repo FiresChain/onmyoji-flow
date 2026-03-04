@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import { useNodeAppearance } from '@/ts/useNodeAppearance';
+import { ref } from "vue";
+import { useNodeAppearance } from "@/ts/useNodeAppearance";
 
 type PropertyNodeData = {
   type: string;
@@ -11,24 +11,36 @@ type PropertyNodeData = {
 };
 
 const DEFAULT_PROPERTY: PropertyNodeData = {
-  type: '未选择',
-  priority: 'optional',
-  value: '',
-  description: ''
+  type: "未选择",
+  priority: "optional",
+  value: "",
+  description: "",
 };
 
 const normalizeProperty = (value: unknown): PropertyNodeData => {
-  if (!value || typeof value !== 'object') {
+  if (!value || typeof value !== "object") {
     return { ...DEFAULT_PROPERTY };
   }
   const raw = value as Record<string, unknown>;
   return {
     ...DEFAULT_PROPERTY,
     ...raw,
-    type: typeof raw.type === 'string' && raw.type.trim() ? raw.type : DEFAULT_PROPERTY.type,
-    priority: typeof raw.priority === 'string' && raw.priority.trim() ? raw.priority : DEFAULT_PROPERTY.priority,
-    value: typeof raw.value === 'number' || typeof raw.value === 'string' ? raw.value : DEFAULT_PROPERTY.value,
-    description: typeof raw.description === 'string' ? raw.description : DEFAULT_PROPERTY.description
+    type:
+      typeof raw.type === "string" && raw.type.trim()
+        ? raw.type
+        : DEFAULT_PROPERTY.type,
+    priority:
+      typeof raw.priority === "string" && raw.priority.trim()
+        ? raw.priority
+        : DEFAULT_PROPERTY.priority,
+    value:
+      typeof raw.value === "number" || typeof raw.value === "string"
+        ? raw.value
+        : DEFAULT_PROPERTY.value,
+    description:
+      typeof raw.description === "string"
+        ? raw.description
+        : DEFAULT_PROPERTY.description,
   };
 };
 
@@ -39,49 +51,73 @@ const { containerStyle, textStyle } = useNodeAppearance({
     if (props.property) {
       currentProperty.value = normalizeProperty(props.property);
     }
-  }
+  },
 });
 
 // 辅助函数
 const getPropertyTypeName = () => {
   const typeMap: Record<string, string> = {
-    'attack': '攻击',
-    'health': '生命',
-    'defense': '防御',
-    'speed': '速度',
-    'crit': '暴击率',
-    'critDmg': '暴击伤害',
-    'effectHit': '效果命中',
-    'effectResist': '效果抵抗',
-    '未选择': '未选择'
+    attack: "攻击",
+    health: "生命",
+    defense: "防御",
+    speed: "速度",
+    crit: "暴击率",
+    critDmg: "暴击伤害",
+    effectHit: "效果命中",
+    effectResist: "效果抵抗",
+    未选择: "未选择",
   };
   return typeMap[currentProperty.value.type] || currentProperty.value.type;
 };
 const getPriorityName = () => {
   const priorityMap: Record<string, string> = {
-    'required': '必须',
-    'recommended': '推荐',
-    'optional': '可选'
+    required: "必须",
+    recommended: "推荐",
+    optional: "可选",
   };
-  return priorityMap[currentProperty.value.priority] || currentProperty.value.priority;
+  return (
+    priorityMap[currentProperty.value.priority] ||
+    currentProperty.value.priority
+  );
 };
 </script>
 
 <template>
-  <div class="property-node" :class="[currentProperty.priority ? `priority-${currentProperty.priority}` : '']">
+  <div
+    class="property-node"
+    :class="[
+      currentProperty.priority ? `priority-${currentProperty.priority}` : '',
+    ]"
+  >
     <div class="node-content" :style="containerStyle">
       <div class="node-header">
         <div class="node-title" :style="textStyle">属性要求</div>
       </div>
       <div class="node-body">
         <div class="property-main">
-          <div class="property-type" :style="textStyle">{{ getPropertyTypeName() }}</div>
-          <div v-if="currentProperty.type !== '未选择'" class="property-value" :style="textStyle">{{ currentProperty.value }}</div>
-          <div v-else class="property-placeholder" :style="textStyle">点击设置属性</div>
+          <div class="property-type" :style="textStyle">
+            {{ getPropertyTypeName() }}
+          </div>
+          <div
+            v-if="currentProperty.type !== '未选择'"
+            class="property-value"
+            :style="textStyle"
+          >
+            {{ currentProperty.value }}
+          </div>
+          <div v-else class="property-placeholder" :style="textStyle">
+            点击设置属性
+          </div>
         </div>
         <div class="property-details" v-if="currentProperty.type !== '未选择'">
-          <div class="property-priority" :style="textStyle">优先级: {{ getPriorityName() }}</div>
-          <div class="property-description" v-if="currentProperty.description" :style="textStyle">
+          <div class="property-priority" :style="textStyle">
+            优先级: {{ getPriorityName() }}
+          </div>
+          <div
+            class="property-description"
+            v-if="currentProperty.description"
+            :style="textStyle"
+          >
             {{ currentProperty.description }}
           </div>
         </div>
@@ -156,7 +192,9 @@ const getPriorityName = () => {
   font-size: 12px;
   border-radius: 4px;
   margin: 8px 0;
-  transition: width 0.2s, height 0.2s;
+  transition:
+    width 0.2s,
+    height 0.2s;
 }
 .property-details {
   width: 100%;

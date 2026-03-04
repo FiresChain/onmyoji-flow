@@ -1,4 +1,4 @@
-﻿export const CURRENT_SCHEMA_VERSION = '1.0.0';
+﻿export const CURRENT_SCHEMA_VERSION = "1.0.0";
 
 export interface Transform {
   SCALE_X: number;
@@ -35,8 +35,8 @@ export interface NodeStyle {
     fontSize?: number;
     fontWeight?: number | string;
     lineHeight?: number;
-    align?: 'left' | 'center' | 'right';
-    verticalAlign?: 'top' | 'middle' | 'bottom';
+    align?: "left" | "center" | "right";
+    verticalAlign?: "top" | "middle" | "bottom";
     letterSpacing?: number;
     padding?: [number, number, number, number];
     background?: string;
@@ -59,7 +59,7 @@ export interface NodeProperties {
   children?: string[];
   groupMeta?: {
     version: number;
-    groupKind: 'team' | 'shikigami';
+    groupKind: "team" | "shikigami";
     groupName: string;
     ruleEnabled: boolean;
     ruleScope: string[];
@@ -72,10 +72,10 @@ export interface NodeProperties {
     avatar?: string;
     [key: string]: any;
   } | null;
-  image?: { url: string; fit?: 'fill'|'contain'|'cover' };
+  image?: { url: string; fit?: "fill" | "contain" | "cover" };
   text?: { content: string; rich?: boolean };
   vector?: {
-    kind: 'path' | 'rect' | 'ellipse' | 'polygon' | 'svg';
+    kind: "path" | "rect" | "ellipse" | "polygon" | "svg";
     svgContent?: string;
     path?: string;
     points?: Array<[number, number]>;
@@ -109,7 +109,10 @@ export interface GraphEdge {
   properties?: Record<string, any>;
 }
 
-export interface GraphDocument { nodes: GraphNode[]; edges: GraphEdge[]; }
+export interface GraphDocument {
+  nodes: GraphNode[];
+  edges: GraphEdge[];
+}
 
 export interface RootDocument {
   schemaVersion: string;
@@ -123,20 +126,20 @@ export const DefaultNodeStyle: NodeStyle = {
   width: 180,
   height: 120,
   rotate: 0,
-  fill: '#ffffff',
-  stroke: '#dcdfe6',
+  fill: "#ffffff",
+  stroke: "#dcdfe6",
   strokeWidth: 1,
   radius: 4,
   opacity: 1,
-  shadow: { color: 'rgba(0,0,0,0.1)', blur: 4, offsetX: 0, offsetY: 2 },
+  shadow: { color: "rgba(0,0,0,0.1)", blur: 4, offsetX: 0, offsetY: 2 },
   textStyle: {
-    color: '#303133',
-    fontFamily: 'system-ui',
+    color: "#303133",
+    fontFamily: "system-ui",
     fontSize: 14,
     fontWeight: 400,
     lineHeight: 1.4,
-    align: 'left',
-    verticalAlign: 'top',
+    align: "left",
+    verticalAlign: "top",
     letterSpacing: 0,
     padding: [8, 8, 8, 8],
   },
@@ -197,9 +200,10 @@ export function migrateToV1(input: any): RootDocument {
   };
 
   const ensureGraphDocument = (f: any): GraphDocument => {
-    const raw = (f?.graphRawData && typeof f.graphRawData === 'object')
-      ? f.graphRawData
-      : { nodes: [], edges: [] };
+    const raw =
+      f?.graphRawData && typeof f.graphRawData === "object"
+        ? f.graphRawData
+        : { nodes: [], edges: [] };
     const nodes = Array.isArray(raw.nodes) ? raw.nodes.map(migrateNode) : [];
     const edges = Array.isArray(raw.edges) ? raw.edges : [];
     return { nodes, edges };
@@ -209,7 +213,7 @@ export function migrateToV1(input: any): RootDocument {
       label: f?.label ?? `File ${i + 1}`,
       name: f?.name ?? `File ${i + 1}`,
       visible: f?.visible ?? true,
-      type: f?.type ?? 'FLOW',
+      type: f?.type ?? "FLOW",
       graphRawData: ensureGraphDocument(f),
       transform: ensureTransform(f?.transform),
       createdAt: f?.createdAt ?? now,
@@ -217,9 +221,11 @@ export function migrateToV1(input: any): RootDocument {
       id: f?.id,
     }));
 
-    const fallbackName = normalizedFiles[0]?.name ?? 'File 1';
+    const fallbackName = normalizedFiles[0]?.name ?? "File 1";
     const resolvedActiveName = activeName ?? fallbackName;
-    const activeFile = normalizedFiles.find(f => f.name === resolvedActiveName) ?? normalizedFiles[0];
+    const activeFile =
+      normalizedFiles.find((f) => f.name === resolvedActiveName) ??
+      normalizedFiles[0];
 
     return {
       schemaVersion: CURRENT_SCHEMA_VERSION,
@@ -230,14 +236,16 @@ export function migrateToV1(input: any): RootDocument {
   };
 
   if (!input) {
-    return wrap([{ label: 'File 1', name: 'File 1', visible: true, type: 'FLOW' }]);
+    return wrap([
+      { label: "File 1", name: "File 1", visible: true, type: "FLOW" },
+    ]);
   }
 
   if (Array.isArray(input)) {
     return wrap(input);
   }
 
-  if (typeof input === 'object' && 'fileList' in input) {
+  if (typeof input === "object" && "fileList" in input) {
     const active = (input as any).activeFile;
     const files = (input as any).fileList ?? [];
     const root = wrap(files, active);
@@ -247,5 +255,13 @@ export function migrateToV1(input: any): RootDocument {
   }
 
   // Oldest shape: treat input as groups array and wrap
-  return wrap([{ label: 'File 1', name: 'File 1', visible: true, type: 'FLOW', groups: input }]);
+  return wrap([
+    {
+      label: "File 1",
+      name: "File 1",
+      visible: true,
+      type: "FLOW",
+      groups: input,
+    },
+  ]);
 }

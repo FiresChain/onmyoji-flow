@@ -1,24 +1,30 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import { useNodeAppearance } from '@/ts/useNodeAppearance';
+import { ref } from "vue";
+import { useNodeAppearance } from "@/ts/useNodeAppearance";
 
-type FitMode = 'contain' | 'cover' | 'fill';
+type FitMode = "contain" | "cover" | "fill";
 
-const imageUrl = ref('');
-const fit = ref<FitMode>('contain');
+const imageUrl = ref("");
+const fit = ref<FitMode>("contain");
 
 const { containerStyle } = useNodeAppearance({
   onPropsChange(props) {
-    imageUrl.value = props.image?.url ?? props.url ?? '';
-    fit.value = props.image?.fit ?? props.fit ?? 'contain';
-  }
+    imageUrl.value = props.image?.url ?? props.url ?? "";
+    fit.value = props.image?.fit ?? props.fit ?? "contain";
+  },
 });
 </script>
 
 <template>
   <div class="image-node" :style="containerStyle">
     <div class="image-wrapper">
-      <img v-if="imageUrl" :src="imageUrl" alt="图片节点" :style="{ objectFit: fit }" draggable="false" />
+      <img
+        v-if="imageUrl"
+        :src="imageUrl"
+        alt="图片节点"
+        :style="{ objectFit: fit }"
+        draggable="false"
+      />
       <div v-else class="placeholder">
         <div class="placeholder-text">未上传图片</div>
         <div class="placeholder-hint">在右侧属性面板上传或填写 URL</div>

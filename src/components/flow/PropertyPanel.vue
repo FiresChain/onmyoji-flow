@@ -1,37 +1,37 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
-import PropertyRulePanel from './panels/PropertyRulePanel.vue';
-import ImagePanel from './panels/ImagePanel.vue';
-import TextPanel from './panels/TextPanel.vue';
-import StylePanel from './panels/StylePanel.vue';
-import AssetSelectorPanel from './panels/AssetSelectorPanel.vue';
-import VectorPanel from './panels/VectorPanel.vue';
-import DynamicGroupPanel from './panels/DynamicGroupPanel.vue';
-import { ASSET_LIBRARIES } from '@/types/nodeTypes';
-import { getLogicFlowInstance, useLogicFlowScope } from '@/ts/useLogicFlow';
+import { computed, ref } from "vue";
+import PropertyRulePanel from "./panels/PropertyRulePanel.vue";
+import ImagePanel from "./panels/ImagePanel.vue";
+import TextPanel from "./panels/TextPanel.vue";
+import StylePanel from "./panels/StylePanel.vue";
+import AssetSelectorPanel from "./panels/AssetSelectorPanel.vue";
+import VectorPanel from "./panels/VectorPanel.vue";
+import DynamicGroupPanel from "./panels/DynamicGroupPanel.vue";
+import { ASSET_LIBRARIES } from "@/types/nodeTypes";
+import { getLogicFlowInstance, useLogicFlowScope } from "@/ts/useLogicFlow";
 
 const logicFlowScope = useLogicFlowScope();
 
 const props = defineProps({
   height: {
     type: String,
-    default: '100%'
+    default: "100%",
   },
   node: {
     type: Object,
-    default: null
-  }
+    default: null,
+  },
 });
 
 const selectedNode = computed(() => props.node);
 const hasNodeSelected = computed(() => !!selectedNode.value);
 
 const nodeType = computed(() => {
-  if (!selectedNode.value) return '';
-  return selectedNode.value.type || 'default';
+  if (!selectedNode.value) return "";
+  return selectedNode.value.type || "default";
 });
 
-const activeTab = ref('game');
+const activeTab = ref("game");
 
 const panelMap: Record<string, any> = {
   propertySelect: PropertyRulePanel,
@@ -39,17 +39,17 @@ const panelMap: Record<string, any> = {
   textNode: TextPanel,
   assetSelector: AssetSelectorPanel,
   vectorNode: VectorPanel,
-  'dynamic-group': DynamicGroupPanel
+  "dynamic-group": DynamicGroupPanel,
 };
 
 const panelComponent = computed(() => panelMap[nodeType.value] || null);
 
 // 判断是否支持节点类型切换（仅资产选择器节点支持）
-const supportsTypeSwitch = computed(() => nodeType.value === 'assetSelector');
+const supportsTypeSwitch = computed(() => nodeType.value === "assetSelector");
 
 // 当前资产库类型
 const currentAssetLibrary = computed({
-  get: () => selectedNode.value?.properties?.assetLibrary || 'shikigami',
+  get: () => selectedNode.value?.properties?.assetLibrary || "shikigami",
   set: (value) => {
     const lf = getLogicFlowInstance(logicFlowScope);
     if (!lf || !selectedNode.value) return;
@@ -57,9 +57,9 @@ const currentAssetLibrary = computed({
     lf.setProperties(selectedNode.value.id, {
       ...selectedNode.value.properties,
       assetLibrary: value,
-      selectedAsset: null // 切换类型时清空已选资产
+      selectedAsset: null, // 切换类型时清空已选资产
     });
-  }
+  },
 });
 </script>
 
@@ -72,7 +72,9 @@ const currentAssetLibrary = computed({
     <div v-if="!hasNodeSelected" class="no-selection">
       <div class="no-selection-text">
         <p>请选择一个节点以编辑其属性</p>
-        <p class="no-selection-tip">素材入口：添加并选中 assetSelector 节点后，点击“选择资产”。</p>
+        <p class="no-selection-tip">
+          素材入口：添加并选中 assetSelector 节点后，点击“选择资产”。
+        </p>
       </div>
     </div>
 
@@ -98,7 +100,11 @@ const currentAssetLibrary = computed({
             <div class="section-header">节点类型</div>
             <div class="property-item">
               <div class="property-label">资产类型</div>
-              <el-select v-model="currentAssetLibrary" placeholder="选择资产类型" style="width: 100%">
+              <el-select
+                v-model="currentAssetLibrary"
+                placeholder="选择资产类型"
+                style="width: 100%"
+              >
                 <el-option
                   v-for="lib in ASSET_LIBRARIES"
                   :key="lib.id"
@@ -110,7 +116,11 @@ const currentAssetLibrary = computed({
           </div>
 
           <!-- 特定节点属性面板 -->
-          <component v-if="panelComponent" :is="panelComponent" :node="selectedNode" />
+          <component
+            v-if="panelComponent"
+            :is="panelComponent"
+            :node="selectedNode"
+          />
           <div v-else class="property-section">
             <div class="section-header">暂无特定属性</div>
             <div class="property-item">
