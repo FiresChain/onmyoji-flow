@@ -40,6 +40,36 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-04] Session 113 - Prune Redundant Toolbar Matrix Tests and Keep Minimal Guard Set
+
+- Refactory Scope:
+  - Phase: Phase 2
+  - Task: 对 Toolbar 相关测试做去冗余收敛：删除重复噪声矩阵与重复定时窗口变体，仅保留基础护栏 + 代表性高价值用例
+- In Scope Files:
+  - `src/__tests__/useToolbarImportExportCommands.test.ts`
+  - `src/__tests__/toolbar-wiring.regression.test.ts`
+  - `src/__tests__/toolbar-architecture.guard.test.ts`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - 运行时代码（`src/components/**`、`src/ts/**`）语义调整
+  - `FlowEditor` / `groupRules` 新增重构任务
+  - `docs/1management/plan.md` 更新
+- Decisions:
+  - 删除 `useToolbarImportExportCommands` 中后段重复 pre-threshold/dual-window/multi-rebatch 计时矩阵，保留基础 determinism 与代表性分段窗口守卫。
+  - 删除 `toolbar-wiring.regression` 中多轮“结构噪声矩阵”重复变体，仅保留基础接线回归 + 代表性作用域锚点守卫。
+  - 删除 `toolbar-architecture.guard` 中重复局部 ownership/event-uniqueness v2/v3 AST 变体，保留核心边界守卫与接线层约束。
+  - 调整 `toolbar-architecture.guard` 中 3 处换行敏感字符串断言，改为与 CRLF/LF 无关的片段断言，避免平台差异误报。
+- Checks:
+  - `npx vitest run src/__tests__/useToolbarImportExportCommands.test.ts src/__tests__/toolbar-wiring.regression.test.ts src/__tests__/toolbar-architecture.guard.test.ts`: pass
+  - `npm run lint`: not-run
+  - `npm run typecheck`: not-run
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 当前精简属于“去重复”而非“重设计”；后续若新增真实运行时风险，应优先新增小而稳定的用例，而不是继续堆叠噪声矩阵。
+- Next Recommended Unit:
+  - Phase 0/2 bridge：将三份大测试中的“噪声 stub”继续参数化/抽 helper，减少重复 stub 定义并降低维护成本（不改语义）。
+
 ## [2026-03-04] Session 112 - Reinforce Timer Determinism Under Alternating Dual-Window Repeated Pre-Threshold Flush Multi-Rebatch Segmented Windows and Zero-Residual Timer Idempotence Cycles v3
 
 - Refactory Scope:
