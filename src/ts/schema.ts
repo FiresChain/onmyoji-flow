@@ -44,6 +44,9 @@ export interface NodeStyle {
 }
 
 export interface NodeMeta {
+  /**
+   * @deprecated Legacy compatibility input only. Canonical layer field is GraphNode.zIndex.
+   */
   z?: number;
   locked?: boolean;
   visible?: boolean;
@@ -97,6 +100,7 @@ export interface GraphNode {
   y?: number;
   width?: number;
   height?: number;
+  zIndex?: number;
   children?: string[];
   properties: NodeProperties;
 }
@@ -157,13 +161,25 @@ function ensureTransform(t?: Partial<Transform>): Transform {
 // Migration to v1 root document
 export function migrateToV1(input: any): RootDocument {
   const now = Date.now();
+  const normalizeZIndex = (value: unknown): number | undefined => {
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed)) {
+      return undefined;
+    }
+    return Math.trunc(parsed);
+  };
 
   // Normalize a single node into the v1 shape (properties.style + meta, width/height mirrored)
   const migrateNode = (node: any): GraphNode => {
     const n: any = { ...node };
-    const props: any = n.properties ?? {};
-    const style: any = props.style ?? {};
-    const meta: any = props.meta ?? {};
+    const props: any =
+      n.properties && typeof n.properties === "object"
+        ? { ...n.properties }
+        : {};
+    const style: any =
+      props.style && typeof props.style === "object" ? { ...props.style } : {};
+    const meta: any =
+      props.meta && typeof props.meta === "object" ? { ...props.meta } : {};
 
     // Prefer explicit style width/height; otherwise fall back to scattered fields
     const propWidth = props.width ?? props.w;
@@ -187,6 +203,21 @@ export function migrateToV1(input: any): RootDocument {
     // Ensure meta defaults
     if (meta.visible == null) meta.visible = true;
     if (meta.locked == null) meta.locked = false;
+
+    const normalizedZIndex =
+      normalizeZIndex(n.zIndex) ??
+      normalizeZIndex((meta as any).zIndex) ??
+      normalizeZIndex(meta.z);
+    if (normalizedZIndex != null) {
+      n.zIndex = normalizedZIndex;
+    }
+    // Canonical output uses GraphNode.zIndex. Keep meta.z only as migration input.
+    if ("z" in meta) {
+      delete meta.z;
+    }
+    if ("zIndex" in meta) {
+      delete meta.zIndex;
+    }
 
     props.style = style;
     props.meta = meta;

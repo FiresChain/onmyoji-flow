@@ -46,6 +46,14 @@ const normalizeStringList = (value: unknown, fallback: string[]): string[] => {
   return normalized.length ? Array.from(new Set(normalized)) : [...fallback];
 };
 
+const normalizeZIndex = (value: unknown): number | undefined => {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) {
+    return undefined;
+  }
+  return Math.trunc(parsed);
+};
+
 export const normalizeDynamicGroupMeta = (
   input: unknown,
   fallbackKind: GroupKind = "team",
@@ -137,11 +145,41 @@ export const normalizeGraphRawDataSchema = (
       node?.properties && typeof node.properties === "object"
         ? { ...node.properties }
         : {};
+    const meta =
+      properties.meta && typeof properties.meta === "object"
+        ? { ...properties.meta }
+        : undefined;
+    const normalizedZIndex =
+      normalizeZIndex(node?.zIndex) ??
+      normalizeZIndex(meta?.zIndex) ??
+      normalizeZIndex(meta?.z);
+
+    if (meta) {
+      delete meta.z;
+      delete meta.zIndex;
+      if (Object.keys(meta).length) {
+        properties.meta = meta;
+      } else {
+        delete properties.meta;
+      }
+    }
+    const normalizedNode =
+      normalizedZIndex != null
+        ? {
+            ...node,
+            zIndex: normalizedZIndex,
+          }
+        : {
+            ...node,
+          };
+    if (normalizedZIndex == null) {
+      delete normalizedNode.zIndex;
+    }
 
     if (node?.type === "dynamic-group") {
       const children = getDynamicGroupChildIds(node);
       return {
-        ...node,
+        ...normalizedNode,
         children,
         properties: {
           ...properties,
@@ -159,7 +197,7 @@ export const normalizeGraphRawDataSchema = (
         currentLibrary,
       );
       return {
-        ...node,
+        ...normalizedNode,
         properties: {
           ...properties,
           assetLibrary: selectedAsset?.library || currentLibrary,
@@ -169,7 +207,7 @@ export const normalizeGraphRawDataSchema = (
     }
 
     return {
-      ...node,
+      ...normalizedNode,
       properties,
     };
   });

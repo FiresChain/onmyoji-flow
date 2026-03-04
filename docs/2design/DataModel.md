@@ -52,6 +52,7 @@ interface GraphNode {
   y?: number;
   width?: number;        // 渲染冗余：由 properties.style.width 同步而来
   height?: number;       // 渲染冗余：由 properties.style.height 同步而来
+  zIndex?: number;       // 规范层级字段（唯一语义）
   properties: NodeProperties;
 }
 
@@ -65,7 +66,7 @@ interface GraphEdge {
 
 interface NodeProperties {
   style: NodeStyle;      // 通用样式
-  meta?: NodeMeta;       // 通用元信息（层级/锁定/可见/分组等）
+  meta?: NodeMeta;       // 通用元信息（锁定/可见/分组等）
   // 具体节点类型的扩展字段（如下）
   image?: ImageProps;
   text?: TextProps;
@@ -111,7 +112,6 @@ interface NodeStyle {
   };
 }
 interface NodeMeta {
-  z?: number;            // 显式层级，缺省按插入顺序
   locked?: boolean;      // 锁定（不可选/不可拖动）
   visible?: boolean;     // 可见性
   groupId?: string;      // 组合/分组标识
@@ -160,7 +160,8 @@ interface PropertyRuleProps { [k: string]: any }
 
 ## 同步与渲染约定
 - 源数据以 `properties.style.width/height` 为准；渲染时将其同步到节点 `width/height`。
-- 层级以 `properties.meta.z` 为准；渲染前对 nodes 进行稳定排序（先 z，再 createdAt）。
+- 层级以节点顶层字段 `zIndex` 为准；渲染前对 nodes 进行稳定排序（先 zIndex，再 createdAt）。
+- 兼容导入：若旧数据存在 `properties.meta.z`/`properties.meta.zIndex`，加载时迁移为节点顶层 `zIndex` 并移除旧字段。
 - 通用样式仅描述；具体生效由各节点视图组件（.vue）解释执行。
 
 - `vector.kind='rect'` 时 `radius` 生效；`path/polygon` 忽略；`fill/stroke/strokeWidth/opacity` 对所有 kind 生效。
@@ -189,6 +190,7 @@ const DefaultNodeStyle: NodeStyle = {
 1) 判定：无 `schemaVersion` 视为 v0。
 2) 节点迁移：
    - 将节点的 `width/height` 写入 `properties.style`；
+   - 将 `properties.meta.z`（或 `properties.meta.zIndex`）迁移到节点顶层 `zIndex`；
    - 若节点已有颜色/文本样式散落在 `properties`，合并到 `properties.style.*` 或 `textStyle`；
    - 未定义的字段保持原样存放于 `properties`，由节点视图兼容。
 3) 文件级：给每个 file 增加 `id/createdAt/updatedAt`（可选）。
@@ -211,9 +213,10 @@ const DefaultNodeStyle: NodeStyle = {
             "id": "n-image-1",
             "type": "imageNode",
             "x": 200, "y": 160,
+            "zIndex": 1,
             "properties": {
               "style": { "width": 300, "height": 200, "radius": 8, "opacity": 1 },
-              "meta": { "z": 1, "visible": true, "locked": false },
+              "meta": { "visible": true, "locked": false },
               "image": { "url": "/assets/banner.png", "fit": "cover" }
             }
           },
@@ -221,12 +224,13 @@ const DefaultNodeStyle: NodeStyle = {
             "id": "n-text-1",
             "type": "textNode",
             "x": 220, "y": 180,
+            "zIndex": 2,
             "properties": {
               "style": {
                 "width": 260, "height": 80,
                 "textStyle": { "color": "#111", "fontFamily": "Microsoft YaHei", "fontSize": 24, "fontWeight": 700, "align": "left" }
               },
-              "meta": { "z": 2 },
+              "meta": { "visible": true, "locked": false },
               "text": { "content": "阴阳师阵容编辑器" }
             }
           },
@@ -234,9 +238,10 @@ const DefaultNodeStyle: NodeStyle = {
             "id": "n-vector-1",
             "type": "vectorNode",
             "x": 180, "y": 300,
+            "zIndex": 0,
             "properties": {
               "style": { "width": 360, "height": 6, "fill": "#409EFF" },
-              "meta": { "z": 0 },
+              "meta": { "visible": true, "locked": false },
               "vector": { "kind": "rect" }
             }
           }
@@ -254,7 +259,7 @@ const DefaultNodeStyle: NodeStyle = {
 ## 校验要点（建议）
 - width/height > 0；opacity ∈ [0,1]；strokeWidth ≥ 0；radius ≥ 0 或四元组均合法。
 - 文本：fontSize > 0；lineHeight ∈ [1, 3]；padding 四元组 ≥ 0。
-- z 可为空（使用插入顺序），若存在必须为整数。
+- zIndex 可为空（使用插入顺序），若存在必须为整数。
 - `radius` 仅在 `vector.kind='rect'` 生效，其他 `kind` 忽略。
 
 ## 实施清单（与代码关联）
@@ -262,7 +267,7 @@ const DefaultNodeStyle: NodeStyle = {
    - 导出/保存时写入 `schemaVersion`；导入/读取时若缺失则调用 `migrateToV1(state)`。
    - 定义 `CURRENT_SCHEMA_VERSION = '1.0.0'`；新增 `migrateToV1`（按上文迁移策略）。
 2) `src/components/flow/FlowEditor.vue`
-   - 渲染前对 `nodes` 按 `meta.z` 与 `createdAt` 稳定排序；
+   - 渲染前对 `nodes` 按 `zIndex` 与 `createdAt` 稳定排序；
    - `render` 前将 `properties.style.width/height` 同步到节点尺寸。
 3) 节点视图（*.vue）
    - image/text/vector 节点按 `properties.style` 解析样式；

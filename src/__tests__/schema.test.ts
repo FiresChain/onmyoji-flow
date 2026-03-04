@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   CURRENT_SCHEMA_VERSION,
   DefaultNodeStyle,
+  migrateToV1,
   type GraphNode,
   type GraphEdge,
   type NodeProperties,
@@ -94,5 +95,65 @@ describe("Schema 数据结构验证", () => {
     expect(doc.schemaVersion).toBe("1.0.0");
     expect(doc.activeFile).toBe("File 1");
     expect(doc.activeFileId).toBe("f_123");
+  });
+
+  it("migrateToV1 应将 legacy meta.z 迁移为节点 zIndex", () => {
+    const migrated = migrateToV1([
+      {
+        id: "file-1",
+        name: "File 1",
+        label: "File 1",
+        visible: true,
+        type: "FLOW",
+        graphRawData: {
+          nodes: [
+            {
+              id: "node-1",
+              type: "rect",
+              properties: {
+                style: { width: 120, height: 80 },
+                meta: { z: 7, locked: true },
+              },
+            },
+          ],
+          edges: [],
+        },
+      },
+    ]);
+
+    const migratedNode = (migrated.fileList[0].graphRawData as any).nodes[0];
+    expect(migratedNode.zIndex).toBe(7);
+    expect(migratedNode.properties.meta.z).toBeUndefined();
+    expect(migratedNode.properties.meta.locked).toBe(true);
+  });
+
+  it("migrateToV1 应优先保留节点自身 zIndex", () => {
+    const migrated = migrateToV1([
+      {
+        id: "file-1",
+        name: "File 1",
+        label: "File 1",
+        visible: true,
+        type: "FLOW",
+        graphRawData: {
+          nodes: [
+            {
+              id: "node-1",
+              type: "rect",
+              zIndex: 11,
+              properties: {
+                style: { width: 120, height: 80 },
+                meta: { z: 7 },
+              },
+            },
+          ],
+          edges: [],
+        },
+      },
+    ]);
+
+    const migratedNode = (migrated.fileList[0].graphRawData as any).nodes[0];
+    expect(migratedNode.zIndex).toBe(11);
+    expect(migratedNode.properties.meta.z).toBeUndefined();
   });
 });

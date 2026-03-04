@@ -501,6 +501,44 @@ describe("useFilesStore 数据操作测试", () => {
     expect(logicFlowMocks.getGraphRawData).not.toHaveBeenCalled();
   });
 
+  it("importData 对已带 schemaVersion 的数据也应兼容 meta.z -> zIndex", () => {
+    const store = useFilesStore();
+
+    store.importData({
+      schemaVersion: "1.0.0",
+      fileList: [
+        {
+          id: "test-1",
+          name: "Test File",
+          label: "Test File",
+          visible: true,
+          type: "FLOW",
+          graphRawData: {
+            nodes: [
+              {
+                id: "legacy-node",
+                type: "rect",
+                properties: {
+                  style: { width: 100, height: 100 },
+                  meta: { z: 9, locked: true },
+                },
+              },
+            ],
+            edges: [],
+          },
+        },
+      ],
+      activeFileId: "test-1",
+      activeFile: "Test File",
+    });
+
+    const node = (store.fileList[0].graphRawData as any).nodes[0];
+    expect(node.zIndex).toBe(9);
+    expect(node.properties.meta.z).toBeUndefined();
+    expect(node.properties.meta.locked).toBe(true);
+    expect(logicFlowMocks.getGraphRawData).not.toHaveBeenCalled();
+  });
+
   it("importData 恢复时应按 activeFile(name) 回退活动文件且不触发 LogicFlow 回写", () => {
     const store = useFilesStore();
     const mockData = {

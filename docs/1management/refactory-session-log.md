@@ -44,6 +44,40 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-04] Session 122 - RFX-009 Unify Layer Field Semantics (meta.z -> zIndex)
+
+- Refactory Scope:
+  - Phase: Phase 1
+  - Task: 统一图层字段语义为节点顶层 `zIndex`，并保留 `meta.z`/`meta.zIndex` 兼容导入迁移
+- In Scope Files:
+  - `src/ts/schema.ts`
+  - `src/utils/graphSchema.ts`
+  - `src/__tests__/schema.test.ts`
+  - `src/__tests__/useStore.test.ts`
+  - `docs/2design/DataModel.md`
+  - `docs/1management/refactory-fix-backlog.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - FlowEditor/Toolbar 职责拆分
+  - RootDocument JSON Schema 强约束
+  - 进度百分比字段更新
+- Decisions:
+  - 规范层级字段确定为 `GraphNode.zIndex`（单一语义），`NodeMeta.z` 仅保留为迁移输入兼容。
+  - 在 `migrateToV1` 与 `normalizeGraphRawDataSchema` 双路径实现迁移：读取 `node.zIndex > meta.zIndex > meta.z`，写出统一 `zIndex`，并移除旧 `meta` 层级字段。
+  - 新增回归用例覆盖“无 schemaVersion 迁移”与“有 schemaVersion 导入”两种场景，确保 compat 行为稳定。
+- Checks:
+  - `npx vitest run src/__tests__/integration-zindex.spec.ts src/__tests__/schema.test.ts`: pass
+  - `npm test`: pass
+  - `npm run typecheck`: pass
+  - `npm run lint`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 历史外部数据若依赖 `meta.z` 输出字段，将在导出后只看到 `zIndex`；已通过导入兼容降低破坏风险。
+  - 后续需在 `RFX-010` 中把 `zIndex` 写入 RootDocument schema 约束，避免再次引入双轨字段。
+- Next Recommended Unit:
+  - `RFX-007（P2）FlowEditor/Toolbar 第一轮职责拆分`
+
 ## [2026-03-04] Session 121 - RFX-008 Compat Declaration Exit Plan
 
 - Refactory Scope:

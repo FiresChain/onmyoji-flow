@@ -91,7 +91,7 @@
 
 ### Low
 
-- [ ] **RFX-009（P1）图层字段语义统一（`meta.z` vs `zIndex`）**
+- [x] **RFX-009（P1）图层字段语义统一（`meta.z` vs `zIndex`）**
   - 目标：统一单一语义字段并给出迁移策略（含 ADR）。
   - 主要文件：`docs/2design/DataModel.md`、`src/ts/schema.ts`、相关迁移逻辑
   - 来源：`Refactory.md` 2.3-1、4.1.1-2
