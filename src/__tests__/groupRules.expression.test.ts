@@ -70,16 +70,69 @@ const graphWithoutFireShikigami = {
   }),
 };
 
-const graphWithKaguyaPoshi = {
-  ...baseGraph,
+const graphForShikigamiScope = {
   nodes: [
-    ...baseGraph.nodes,
+    {
+      id: "team-1",
+      type: "dynamic-group",
+      children: ["unit-1", "unit-2"],
+      properties: {
+        children: ["unit-1", "unit-2"],
+        groupMeta: {
+          groupKind: "team",
+          groupName: "一队",
+          ruleEnabled: true,
+        },
+      },
+    },
+    {
+      id: "unit-1",
+      type: "dynamic-group",
+      children: ["s1", "y1"],
+      properties: {
+        children: ["s1", "y1"],
+        groupMeta: {
+          groupKind: "shikigami",
+          groupName: "一号位",
+          ruleEnabled: true,
+        },
+      },
+    },
+    {
+      id: "unit-2",
+      type: "dynamic-group",
+      children: ["s2", "y2"],
+      properties: {
+        children: ["s2", "y2"],
+        groupMeta: {
+          groupKind: "shikigami",
+          groupName: "二号位",
+          ruleEnabled: true,
+        },
+      },
+    },
+    {
+      id: "s1",
+      type: "assetSelector",
+      properties: {
+        assetLibrary: "shikigami",
+        selectedAsset: { assetId: "s1", name: "辉夜姬", library: "shikigami" },
+      },
+    },
     {
       id: "y1",
       type: "assetSelector",
       properties: {
         assetLibrary: "yuhun",
-        selectedAsset: { assetId: "y1", name: "破势", library: "yuhun" },
+        selectedAsset: { assetId: "y1", name: "兵主部", library: "yuhun" },
+      },
+    },
+    {
+      id: "s2",
+      type: "assetSelector",
+      properties: {
+        assetLibrary: "shikigami",
+        selectedAsset: { assetId: "s2", name: "葛叶", library: "shikigami" },
       },
     },
     {
@@ -87,17 +140,28 @@ const graphWithKaguyaPoshi = {
       type: "assetSelector",
       properties: {
         assetLibrary: "yuhun",
-        selectedAsset: { assetId: "y2", name: "招财猫", library: "yuhun" },
+        selectedAsset: { assetId: "y2", name: "破势", library: "yuhun" },
       },
     },
-  ].map((node) => {
-    if (node.id !== "team-1") return node;
+  ],
+  edges: [],
+};
+
+const graphForShikigamiScopeMatched = {
+  ...graphForShikigamiScope,
+  nodes: graphForShikigamiScope.nodes.map((node) => {
+    if (node.id !== "y1") {
+      return node;
+    }
     return {
       ...node,
-      children: ["s1", "s2", "y1", "y2"],
       properties: {
         ...node.properties,
-        children: ["s1", "s2", "y1", "y2"],
+        selectedAsset: {
+          assetId: "y1",
+          name: "破势",
+          library: "yuhun",
+        },
       },
     };
   }),
@@ -150,7 +214,7 @@ describe("groupRules expression integration", () => {
 
   it("默认预制规则可命中“辉夜姬不能带破势”", () => {
     const warnings = validateGraphGroupRules(
-      graphWithKaguyaPoshi,
+      graphForShikigamiScopeMatched,
       DEFAULT_GROUP_RULES_CONFIG,
     );
     expect(
@@ -166,5 +230,45 @@ describe("groupRules expression integration", () => {
     expect(
       warnings.some((item) => item.code === "TEAM_MISSING_FIRE_SHIKIGAMI"),
     ).toBe(true);
+  });
+
+  it("shikigami scope 不会被其他式神的御魂误触发", () => {
+    const warnings = validateGraphGroupRules(graphForShikigamiScope, {
+      ...DEFAULT_GROUP_RULES_CONFIG,
+      expressionRules: [
+        {
+          id: "unit-kaguya-no-poshi",
+          scopeKind: "shikigami",
+          condition:
+            'ctx.unit.shikigami.name == "辉夜姬" && contains(map(ctx.unit.yuhuns, "name"), "破势")',
+          message: "规则冲突：辉夜姬不建议携带破势。",
+          severity: "warning",
+          code: "UNIT_KAGUYA_POSHI_CONFLICT",
+        },
+      ],
+    });
+
+    expect(warnings).toHaveLength(0);
+  });
+
+  it("shikigami scope 可精准命中当前式神与其关联御魂", () => {
+    const warnings = validateGraphGroupRules(graphForShikigamiScopeMatched, {
+      ...DEFAULT_GROUP_RULES_CONFIG,
+      expressionRules: [
+        {
+          id: "unit-kaguya-no-poshi",
+          scopeKind: "shikigami",
+          condition:
+            'ctx.unit.shikigami.name == "辉夜姬" && contains(map(ctx.unit.yuhuns, "name"), "破势")',
+          message: "规则冲突：辉夜姬不建议携带破势。",
+          severity: "warning",
+          code: "UNIT_KAGUYA_POSHI_CONFLICT",
+        },
+      ],
+    });
+
+    expect(warnings).toHaveLength(1);
+    expect(warnings[0]?.groupId).toBe("unit-1");
+    expect(warnings[0]?.code).toBe("UNIT_KAGUYA_POSHI_CONFLICT");
   });
 });

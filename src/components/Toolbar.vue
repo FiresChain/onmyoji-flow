@@ -406,6 +406,18 @@
                   </el-select>
                 </template>
               </el-table-column>
+              <el-table-column label="作用域" width="130" align="center">
+                <template #default="{ row }">
+                  <el-select
+                    v-model="row.scopeKind"
+                    size="small"
+                    class="rule-inline-select"
+                  >
+                    <el-option label="team" value="team" />
+                    <el-option label="shikigami" value="shikigami" />
+                  </el-select>
+                </template>
+              </el-table-column>
               <el-table-column
                 prop="id"
                 label="规则 ID"
@@ -530,6 +542,12 @@
             <el-option label="warning" value="warning" />
             <el-option label="error" value="error" />
             <el-option label="info" value="info" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="作用域">
+          <el-select v-model="ruleEditorDraft.scopeKind" style="width: 100%">
+            <el-option label="team" value="team" />
+            <el-option label="shikigami" value="shikigami" />
           </el-select>
         </el-form-item>
         <el-form-item label="告警 code">

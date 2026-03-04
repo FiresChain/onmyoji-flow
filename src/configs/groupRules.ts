@@ -23,6 +23,7 @@ export type ExpressionRuleDefinition = {
   id: string;
   condition: string;
   message: string;
+  scopeKind?: "team" | "shikigami";
   enabled?: boolean;
   severity?: "warning" | "error" | "info";
   code?: string;
@@ -34,7 +35,7 @@ export type RuleVariableDefinition = {
 };
 
 export const DEFAULT_GROUP_RULES_CONFIG: GroupRulesConfig = {
-  version: 3,
+  version: 4,
   fireShikigamiWhitelist: [
     "辉夜姬",
     "因幡辉夜姬",
@@ -47,6 +48,7 @@ export const DEFAULT_GROUP_RULES_CONFIG: GroupRulesConfig = {
   expressionRules: [
     {
       id: "team-require-fire-shikigami",
+      scopeKind: "team",
       condition:
         'count(intersect(ctx.team.shikigamiNames, getVar("供火式神"))) == 0',
       message: "规则提示：当前队伍缺少供火式神。",
@@ -56,8 +58,9 @@ export const DEFAULT_GROUP_RULES_CONFIG: GroupRulesConfig = {
     },
     {
       id: "team-kaguya-no-poshi",
+      scopeKind: "shikigami",
       condition:
-        'contains(ctx.team.shikigamiNames, "辉夜姬") && contains(ctx.team.yuhunNames, "破势")',
+        'ctx.unit.shikigami.name == "辉夜姬" && contains(map(ctx.unit.yuhuns, "name"), "破势")',
       message: "规则冲突：辉夜姬不建议携带破势。",
       severity: "warning",
       code: "TEAM_KAGUYA_POSHI_CONFLICT",

@@ -39,6 +39,7 @@ const cloneRuleConfig = (config: GroupRulesConfig): GroupRulesConfig => ({
 
 const createExpressionRule = (): ExpressionRuleDefinition => ({
   id: `rule_${Date.now()}`,
+  scopeKind: "team",
   enabled: true,
   severity: "warning",
   code: "CUSTOM_EXPRESSION",
@@ -55,6 +56,7 @@ const cloneExpressionRule = (
   rule: ExpressionRuleDefinition,
 ): ExpressionRuleDefinition => ({
   id: rule.id || `rule_${Date.now()}`,
+  scopeKind: rule.scopeKind === "shikigami" ? "shikigami" : "team",
   enabled: rule.enabled !== false,
   severity: rule.severity || "warning",
   code: rule.code || "CUSTOM_EXPRESSION",
@@ -66,6 +68,9 @@ const normalizeText = (value: unknown): string =>
   typeof value === "string" ? value.trim() : "";
 const normalizeSeverity = (value: unknown): "warning" | "error" | "info" => {
   return value === "error" || value === "info" ? value : "warning";
+};
+const normalizeScopeKind = (value: unknown): "team" | "shikigami" => {
+  return value === "shikigami" ? "shikigami" : "team";
 };
 
 const normalizeImportedExpressionRules = (
@@ -85,6 +90,7 @@ const normalizeImportedExpressionRules = (
         id,
         condition,
         message,
+        scopeKind: normalizeScopeKind(raw.scopeKind),
         enabled: raw.enabled !== false,
         severity: normalizeSeverity(raw.severity),
         ...(code ? { code } : {}),
@@ -112,7 +118,7 @@ const normalizeImportedRuleVariables = (
 
 const ruleScopeDoc = `规则新增字段（建议）: scopeKind
 - team: 在队伍组(dynamic-group: team)上执行（当前已生效）
-- shikigami: 在式神组(dynamic-group: shikigami)上执行（规划中，当前未生效）
+- shikigami: 在式神组(dynamic-group: shikigami)上执行（当前已生效）
 
 注意
 - scopeKind 决定“规则运行上下文”
@@ -128,7 +134,7 @@ ctx.team.yuhuns: 御魂数组
 ctx.group.id / ctx.group.name
 - 示例: "team-1" / "冲榜队A"
 
-当 scopeKind = "shikigami"（式神规则，规划中，当前未生效）
+当 scopeKind = "shikigami"（式神规则）
 ctx.unit.shikigami: 当前式神对象（单个）
 - 示例: { nodeId: "n1", assetId: "sp_kaguya", name: "辉夜姬", library: "shikigami" }
 
@@ -201,7 +207,7 @@ contains(map(ctx.team.shikigamis, "name"), "千姬") && contains(map(ctx.team.sh
 3) [team] 队伍御魂至少 2 种（避免全员同御魂）
 count(unique(map(ctx.team.yuhuns, "name"))) >= 2
 
-4) [规划中的 shikigami scope] 当前式神是辉夜姬且其关联御魂包含破势
+4) [shikigami] 当前式神是辉夜姬且其关联御魂包含破势
 ctx.unit.shikigami.name == "辉夜姬" && contains(map(ctx.unit.yuhuns, "name"), "破势")`;
 
 export function useToolbarRuleManagement(

@@ -14,12 +14,21 @@ const isClient = () =>
   typeof window !== "undefined" && typeof localStorage !== "undefined";
 const normalizeText = (value: unknown): string =>
   typeof value === "string" ? value.trim() : "";
+const LEGACY_TEAM_KAGUYA_NO_POSHI_CONDITION =
+  'contains(ctx.team.shikigamiNames, "辉夜姬") && contains(ctx.team.yuhunNames, "破势")';
+const SHIKIGAMI_KAGUYA_NO_POSHI_CONDITION =
+  'ctx.unit.shikigami.name == "辉夜姬" && contains(map(ctx.unit.yuhuns, "name"), "破势")';
 type RuleSeverity = NonNullable<ExpressionRuleDefinition["severity"]>;
 const normalizeRuleSeverity = (value: unknown): RuleSeverity => {
   const normalized = normalizeText(value);
   return normalized === "error" || normalized === "info"
     ? normalized
     : "warning";
+};
+type RuleScopeKind = NonNullable<ExpressionRuleDefinition["scopeKind"]>;
+const normalizeRuleScopeKind = (value: unknown): RuleScopeKind => {
+  const normalized = normalizeText(value);
+  return normalized === "shikigami" ? normalized : "team";
 };
 const notifyGroupRulesUpdated = () => {
   if (!isClient()) {
@@ -132,15 +141,28 @@ const normalizeExpressionRules = (
       }
       const enabled = raw.enabled !== false;
       const severity = normalizeRuleSeverity(raw.severity);
+      const scopeKind = normalizeRuleScopeKind(raw.scopeKind);
       const code = normalizeText(raw.code);
-      return {
+      const normalizedRule: ExpressionRuleDefinition = {
         id,
         condition,
         message,
+        scopeKind,
         enabled,
         severity,
         ...(code ? { code } : {}),
       };
+      if (
+        normalizedRule.id === "team-kaguya-no-poshi" &&
+        normalizedRule.condition === LEGACY_TEAM_KAGUYA_NO_POSHI_CONDITION
+      ) {
+        return {
+          ...normalizedRule,
+          scopeKind: "shikigami",
+          condition: SHIKIGAMI_KAGUYA_NO_POSHI_CONDITION,
+        };
+      }
+      return normalizedRule;
     })
     .filter((item): item is ExpressionRuleDefinition => item !== null);
 };
