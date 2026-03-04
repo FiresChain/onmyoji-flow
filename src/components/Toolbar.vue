@@ -16,9 +16,9 @@
       <el-button icon="Setting" type="primary" @click="openWatermarkDialog">{{
         t("setWatermark")
       }}</el-button>
-      <el-button icon="Picture" type="primary" plain @click="openAssetManager"
-        >素材管理</el-button
-      >
+      <el-button icon="Picture" type="primary" plain @click="openAssetManager">
+        {{ t("assetManager") }}
+      </el-button>
       <el-button icon="EditPen" type="primary" plain @click="openRuleManager"
         >规则管理</el-button
       >
@@ -275,7 +275,7 @@
     <!-- 素材管理对话框 -->
     <el-dialog
       v-model="state.showAssetManagerDialog"
-      title="素材管理"
+      :title="t('assetManager')"
       width="70%"
     >
       <div class="asset-manager-actions">
@@ -291,7 +291,7 @@
           type="primary"
           @click="triggerAssetManagerUpload"
         >
-          上传当前分类素材
+          {{ t("assetManager.uploadCurrent") }}
         </el-button>
       </div>
 
@@ -327,7 +327,7 @@
           </div>
           <el-empty
             v-if="getManagedAssets(library.id).length === 0"
-            :description="`暂无${library.label}`"
+            :description="t('assetManager.empty', { label: library.label })"
           />
         </el-tab-pane>
       </el-tabs>
@@ -626,6 +626,9 @@ const { t } = useSafeI18n({
   loadExample: "加载样例",
   updateLog: "更新日志",
   feedback: "问题反馈",
+  assetManager: "素材管理",
+  "assetManager.uploadCurrent": "上传当前分类素材",
+  "assetManager.empty": "暂无{label}",
 });
 
 // 定义响应式数据

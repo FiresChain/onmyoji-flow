@@ -2,7 +2,7 @@
 import { computed } from "vue";
 import { useDialogs } from "@/ts/useDialogs";
 import { getLogicFlowInstance, useLogicFlowScope } from "@/ts/useLogicFlow";
-import { SELECTOR_PRESETS } from "@/configs/selectorPresets";
+import { getSelectorPreset } from "@/configs/selectorPresets";
 import type { SelectorConfig } from "@/types/selector";
 import {
   resolveAssetUrl,
@@ -10,6 +10,7 @@ import {
 } from "@/utils/assetUrl";
 import { deleteCustomAsset, listCustomAssets } from "@/utils/customAssets";
 import { normalizeSelectedAssetRecord } from "@/utils/graphSchema";
+import { useSafeI18n } from "@/ts/useSafeI18n";
 
 const props = defineProps<{
   node: any;
@@ -17,6 +18,9 @@ const props = defineProps<{
 
 const { openGenericSelector } = useDialogs();
 const logicFlowScope = useLogicFlowScope();
+const { t, getLocale } = useSafeI18n({
+  "selector.group.custom": "我的素材",
+});
 
 const currentLibrary = computed(
   () => props.node.properties?.assetLibrary || "shikigami",
@@ -32,7 +36,10 @@ const handleOpenSelector = () => {
   if (!lf || !node) return;
 
   const library = currentLibrary.value;
-  const preset = SELECTOR_PRESETS[library];
+  const preset = getSelectorPreset(library, {
+    locale: getLocale(),
+    t,
+  });
 
   if (!preset) {
     console.error("未找到资产库配置:", library);
@@ -57,7 +64,7 @@ const handleOpenSelector = () => {
   const mergedGroups = [
     ...preset.groups,
     {
-      label: "我的素材",
+      label: t("selector.group.custom"),
       name: "__CUSTOM__",
       filter: (item: any) => !!item?.__userAsset,
     },

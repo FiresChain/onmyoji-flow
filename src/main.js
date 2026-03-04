@@ -14,6 +14,7 @@ import { createI18n } from "vue-i18n";
 // 引入语言文件
 import zh from "./locales/zh.json";
 import ja from "./locales/ja.json";
+import en from "./locales/en.json";
 
 import { createPinia } from "pinia"; // 导入 Pinia
 import { useFilesStore } from "./ts/useStore";
@@ -28,7 +29,7 @@ for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
 const userLanguage = navigator.language;
 
 // 定义支持的语言列表
-const supportedLanguages = ["zh", "ja"];
+const supportedLanguages = ["zh", "ja", "en"];
 
 // 根据用户的首选语言选择合适的语言
 let locale = "zh"; // 默认语言为中文
@@ -42,6 +43,7 @@ const i18n = createI18n({
   messages: {
     zh,
     ja,
+    en,
   },
 });
 
