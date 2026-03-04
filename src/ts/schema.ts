@@ -1,4 +1,17 @@
-﻿export const CURRENT_SCHEMA_VERSION = "1.0.0";
+import rootDocumentV1SchemaJson from "@/schemas/root-document.v1.json";
+
+export const CURRENT_SCHEMA_VERSION = "1.0.0";
+export const ROOT_DOCUMENT_V1_SCHEMA = rootDocumentV1SchemaJson;
+
+export interface RootDocumentValidationError {
+  path: string;
+  message: string;
+}
+
+export interface RootDocumentValidationResult {
+  valid: boolean;
+  errors: RootDocumentValidationError[];
+}
 
 export interface Transform {
   SCALE_X: number;
@@ -148,6 +161,221 @@ export const DefaultNodeStyle: NodeStyle = {
     padding: [8, 8, 8, 8],
   },
 };
+
+const isPlainObject = (input: unknown): input is Record<string, any> =>
+  !!input && typeof input === "object" && !Array.isArray(input);
+
+const isNonEmptyString = (value: unknown) =>
+  typeof value === "string" && value.trim().length > 0;
+
+const isFiniteNumber = (value: unknown) =>
+  typeof value === "number" && Number.isFinite(value);
+
+const pushValidationError = (
+  errors: RootDocumentValidationError[],
+  path: string,
+  message: string,
+) => {
+  errors.push({ path, message });
+};
+
+const validateGraphNode = (
+  value: unknown,
+  path: string,
+  errors: RootDocumentValidationError[],
+) => {
+  if (!isPlainObject(value)) {
+    pushValidationError(errors, path, "必须是对象");
+    return;
+  }
+  if (!isNonEmptyString(value.id)) {
+    pushValidationError(errors, `${path}.id`, "必须是非空字符串");
+  }
+  if (!isNonEmptyString(value.type)) {
+    pushValidationError(errors, `${path}.type`, "必须是非空字符串");
+  }
+  if (!isPlainObject(value.properties)) {
+    pushValidationError(errors, `${path}.properties`, "必须是对象");
+  }
+  if (value.zIndex != null && !Number.isInteger(value.zIndex)) {
+    pushValidationError(errors, `${path}.zIndex`, "必须是整数");
+  }
+};
+
+const validateGraphEdge = (
+  value: unknown,
+  path: string,
+  errors: RootDocumentValidationError[],
+) => {
+  if (!isPlainObject(value)) {
+    pushValidationError(errors, path, "必须是对象");
+    return;
+  }
+  if (!isNonEmptyString(value.id)) {
+    pushValidationError(errors, `${path}.id`, "必须是非空字符串");
+  }
+  if (!isNonEmptyString(value.sourceNodeId)) {
+    pushValidationError(errors, `${path}.sourceNodeId`, "必须是非空字符串");
+  }
+  if (!isNonEmptyString(value.targetNodeId)) {
+    pushValidationError(errors, `${path}.targetNodeId`, "必须是非空字符串");
+  }
+};
+
+const validateTransform = (
+  value: unknown,
+  path: string,
+  errors: RootDocumentValidationError[],
+) => {
+  if (!isPlainObject(value)) {
+    pushValidationError(errors, path, "必须是对象");
+    return;
+  }
+
+  const transformKeys = [
+    "SCALE_X",
+    "SCALE_Y",
+    "TRANSLATE_X",
+    "TRANSLATE_Y",
+  ] as const;
+  transformKeys.forEach((key) => {
+    if (!isFiniteNumber(value[key])) {
+      pushValidationError(errors, `${path}.${key}`, "必须是数字");
+    }
+  });
+};
+
+const validateFlowFile = (
+  value: unknown,
+  path: string,
+  errors: RootDocumentValidationError[],
+) => {
+  if (!isPlainObject(value)) {
+    pushValidationError(errors, path, "必须是对象");
+    return;
+  }
+
+  if (!isNonEmptyString(value.id)) {
+    pushValidationError(errors, `${path}.id`, "必须是非空字符串");
+  }
+  if (!isNonEmptyString(value.label)) {
+    pushValidationError(errors, `${path}.label`, "必须是非空字符串");
+  }
+  if (!isNonEmptyString(value.name)) {
+    pushValidationError(errors, `${path}.name`, "必须是非空字符串");
+  }
+  if (typeof value.visible !== "boolean") {
+    pushValidationError(errors, `${path}.visible`, "必须是布尔值");
+  }
+  if (!isNonEmptyString(value.type)) {
+    pushValidationError(errors, `${path}.type`, "必须是非空字符串");
+  }
+
+  if (!isPlainObject(value.graphRawData)) {
+    pushValidationError(errors, `${path}.graphRawData`, "必须是对象");
+  } else {
+    const nodes = value.graphRawData.nodes;
+    const edges = value.graphRawData.edges;
+    if (!Array.isArray(nodes)) {
+      pushValidationError(errors, `${path}.graphRawData.nodes`, "必须是数组");
+    } else {
+      nodes.forEach((node, index) =>
+        validateGraphNode(node, `${path}.graphRawData.nodes[${index}]`, errors),
+      );
+    }
+    if (!Array.isArray(edges)) {
+      pushValidationError(errors, `${path}.graphRawData.edges`, "必须是数组");
+    } else {
+      edges.forEach((edge, index) =>
+        validateGraphEdge(edge, `${path}.graphRawData.edges[${index}]`, errors),
+      );
+    }
+  }
+
+  validateTransform(value.transform, `${path}.transform`, errors);
+};
+
+export function validateRootDocumentV1(
+  input: unknown,
+): RootDocumentValidationResult {
+  const errors: RootDocumentValidationError[] = [];
+  if (!isPlainObject(input)) {
+    return {
+      valid: false,
+      errors: [{ path: "$", message: "RootDocument 必须是对象" }],
+    };
+  }
+
+  if (input.schemaVersion !== CURRENT_SCHEMA_VERSION) {
+    pushValidationError(
+      errors,
+      "$.schemaVersion",
+      `必须为 ${CURRENT_SCHEMA_VERSION}`,
+    );
+  }
+  if (!isNonEmptyString(input.activeFile)) {
+    pushValidationError(errors, "$.activeFile", "必须是非空字符串");
+  }
+  if (input.activeFileId != null && !isNonEmptyString(input.activeFileId)) {
+    pushValidationError(errors, "$.activeFileId", "必须是非空字符串");
+  }
+  if (!Array.isArray(input.fileList)) {
+    pushValidationError(errors, "$.fileList", "必须是数组");
+    return { valid: false, errors };
+  }
+  if (input.fileList.length === 0) {
+    pushValidationError(errors, "$.fileList", "至少包含一个文件");
+  }
+
+  input.fileList.forEach((file, index) => {
+    validateFlowFile(file, `$.fileList[${index}]`, errors);
+  });
+
+  const fileNames = input.fileList
+    .filter((item) => isPlainObject(item) && isNonEmptyString(item.name))
+    .map((item) => item.name);
+  if (
+    isNonEmptyString(input.activeFile) &&
+    !fileNames.includes(input.activeFile)
+  ) {
+    pushValidationError(
+      errors,
+      "$.activeFile",
+      "必须匹配 fileList 中存在的文件名",
+    );
+  }
+
+  const fileIds = input.fileList
+    .filter((item) => isPlainObject(item) && isNonEmptyString(item.id))
+    .map((item) => item.id);
+  if (
+    isNonEmptyString(input.activeFileId) &&
+    !fileIds.includes(input.activeFileId)
+  ) {
+    pushValidationError(
+      errors,
+      "$.activeFileId",
+      "必须匹配 fileList 中存在的文件 id",
+    );
+  }
+
+  return { valid: errors.length === 0, errors };
+}
+
+export function formatRootDocumentValidationErrors(
+  errors: RootDocumentValidationError[],
+  maxCount = 3,
+) {
+  if (!errors.length) return "未知校验错误";
+  const primary = errors
+    .slice(0, maxCount)
+    .map((error) => `${error.path}: ${error.message}`)
+    .join("; ");
+  if (errors.length <= maxCount) {
+    return primary;
+  }
+  return `${primary}; 其余 ${errors.length - maxCount} 项略`;
+}
 
 function ensureTransform(t?: Partial<Transform>): Transform {
   return {

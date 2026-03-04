@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rookie4show.github.io/onmyoji-flow/schemas/root-document.v1.json",
+  "title": "Onmyoji Flow RootDocument v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "fileList", "activeFile"],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0.0"
+    },
+    "fileList": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/flowFile"
+      }
+    },
+    "activeFile": {
+      "type": "string",
+      "minLength": 1
+    },
+    "activeFileId": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "$defs": {
+    "transform": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["SCALE_X", "SCALE_Y", "TRANSLATE_X", "TRANSLATE_Y"],
+      "properties": {
+        "SCALE_X": { "type": "number" },
+        "SCALE_Y": { "type": "number" },
+        "TRANSLATE_X": { "type": "number" },
+        "TRANSLATE_Y": { "type": "number" }
+      }
+    },
+    "graphNode": {
+      "type": "object",
+      "required": ["id", "type", "properties"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "type": { "type": "string", "minLength": 1 },
+        "x": { "type": "number" },
+        "y": { "type": "number" },
+        "width": { "type": "number" },
+        "height": { "type": "number" },
+        "zIndex": { "type": "integer" },
+        "children": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "properties": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": true
+    },
+    "graphEdge": {
+      "type": "object",
+      "required": ["id", "sourceNodeId", "targetNodeId"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "type": { "type": "string" },
+        "sourceNodeId": { "type": "string", "minLength": 1 },
+        "targetNodeId": { "type": "string", "minLength": 1 },
+        "properties": { "type": "object" }
+      },
+      "additionalProperties": true
+    },
+    "graphDocument": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["nodes", "edges"],
+      "properties": {
+        "nodes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/graphNode"
+          }
+        },
+        "edges": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/graphEdge"
+          }
+        }
+      }
+    },
+    "flowFile": {
+      "type": "object",
+      "required": [
+        "id",
+        "label",
+        "name",
+        "visible",
+        "type",
+        "graphRawData",
+        "transform"
+      ],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "label": { "type": "string", "minLength": 1 },
+        "name": { "type": "string", "minLength": 1 },
+        "visible": { "type": "boolean" },
+        "type": { "type": "string", "minLength": 1 },
+        "graphRawData": { "$ref": "#/$defs/graphDocument" },
+        "transform": { "$ref": "#/$defs/transform" },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      },
+      "additionalProperties": true
+    }
+  }
+}

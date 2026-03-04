@@ -4,7 +4,13 @@ import { ref, computed } from "vue";
 import { ElMessageBox } from "element-plus";
 import { useGlobalMessage } from "./useGlobalMessage";
 import { getLogicFlowInstance, type LogicFlowScope } from "./useLogicFlow";
-import { CURRENT_SCHEMA_VERSION, migrateToV1, RootDocument } from "./schema";
+import {
+  CURRENT_SCHEMA_VERSION,
+  formatRootDocumentValidationErrors,
+  migrateToV1,
+  RootDocument,
+  validateRootDocumentV1,
+} from "./schema";
 import { normalizeGraphRawDataSchema } from "@/utils/graphSchema";
 
 const { showMessage } = useGlobalMessage();
@@ -160,6 +166,20 @@ export const useFilesStore = defineStore("files", () => {
     }
     return normalized[0]?.id || "";
   };
+  const resolveActiveNameById = (normalized: FlowFile[], activeId?: string) =>
+    normalized.find((file) => file.id === activeId)?.name ||
+    normalized[0]?.name ||
+    "File 1";
+  const validateRootDocumentOrThrow = (
+    root: PersistedRoot,
+    context: string,
+  ) => {
+    const validation = validateRootDocumentV1(root);
+    if (validation.valid) return;
+    throw new Error(
+      `[${context}] ${formatRootDocumentValidationErrors(validation.errors)}`,
+    );
+  };
 
   // 初始化/恢复专用入口：仅用于装载默认值或持久化状态，不触发运行时切换副作用
   const setActiveFileForBootstrap = (nextActiveId?: string) => {
@@ -180,15 +200,23 @@ export const useFilesStore = defineStore("files", () => {
           : (migrateToV1(data) as PersistedRoot);
 
       const normalized = normalizeList(root.fileList || []);
-      fileList.value = normalized;
+      const resolvedActiveId = resolvePreferredActiveId(normalized, {
+        activeFileId: (data as any).activeFileId ?? root.activeFileId,
+        activeFile: (data as any).activeFile ?? root.activeFile,
+      });
+      validateRootDocumentOrThrow(
+        {
+          schemaVersion: root.schemaVersion || CURRENT_SCHEMA_VERSION,
+          fileList: normalized as any,
+          activeFile: resolveActiveNameById(normalized, resolvedActiveId),
+          activeFileId: resolvedActiveId || undefined,
+        },
+        "import",
+      );
 
       // 导入装载属于初始化路径，不经过运行时切换入口
-      setActiveFileForBootstrap(
-        resolvePreferredActiveId(normalized, {
-          activeFileId: (data as any).activeFileId ?? root.activeFileId,
-          activeFile: (data as any).activeFile ?? root.activeFile,
-        }),
-      );
+      fileList.value = normalized;
+      setActiveFileForBootstrap(resolvedActiveId);
 
       showMessage("success", "数据导入成功");
     } catch (error) {
@@ -201,16 +229,14 @@ export const useFilesStore = defineStore("files", () => {
   const exportData = () => {
     try {
       const activeName = findById(activeFileId.value)?.name || "";
-      const dataStr = JSON.stringify(
-        {
-          schemaVersion: CURRENT_SCHEMA_VERSION,
-          fileList: fileList.value,
-          activeFileId: activeFileId.value,
-          activeFile: activeName,
-        },
-        null,
-        2,
-      );
+      const payload: PersistedRoot = {
+        schemaVersion: CURRENT_SCHEMA_VERSION,
+        fileList: fileList.value as any,
+        activeFileId: activeFileId.value || undefined,
+        activeFile: activeName || resolveActiveNameById(fileList.value),
+      };
+      validateRootDocumentOrThrow(payload, "export");
+      const dataStr = JSON.stringify(payload, null, 2);
       const blob = new Blob([dataStr], {
         type: "application/json;charset=utf-8",
       });
@@ -233,23 +259,37 @@ export const useFilesStore = defineStore("files", () => {
     const defaultState = getDefaultState();
 
     if (savedStateRaw && (savedStateRaw as any).fileList) {
-      // 若已有 schemaVersion，则视为 v1；否则通过迁移器补齐到 RootDocument 形态
-      const root: PersistedRoot = (savedStateRaw as any).schemaVersion
-        ? (savedStateRaw as PersistedRoot)
-        : (migrateToV1(savedStateRaw) as PersistedRoot);
+      try {
+        // 若已有 schemaVersion，则视为 v1；否则通过迁移器补齐到 RootDocument 形态
+        const root: PersistedRoot = (savedStateRaw as any).schemaVersion
+          ? (savedStateRaw as PersistedRoot)
+          : (migrateToV1(savedStateRaw) as PersistedRoot);
 
-      const normalized = normalizeList(root.fileList || []);
-      fileList.value = normalized;
-
-      setActiveFileForBootstrap(
-        resolvePreferredActiveId(normalized, {
+        const normalized = normalizeList(root.fileList || []);
+        const resolvedActiveId = resolvePreferredActiveId(normalized, {
           activeFileId:
             (savedStateRaw as any).activeFileId ?? root.activeFileId,
           activeFile: (savedStateRaw as any).activeFile ?? root.activeFile,
-        }),
-      );
-      showMessage("success", "已恢复上次工作区");
-      return;
+        });
+        validateRootDocumentOrThrow(
+          {
+            schemaVersion: root.schemaVersion || CURRENT_SCHEMA_VERSION,
+            fileList: normalized as any,
+            activeFile: resolveActiveNameById(normalized, resolvedActiveId),
+            activeFileId: resolvedActiveId || undefined,
+          },
+          "restore",
+        );
+
+        fileList.value = normalized;
+        setActiveFileForBootstrap(resolvedActiveId);
+        showMessage("success", "已恢复上次工作区");
+        return;
+      } catch (error) {
+        console.error("恢复本地工作区失败，已回退默认状态:", error);
+        clearFilesStoreLocalStorage();
+        showMessage("warning", "本地工作区数据损坏，已重置为默认状态");
+      }
     }
 
     // 无保存数据：使用默认
@@ -278,9 +318,19 @@ export const useFilesStore = defineStore("files", () => {
     const state: PersistedRoot = {
       schemaVersion: CURRENT_SCHEMA_VERSION,
       fileList: fileList.value as any,
-      activeFileId: activeFileId.value,
-      activeFile: findById(activeFileId.value)?.name || "",
+      activeFileId: activeFileId.value || undefined,
+      activeFile:
+        findById(activeFileId.value)?.name ||
+        resolveActiveNameById(fileList.value, activeFileId.value),
     };
+    const validation = validateRootDocumentV1(state);
+    if (!validation.valid) {
+      console.error(
+        "持久化状态校验失败:",
+        formatRootDocumentValidationErrors(validation.errors),
+      );
+      return;
+    }
     saveStateToLocalStorage(state);
   };
 
@@ -357,7 +407,10 @@ export const useFilesStore = defineStore("files", () => {
         name: newFileName,
         visible: true,
         type: "FLOW",
-        graphRawData: {},
+        graphRawData: {
+          nodes: [],
+          edges: [],
+        },
         transform: {
           SCALE_X: 1,
           SCALE_Y: 1,

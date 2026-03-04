@@ -44,6 +44,42 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-04] Session 124 - RFX-010 RootDocument Schema Strong-Constraint Loop
+
+- Refactory Scope:
+  - Phase: Phase 3
+  - Task: 落地 RootDocument JSON Schema + 导入/恢复/导出校验闭环 + 迁移回归测试
+- In Scope Files:
+  - `src/schemas/root-document.v1.json`（新增）
+  - `src/ts/schema.ts`
+  - `src/ts/useStore.ts`
+  - `src/__tests__/schema.test.ts`
+  - `src/__tests__/useStore.test.ts`
+  - `docs/2design/DataModel.md`
+  - `docs/1management/refactory-fix-backlog.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - 画布交互/Toolbar 功能扩展
+  - compat 类型替换执行
+  - 进度百分比字段更新
+- Decisions:
+  - 新增 `root-document.v1.json` 作为 RootDocument v1 的结构事实源，约束 `schemaVersion/fileList/activeFile/graphRawData/transform` 核心字段。
+  - 在 `useStore` 的 `importData/initializeWithPrompt/exportData/persistState` 接入 `validateRootDocumentV1`，形成“迁移后校验 + 导出前校验 + 持久化前校验”闭环。
+  - `addTab` 新文件默认 `graphRawData` 调整为 `{ nodes: [], edges: [] }`，避免生成不符合 schema 的临时态。
+- Checks:
+  - `npx vitest run src/__tests__/schema.test.ts`: pass
+  - `npm test`: pass
+  - `npm run typecheck`: pass
+  - `npm run lint`: pass
+  - `rg -n "root-document\\.v1\\.json|schemaVersion" src docs/2design/DataModel.md`: pass
+  - `prettier --check`: pass（`npm run format:check`）
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 当前 validator 为运行时手写校验，后续若 schema 继续扩展需同步维护 `schema.ts` 校验器，建议后续评估引入统一 JSON Schema 运行时校验器。
+  - 旧版本（非 `1.0.0`）文档将被拒绝导入，若未来引入 `2.x` 需先补迁移器与版本路由。
+- Next Recommended Unit:
+  - `Refactory backlog RFX-001 ~ RFX-010 已全部完成，建议进入发布前 build:lib 验证与收尾归档。`
+
 ## [2026-03-04] Session 123 - RFX-007 FlowEditor/Toolbar First Responsibility Split
 
 - Refactory Scope:

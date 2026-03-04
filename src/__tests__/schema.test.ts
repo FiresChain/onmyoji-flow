@@ -2,7 +2,9 @@ import { describe, it, expect } from "vitest";
 import {
   CURRENT_SCHEMA_VERSION,
   DefaultNodeStyle,
+  ROOT_DOCUMENT_V1_SCHEMA,
   migrateToV1,
+  validateRootDocumentV1,
   type GraphNode,
   type GraphEdge,
   type NodeProperties,
@@ -155,5 +157,80 @@ describe("Schema 数据结构验证", () => {
     const migratedNode = (migrated.fileList[0].graphRawData as any).nodes[0];
     expect(migratedNode.zIndex).toBe(11);
     expect(migratedNode.properties.meta.z).toBeUndefined();
+  });
+
+  it("RootDocument schema 常量应与当前版本一致", () => {
+    expect(ROOT_DOCUMENT_V1_SCHEMA.properties.schemaVersion.const).toBe(
+      CURRENT_SCHEMA_VERSION,
+    );
+  });
+
+  it("validateRootDocumentV1 应通过合法文档", () => {
+    const validation = validateRootDocumentV1({
+      schemaVersion: "1.0.0",
+      fileList: [
+        {
+          id: "f_1",
+          label: "File 1",
+          name: "File 1",
+          visible: true,
+          type: "FLOW",
+          graphRawData: {
+            nodes: [
+              {
+                id: "n_1",
+                type: "rect",
+                properties: {},
+                zIndex: 1,
+              },
+            ],
+            edges: [],
+          },
+          transform: {
+            SCALE_X: 1,
+            SCALE_Y: 1,
+            TRANSLATE_X: 0,
+            TRANSLATE_Y: 0,
+          },
+        },
+      ],
+      activeFile: "File 1",
+      activeFileId: "f_1",
+    });
+
+    expect(validation.valid).toBe(true);
+    expect(validation.errors).toHaveLength(0);
+  });
+
+  it("validateRootDocumentV1 应拒绝非法文档", () => {
+    const validation = validateRootDocumentV1({
+      schemaVersion: "1.0.0",
+      fileList: [
+        {
+          id: "f_1",
+          label: "File 1",
+          name: "File 1",
+          visible: true,
+          type: "FLOW",
+          graphRawData: {},
+          transform: {
+            SCALE_X: 1,
+            SCALE_Y: 1,
+            TRANSLATE_X: 0,
+            TRANSLATE_Y: 0,
+          },
+        },
+      ],
+      activeFile: "Missing File",
+      activeFileId: "missing-id",
+    });
+
+    expect(validation.valid).toBe(false);
+    expect(
+      validation.errors.some((item) => item.path.includes("graphRawData")),
+    ).toBe(true);
+    expect(validation.errors.some((item) => item.path === "$.activeFile")).toBe(
+      true,
+    );
   });
 });

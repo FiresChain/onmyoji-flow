@@ -327,7 +327,10 @@ describe("useFilesStore 数据操作测试", () => {
       nodes: [{ id: "lf-node", type: "rect", x: 100, y: 100, zIndex: 1 }],
       edges: [],
     });
-    expect(newActiveFile.graphRawData).toEqual({});
+    expect(newActiveFile.graphRawData).toEqual({
+      nodes: [],
+      edges: [],
+    });
     expect(logicFlowMocks.getGraphRawData).toHaveBeenCalledTimes(1);
   });
 
@@ -498,6 +501,40 @@ describe("useFilesStore 数据操作测试", () => {
     expect(store.fileList.length).toBe(1);
     expect(store.fileList[0].name).toBe("Test File");
     expect(store.activeFileId).toBe("test-1");
+    expect(logicFlowMocks.getGraphRawData).not.toHaveBeenCalled();
+  });
+
+  it("importData 遇到 schema 校验失败时不应污染当前状态", () => {
+    const store = useFilesStore();
+    store.initializeWithPrompt();
+
+    const beforeList = JSON.parse(JSON.stringify(store.fileList));
+    const beforeActiveFileId = store.activeFileId;
+
+    store.importData({
+      schemaVersion: "2.0.0",
+      fileList: [
+        {
+          id: "broken",
+          label: "Broken",
+          name: "Broken",
+          visible: true,
+          type: "FLOW",
+          graphRawData: {},
+          transform: {
+            SCALE_X: 1,
+            SCALE_Y: 1,
+            TRANSLATE_X: 0,
+            TRANSLATE_Y: 0,
+          },
+        },
+      ],
+      activeFile: "Missing File",
+      activeFileId: "missing-id",
+    });
+
+    expect(store.fileList).toEqual(beforeList);
+    expect(store.activeFileId).toBe(beforeActiveFileId);
     expect(logicFlowMocks.getGraphRawData).not.toHaveBeenCalled();
   });
 

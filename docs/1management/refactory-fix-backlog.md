@@ -97,7 +97,7 @@
   - 来源：`Refactory.md` 2.3-1、4.1.1-2
   - 验收：文档/类型/运行时语义一致，无双轨字段冲突。
 
-- [ ] **RFX-010（P3）RootDocument Schema 强约束闭环**
+- [x] **RFX-010（P3）RootDocument Schema 强约束闭环**
   - 目标：增加 JSON Schema 校验 + 导入导出校验 + 迁移回归测试。
   - 主要文件：`src/schemas/*`（新建）、`src/ts/schema.ts`、测试文件
   - 来源：`Refactory.md` 4.3.2 全条目
