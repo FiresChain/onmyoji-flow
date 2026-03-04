@@ -102,7 +102,8 @@
 
                         <!-- 文字图层 -->
                         <span v-if="position.properties"
-                          >{{ position.properties.levelRequired }}级
+                          >{{ position.properties.levelRequired
+                          }}{{ t("yys.levelSuffix") }}
                           {{ position.properties.skillRequired.join("") }}</span
                         >
                       </div>
@@ -251,7 +252,19 @@ const clipboard = ref("");
 const { showMessage } = useGlobalMessage();
 
 // 获取当前的 i18n 实例
-const { t } = useSafeI18n();
+const { t } = useSafeI18n({
+  "yys.levelSuffix": "级",
+  "yys.message.cannotDeleteElement": "无法删除",
+  "yys.message.deleteSuccess": "删除成功!",
+  "yys.message.deleteCanceled": "已取消删除",
+  "yys.message.cannotDeleteLastGroup": "无法删除最后一个队伍",
+  "yys.confirm.deleteElement": "确定要删除此元素吗?",
+  "yys.confirm.deleteGroup": "确定要删除此组吗?",
+  "yys.confirm.title": "提示",
+  "yys.import.readFail": "文件读取失败",
+  "yys.import.invalidFormat": "文件格式错误",
+  "yys.import.success": "导入成功",
+});
 
 const copy = (str) => {
   clipboard.value = str;
@@ -381,39 +394,47 @@ const removeGroupElement = async (
   const group = props.groups[groupIndex];
 
   if (group.groupInfo.length === 1) {
-    showMessage("warning", "无法删除");
+    showMessage("warning", t("yys.message.cannotDeleteElement"));
     return;
   }
 
   try {
-    await ElMessageBox.confirm("确定要删除此元素吗?", "提示", {
-      confirmButtonText: "确定",
-      cancelButtonText: "取消",
-      type: "warning",
-    });
+    await ElMessageBox.confirm(
+      t("yys.confirm.deleteElement"),
+      t("yys.confirm.title"),
+      {
+        confirmButtonText: t("common.confirm"),
+        cancelButtonText: t("common.cancel"),
+        type: "warning",
+      },
+    );
     group.groupInfo.splice(positionIndex, 1);
-    showMessage("success", "删除成功!");
+    showMessage("success", t("yys.message.deleteSuccess"));
   } catch (error) {
-    showMessage("info", "已取消删除");
+    showMessage("info", t("yys.message.deleteCanceled"));
   }
 };
 
 const removeGroup = async (groupIndex: number) => {
   if (props.groups.length === 1) {
-    showMessage("warning", "无法删除最后一个队伍");
+    showMessage("warning", t("yys.message.cannotDeleteLastGroup"));
     return;
   }
 
   try {
-    await ElMessageBox.confirm("确定要删除此组吗?", "提示", {
-      confirmButtonText: "确定",
-      cancelButtonText: "取消",
-      type: "warning",
-    });
+    await ElMessageBox.confirm(
+      t("yys.confirm.deleteGroup"),
+      t("yys.confirm.title"),
+      {
+        confirmButtonText: t("common.confirm"),
+        cancelButtonText: t("common.cancel"),
+        type: "warning",
+      },
+    );
     props.groups.splice(groupIndex, 1);
-    showMessage("success", "删除成功!");
+    showMessage("success", t("yys.message.deleteSuccess"));
   } catch (error) {
-    showMessage("info", "已取消删除");
+    showMessage("info", t("yys.message.deleteCanceled"));
   }
 };
 const addGroup = () => {
@@ -489,20 +510,20 @@ const importGroups = (file: File) => {
   reader.onload = (e: ProgressEvent<FileReader>) => {
     const result = e.target?.result;
     if (typeof result !== "string") {
-      ElMessage.error("文件读取失败");
+      ElMessage.error(t("yys.import.readFail"));
       return;
     }
 
     try {
       const importedData = JSON.parse(result);
       if (!Array.isArray(importedData)) {
-        ElMessage.error("文件格式错误");
+        ElMessage.error(t("yys.import.invalidFormat"));
         return;
       }
       props.groups.splice(0, props.groups.length, ...importedData);
-      ElMessage.success("导入成功");
+      ElMessage.success(t("yys.import.success"));
     } catch (error) {
-      ElMessage.error("文件格式错误");
+      ElMessage.error(t("yys.import.invalidFormat"));
     }
   };
   reader.readAsText(file);

@@ -90,7 +90,8 @@
 
                   <!-- 文字图层 -->
                   <span v-if="position.properties"
-                    >{{ position.properties.levelRequired }}级
+                    >{{ position.properties.levelRequired
+                    }}{{ t("yys.levelSuffix") }}
                     {{ position.properties.skillRequired.join("") }}</span
                   >
                 </div>
@@ -237,7 +238,16 @@ const dialogTableVisible = ref(false);
 const { showMessage } = useGlobalMessage();
 
 // 获取当前的 i18n 实例
-const { t } = useSafeI18n();
+const { t } = useSafeI18n({
+  "yys.levelSuffix": "级",
+  "yys.message.cannotDeleteElement": "无法删除",
+  "yys.message.deleteSuccess": "删除成功!",
+  "yys.message.deleteCanceled": "已取消删除",
+  "yys.message.cannotDeleteLastGroup": "无法删除最后一个队伍",
+  "yys.confirm.deleteElement": "确定要删除此元素吗?",
+  "yys.confirm.deleteGroup": "确定要删除此组吗?",
+  "yys.confirm.title": "提示",
+});
 
 // 定义 QuillEditor 的 ref
 const shortDescriptionEditor = ref<InstanceType<typeof QuillEditor>>();
@@ -245,39 +255,47 @@ const detailsEditor = ref<InstanceType<typeof QuillEditor>>();
 
 const removeGroupElement = async (positionIndex: number) => {
   if (props.group.groupInfo.length === 1) {
-    showMessage("warning", "无法删除");
+    showMessage("warning", t("yys.message.cannotDeleteElement"));
     return;
   }
 
   try {
-    await ElMessageBox.confirm("确定要删除此元素吗?", "提示", {
-      confirmButtonText: "确定",
-      cancelButtonText: "取消",
-      type: "warning",
-    });
+    await ElMessageBox.confirm(
+      t("yys.confirm.deleteElement"),
+      t("yys.confirm.title"),
+      {
+        confirmButtonText: t("common.confirm"),
+        cancelButtonText: t("common.cancel"),
+        type: "warning",
+      },
+    );
     props.group.groupInfo.splice(positionIndex, 1);
-    showMessage("success", "删除成功!");
+    showMessage("success", t("yys.message.deleteSuccess"));
   } catch (error) {
-    showMessage("info", "已取消删除");
+    showMessage("info", t("yys.message.deleteCanceled"));
   }
 };
 
 const removeGroup = async (groupIndex: number) => {
   if (props.groups.length === 1) {
-    showMessage("warning", "无法删除最后一个队伍");
+    showMessage("warning", t("yys.message.cannotDeleteLastGroup"));
     return;
   }
 
   try {
-    await ElMessageBox.confirm("确定要删除此组吗?", "提示", {
-      confirmButtonText: "确定",
-      cancelButtonText: "取消",
-      type: "warning",
-    });
+    await ElMessageBox.confirm(
+      t("yys.confirm.deleteGroup"),
+      t("yys.confirm.title"),
+      {
+        confirmButtonText: t("common.confirm"),
+        cancelButtonText: t("common.cancel"),
+        type: "warning",
+      },
+    );
     props.groups.splice(groupIndex, 1);
-    showMessage("success", "删除成功!");
+    showMessage("success", t("yys.message.deleteSuccess"));
   } catch (error) {
-    showMessage("info", "已取消删除");
+    showMessage("info", t("yys.message.deleteCanceled"));
   }
 };
 const addGroup = () => {
