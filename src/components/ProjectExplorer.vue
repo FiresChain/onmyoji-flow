@@ -33,7 +33,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { onMounted, onUnmounted, ref } from "vue";
 import { useFilesStore } from "@/ts/useStore";
 import { ElTree, ElButton, ElDropdownMenu, ElDropdownItem } from "element-plus";
 
@@ -72,7 +72,13 @@ const hideDropdown = () => {
   visibleDropdown.value = false;
 };
 
-document.addEventListener("click", hideDropdown);
+onMounted(() => {
+  document.addEventListener("click", hideDropdown);
+});
+
+onUnmounted(() => {
+  document.removeEventListener("click", hideDropdown);
+});
 
 const deleteFile = (data) => {
   filesStore.deleteFile(data.name);

@@ -44,6 +44,38 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-04] Session 120 - RFX-006 ESLint Rule Strength Governance
+
+- Refactory Scope:
+  - Phase: Phase 0
+  - Task: 将 lint 从“可执行”提升到“可约束”，补齐高风险反模式规则并修复命中点
+- In Scope Files:
+  - `.eslintrc.cjs`
+  - `eslint-rules/no-top-level-global-listener.js`（新增）
+  - `src/components/ProjectExplorer.vue`
+  - `docs/1management/refactory-fix-backlog.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - 业务功能增强
+  - 大规模代码风格统一
+  - 进度百分比字段更新
+- Decisions:
+  - 在 `src/**/*.{js,ts,vue}`（排除 `src/__tests__`）启用基础危险 API 规则：`no-eval`、`no-implied-eval`、`no-new-func`、`no-script-url`。
+  - 使用 `no-restricted-properties` 禁止运行时代码中的 `localStorage.clear()` 与 `sessionStorage.clear()`。
+  - 新增自定义规则 `no-top-level-global-listener`，禁止顶层 `window/document.addEventListener` 副作用；命中 `ProjectExplorer.vue` 后改为 `onMounted` 注册、`onUnmounted` 清理。
+- Checks:
+  - `npm run lint`: pass
+  - `npx eslint src/ts/useStore.ts --ext .ts --rulesdir ./eslint-rules --max-warnings=0`: pass
+  - `npm run typecheck`: pass
+  - `npm test`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 新规则当前聚焦高风险路径，未覆盖“监听必须成对清理”的完整数据流校验；后续可评估增加更细粒度 AST 规则。
+  - `no-top-level-global-listener` 以“顶层副作用”作为近似判定，若后续出现合法例外场景，需通过显式封装函数而非直接放宽规则。
+- Next Recommended Unit:
+  - `RFX-008（P0）compat 类型声明退出计划`
+
 ## [2026-03-04] Session 119 - RFX-005 Repository Hygiene Cleanup
 
 - Refactory Scope:
