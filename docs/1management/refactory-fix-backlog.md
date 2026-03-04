@@ -46,7 +46,7 @@
     - `Refactory.md` 4.0.2-3 / 5（文档与工程同步）
   - 验收：`npm run format:check` 通过，提交范围仅格式化。
 
-- [ ] **RFX-003（P0）文档基线指标刷新**
+- [x] **RFX-003（P0）文档基线指标刷新**
   - 目标：刷新体积、命令、版本、完成度等陈旧指标，消除文档事实漂移。
   - 主要文件：`docs/1management/plan.md`、`docs/3build/*`、`README.md`（按实际需要）
   - 来源：

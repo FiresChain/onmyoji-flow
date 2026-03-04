@@ -5,12 +5,12 @@
 ### 为什么需要组件化改造
 
 **当前状态**：
-- yys-editor 是一个独立的单页应用（SPA）
+- onmyoji-flow 是一个独立的单页应用（SPA）
 - 只能作为独立应用运行
 - 无法嵌入到其他项目中
 
 **目标**：
-- 将 yys-editor 改造为可嵌入的 Vue 组件
+- 将 onmyoji-flow 改造为可嵌入的 Vue 组件
 - 支持在 onmyoji-wiki 中作为块插件使用
 - 保持独立应用功能不变（双重角色）
 
@@ -36,7 +36,7 @@
 **不修改现有代码，创建独立的嵌入式组件**
 
 ```
-yys-editor/
+onmyoji-flow/
 ├── src/
 │   ├── App.vue                    # 独立应用（保持不变）
 │   ├── YysEditorEmbed.vue         # 嵌入式组件（新增）⭐
@@ -50,8 +50,8 @@ yys-editor/
 │       ├── useStore.ts            # 状态管理（共享）
 │       └── useLogicFlow.ts        # LogicFlow 封装（共享）
 └── dist/                          # 构建输出
-    ├── yys-editor.es.js           # ES Module（库模式）
-    └── yys-editor.umd.js          # UMD（库模式）
+    ├── onmyoji-flow.es.js         # ES Module（库模式）
+    └── onmyoji-flow.umd.js        # UMD（库模式）
 ```
 
 ### 架构设计
@@ -60,7 +60,7 @@ yys-editor/
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                    yys-editor 项目                       │
+│                    onmyoji-flow 项目                       │
 ├─────────────────────────────────────────────────────────┤
 │                                                          │
 │  ┌──────────────────┐         ┌──────────────────┐     │
@@ -456,7 +456,7 @@ export default defineConfig({
       entry: resolve(__dirname, 'src/YysEditorEmbed.vue'),
       name: 'YysEditor',
       // 输出文件名
-      fileName: (format) => `yys-editor.${format}.js`
+      fileName: (format) => `onmyoji-flow.${format}.js`
     },
     rollupOptions: {
       // 外部化依赖（不打包进库）
@@ -477,31 +477,37 @@ export default defineConfig({
 
 ```json
 {
-  "name": "yys-editor",
-  "version": "1.0.0",
+  "name": "@rookie4show/onmyoji-flow",
+  "version": "0.1.0",
   "type": "module",
-  "main": "./dist/yys-editor.umd.js",
-  "module": "./dist/yys-editor.es.js",
-  "types": "./dist/YysEditorEmbed.d.ts",
+  "main": "./dist/onmyoji-flow.umd.js",
+  "module": "./dist/onmyoji-flow.es.js",
   "exports": {
     ".": {
-      "import": "./dist/yys-editor.es.js",
-      "require": "./dist/yys-editor.umd.js",
-      "types": "./dist/YysEditorEmbed.d.ts"
+      "import": "./dist/onmyoji-flow.es.js",
+      "require": "./dist/onmyoji-flow.umd.js"
     },
-    "./style.css": "./dist/style.css"
+    "./style.css": "./dist/onmyoji-flow.css"
   },
   "files": [
-    "dist"
+    "dist/onmyoji-flow.css",
+    "dist/onmyoji-flow.es.js",
+    "dist/onmyoji-flow.es.js.map",
+    "dist/onmyoji-flow.umd.js",
+    "dist/onmyoji-flow.umd.js.map"
   ],
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
-    "build:lib": "vite build --config vite.config.lib.ts"
+    "build": "vite build --config vite.config.lib.js",
+    "build:lib": "vite build --config vite.config.lib.js"
   },
   "peerDependencies": {
     "vue": "^3.3.0",
-    "element-plus": "^2.9.0"
+    "element-plus": "^2.9.0",
+    "pinia": "^3.0.0",
+    "@logicflow/core": "^2.0.0",
+    "@logicflow/extension": "^2.0.0",
+    "@logicflow/vue-node-registry": "^1.0.0"
   }
 }
 ```
@@ -541,8 +547,8 @@ export default defineConfig({
 
 <script setup>
 import { ref } from 'vue'
-import { YysEditorEmbed } from 'yys-editor'
-import 'yys-editor/style.css'
+import { YysEditorEmbed } from '@rookie4show/onmyoji-flow'
+import '@rookie4show/onmyoji-flow/style.css'
 
 const isEditing = ref(false)
 const flowData = ref({
@@ -575,10 +581,10 @@ const handleError = (error) => {
 
 ```bash
 # 在 onmyoji-wiki 项目中
-npm install file:../yys-editor
+npm install file:../onmyoji-flow
 
 # 或发布到 npm 后
-npm install yys-editor
+npm install @rookie4show/onmyoji-flow
 ```
 
 ---
@@ -659,5 +665,6 @@ npm install yys-editor
 
 ---
 
-**最后更新：** 2026-02-20
-**文档版本：** v1.0.0
+**最后更新：** 2026-03-04
+**文档版本：** v1.0.1
+

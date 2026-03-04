@@ -162,7 +162,7 @@
 #### 步骤 3：优化和测试 ✅
 
 - [x] 优化组件性能
-- [x] 减少打包体积（gzip 后 35KB）
+- [x] 建立库构建产物基线（当前体积见下方“构建产物”）
 - [x] 编写组件文档（`docs/3build/YysEditorEmbed.md`）
 - [x] 创建使用示例（`examples/embed-demo.html`）
 
@@ -174,7 +174,7 @@
   ```json
   {
     "name": "@rookie4show/onmyoji-flow",
-    "version": "1.0.0",
+    "version": "0.1.0",
     "main": "./dist/onmyoji-flow.umd.js",
     "module": "./dist/onmyoji-flow.es.js",
     "exports": {
@@ -194,9 +194,9 @@
 - ✅ 文档完善
 
 **构建产物：**
-- `dist/onmyoji-flow.es.js` - 155 KB (gzip: 35 KB)
-- `dist/onmyoji-flow.umd.js` - 112 KB (gzip: 31 KB)
-- `dist/onmyoji-flow.css` - 69 KB (gzip: 33 KB)
+- `dist/onmyoji-flow.es.js` - 2,220.94 KB (gzip: 488.92 KB)
+- `dist/onmyoji-flow.umd.js` - 1,442.03 KB (gzip: 411.00 KB)
+- `dist/onmyoji-flow.css` - 454.64 KB (gzip: 86.76 KB)
 
 **相关文档：**
 - 设计文档：`docs/2design/ComponentArchitecture.md`
@@ -464,7 +464,6 @@ const handleCancel = () => {
 
 ---
 
-**最后更新：** 2026-02-27
-**文档版本：** v2.2.1（wiki 集成稳定化进行中）
-**文档版本：** v2.1.0（组件化改造完成）
-**文档版本：** v2.0.0（重新规划）
+**最后更新：** 2026-03-04
+**文档版本：** v2.2.2（wiki 集成稳定化进行中，指标已刷新）
+**版本里程碑：** v2.1.0（组件化改造完成），v2.0.0（重新规划）

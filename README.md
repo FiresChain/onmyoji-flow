@@ -27,6 +27,15 @@ npm run build:app
 npm run build:pages
 ```
 
+## Quality Gates
+
+```bash
+npm test
+npm run lint
+npm run typecheck
+npm run format:check
+```
+
 ## Use as Vue Component
 
 ```ts

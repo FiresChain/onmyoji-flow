@@ -44,6 +44,40 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-04] Session 117 - RFX-003 Refresh Documentation Baseline Metrics
+
+- Refactory Scope:
+  - Phase: Phase 0
+  - Task: 刷新文档中的命名、构建产物、脚本与引用路径基线，消除与当前仓库事实的漂移
+- In Scope Files:
+  - `README.md`
+  - `docs/1management/plan.md`
+  - `docs/1management/project-baseline.md`
+  - `docs/2design/ComponentArchitecture.md`
+  - `docs/3build/EMBED_README.md`
+  - `docs/3build/YysEditorEmbed.md`
+  - `docs/1management/refactory-fix-backlog.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `src/**` 运行时代码与测试语义变更
+  - 进度百分比字段更新
+  - CI/workflow 变更
+- Decisions:
+  - 文档主路径命名统一为 `onmyoji-flow` 与 `@rookie4show/onmyoji-flow`，历史报告文档（`docs/4test/*`）保留原始上下文不做本轮批量改写。
+  - `docs/3build/*` 全部样式引入示例统一为 `@rookie4show/onmyoji-flow/style.css`。
+  - `plan.md` 仅更新客观事实（包版本、构建产物体积、命令基线与版本尾注），不调整“总体完成度/阶段完成度”数值。
+- Checks:
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: pass（`npm run format:check`）
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 历史测试报告文档仍保留 `yys-editor` 旧命名，后续若需要对外发布统一口径，可单独新增“历史命名映射说明”任务处理。
+  - 文档是高频变更区域，后续建议在 PR 阶段保留一条 `rg` 命名一致性检查脚本，避免回归。
+- Next Recommended Unit:
+  - `RFX-004（P0/2 bridge）测试噪声 stub 参数化收敛`
+
 ## [2026-03-04] Session 116 - RFX-002 Format Baseline Convergence (src)
 
 - Refactory Scope:

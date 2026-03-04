@@ -35,6 +35,8 @@
 - Build pages: `npm run build:pages`
 - Test: `npm test`
 - Lint: `npm run lint`
+- Typecheck: `npm run typecheck`
+- Format check: `npm run format:check`
 
 ## 5. Quality Gate Baseline
 
@@ -48,9 +50,8 @@ Target refactory gate set (as defined in `docs/2design/Refactory.md` and `AGENTS
 
 Current script status (`package.json`):
 
-- Present: `test`, `lint`, `build:lib`
-- Missing: `typecheck` script
-- Missing: explicit prettier check script
+- Present: `test`, `lint`, `typecheck`, `format:check`, `build:lib`
+- Missing: none for baseline gate set
 
 ## 6. Source Of Truth References
 

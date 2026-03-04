@@ -2,7 +2,7 @@
 
 ## 简介
 
-YysEditorEmbed 是 yys-editor 的可嵌入式组件版本，可以作为 Vue 组件集成到其他项目中。
+YysEditorEmbed 是 onmyoji-flow 的可嵌入式组件版本，可以作为 Vue 组件集成到其他项目中。
 
 ## 安装
 
@@ -13,7 +13,7 @@ YysEditorEmbed 是 yys-editor 的可嵌入式组件版本，可以作为 Vue 组
 ```json
 {
   "dependencies": {
-    "yys-editor": "file:../yys-editor"
+    "@rookie4show/onmyoji-flow": "file:../onmyoji-flow"
   }
 }
 ```
@@ -27,7 +27,7 @@ npm install
 ### 方式 2：npm 包（发布后）
 
 ```bash
-npm install yys-editor
+npm install @rookie4show/onmyoji-flow
 ```
 
 ## 基础使用
@@ -37,8 +37,8 @@ npm install yys-editor
 ```vue
 <script setup>
 import { ref } from 'vue'
-import { YysEditorEmbed } from 'yys-editor'
-import 'yys-editor/style.css'
+import { YysEditorEmbed } from '@rookie4show/onmyoji-flow'
+import '@rookie4show/onmyoji-flow/style.css'
 
 const flowData = ref({
   nodes: [],
@@ -193,8 +193,8 @@ interface EditorConfig {
 
 <script setup>
 import { ref } from 'vue'
-import { YysEditorEmbed } from 'yys-editor'
-import 'yys-editor/style.css'
+import { YysEditorEmbed } from '@rookie4show/onmyoji-flow'
+import '@rookie4show/onmyoji-flow/style.css'
 
 const isEditing = ref(false)
 const flowData = ref({
@@ -260,8 +260,8 @@ const saveToDocument = async (data) => {
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { YysEditorEmbed } from 'yys-editor'
-import 'yys-editor/style.css'
+import { YysEditorEmbed } from '@rookie4show/onmyoji-flow'
+import '@rookie4show/onmyoji-flow/style.css'
 
 const editorRef = ref()
 const flowData = ref(null)
@@ -305,8 +305,8 @@ const getData = () => {
 
 <script setup>
 import { ref } from 'vue'
-import { YysEditorEmbed } from 'yys-editor'
-import 'yys-editor/style.css'
+import { YysEditorEmbed } from '@rookie4show/onmyoji-flow'
+import '@rookie4show/onmyoji-flow/style.css'
 
 const flowData = ref({
   nodes: [
@@ -502,3 +502,4 @@ MIT
 ## 支持
 
 如有问题，请提交 Issue 或联系开发团队。
+
