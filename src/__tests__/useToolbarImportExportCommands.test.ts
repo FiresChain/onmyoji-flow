@@ -121,6 +121,59 @@ const createDeferred = <T>() => {
   return { promise, resolve, reject };
 };
 
+interface MockFileInput {
+  type: string;
+  accept: string;
+  files: File[];
+  value: string;
+  onchange: ((event: Event) => void) | null;
+  click: ReturnType<typeof vi.fn>;
+}
+
+const createMockFileInput = (files: File[]): MockFileInput => {
+  const input = {
+    type: "",
+    accept: "",
+    files,
+    value: "filled",
+    onchange: null,
+    click: vi.fn(),
+  } as MockFileInput;
+
+  input.click = vi.fn(() => {
+    input.onchange?.({ target: input } as unknown as Event);
+  });
+
+  return input;
+};
+
+const withStubbedInputElement = (input: MockFileInput) => {
+  const originalCreateElement = document.createElement.bind(document);
+  return vi.spyOn(document, "createElement").mockImplementation((tagName) => {
+    if (tagName === "input") {
+      return input as unknown as HTMLInputElement;
+    }
+    return originalCreateElement(tagName);
+  });
+};
+
+const installMockFileReader = (readResult: string) => {
+  class MockFileReader {
+    public onload: ((event: ProgressEvent<FileReader>) => void) | null = null;
+
+    public result: string | ArrayBuffer | null = null;
+
+    readAsText() {
+      this.result = readResult;
+      this.onload?.({ target: this } as unknown as ProgressEvent<FileReader>);
+    }
+  }
+
+  (
+    globalThis as typeof globalThis & { FileReader: typeof FileReader }
+  ).FileReader = MockFileReader as unknown as typeof FileReader;
+};
+
 describe("useToolbarImportExportCommands", () => {
   beforeEach(() => {
     vi.useFakeTimers();
@@ -760,40 +813,11 @@ describe("useToolbarImportExportCommands", () => {
 
   it("triggerJsonFileImport keeps parse-failure error behavior", () => {
     const context = createContext();
-    const input = {
-      type: "",
-      accept: "",
-      files: [
-        new File(["not-json"], "broken.json", { type: "application/json" }),
-      ],
-      value: "filled",
-      onchange: null as ((event: Event) => void) | null,
-      click: vi.fn(() => {
-        input.onchange?.({ target: input } as unknown as Event);
-      }),
-    };
-    const originalCreateElement = document.createElement.bind(document);
-    const createElementSpy = vi
-      .spyOn(document, "createElement")
-      .mockImplementation((tagName: string) => {
-        if (tagName === "input") {
-          return input as unknown as HTMLInputElement;
-        }
-        return originalCreateElement(tagName);
-      });
-    class MockFileReader {
-      public onload: ((event: ProgressEvent<FileReader>) => void) | null = null;
-
-      public result: string | ArrayBuffer | null = null;
-
-      readAsText() {
-        this.result = "{invalid-json";
-        this.onload?.({ target: this } as unknown as ProgressEvent<FileReader>);
-      }
-    }
-    (
-      globalThis as typeof globalThis & { FileReader: typeof FileReader }
-    ).FileReader = MockFileReader as unknown as typeof FileReader;
+    const input = createMockFileInput([
+      new File(["not-json"], "broken.json", { type: "application/json" }),
+    ]);
+    const createElementSpy = withStubbedInputElement(input);
+    installMockFileReader("{invalid-json");
     context.importSource.value = "json";
     context.teamCodeInput.value = "#TA#DIRTY";
     context.state.showImportDialog = true;
@@ -812,40 +836,11 @@ describe("useToolbarImportExportCommands", () => {
 
   it("triggerJsonFileImport keeps dialog state semantics across repeated parse failures", () => {
     const context = createContext();
-    const input = {
-      type: "",
-      accept: "",
-      files: [
-        new File(["not-json"], "broken.json", { type: "application/json" }),
-      ],
-      value: "filled",
-      onchange: null as ((event: Event) => void) | null,
-      click: vi.fn(() => {
-        input.onchange?.({ target: input } as unknown as Event);
-      }),
-    };
-    const originalCreateElement = document.createElement.bind(document);
-    const createElementSpy = vi
-      .spyOn(document, "createElement")
-      .mockImplementation((tagName: string) => {
-        if (tagName === "input") {
-          return input as unknown as HTMLInputElement;
-        }
-        return originalCreateElement(tagName);
-      });
-    class MockFileReader {
-      public onload: ((event: ProgressEvent<FileReader>) => void) | null = null;
-
-      public result: string | ArrayBuffer | null = null;
-
-      readAsText() {
-        this.result = "{invalid-json";
-        this.onload?.({ target: this } as unknown as ProgressEvent<FileReader>);
-      }
-    }
-    (
-      globalThis as typeof globalThis & { FileReader: typeof FileReader }
-    ).FileReader = MockFileReader as unknown as typeof FileReader;
+    const input = createMockFileInput([
+      new File(["not-json"], "broken.json", { type: "application/json" }),
+    ]);
+    const createElementSpy = withStubbedInputElement(input);
+    installMockFileReader("{invalid-json");
     context.importSource.value = "json";
     context.teamCodeInput.value = "#TA#KEEP";
     context.state.showImportDialog = true;
@@ -881,25 +876,8 @@ describe("useToolbarImportExportCommands", () => {
 
   it("triggerJsonFileImport keeps no-file no-op behavior", () => {
     const context = createContext();
-    const input = {
-      type: "",
-      accept: "",
-      files: [] as File[],
-      value: "filled",
-      onchange: null as ((event: Event) => void) | null,
-      click: vi.fn(() => {
-        input.onchange?.({ target: input } as unknown as Event);
-      }),
-    };
-    const originalCreateElement = document.createElement.bind(document);
-    const createElementSpy = vi
-      .spyOn(document, "createElement")
-      .mockImplementation((tagName: string) => {
-        if (tagName === "input") {
-          return input as unknown as HTMLInputElement;
-        }
-        return originalCreateElement(tagName);
-      });
+    const input = createMockFileInput([]);
+    const createElementSpy = withStubbedInputElement(input);
     context.state.showImportDialog = true;
 
     context.commands.triggerJsonFileImport();

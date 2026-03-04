@@ -2192,6 +2192,46 @@ type ToolbarVm = {
   $nextTick: () => Promise<void>;
 };
 
+const expectImportDialogOpenedWithResetState = (
+  vm: ToolbarVm,
+  expectedOpenCount: number,
+) => {
+  expect(wiringSpies.openImportDialog).toHaveBeenCalledTimes(expectedOpenCount);
+  expect(vm.importSource).toBe("json");
+  expect(vm.teamCodeInput).toBe("");
+  expect(vm.state.showImportDialog).toBe(true);
+};
+
+const closeImportDialogWithDirtyState = async (
+  vm: ToolbarVm,
+  dirtyTeamCode: string,
+) => {
+  vm.state.showImportDialog = false;
+  await vm.$nextTick();
+  expect(vm.state.showImportDialog).toBe(false);
+  vm.importSource = "teamCode";
+  vm.teamCodeInput = dirtyTeamCode;
+  await vm.$nextTick();
+};
+
+const expectImportCommandCounts = (
+  expectedOpenCount: number,
+  expectedJsonCount: number,
+  expectedTeamCodeCount: number,
+  expectedQrCount: number,
+) => {
+  expect(wiringSpies.openImportDialog).toHaveBeenCalledTimes(expectedOpenCount);
+  expect(wiringSpies.triggerJsonFileImport).toHaveBeenCalledTimes(
+    expectedJsonCount,
+  );
+  expect(wiringSpies.handleTeamCodeImport).toHaveBeenCalledTimes(
+    expectedTeamCodeCount,
+  );
+  expect(wiringSpies.triggerTeamCodeQrImport).toHaveBeenCalledTimes(
+    expectedQrCount,
+  );
+};
+
 describe("toolbar wiring regression", () => {
   beforeEach(() => {
     Object.values(wiringSpies).forEach((spy) => spy.mockReset());
@@ -2258,12 +2298,7 @@ describe("toolbar wiring regression", () => {
       await importButton!.trigger("click");
       importButtonTriggerCount += 1;
 
-      expect(wiringSpies.openImportDialog).toHaveBeenCalledTimes(
-        importButtonTriggerCount,
-      );
-      expect(vm.importSource).toBe("json");
-      expect(vm.teamCodeInput).toBe("");
-      expect(vm.state.showImportDialog).toBe(true);
+      expectImportDialogOpenedWithResetState(vm, importButtonTriggerCount);
 
       let sourceBoundVisibility = assertImportSourceBoundVisibility(
         wrapper,
@@ -2289,25 +2324,13 @@ describe("toolbar wiring regression", () => {
       await sourceBoundVisibility.teamCodeQrButton.trigger("click");
       expect(wiringSpies.triggerTeamCodeQrImport).toHaveBeenCalledTimes(round);
 
-      vm.state.showImportDialog = false;
-      await vm.$nextTick();
-      expect(vm.state.showImportDialog).toBe(false);
-
-      vm.importSource = "teamCode";
-      vm.teamCodeInput = `#TA#CLOSED-${round}`;
-      await vm.$nextTick();
+      await closeImportDialogWithDirtyState(vm, `#TA#CLOSED-${round}`);
     }
 
-    expect(wiringSpies.openImportDialog).toHaveBeenCalledTimes(
+    expectImportCommandCounts(
       importButtonTriggerCount,
-    );
-    expect(wiringSpies.triggerJsonFileImport).toHaveBeenCalledTimes(
       importButtonTriggerCount,
-    );
-    expect(wiringSpies.handleTeamCodeImport).toHaveBeenCalledTimes(
       importButtonTriggerCount,
-    );
-    expect(wiringSpies.triggerTeamCodeQrImport).toHaveBeenCalledTimes(
       importButtonTriggerCount,
     );
 
@@ -2328,13 +2351,7 @@ describe("toolbar wiring regression", () => {
     const openImportDialog = async () => {
       await importButton!.trigger("click");
       importTriggerCount += 1;
-
-      expect(wiringSpies.openImportDialog).toHaveBeenCalledTimes(
-        importTriggerCount,
-      );
-      expect(vm.state.showImportDialog).toBe(true);
-      expect(vm.importSource).toBe("json");
-      expect(vm.teamCodeInput).toBe("");
+      expectImportDialogOpenedWithResetState(vm, importTriggerCount);
     };
 
     await openImportDialog();
@@ -2400,11 +2417,7 @@ describe("toolbar wiring regression", () => {
       expectedQrTriggerCount,
     );
 
-    vm.state.showImportDialog = false;
-    await vm.$nextTick();
-    vm.importSource = "teamCode";
-    vm.teamCodeInput = "#TA#DIRTY-CLOSED";
-    await vm.$nextTick();
+    await closeImportDialogWithDirtyState(vm, "#TA#DIRTY-CLOSED");
 
     await openImportDialog();
     sourceBoundVisibility = assertImportSourceBoundVisibility(
@@ -2437,16 +2450,10 @@ describe("toolbar wiring regression", () => {
       expectedQrTriggerCount,
     );
 
-    expect(wiringSpies.openImportDialog).toHaveBeenCalledTimes(
+    expectImportCommandCounts(
       importTriggerCount,
-    );
-    expect(wiringSpies.triggerJsonFileImport).toHaveBeenCalledTimes(
       expectedJsonTriggerCount,
-    );
-    expect(wiringSpies.handleTeamCodeImport).toHaveBeenCalledTimes(
       expectedTeamCodeTriggerCount,
-    );
-    expect(wiringSpies.triggerTeamCodeQrImport).toHaveBeenCalledTimes(
       expectedQrTriggerCount,
     );
 
@@ -2467,12 +2474,7 @@ describe("toolbar wiring regression", () => {
     for (let round = 1; round <= 3; round += 1) {
       await importButton!.trigger("click");
       expectedOpenCount += 1;
-      expect(wiringSpies.openImportDialog).toHaveBeenCalledTimes(
-        expectedOpenCount,
-      );
-      expect(vm.importSource).toBe("json");
-      expect(vm.teamCodeInput).toBe("");
-      expect(vm.state.showImportDialog).toBe(true);
+      expectImportDialogOpenedWithResetState(vm, expectedOpenCount);
 
       let sourceBoundVisibility = assertImportSourceBoundVisibility(
         wrapper,
@@ -2506,23 +2508,13 @@ describe("toolbar wiring regression", () => {
         expectedQrCount,
       );
 
-      vm.state.showImportDialog = false;
-      await vm.$nextTick();
-      vm.importSource = "teamCode";
-      vm.teamCodeInput = `#TA#CLOSED-NOISE-${round}`;
-      await vm.$nextTick();
+      await closeImportDialogWithDirtyState(vm, `#TA#CLOSED-NOISE-${round}`);
     }
 
-    expect(wiringSpies.openImportDialog).toHaveBeenCalledTimes(
+    expectImportCommandCounts(
       expectedOpenCount,
-    );
-    expect(wiringSpies.triggerJsonFileImport).toHaveBeenCalledTimes(
       expectedJsonCount,
-    );
-    expect(wiringSpies.handleTeamCodeImport).toHaveBeenCalledTimes(
       expectedTeamCodeCount,
-    );
-    expect(wiringSpies.triggerTeamCodeQrImport).toHaveBeenCalledTimes(
       expectedQrCount,
     );
 
@@ -2552,12 +2544,7 @@ describe("toolbar wiring regression", () => {
     for (let round = 1; round <= 3; round += 1) {
       await importButton!.trigger("click");
       expectedOpenCount += 1;
-      expect(wiringSpies.openImportDialog).toHaveBeenCalledTimes(
-        expectedOpenCount,
-      );
-      expect(vm.importSource).toBe("json");
-      expect(vm.teamCodeInput).toBe("");
-      expect(vm.state.showImportDialog).toBe(true);
+      expectImportDialogOpenedWithResetState(vm, expectedOpenCount);
 
       let sourceBoundVisibility = assertImportSourceBoundVisibility(
         wrapper,
@@ -2601,23 +2588,13 @@ describe("toolbar wiring regression", () => {
         expectedQrCount,
       );
 
-      vm.state.showImportDialog = false;
-      await vm.$nextTick();
-      vm.importSource = "teamCode";
-      vm.teamCodeInput = `#TA#CLOSED-MIXED-${round}`;
-      await vm.$nextTick();
+      await closeImportDialogWithDirtyState(vm, `#TA#CLOSED-MIXED-${round}`);
     }
 
-    expect(wiringSpies.openImportDialog).toHaveBeenCalledTimes(
+    expectImportCommandCounts(
       expectedOpenCount,
-    );
-    expect(wiringSpies.triggerJsonFileImport).toHaveBeenCalledTimes(
       expectedJsonCount,
-    );
-    expect(wiringSpies.handleTeamCodeImport).toHaveBeenCalledTimes(
       expectedTeamCodeCount,
-    );
-    expect(wiringSpies.triggerTeamCodeQrImport).toHaveBeenCalledTimes(
       expectedQrCount,
     );
 

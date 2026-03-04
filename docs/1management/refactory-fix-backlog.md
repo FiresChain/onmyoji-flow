@@ -54,7 +54,7 @@
     - `Refactory.md` 第 5 章文档维护总清单
   - 验收：文档中的构建产物、脚本、体积、状态与当前仓库一致。
 
-- [ ] **RFX-004（P0/2 bridge）测试噪声 stub 参数化收敛**
+- [x] **RFX-004（P0/2 bridge）测试噪声 stub 参数化收敛**
   - 目标：对三份 Toolbar 大测试做噪声 stub 抽取/参数化，降低维护成本（不改语义）。
   - 主要文件：
     - `src/__tests__/useToolbarImportExportCommands.test.ts`

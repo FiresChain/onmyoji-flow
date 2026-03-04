@@ -165,6 +165,27 @@ const expectContainsIgnoringQuoteStyle = (source: string, snippet: string) => {
   expect(normalizeQuoteStyle(source)).toContain(normalizeQuoteStyle(snippet));
 };
 
+const expectSourceContainsAll = (source: string, snippets: string[]) => {
+  snippets.forEach((snippet) => {
+    expect(source).toContain(snippet);
+  });
+};
+
+const expectSourceNotContainsAll = (source: string, snippets: string[]) => {
+  snippets.forEach((snippet) => {
+    expect(source).not.toContain(snippet);
+  });
+};
+
+const expectSourceContainsAllIgnoringQuoteStyle = (
+  source: string,
+  snippets: string[],
+) => {
+  snippets.forEach((snippet) => {
+    expectContainsIgnoringQuoteStyle(source, snippet);
+  });
+};
+
 describe("Toolbar architecture guard", () => {
   it("keeps toolbar as composable wiring layer", () => {
     const toolbarRequiredSnippets = [
@@ -175,9 +196,7 @@ describe("Toolbar architecture guard", () => {
       "useToolbarDialogState({",
     ];
 
-    toolbarRequiredSnippets.forEach((snippet) => {
-      expect(toolbarSource).toContain(snippet);
-    });
+    expectSourceContainsAll(toolbarSource, toolbarRequiredSnippets);
   });
 
   it("keeps workspace command implementations in useToolbarWorkspaceCommands", () => {
@@ -186,18 +205,17 @@ describe("Toolbar architecture guard", () => {
       '@click="handleResetWorkspace"',
       '@click="handleClearCanvas"',
     ];
-    toolbarWiringSnippets.forEach((snippet) => {
-      expect(toolbarSource).toContain(snippet);
-    });
+    expectSourceContainsAll(toolbarSource, toolbarWiringSnippets);
 
     const toolbarShouldNotContainWorkspaceImplementations = [
       "加载样例会覆盖当前数据，是否覆盖？",
       "确定重置当前工作区？该操作不可撤销",
       "仅清空当前画布，不影响其他文件，确定继续？",
     ];
-    toolbarShouldNotContainWorkspaceImplementations.forEach((snippet) => {
-      expect(toolbarSource).not.toContain(snippet);
-    });
+    expectSourceNotContainsAll(
+      toolbarSource,
+      toolbarShouldNotContainWorkspaceImplementations,
+    );
 
     const composableRequiredSnippets = [
       "加载样例会覆盖当前数据，是否覆盖？",
@@ -205,9 +223,10 @@ describe("Toolbar architecture guard", () => {
       "仅清空当前画布，不影响其他文件，确定继续？",
       "showMessage('success', '当前画布已清空');",
     ];
-    composableRequiredSnippets.forEach((snippet) => {
-      expectContainsIgnoringQuoteStyle(workspaceCommandsSource, snippet);
-    });
+    expectSourceContainsAllIgnoringQuoteStyle(
+      workspaceCommandsSource,
+      composableRequiredSnippets,
+    );
   });
 
   it("keeps import/export implementations in useToolbarImportExportCommands", () => {
@@ -221,9 +240,7 @@ describe("Toolbar architecture guard", () => {
       '@click="handleTeamCodeImport"',
       '@change="handleTeamCodeQrImport"',
     ];
-    toolbarWiringSnippets.forEach((snippet) => {
-      expect(toolbarSource).toContain(snippet);
-    });
+    expectSourceContainsAll(toolbarSource, toolbarWiringSnippets);
 
     const toolbarShouldNotContainImportExportImplementations = [
       "convertTeamCodeToRootDocument",
@@ -248,9 +265,10 @@ describe("Toolbar architecture guard", () => {
       "const handleJsonImport = () => {",
       "const handleTeamCodeImport = async () => {",
     ];
-    toolbarShouldNotContainImportExportImplementations.forEach((snippet) => {
-      expect(toolbarSource).not.toContain(snippet);
-    });
+    expectSourceNotContainsAll(
+      toolbarSource,
+      toolbarShouldNotContainImportExportImplementations,
+    );
 
     const toolbarShouldNotContainImportExportPatterns = [
       /document\.createElement\(\s*['"](input|a)['"]\s*\)/,
@@ -291,9 +309,10 @@ describe("Toolbar architecture guard", () => {
       "showMessage('error', '未找到 LogicFlow 实例，无法截图');",
       "decodeTeamCodeFromQrImage",
     ];
-    composableRequiredSnippets.forEach((snippet) => {
-      expectContainsIgnoringQuoteStyle(importExportCommandsSource, snippet);
-    });
+    expectSourceContainsAllIgnoringQuoteStyle(
+      importExportCommandsSource,
+      composableRequiredSnippets,
+    );
 
     expect(importExportCommandsSource).toMatch(
       /const handleExport = \(\) => \{\s*filesStore\.updateTab\(\);\s*setTimeout\(\(\) => \{\s*filesStore\.exportData\(\);\s*\},\s*2000\);\s*\};/s,
@@ -935,9 +954,7 @@ describe("Toolbar architecture guard", () => {
       "mountAssetManagement();",
       "disposeAssetManagement();",
     ];
-    toolbarWiringSnippets.forEach((snippet) => {
-      expect(toolbarSource).toContain(snippet);
-    });
+    expectSourceContainsAll(toolbarSource, toolbarWiringSnippets);
 
     const toolbarShouldNotContainAssetImplementations = [
       "subscribeCustomAssetStore",
@@ -945,9 +962,10 @@ describe("Toolbar architecture guard", () => {
       "deleteCustomAsset",
       "listCustomAssets",
     ];
-    toolbarShouldNotContainAssetImplementations.forEach((snippet) => {
-      expect(toolbarSource).not.toContain(snippet);
-    });
+    expectSourceNotContainsAll(
+      toolbarSource,
+      toolbarShouldNotContainAssetImplementations,
+    );
 
     const composableRequiredSnippets = [
       "subscribeCustomAssetStore",
@@ -956,9 +974,10 @@ describe("Toolbar architecture guard", () => {
       "listCustomAssets",
       "showMessage('success', '素材上传成功');",
     ];
-    composableRequiredSnippets.forEach((snippet) => {
-      expectContainsIgnoringQuoteStyle(assetManagementSource, snippet);
-    });
+    expectSourceContainsAllIgnoringQuoteStyle(
+      assetManagementSource,
+      composableRequiredSnippets,
+    );
   });
 
   it("keeps rule management implementations in useToolbarRuleManagement", () => {
@@ -969,9 +988,7 @@ describe("Toolbar architecture guard", () => {
       '@change="handleRuleBundleImport"',
       '@click="saveRuleEditor"',
     ];
-    toolbarWiringSnippets.forEach((snippet) => {
-      expect(toolbarSource).toContain(snippet);
-    });
+    expectSourceContainsAll(toolbarSource, toolbarWiringSnippets);
 
     const toolbarShouldNotContainRuleImplementations = [
       "readSharedGroupRulesConfig",
@@ -979,9 +996,10 @@ describe("Toolbar architecture guard", () => {
       "normalizeImportedExpressionRules",
       "恢复默认会覆盖当前规则和变量，是否继续？",
     ];
-    toolbarShouldNotContainRuleImplementations.forEach((snippet) => {
-      expect(toolbarSource).not.toContain(snippet);
-    });
+    expectSourceNotContainsAll(
+      toolbarSource,
+      toolbarShouldNotContainRuleImplementations,
+    );
 
     const composableRequiredSnippets = [
       "readSharedGroupRulesConfig",
@@ -991,9 +1009,10 @@ describe("Toolbar architecture guard", () => {
       "恢复默认会覆盖当前规则和变量，是否继续？",
       "const applyRuleManagerConfig = () => {",
     ];
-    composableRequiredSnippets.forEach((snippet) => {
-      expectContainsIgnoringQuoteStyle(ruleManagementSource, snippet);
-    });
+    expectSourceContainsAllIgnoringQuoteStyle(
+      ruleManagementSource,
+      composableRequiredSnippets,
+    );
   });
 
   it("keeps dialog state implementations in useToolbarDialogState", () => {
@@ -1003,9 +1022,7 @@ describe("Toolbar architecture guard", () => {
       '@click="openWatermarkDialog"',
       "mountDialogState();",
     ];
-    toolbarWiringSnippets.forEach((snippet) => {
-      expect(toolbarSource).toContain(snippet);
-    });
+    expectSourceContainsAll(toolbarSource, toolbarWiringSnippets);
 
     const toolbarShouldNotContainDialogImplementations = [
       "localStorage.setItem('watermark.text'",
@@ -1013,9 +1030,10 @@ describe("Toolbar architecture guard", () => {
       "state.showUpdateLogDialog = !state.showUpdateLogDialog;",
       "state.showFeedbackFormDialog = !state.showFeedbackFormDialog;",
     ];
-    toolbarShouldNotContainDialogImplementations.forEach((snippet) => {
-      expect(toolbarSource).not.toContain(snippet);
-    });
+    expectSourceNotContainsAll(
+      toolbarSource,
+      toolbarShouldNotContainDialogImplementations,
+    );
 
     const composableRequiredSnippets = [
       "state.showUpdateLogDialog = !state.showUpdateLogDialog;",
@@ -1024,8 +1042,9 @@ describe("Toolbar architecture guard", () => {
       "localStorage.setItem('appVersion', currentAppVersion);",
       "const mountDialogState = () => {",
     ];
-    composableRequiredSnippets.forEach((snippet) => {
-      expectContainsIgnoringQuoteStyle(dialogStateSource, snippet);
-    });
+    expectSourceContainsAllIgnoringQuoteStyle(
+      dialogStateSource,
+      composableRequiredSnippets,
+    );
   });
 });

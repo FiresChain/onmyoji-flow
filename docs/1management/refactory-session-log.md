@@ -44,6 +44,38 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-04] Session 118 - RFX-004 Test Stub Noise Parameterization
+
+- Refactory Scope:
+  - Phase: Phase 0 / Phase 2 bridge
+  - Task: 对三份 Toolbar 相关大测试收敛重复 stub/setup 噪声，保持断言语义与行为不变
+- In Scope Files:
+  - `src/__tests__/useToolbarImportExportCommands.test.ts`
+  - `src/__tests__/toolbar-wiring.regression.test.ts`
+  - `src/__tests__/toolbar-architecture.guard.test.ts`
+  - `docs/1management/refactory-fix-backlog.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - 运行时代码与业务行为改动
+  - 测试覆盖面扩张（仅做结构去重与可维护性提升）
+  - 进度百分比字段更新
+- Decisions:
+  - `useToolbarImportExportCommands.test.ts` 抽取 `createMockFileInput`、`withStubbedInputElement`、`installMockFileReader`，统一 JSON 导入失败场景的输入与 FileReader stub。
+  - `toolbar-wiring.regression.test.ts` 抽取 `expectImportDialogOpenedWithResetState`、`closeImportDialogWithDirtyState`、`expectImportCommandCounts`，收敛多轮开关对话框用例中的重复断言与收尾步骤。
+  - `toolbar-architecture.guard.test.ts` 抽取批量断言 helper（contains/not-contains/ignore-quote），减少重复循环模板噪声。
+- Checks:
+  - `npx vitest run src/__tests__/useToolbarImportExportCommands.test.ts src/__tests__/toolbar-wiring.regression.test.ts src/__tests__/toolbar-architecture.guard.test.ts`: pass
+  - `npm test`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `prettier --check`: not-run（本轮仅定向 `prettier --write` 目标文件）
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 测试 helper 复用提升后，后续新增 case 若偏离共享路径，需避免把真实分支差异再次隐藏进 helper。
+  - `toolbar-wiring.regression` 仍是超大文件，后续可在不改语义前提下继续做“场景数据化”分步收敛。
+- Next Recommended Unit:
+  - `RFX-005（P0）仓库卫生清理`
+
 ## [2026-03-04] Session 117 - RFX-003 Refresh Documentation Baseline Metrics
 
 - Refactory Scope:
