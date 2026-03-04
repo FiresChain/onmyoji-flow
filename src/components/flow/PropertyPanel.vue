@@ -12,26 +12,7 @@ import { getLogicFlowInstance, useLogicFlowScope } from "@/ts/useLogicFlow";
 import { useSafeI18n } from "@/ts/useSafeI18n";
 
 const logicFlowScope = useLogicFlowScope();
-const { t } = useSafeI18n({
-  "flow.property.title": "属性编辑",
-  "flow.property.empty.selectNode": "请选择一个节点以编辑其属性",
-  "flow.property.empty.assetTip":
-    "素材入口：添加并选中 assetSelector 节点后，点击“选择资产”。",
-  "flow.property.tab.game": "游戏属性",
-  "flow.property.tab.style": "图像属性",
-  "flow.property.section.basic": "基本信息",
-  "flow.property.label.nodeId": "节点ID",
-  "flow.property.label.nodeType": "节点类型",
-  "flow.property.section.selectorType": "节点类型",
-  "flow.property.label.assetType": "资产类型",
-  "flow.property.placeholder.assetType": "选择资产类型",
-  "flow.property.section.none": "暂无特定属性",
-  "flow.property.value.none": "当前节点类型无需额外配置。",
-  "assetLibrary.shikigami": "式神",
-  "assetLibrary.yuhun": "御魂",
-  "assetLibrary.onmyoji": "阴阳师",
-  "assetLibrary.onmyojiSkill": "阴阳师技能",
-});
+const { t } = useSafeI18n();
 
 const props = defineProps({
   height: {

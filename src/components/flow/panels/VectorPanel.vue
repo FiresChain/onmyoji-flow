@@ -5,23 +5,7 @@ import { useSafeI18n } from "@/ts/useSafeI18n";
 
 const props = defineProps<{ node: any }>();
 const logicFlowScope = useLogicFlowScope();
-const { t } = useSafeI18n({
-  "flow.vector.title": "矢量配置",
-  "flow.vector.kind": "图形类型",
-  "flow.vector.kind.rect": "矩形",
-  "flow.vector.kind.ellipse": "椭圆",
-  "flow.vector.kind.polygon": "多边形",
-  "flow.vector.kind.path": "路径",
-  "flow.vector.kind.svg": "自定义SVG",
-  "flow.vector.tileSize": "平铺尺寸 (宽×高)",
-  "flow.vector.fill": "填充颜色",
-  "flow.vector.stroke": "描边颜色",
-  "flow.vector.strokeWidth": "描边宽度",
-  "flow.vector.pathData": "Path 数据",
-  "flow.vector.pathPlaceholder": "M 0 0 L 50 50 Z",
-  "flow.vector.svgContent": "SVG 内容",
-  "flow.vector.svgPlaceholder": "<rect x='0' y='0' width='50' height='50' />",
-});
+const { t } = useSafeI18n();
 
 const form = reactive({
   kind: "rect",

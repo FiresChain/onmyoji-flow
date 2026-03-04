@@ -201,30 +201,7 @@ const selectedCount = ref(0);
 const { selectionEnabled, snapGridEnabled, snaplineEnabled } =
   useCanvasSettings();
 const { showMessage } = useGlobalMessage();
-const { t } = useSafeI18n({
-  "flowEditor.controls.expand": "显示画布控制",
-  "flowEditor.controls.collapse": "收起画布控制",
-  "flowEditor.controls.selection": "框选",
-  "flowEditor.controls.snapGrid": "吸附网格",
-  "flowEditor.controls.snapline": "对齐线",
-  "flowEditor.controls.selectedCount": "已选 {count}",
-  "flowEditor.controls.showAll": "显示全部",
-  "flowEditor.controls.align": "对齐",
-  "flowEditor.controls.distribute": "分布",
-  "flowEditor.problems.tab": "Problems",
-  "flowEditor.problems.header": "规则告警",
-  "flowEditor.problems.count": "{count} 条",
-  "flowEditor.problems.empty": "当前没有告警",
-  "flowEditor.message.lockedNodesSkipped": "部分节点已锁定，未删除",
-  "flowEditor.message.nodeLockedCannotDelete": "节点已锁定，无法删除",
-  "flowEditor.message.selectNodeToToggleLock": "请选择节点后再执行锁定/解锁",
-  "flowEditor.message.selectNodeToToggleVisibility": "请选择节点后再执行显示/隐藏",
-  "flowEditor.message.showAllSuccess": "已显示 {count} 个节点",
-  "flowEditor.message.noHiddenNodes": "没有隐藏的节点",
-  "flowEditor.message.groupNeedTwo":
-    "请选择至少两个未锁定的节点进行分组",
-  "flowEditor.message.selectNodeToUngroup": "请选择节点后再执行解组",
-});
+const { t } = useSafeI18n();
 
 // 当前选中节点
 const selectedNode = ref<any>(null);

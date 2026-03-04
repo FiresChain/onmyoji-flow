@@ -2,7 +2,7 @@
 import { mount } from "@vue/test-utils";
 import { defineComponent, h, ref } from "vue";
 import Toolbar from "@/components/Toolbar.vue";
-
+import zhMessages from "@/locales/zh.json";
 const wiringSpies = vi.hoisted(() => ({
   handleExport: vi.fn(),
   handlePreviewData: vi.fn(),
@@ -57,8 +57,8 @@ vi.mock("@/ts/useGlobalMessage", () => ({
 }));
 
 vi.mock("@/ts/useSafeI18n", () => ({
-  useSafeI18n: vi.fn((messages: Record<string, string>) => ({
-    t: (key: string) => messages[key] || key,
+  useSafeI18n: vi.fn((messages?: Record<string, string>) => ({
+    t: (key: string) => messages?.[key] || zhMessages[key] || key,
   })),
 }));
 
@@ -2601,3 +2601,4 @@ describe("toolbar wiring regression", () => {
     wrapper.unmount();
   });
 });
+

@@ -7,11 +7,7 @@ import { useSafeI18n } from "@/ts/useSafeI18n";
 
 const props = defineProps<{ node: any }>();
 const logicFlowScope = useLogicFlowScope();
-const { t } = useSafeI18n({
-  "flow.text.defaultHtml": "<p>请输入文本</p>",
-  "flow.text.title": "文本节点",
-  "flow.text.content": "内容",
-});
+const { t } = useSafeI18n();
 
 const DEFAULT_HTML = t("flow.text.defaultHtml");
 

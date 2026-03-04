@@ -4,35 +4,7 @@ import { getLogicFlowInstance, useLogicFlowScope } from "@/ts/useLogicFlow";
 import { useSafeI18n } from "@/ts/useSafeI18n";
 
 const logicFlowScope = useLogicFlowScope();
-const { t } = useSafeI18n({
-  "flow.components.title": "组件库",
-  "flow.components.group.basic": "基础组件",
-  "flow.components.group.yys": "阴阳师",
-  "flow.components.group.other": "其他游戏",
-  "flow.components.rect.name": "长方形",
-  "flow.components.rect.desc": "基础长方形节点",
-  "flow.components.ellipse.name": "圆形",
-  "flow.components.ellipse.desc": "基础圆形节点",
-  "flow.components.dynamicGroup.name": "动态分组",
-  "flow.components.dynamicGroup.desc": "可折叠的动态分组容器",
-  "flow.components.image.name": "图片",
-  "flow.components.image.desc": "可上传图片的节点",
-  "flow.components.text.name": "文字编辑框",
-  "flow.components.text.desc": "可编辑文本的节点",
-  "flow.components.text.defaultHtml": "<p>请输入文本</p>",
-  "flow.components.vector.name": "矢量图块",
-  "flow.components.vector.desc": "可平铺的矢量图形，用于边框装饰",
-  "flow.components.assetSelector.name": "资产选择器",
-  "flow.components.assetSelector.desc": "通用资产选择器（式神/御魂等）",
-  "flow.components.shikigami.name": "式神选择器",
-  "flow.components.shikigami.desc": "用于选择式神的组件",
-  "flow.components.yuhun.name": "御魂选择器",
-  "flow.components.yuhun.desc": "用于选择御魂的组件",
-  "flow.components.onmyoji.name": "阴阳师选择器",
-  "flow.components.onmyoji.desc": "用于选择阴阳师的组件",
-  "flow.components.onmyojiSkill.name": "阴阳师技能选择器",
-  "flow.components.onmyojiSkill.desc": "用于选择阴阳师技能的组件",
-});
+const { t } = useSafeI18n();
 
 // 使用嵌套结构定义组件分组
 const componentGroups = computed(() => [

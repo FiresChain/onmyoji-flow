@@ -252,19 +252,7 @@ const clipboard = ref("");
 const { showMessage } = useGlobalMessage();
 
 // 获取当前的 i18n 实例
-const { t } = useSafeI18n({
-  "yys.levelSuffix": "级",
-  "yys.message.cannotDeleteElement": "无法删除",
-  "yys.message.deleteSuccess": "删除成功!",
-  "yys.message.deleteCanceled": "已取消删除",
-  "yys.message.cannotDeleteLastGroup": "无法删除最后一个队伍",
-  "yys.confirm.deleteElement": "确定要删除此元素吗?",
-  "yys.confirm.deleteGroup": "确定要删除此组吗?",
-  "yys.confirm.title": "提示",
-  "yys.import.readFail": "文件读取失败",
-  "yys.import.invalidFormat": "文件格式错误",
-  "yys.import.success": "导入成功",
-});
+const { t } = useSafeI18n();
 
 const copy = (str) => {
   clipboard.value = str;

@@ -7,11 +7,7 @@ type FitMode = "contain" | "cover" | "fill";
 
 const imageUrl = ref("");
 const fit = ref<FitMode>("contain");
-const { t } = useSafeI18n({
-  "flow.imageNode.alt": "图片节点",
-  "flow.imageNode.placeholder": "未上传图片",
-  "flow.imageNode.hint": "在右侧属性面板上传或填写 URL",
-});
+const { t } = useSafeI18n();
 
 const { containerStyle } = useNodeAppearance({
   onPropsChange(props) {

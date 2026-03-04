@@ -10,20 +10,7 @@ const props = defineProps<{
   node: any;
 }>();
 const logicFlowScope = useLogicFlowScope();
-const { t } = useSafeI18n({
-  "flow.image.title": "图片设置",
-  "flow.image.url": "图片 URL",
-  "flow.image.urlPlaceholder": "输入图片链接或上传文件",
-  "flow.image.upload": "上传文件",
-  "flow.image.uploadHint": "本地上传将以 base64 保存",
-  "flow.image.fit": "显示模式",
-  "flow.image.fit.contain": "自适应",
-  "flow.image.fit.cover": "填充",
-  "flow.image.fit.fill": "拉伸",
-  "flow.image.size": "宽 / 高",
-  "flow.image.preview": "预览",
-  "flow.image.previewAlt": "预览",
-});
+const { t } = useSafeI18n();
 
 type ImageForm = {
   url: string;

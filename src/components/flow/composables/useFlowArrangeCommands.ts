@@ -36,18 +36,7 @@ interface SelectedRect {
 
 export function useFlowArrangeCommands(options: UseFlowArrangeCommandsOptions) {
   const { lf, showMessage, getSelectedNodeModelsFiltered } = options;
-  const { t } = useSafeI18n({
-    "flowEditor.align.left": "左对齐",
-    "flowEditor.align.right": "右对齐",
-    "flowEditor.align.top": "上对齐",
-    "flowEditor.align.bottom": "下对齐",
-    "flowEditor.align.hcenter": "水平居中",
-    "flowEditor.align.vcenter": "垂直居中",
-    "flowEditor.distribute.horizontal": "水平等距",
-    "flowEditor.distribute.vertical": "垂直等距",
-    "flowEditor.message.alignNeedTwo": "请选择至少两个节点再执行对齐",
-    "flowEditor.message.distributeNeedThree": "请选择至少三个节点再执行分布",
-  });
+  const { t } = useSafeI18n();
 
   const alignmentButtons: { key: AlignType; labelKey: string }[] = [
     { key: "left", labelKey: "flowEditor.align.left" },

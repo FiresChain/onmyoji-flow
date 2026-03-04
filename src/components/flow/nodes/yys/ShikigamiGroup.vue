@@ -238,16 +238,7 @@ const dialogTableVisible = ref(false);
 const { showMessage } = useGlobalMessage();
 
 // 获取当前的 i18n 实例
-const { t } = useSafeI18n({
-  "yys.levelSuffix": "级",
-  "yys.message.cannotDeleteElement": "无法删除",
-  "yys.message.deleteSuccess": "删除成功!",
-  "yys.message.deleteCanceled": "已取消删除",
-  "yys.message.cannotDeleteLastGroup": "无法删除最后一个队伍",
-  "yys.confirm.deleteElement": "确定要删除此元素吗?",
-  "yys.confirm.deleteGroup": "确定要删除此组吗?",
-  "yys.confirm.title": "提示",
-});
+const { t } = useSafeI18n();
 
 // 定义 QuillEditor 的 ref
 const shortDescriptionEditor = ref<InstanceType<typeof QuillEditor>>();

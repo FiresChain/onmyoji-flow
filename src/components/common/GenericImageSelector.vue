@@ -101,12 +101,7 @@ const emit = defineEmits<{
   "update:modelValue": [value: boolean];
   select: [item: any];
 }>();
-const { t } = useSafeI18n({
-  "selector.currentSelection": "当前选择",
-  "selector.uploadMine": "上传我的素材",
-  "selector.searchPlaceholder": "请输入内容",
-  "selector.delete": "删除",
-});
+const { t } = useSafeI18n();
 
 const show = computed({
   get: () => props.modelValue,

@@ -8,24 +8,7 @@ const props = defineProps<{
   node: any;
 }>();
 const logicFlowScope = useLogicFlowScope();
-const { t } = useSafeI18n({
-  "flow.style.title": "样式",
-  "flow.style.fill": "填充",
-  "flow.style.stroke": "描边",
-  "flow.style.radius": "圆角",
-  "flow.style.shadow": "阴影",
-  "flow.style.opacity": "透明度",
-  "flow.style.textAlign": "文字对齐",
-  "flow.style.lineHeightWeight": "行高 / 字重",
-  "flow.style.align.left": "左对齐",
-  "flow.style.align.center": "居中",
-  "flow.style.align.right": "右对齐",
-  "flow.style.weight.300": "细（300）",
-  "flow.style.weight.400": "常规（400）",
-  "flow.style.weight.500": "中等（500）",
-  "flow.style.weight.600": "半粗（600）",
-  "flow.style.weight.700": "粗体（700）",
-});
+const { t } = useSafeI18n();
 
 type StyleForm = {
   fill: string;

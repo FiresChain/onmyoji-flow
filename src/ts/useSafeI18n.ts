@@ -23,8 +23,8 @@ type ComposerTranslateRestArgs = [
 ];
 type TranslateFn = (key: string, ...args: ComposerTranslateRestArgs) => string;
 
-export function useSafeI18n(fallbackMap: Record<string, string> = {}) {
-  let safeT: TranslateFn = (key) => fallbackMap[key] ?? key;
+export function useSafeI18n() {
+  let safeT: TranslateFn = (key) => key;
   let resolveLocale = () => {
     if (typeof navigator !== "undefined") {
       return navigator.language || "zh";
@@ -48,7 +48,7 @@ export function useSafeI18n(fallbackMap: Record<string, string> = {}) {
       if (typeof translated === "string" && translated.length > 0) {
         return translated;
       }
-      return fallbackMap[key] ?? key;
+      return key;
     };
     resolveLocale = () => {
       const rawLocale =
@@ -67,7 +67,7 @@ export function useSafeI18n(fallbackMap: Record<string, string> = {}) {
       locale.value = normalized;
     };
   } catch {
-    // The host app may not install vue-i18n; fallback to key/default text.
+    // The host app may not install vue-i18n; fallback to key.
   }
 
   return { t: safeT, getLocale: resolveLocale, setLocale: updateLocale };

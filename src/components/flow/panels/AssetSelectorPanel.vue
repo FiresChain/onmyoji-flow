@@ -18,9 +18,7 @@ const props = defineProps<{
 
 const { openGenericSelector } = useDialogs();
 const logicFlowScope = useLogicFlowScope();
-const { t, getLocale } = useSafeI18n({
-  "selector.group.custom": "我的素材",
-});
+const { t, getLocale } = useSafeI18n();
 
 const currentLibrary = computed(
   () => props.node.properties?.assetLibrary || "shikigami",
