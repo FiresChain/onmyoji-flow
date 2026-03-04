@@ -6,12 +6,12 @@
     @updateYuhun="updateYuhunSelect"
   />
 
-  <el-dialog v-model="show" title="属性选择器" width="80%">
+  <el-dialog v-model="show" :title="t('yys.selector.dialogTitle')" width="80%">
     <el-form :model="property" label-width="120px">
       <el-tabs v-model="activeTab">
         <!-- 基础属性选项卡 -->
-        <el-tab-pane label="基础属性" name="basic">
-          <el-form-item label="属性类型">
+        <el-tab-pane :label="t('yys.selector.tab.basic')" name="basic">
+          <el-form-item :label="t('yys.selector.propertyType')">
             <el-select v-model="property.type" @change="handleTypeChange">
               <el-option
                 v-for="type in propertyTypes"
@@ -24,13 +24,13 @@
 
           <!-- 攻击属性 -->
           <div v-if="property.type === 'attack'">
-            <el-form-item label="攻击值类型">
+            <el-form-item :label="t('yys.selector.attackType')">
               <el-radio-group v-model="property.attackType">
-                <el-radio label="fixed" size="large">固定值</el-radio>
-                <el-radio label="percentage" size="large">百分比</el-radio>
+                <el-radio label="fixed" size="large">{{ t("yys.selector.fixedValue") }}</el-radio>
+                <el-radio label="percentage" size="large">{{ t("yys.selector.percentageValue") }}</el-radio>
               </el-radio-group>
             </el-form-item>
-            <el-form-item label="攻击值">
+            <el-form-item :label="t('yys.selector.attackValue')">
               <el-input-number
                 v-model="property.attackValue"
                 :min="0"
@@ -42,13 +42,13 @@
 
           <!-- 生命属性 -->
           <div v-if="property.type === 'health'">
-            <el-form-item label="生命值类型">
+            <el-form-item :label="t('yys.selector.healthType')">
               <el-radio-group v-model="property.healthType">
-                <el-radio label="fixed" size="large">固定值</el-radio>
-                <el-radio label="percentage" size="large">百分比</el-radio>
+                <el-radio label="fixed" size="large">{{ t("yys.selector.fixedValue") }}</el-radio>
+                <el-radio label="percentage" size="large">{{ t("yys.selector.percentageValue") }}</el-radio>
               </el-radio-group>
             </el-form-item>
-            <el-form-item label="生命值">
+            <el-form-item :label="t('yys.selector.healthValue')">
               <el-input-number
                 v-model="property.healthValue"
                 :min="0"
@@ -60,13 +60,13 @@
 
           <!-- 防御属性 -->
           <div v-if="property.type === 'defense'">
-            <el-form-item label="防御值类型">
+            <el-form-item :label="t('yys.selector.defenseType')">
               <el-radio-group v-model="property.defenseType">
-                <el-radio label="fixed" size="large">固定值</el-radio>
-                <el-radio label="percentage" size="large">百分比</el-radio>
+                <el-radio label="fixed" size="large">{{ t("yys.selector.fixedValue") }}</el-radio>
+                <el-radio label="percentage" size="large">{{ t("yys.selector.percentageValue") }}</el-radio>
               </el-radio-group>
             </el-form-item>
-            <el-form-item label="防御值">
+            <el-form-item :label="t('yys.selector.defenseValue')">
               <el-input-number
                 v-model="property.defenseValue"
                 :min="0"
@@ -78,7 +78,7 @@
 
           <!-- 速度属性 -->
           <div v-if="property.type === 'speed'">
-            <el-form-item label="速度值">
+            <el-form-item :label="t('yys.selector.speedValue')">
               <el-input-number
                 v-model="property.speedValue"
                 :min="0"
@@ -89,7 +89,7 @@
 
           <!-- 暴击相关属性 -->
           <div v-if="property.type === 'crit'">
-            <el-form-item label="暴击率">
+            <el-form-item :label="t('yys.selector.critRate')">
               <el-input-number
                 v-model="property.critRate"
                 :min="0"
@@ -101,7 +101,7 @@
           </div>
 
           <div v-if="property.type === 'critDmg'">
-            <el-form-item label="暴击伤害">
+            <el-form-item :label="t('yys.selector.critDamage')">
               <el-input-number
                 v-model="property.critDmg"
                 :min="0"
@@ -113,7 +113,7 @@
 
           <!-- 效果命中与抵抗 -->
           <div v-if="property.type === 'effectHit'">
-            <el-form-item label="效果命中">
+            <el-form-item :label="t('yys.selector.effectHit')">
               <el-input-number
                 v-model="property.effectHitValue"
                 :min="0"
@@ -124,7 +124,7 @@
           </div>
 
           <div v-if="property.type === 'effectResist'">
-            <el-form-item label="效果抵抗">
+            <el-form-item :label="t('yys.selector.effectResist')">
               <el-input-number
                 v-model="property.effectResistValue"
                 :min="0"
@@ -135,29 +135,29 @@
           </div>
 
           <!-- 所有属性都显示的字段 -->
-          <el-form-item label="优先级">
+          <el-form-item :label="t('yys.selector.priority')">
             <el-select v-model="property.priority">
-              <el-option label="必须" value="required" />
-              <el-option label="推荐" value="recommended" />
-              <el-option label="可选" value="optional" />
+              <el-option :label="t('yys.selector.priority.required')" value="required" />
+              <el-option :label="t('yys.selector.priority.recommended')" value="recommended" />
+              <el-option :label="t('yys.selector.priority.optional')" value="optional" />
             </el-select>
           </el-form-item>
         </el-tab-pane>
 
         <!-- 式神要求选项卡 -->
-        <el-tab-pane label="式神要求" name="shikigami">
-          <el-form-item label="等级要求">
+        <el-tab-pane :label="t('yys.selector.tab.shikigami')" name="shikigami">
+          <el-form-item :label="t('yys.property.levelRequired')">
             <el-radio-group v-model="property.levelRequired" class="ml-4">
               <el-radio value="40" size="large">40</el-radio>
-              <el-radio value="0" size="large">献祭</el-radio>
+              <el-radio value="0" size="large">{{ t("yys.property.sacrifice") }}</el-radio>
             </el-radio-group>
           </el-form-item>
 
-          <el-form-item label="技能要求">
+          <el-form-item :label="t('yys.property.skillRequired')">
             <el-radio-group v-model="property.skillRequiredMode" class="ml-4">
-              <el-radio value="all" size="large">全满</el-radio>
+              <el-radio value="all" size="large">{{ t("yys.property.skillAll") }}</el-radio>
               <el-radio value="111" size="large">111</el-radio>
-              <el-radio value="custom" size="large">自定义</el-radio>
+              <el-radio value="custom" size="large">{{ t("yys.property.skillCustom") }}</el-radio>
             </el-radio-group>
             <div
               v-if="property.skillRequiredMode === 'custom'"
@@ -182,10 +182,10 @@
         </el-tab-pane>
 
         <!-- 御魂要求选项卡 -->
-        <el-tab-pane label="御魂要求" name="yuhun">
+        <el-tab-pane :label="t('yys.selector.tab.yuhun')" name="yuhun">
           <div style="display: flex; flex-direction: row; width: 100%">
             <div style="display: flex; flex-direction: column; width: 50%">
-              <el-form-item label="御魂套装">
+              <el-form-item :label="t('yys.property.yuhunSet')">
                 <div
                   style="
                     display: flex;
@@ -210,7 +210,7 @@
                 </div>
               </el-form-item>
 
-              <el-form-item label="御魂效果目标">
+              <el-form-item :label="t('yys.selector.yuhunTarget')">
                 <el-select
                   v-model="yuhunTarget"
                   @change="handleYuhunTargetChange"
@@ -226,7 +226,7 @@
             </div>
 
             <div style="display: flex; flex-direction: column; width: 50%">
-              <el-form-item label="2号位主属性">
+              <el-form-item :label="t('yys.property.slot2Main')">
                 <el-select
                   multiple
                   collapse-tags
@@ -234,14 +234,14 @@
                   :max-collapse-tags="2"
                   v-model="property.yuhun.property2"
                 >
-                  <el-option label="攻击加成" value="Attack" />
-                  <el-option label="防御加成" value="Defense" />
-                  <el-option label="生命加成" value="Health" />
-                  <el-option label="速度" value="Speed" />
+                  <el-option :label="t('yuhun_property.fullName.Attack')" value="Attack" />
+                  <el-option :label="t('yuhun_property.fullName.Defense')" value="Defense" />
+                  <el-option :label="t('yuhun_property.fullName.Health')" value="Health" />
+                  <el-option :label="t('yuhun_property.fullName.Speed')" value="Speed" />
                 </el-select>
               </el-form-item>
 
-              <el-form-item label="4号位主属性">
+              <el-form-item :label="t('yys.property.slot4Main')">
                 <el-select
                   multiple
                   collapse-tags
@@ -249,15 +249,15 @@
                   :max-collapse-tags="2"
                   v-model="property.yuhun.property4"
                 >
-                  <el-option label="攻击加成" value="Attack" />
-                  <el-option label="防御加成" value="Defense" />
-                  <el-option label="生命加成" value="Health" />
-                  <el-option label="效果命中" value="ControlHit" />
-                  <el-option label="效果抵抗" value="ControlMiss" />
+                  <el-option :label="t('yuhun_property.fullName.Attack')" value="Attack" />
+                  <el-option :label="t('yuhun_property.fullName.Defense')" value="Defense" />
+                  <el-option :label="t('yuhun_property.fullName.Health')" value="Health" />
+                  <el-option :label="t('yuhun_property.fullName.ControlHit')" value="ControlHit" />
+                  <el-option :label="t('yuhun_property.fullName.ControlMiss')" value="ControlMiss" />
                 </el-select>
               </el-form-item>
 
-              <el-form-item label="6号位主属性">
+              <el-form-item :label="t('yys.property.slot6Main')">
                 <el-select
                   multiple
                   collapse-tags
@@ -265,11 +265,11 @@
                   :max-collapse-tags="2"
                   v-model="property.yuhun.property6"
                 >
-                  <el-option label="攻击加成" value="Attack" />
-                  <el-option label="防御加成" value="Defense" />
-                  <el-option label="生命加成" value="Health" />
-                  <el-option label="暴击" value="Crit" />
-                  <el-option label="暴击伤害" value="CritDamage" />
+                  <el-option :label="t('yuhun_property.fullName.Attack')" value="Attack" />
+                  <el-option :label="t('yuhun_property.fullName.Defense')" value="Defense" />
+                  <el-option :label="t('yuhun_property.fullName.Health')" value="Health" />
+                  <el-option :label="t('yuhun_property.fullName.Crit')" value="Crit" />
+                  <el-option :label="t('yuhun_property.fullName.CritDamage')" value="CritDamage" />
                 </el-select>
               </el-form-item>
             </div>
@@ -277,36 +277,40 @@
         </el-tab-pane>
 
         <!-- 效果指标选项卡 -->
-        <el-tab-pane label="效果指标" name="effect">
-          <el-form-item label="伤害期望">
+        <el-tab-pane :label="t('yys.selector.tab.effect')" name="effect">
+          <el-form-item :label="t('yys.selector.expectedDamage')">
             <el-input-number v-model="property.expectedDamage" :min="0" />
           </el-form-item>
 
-          <el-form-item label="生存能力">
+          <el-form-item :label="t('yys.selector.survivalRate')">
             <el-slider
               v-model="property.survivalRate"
               :step="10"
-              :marks="{ 0: '弱', 50: '中', 100: '强' }"
+              :marks="{
+                0: t('yys.selector.survivalMark.weak'),
+                50: t('yys.selector.survivalMark.medium'),
+                100: t('yys.selector.survivalMark.strong'),
+              }"
             />
           </el-form-item>
 
-          <el-form-item label="输出偏向">
+          <el-form-item :label="t('yys.selector.damageType')">
             <el-select v-model="property.damageType">
-              <el-option label="普攻" value="normal" />
-              <el-option label="技能" value="skill" />
-              <el-option label="均衡" value="balanced" />
+              <el-option :label="t('yys.selector.damageType.normal')" value="normal" />
+              <el-option :label="t('yys.selector.damageType.skill')" value="skill" />
+              <el-option :label="t('yys.selector.damageType.balanced')" value="balanced" />
             </el-select>
           </el-form-item>
         </el-tab-pane>
       </el-tabs>
 
-      <el-form-item label="额外描述">
+      <el-form-item :label="t('yys.property.extraDescription')">
         <el-input v-model="property.description" type="textarea" />
       </el-form-item>
 
       <el-form-item>
-        <el-button type="primary" @click="confirm">确认</el-button>
-        <el-button @click="emit('closePropertySelect')">取消</el-button>
+        <el-button type="primary" @click="confirm">{{ t("common.confirm") }}</el-button>
+        <el-button @click="emit('closePropertySelect')">{{ t("common.cancel") }}</el-button>
       </el-form-item>
     </el-form>
   </el-dialog>
@@ -325,7 +329,7 @@ const props = defineProps({
   currentProperty: {
     type: Object,
     default: () => ({
-      type: "未选择属性",
+      type: "attack",
       priority: "optional",
       description: "",
     }),
@@ -358,14 +362,14 @@ const currentYuhun = ref({});
 const yuhunSelectIndex = ref(-1);
 
 const propertyTypes = ref([
-  { label: "攻击", value: "attack" },
-  { label: "生命", value: "health" },
-  { label: "防御", value: "defense" },
-  { label: "速度", value: "speed" },
-  { label: "暴击", value: "crit" },
-  { label: "暴击伤害", value: "critDmg" },
-  { label: "效果命中", value: "effectHit" },
-  { label: "效果抵抗", value: "effectResist" },
+  { label: t("yys.selector.type.attack"), value: "attack" },
+  { label: t("yys.selector.type.health"), value: "health" },
+  { label: t("yys.selector.type.defense"), value: "defense" },
+  { label: t("yys.selector.type.speed"), value: "speed" },
+  { label: t("yys.selector.type.crit"), value: "crit" },
+  { label: t("yys.selector.type.critDmg"), value: "critDmg" },
+  { label: t("yys.selector.type.effectHit"), value: "effectHit" },
+  { label: t("yys.selector.type.effectResist"), value: "effectResist" },
 ]);
 
 watch(
