@@ -10,7 +10,7 @@ npm install
 ## Commands
 
 ```bash
-# sync all libraries
+# sync all libraries (shikigami + yuhun; onmyoji/onmyojiSkill are manual-only)
 npm run sync-assets
 
 # sync one library
@@ -36,11 +36,13 @@ node sync-assets.js --library all --report ../tmp/asset-sync-report.json
 
 - Static data: `src/data/assets/*.json`
 - Manifest: `src/data/assets/manifest.json`
-- Fallback snapshots: `scripts/fallback/*.json`
+- Backup file: `src/data/assets/*.json.bak` (overwrite single backup before write)
+- Yuhun official images: `public/assets/Yuhun/*.png`
 
 ## Strategy
 
-- Official source first
-- Fallback snapshot when official parser fails
-- Schema validation before write
-- Atomic file write for data outputs
+- `shikigami`: official API parse -> schema validate -> write JSON + download avatars
+- `yuhun`: official image probe only, download images only, do not modify `yuhun.json`
+- `onmyoji` / `onmyojiSkill`: manual-only, script skips with warning
+- No fallback snapshots; official parse failure is treated as hard failure
+- JSON writes use single-file backup (`.bak`) + atomic replace

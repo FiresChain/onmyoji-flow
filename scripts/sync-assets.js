@@ -1,6 +1,8 @@
 const fs = require("fs");
 const path = require("path");
-const { writeJsonAtomic } = require("./lib/writeAtomic");
+const {
+  writeJsonWithBackup,
+} = require("./lib/writeAtomic");
 const { downloadAssets } = require("./lib/download");
 const {
   validateLibraryItems,
@@ -11,36 +13,39 @@ const {
   collectShikigamiAssets,
 } = require("./providers/shikigami.provider");
 const { collectYuhunAssets } = require("./providers/yuhun.provider");
-const { collectOnmyojiAssets } = require("./providers/onmyoji.provider");
-const {
-  collectOnmyojiSkillAssets,
-} = require("./providers/onmyojiSkill.provider");
 
 const ROOT_DIR = path.resolve(__dirname, "..");
 const SRC_ASSET_DIR = path.join(ROOT_DIR, "src", "data", "assets");
-const FALLBACK_DIR = path.join(__dirname, "fallback");
 const PUBLIC_DIR = path.join(ROOT_DIR, "public");
+
+const MODES = {
+  JSON_SYNC: "json-sync",
+  IMAGE_ONLY_SYNC: "image-only-sync",
+  MANUAL_ONLY: "manual-only",
+};
 
 const LIBRARIES = {
   shikigami: {
     fileName: "shikigami.json",
+    mode: MODES.JSON_SYNC,
     provider: collectShikigamiAssets,
     pruneRoots: ["assets/Shikigami"],
   },
   yuhun: {
     fileName: "yuhun.json",
+    mode: MODES.IMAGE_ONLY_SYNC,
     provider: collectYuhunAssets,
     pruneRoots: [],
   },
   onmyoji: {
     fileName: "onmyoji.json",
-    provider: collectOnmyojiAssets,
-    pruneRoots: ["assets/downloaded_images"],
+    mode: MODES.MANUAL_ONLY,
+    pruneRoots: [],
   },
   onmyojiSkill: {
     fileName: "onmyojiSkill.json",
-    provider: collectOnmyojiSkillAssets,
-    pruneRoots: ["assets/downloaded_images"],
+    mode: MODES.MANUAL_ONLY,
+    pruneRoots: [],
   },
 };
 
@@ -84,12 +89,25 @@ const parseArgs = (argv) => {
 
 const readJsonFile = (filePath) => JSON.parse(fs.readFileSync(filePath, "utf8"));
 
-const readFallbackAssets = (library) => {
-  const filePath = path.join(FALLBACK_DIR, LIBRARIES[library].fileName);
+const readLibraryAssets = (library) => {
+  const filePath = path.join(SRC_ASSET_DIR, LIBRARIES[library].fileName);
   if (!fs.existsSync(filePath)) {
-    throw new Error(`Fallback not found: ${filePath}`);
+    return [];
   }
-  return readJsonFile(filePath);
+  const value = readJsonFile(filePath);
+  return Array.isArray(value) ? value : [];
+};
+
+const readManifestSnapshot = () => {
+  const manifestPath = path.join(SRC_ASSET_DIR, "manifest.json");
+  if (!fs.existsSync(manifestPath)) {
+    return null;
+  }
+  const parsed = readJsonFile(manifestPath);
+  if (!parsed || typeof parsed !== "object") {
+    return null;
+  }
+  return parsed;
 };
 
 const toAssetPathSet = (assets) =>
@@ -145,9 +163,144 @@ const selectLibraries = (libraryArg) => {
   return [libraryArg];
 };
 
+const syncJsonLibrary = async (library, entry, options) => {
+  const result = await entry.provider();
+  if (!result || !Array.isArray(result.assets) || result.assets.length === 0) {
+    throw new Error(`Official provider returned empty result: ${library}`);
+  }
+
+  const assets = result.assets;
+  const source = result.source || "official";
+  const images = Array.isArray(result.images) ? result.images : [];
+  const warnings = Array.isArray(result.warnings) ? [...result.warnings] : [];
+
+  const validation = validateLibraryItems(library, assets);
+  if (validation.errors.length > 0) {
+    throw new Error(`${library} validation failed: ${validation.errors.join("; ")}`);
+  }
+  warnings.push(...validation.warnings);
+
+  let downloadResult = { downloaded: [], skipped: [] };
+  if (!options.noDownload && !options.dryRun && images.length > 0) {
+    downloadResult = await downloadAssets(images, {
+      rootDir: PUBLIC_DIR,
+      skipExisting: true,
+      logger: console,
+    });
+    warnings.push(
+      `${library} downloaded=${downloadResult.downloaded.length}, skipped=${downloadResult.skipped.length}`,
+    );
+  }
+
+  if (options.prune && entry.pruneRoots.length > 0) {
+    const expectedSet = toAssetPathSet(assets);
+    const removed = [];
+    entry.pruneRoots.forEach((relativeRoot) => {
+      const removedInRoot = pruneFiles(
+        path.join(PUBLIC_DIR, relativeRoot),
+        expectedSet,
+        {
+          dryRun: options.dryRun,
+        },
+      );
+      removed.push(...removedInRoot);
+    });
+    warnings.push(`${library} pruned=${removed.length}`);
+  }
+
+  if (!options.dryRun) {
+    writeJsonWithBackup(path.join(SRC_ASSET_DIR, entry.fileName), assets);
+  }
+
+  return {
+    mode: entry.mode,
+    source,
+    count: assets.length,
+    warnings,
+    downloaded: downloadResult.downloaded.length,
+    skipped: downloadResult.skipped.length,
+    assets,
+  };
+};
+
+const syncImageOnlyLibrary = async (library, entry, options) => {
+  const result = await entry.provider();
+  const images = Array.isArray(result?.images) ? result.images : [];
+  if (images.length === 0) {
+    throw new Error(`Official provider returned no images: ${library}`);
+  }
+
+  const warnings = Array.isArray(result?.warnings) ? [...result.warnings] : [];
+  const source = typeof result?.source === "string" && result.source
+    ? result.source
+    : "official-image-only";
+  const foundIds = Array.isArray(result?.foundIds) ? result.foundIds : [];
+
+  let downloadResult = { downloaded: [], skipped: [] };
+  if (!options.noDownload && !options.dryRun) {
+    downloadResult = await downloadAssets(images, {
+      rootDir: PUBLIC_DIR,
+      skipExisting: true,
+      logger: console,
+    });
+  }
+  warnings.push(
+    `${library} downloaded=${downloadResult.downloaded.length}, skipped=${downloadResult.skipped.length}`,
+  );
+
+  return {
+    mode: entry.mode,
+    source,
+    count: readLibraryAssets(library).length,
+    warnings,
+    downloaded: downloadResult.downloaded.length,
+    skipped: downloadResult.skipped.length,
+    foundIds,
+  };
+};
+
+const syncManualOnlyLibrary = (library, entry) => {
+  const existing = readLibraryAssets(library);
+  return {
+    mode: entry.mode,
+    source: "manual",
+    count: existing.length,
+    warnings: [
+      `${library} is manual-only and skipped by sync script`,
+    ],
+  };
+};
+
+const mergeManifest = (runLibraries, manifestSnapshot, currentAssetsByLibrary) => ({
+  version: 2,
+  generatedAt: new Date().toISOString(),
+  libraries: Object.fromEntries(
+    Object.keys(LIBRARIES).map((library) => {
+      const runInfo = runLibraries[library];
+      const previous = manifestSnapshot?.libraries?.[library] || {};
+      const source = runInfo?.source
+        || (typeof previous.source === "string" ? previous.source : "local-json");
+      const syncMode = runInfo?.mode
+        || (typeof previous.syncMode === "string"
+          ? previous.syncMode
+          : LIBRARIES[library].mode);
+      return [
+        library,
+        {
+          count: currentAssetsByLibrary[library].length,
+          source,
+          syncMode,
+        },
+      ];
+    }),
+  ),
+});
+
 const main = async () => {
   const options = parseArgs(process.argv.slice(2));
   const selectedLibraries = selectLibraries(options.library);
+  const manifestSnapshot = readManifestSnapshot();
+
   const runReport = {
     options,
     libraries: {},
@@ -155,108 +308,56 @@ const main = async () => {
     warnings: [],
   };
 
-  const outputAssets = {};
+  const currentAssetsByLibrary = Object.fromEntries(
+    Object.keys(LIBRARIES).map((library) => [library, readLibraryAssets(library)]),
+  );
 
   for (const library of selectedLibraries) {
     const entry = LIBRARIES[library];
-    let assets = [];
-    let source = "fallback";
-    let images = [];
-    const warnings = [];
-
-    try {
-      const result = await entry.provider();
-      if (!result || !Array.isArray(result.assets) || result.assets.length === 0) {
-        throw new Error(`Official provider returned empty result: ${library}`);
-      }
-      assets = result.assets;
-      source = result.source || "official";
-      images = Array.isArray(result.images) ? result.images : [];
-      (result.warnings || []).forEach((warning) => warnings.push(warning));
-    } catch (error) {
-      warnings.push(
-        `official provider failed (${library}): ${error instanceof Error ? error.message : String(error)}`,
-      );
-      assets = readFallbackAssets(library);
-      source = "fallback";
-      images = [];
+    let result;
+    if (entry.mode === MODES.JSON_SYNC) {
+      result = await syncJsonLibrary(library, entry, options);
+      currentAssetsByLibrary[library] = result.assets;
+    } else if (entry.mode === MODES.IMAGE_ONLY_SYNC) {
+      result = await syncImageOnlyLibrary(library, entry, options);
+    } else {
+      result = syncManualOnlyLibrary(library, entry);
     }
 
-    const validation = validateLibraryItems(library, assets);
-    if (validation.errors.length > 0) {
-      throw new Error(
-        `${library} validation failed: ${validation.errors.join("; ")}`,
-      );
-    }
-    warnings.push(...validation.warnings);
-
-    if (!options.noDownload && images.length > 0) {
-      const downloadResult = await downloadAssets(images, {
-        rootDir: ROOT_DIR,
-        skipExisting: true,
-        logger: console,
-      });
-      warnings.push(
-        `${library} downloaded=${downloadResult.downloaded.length}, skipped=${downloadResult.skipped.length}`,
-      );
-    }
-
-    if (options.prune && entry.pruneRoots.length > 0) {
-      const expectedSet = toAssetPathSet(assets);
-      const removed = [];
-      entry.pruneRoots.forEach((relativeRoot) => {
-        const removedInRoot = pruneFiles(
-          path.join(PUBLIC_DIR, relativeRoot),
-          expectedSet,
-          {
-            dryRun: options.dryRun,
-          },
-        );
-        removed.push(...removedInRoot);
-      });
-      warnings.push(`${library} pruned=${removed.length}`);
-    }
-
-    outputAssets[library] = assets;
-
-    if (!options.dryRun) {
-      const targetPath = path.join(SRC_ASSET_DIR, entry.fileName);
-      writeJsonAtomic(targetPath, assets);
-    }
-
-    runReport.libraries[library] = {
-      source,
-      count: assets.length,
-      warnings,
+    const reportEntry = {
+      mode: result.mode,
+      source: result.source,
+      count: result.count,
+      warnings: result.warnings,
     };
-  }
-
-  if (outputAssets.onmyoji && outputAssets.onmyojiSkill) {
-    const ownershipErrors = validateSkillOwnership(
-      outputAssets.onmyoji,
-      outputAssets.onmyojiSkill,
-    );
-    if (ownershipErrors.length > 0) {
-      throw new Error(`cross validation failed: ${ownershipErrors.join("; ")}`);
+    if (typeof result.downloaded === "number") {
+      reportEntry.downloaded = result.downloaded;
     }
+    if (typeof result.skipped === "number") {
+      reportEntry.skipped = result.skipped;
+    }
+    if (Array.isArray(result.foundIds) && result.foundIds.length > 0) {
+      reportEntry.foundIds = result.foundIds;
+    }
+    runReport.libraries[library] = reportEntry;
   }
 
-  const manifest = {
-    version: 1,
-    generatedAt: new Date().toISOString(),
-    libraries: Object.fromEntries(
-      Object.entries(runReport.libraries).map(([library, info]) => [
-        library,
-        {
-          count: info.count,
-          source: info.source,
-        },
-      ]),
-    ),
-  };
+  const ownershipErrors = validateSkillOwnership(
+    currentAssetsByLibrary.onmyoji,
+    currentAssetsByLibrary.onmyojiSkill,
+  );
+  if (ownershipErrors.length > 0) {
+    throw new Error(`cross validation failed: ${ownershipErrors.join("; ")}`);
+  }
+
+  const manifest = mergeManifest(
+    runReport.libraries,
+    manifestSnapshot,
+    currentAssetsByLibrary,
+  );
 
   if (!options.dryRun) {
-    writeJsonAtomic(path.join(SRC_ASSET_DIR, "manifest.json"), manifest);
+    writeJsonWithBackup(path.join(SRC_ASSET_DIR, "manifest.json"), manifest);
   }
 
   const finalReport = buildReport(runReport);

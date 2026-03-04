@@ -9,6 +9,19 @@ const writeJsonAtomic = (targetPath, value) => {
   fs.renameSync(tempPath, targetPath);
 };
 
+const writeJsonWithBackup = (targetPath, value) => {
+  const dirPath = path.dirname(targetPath);
+  fs.mkdirSync(dirPath, { recursive: true });
+
+  if (fs.existsSync(targetPath)) {
+    const backupPath = `${targetPath}.bak`;
+    fs.copyFileSync(targetPath, backupPath);
+  }
+
+  writeJsonAtomic(targetPath, value);
+};
+
 module.exports = {
   writeJsonAtomic,
+  writeJsonWithBackup,
 };

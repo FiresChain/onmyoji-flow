@@ -1,67 +1,83 @@
 const { fetchText } = require("../lib/http");
 const { ensureLocalizedText, toText } = require("../lib/normalize");
 
-const RARITY_TYPES = [
-  { urlParam: "ssr", dir: "ssr", rarity: "SSR" },
-  { urlParam: "sp", dir: "sp", rarity: "SP" },
-  { urlParam: "ur", dir: "ur", rarity: "UR" },
-  { urlParam: "sr", dir: "sr", rarity: "SR" },
-  { urlParam: "r", dir: "r", rarity: "R" },
-  { urlParam: "n", dir: "n", rarity: "N" },
-  { urlParam: "ld", dir: "l", rarity: "L" },
-  { urlParam: "gt", dir: "g", rarity: "G" },
-];
+const API_HOST = "https://g37simulator.webapp.163.com/get_heroid_list";
+const IMAGE_BASE_URL = "https://yys.res.netease.com/pc/zt/20161108171335/data/shishen";
+const MIN_EXPECTED_COUNT = 200;
 
-const normalizeImageUrl = (value, baseUrl) => {
-  const src = toText(value);
-  if (!src) {
-    return "";
-  }
-  if (src.startsWith("http://") || src.startsWith("https://")) {
-    return src;
-  }
-  if (src.startsWith("//")) {
-    return `https:${src}`;
-  }
-  return new URL(src, baseUrl).toString();
+const RARITY_META = {
+  "1": { rarity: "N", dir: "n" },
+  "2": { rarity: "R", dir: "r" },
+  "3": { rarity: "SR", dir: "sr" },
+  "4": { rarity: "SSR", dir: "ssr" },
+  "5": { rarity: "SP", dir: "sp" },
+  "6": { rarity: "UR", dir: "ur" },
 };
 
-const parseShikigamiFromHtml = (html, pageUrl, rarity) => {
-  const regex =
-    /<div class="shishen_item">[\s\S]*?<a href="(\d+)\.html">[\s\S]*?<img src="([^"]+)"[\s\S]*?<span class="name">([^<]+)<\/span>/g;
-  const items = [];
-  let m;
-  while ((m = regex.exec(html)) !== null) {
-    const id = toText(m[1]);
-    const imageUrl = normalizeImageUrl(m[2], pageUrl);
-    const name = toText(m[3]);
-    if (!id || !imageUrl || !name) {
-      continue;
-    }
-    items.push({ id, imageUrl, name, rarity: rarity.rarity, dir: rarity.dir });
+const toQueryString = (params) =>
+  Object.entries(params)
+    .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+    .join("&");
+
+const parseJsonp = (payload) => {
+  const text = toText(payload);
+  const start = text.indexOf("(");
+  const end = text.lastIndexOf(")");
+  if (start < 0 || end < 0 || end <= start) {
+    throw new Error("Invalid JSONP payload");
   }
-  return items;
+  return JSON.parse(text.slice(start + 1, end));
+};
+
+const fetchAllHeroes = async () => {
+  // rarity=0 + per_page=500 可一次拿到完整式神集（含 N/R/SR/SSR/SP/UR/L/G）。
+  const query = { rarity: 0, page: 1, per_page: 500 };
+  const url = `${API_HOST}?${toQueryString({ ...query, callback: "cb" })}`;
+  const payload = await fetchText(url);
+  const parsed = parseJsonp(payload);
+  if (!parsed || parsed.success !== true || typeof parsed.data !== "object") {
+    throw new Error("Official hero API returned invalid payload");
+  }
+  return parsed.data;
 };
 
 const collectShikigamiAssets = async () => {
   const allItems = [];
   const seen = new Set();
+  const heroes = await fetchAllHeroes();
 
-  for (const rarity of RARITY_TYPES) {
-    const url = `https://yys.163.com/shishen/index.html?type=${rarity.urlParam}`;
-    const html = await fetchText(url);
-    const items = parseShikigamiFromHtml(html, url, rarity);
-    for (const item of items) {
-      if (seen.has(item.id)) {
-        continue;
-      }
-      seen.add(item.id);
-      allItems.push(item);
+  Object.entries(heroes).forEach(([id, hero]) => {
+    const cleanId = toText(id);
+    const name = toText(hero?.name);
+    if (!cleanId || !name || seen.has(cleanId)) {
+      return;
     }
-  }
 
-  if (allItems.length === 0) {
-    throw new Error("No shikigami data parsed from official pages");
+    let rarityInfo = RARITY_META[String(hero?.rarity)] || null;
+    if (Number(hero?.interactive) === 1) {
+      rarityInfo = { rarity: "L", dir: "l" };
+    }
+    if (Number(hero?.material_type) === 101) {
+      rarityInfo = { rarity: "G", dir: "g" };
+    }
+    if (!rarityInfo) {
+      return;
+    }
+
+    seen.add(cleanId);
+    allItems.push({
+      id: cleanId,
+      name,
+      rarity: rarityInfo.rarity,
+      dir: rarityInfo.dir,
+      imageUrl: `${IMAGE_BASE_URL}/${cleanId}.png?v5`,
+    });
+  });
+
+  if (allItems.length < MIN_EXPECTED_COUNT) {
+    throw new Error(
+      `Parsed shikigami count too low: ${allItems.length} < ${MIN_EXPECTED_COUNT}`,
+    );
   }
 
   allItems.sort((a, b) => Number(b.id) - Number(a.id));

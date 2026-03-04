@@ -1,22 +1,26 @@
 {
-  "version": 1,
-  "generatedAt": "2026-03-04T09:20:30.361Z",
+  "version": 2,
+  "generatedAt": "2026-03-04T16:12:06.753Z",
   "libraries": {
     "shikigami": {
       "count": 264,
-      "source": "legacy-json"
+      "source": "official",
+      "syncMode": "json-sync"
     },
     "yuhun": {
       "count": 65,
-      "source": "legacy-json"
+      "source": "official-image-only",
+      "syncMode": "image-only-sync"
     },
     "onmyoji": {
       "count": 6,
-      "source": "legacy-selector-hardcode"
+      "source": "manual",
+      "syncMode": "manual-only"
     },
     "onmyojiSkill": {
       "count": 48,
-      "source": "legacy-selector-hardcode"
+      "source": "manual",
+      "syncMode": "manual-only"
     }
   }
 }
