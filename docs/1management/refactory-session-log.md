@@ -44,6 +44,44 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-04] Session 123 - RFX-007 FlowEditor/Toolbar First Responsibility Split
+
+- Refactory Scope:
+  - Phase: Phase 2
+  - Task: 在不改行为前提下继续下沉 `FlowEditor`/`Toolbar` 内联编排，实现第一轮职责拆分
+- In Scope Files:
+  - `src/components/flow/FlowEditor.vue`
+  - `src/components/flow/composables/useFlowArrangeCommands.ts`（新增）
+  - `src/components/Toolbar.vue`
+  - `src/components/composables/useToolbarCanvasRefresh.ts`（新增）
+  - `docs/2design/FlowEditorArchitecture.md`
+  - `docs/2design/ToolbarArchitecture.md`
+  - `docs/1management/refactory-fix-backlog.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - 业务功能新增
+  - Toolbar 导入对话框模板结构调整
+  - RootDocument schema 强约束落地
+  - 进度百分比字段更新
+- Decisions:
+  - `FlowEditor` 抽离“对齐/分布命令”子域到 `useFlowArrangeCommands`，保留模板绑定和 runtime 接线不变。
+  - `Toolbar` 在不触碰导入对话框接线守卫前提下，仅抽离“画布重渲染编排”到 `useToolbarCanvasRefresh`。
+  - 拆分后组件体量下降：`FlowEditor.vue` 1088 -> 991 行，`Toolbar.vue` 928 -> 915 行。
+- Checks:
+  - `npx vitest run src/__tests__/toolbar-wiring.regression.test.ts src/__tests__/toolbar-architecture.guard.test.ts src/__tests__/useFlowCanvasInteraction.test.ts`: pass
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `npm test`: pass
+  - `(Get-Content src/components/flow/FlowEditor.vue | Measure-Object -Line).Lines`: pass（991）
+  - `(Get-Content src/components/Toolbar.vue | Measure-Object -Line).Lines`: pass（915）
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - Toolbar 架构守卫对模板结构约束严格，后续拆分需继续遵循“只拆实现，不动关键模板锚点”策略。
+  - 仍有可下沉域（FlowEditor 的 node-meta 操作与快捷键分发），建议在后续拆分中继续按单子域推进。
+- Next Recommended Unit:
+  - `RFX-010（P3）RootDocument Schema 强约束闭环`
+
 ## [2026-03-04] Session 122 - RFX-009 Unify Layer Field Semantics (meta.z -> zIndex)
 
 - Refactory Scope:

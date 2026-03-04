@@ -77,7 +77,7 @@
   - 来源：`Refactory.md` 3.1 未完成项、4.0.2-5、8-6 风险缓解
   - 验收：规则清单明确，关键反模式（高风险直写/未清理监听等）可被静态发现。
 
-- [ ] **RFX-007（P2）FlowEditor/Toolbar 第一轮职责拆分**
+- [x] **RFX-007（P2）FlowEditor/Toolbar 第一轮职责拆分**
   - 目标：按“命令层/编排层/UI 层”进行第一轮模块拆分，降低超大组件复杂度。
   - 主要文件：`src/components/flow/FlowEditor.vue`、`src/components/Toolbar.vue` 及其 composables
   - 来源：`Refactory.md` 4.2.2-1 / 4.2.2-2

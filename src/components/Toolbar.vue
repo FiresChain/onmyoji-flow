@@ -568,7 +568,7 @@ import { reactive, onMounted, onBeforeUnmount, ref } from "vue";
 import updateLogs from "../data/updateLog.json";
 import { useFilesStore } from "@/ts/useStore";
 import { useGlobalMessage } from "@/ts/useGlobalMessage";
-import { getLogicFlowInstance, useLogicFlowScope } from "@/ts/useLogicFlow";
+import { useLogicFlowScope } from "@/ts/useLogicFlow";
 import { useCanvasSettings } from "@/ts/useCanvasSettings";
 import { useSafeI18n } from "@/ts/useSafeI18n";
 import type { Pinia } from "pinia";
@@ -578,6 +578,7 @@ import { useToolbarAssetManagement } from "@/components/composables/useToolbarAs
 import { useToolbarRuleManagement } from "@/components/composables/useToolbarRuleManagement";
 import { useToolbarWorkspaceCommands } from "@/components/composables/useToolbarWorkspaceCommands";
 import { useToolbarDialogState } from "@/components/composables/useToolbarDialogState";
+import { useToolbarCanvasRefresh } from "@/components/composables/useToolbarCanvasRefresh";
 
 const props = withDefaults(
   defineProps<{
@@ -684,24 +685,10 @@ const {
   showMessage,
 });
 
-// 重新渲染 LogicFlow 画布的通用方法
-const refreshLogicFlowCanvas = (message?: string) => {
-  setTimeout(() => {
-    const logicFlowInstance = getLogicFlowInstance(logicFlowScope);
-    if (logicFlowInstance) {
-      // 获取当前活动文件的数据
-      const currentFileData = filesStore.getTab(filesStore.activeFileId);
-      if (currentFileData) {
-        // 清空画布并重新渲染
-        logicFlowInstance.clearData();
-        // 注意：此处根据你的画布 API 传入 graphRawData 或整个文件数据
-        const data = (currentFileData as any).graphRawData || currentFileData;
-        logicFlowInstance.render(data);
-        console.log(message || "LogicFlow 画布已重新渲染");
-      }
-    }
-  }, 100); // 延迟一点确保数据更新完成
-};
+const { refreshLogicFlowCanvas } = useToolbarCanvasRefresh({
+  filesStore,
+  logicFlowScope,
+});
 
 const { loadExample, handleResetWorkspace, handleClearCanvas } =
   useToolbarWorkspaceCommands({

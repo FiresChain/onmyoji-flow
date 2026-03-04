@@ -8,6 +8,7 @@
 2. Step 2：图层命令抽离（`bringToFront/sendToBack/bringForward/sendBackward`）。
 3. Step 3：group rule 校验编排抽离（刷新/调度/共享配置订阅/告警定位）。
 4. Step 4：画布交互运行时杂项抽离（右键拖拽、contextmenu 抑制、resize 接线与清理）。
+5. Step 5：对齐/分布命令抽离（`alignSelected/distributeSelected` 与按钮配置）。
 
 ## 2. 模块边界
 
@@ -23,6 +24,7 @@
 - 通过 `useFlowLayerCommands(...)` 复用图层命令实现，避免图层逻辑散落在组件主体内。
 - 通过 `useFlowGroupRuleOrchestrator(...)` 统一管理告警刷新调度与定位编排。
 - 通过 `useFlowCanvasInteraction(...)` 统一管理画布交互与 resize 接线清理。
+- 通过 `useFlowArrangeCommands(...)` 统一管理节点对齐/分布命令与按钮配置。
 
 ### `src/components/flow/composables/useFlowEditorRuntime.ts`
 
@@ -64,6 +66,13 @@
   - `ResizeObserver` + `window resize` 接线
   - 统一清理（事件监听、observer、拖拽态）
 - 对外只暴露 `resizeCanvas` 与 mount/dispose，供 `FlowEditor` 生命周期调用。
+
+### `src/components/flow/composables/useFlowArrangeCommands.ts`
+
+- 承担对齐/分布命令实现（保持行为不变）：
+  - `alignSelected`
+  - `distributeSelected`
+- 内聚节点矩形计算与提示文案，避免 `FlowEditor.vue` 内联大段排布算法。
 
 ## 3. 兼容性说明
 

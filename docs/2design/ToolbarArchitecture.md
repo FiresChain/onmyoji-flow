@@ -170,6 +170,19 @@
 - `onMounted` 通过 `mountDialogState` 执行版本首开逻辑，不改 embed 模式行为。
 - 通过 composable 返回的 `watermark` 与命令接线既有水印设置弹窗，不改文案和 UI 结构。
 
+## Task 5.5 落地（画布重渲染编排）
+
+新增：`src/components/composables/useToolbarCanvasRefresh.ts`
+
+当前由该 composable 承接的编排：
+
+- `refreshLogicFlowCanvas`（按 active file 重渲染 LogicFlow 画布）
+
+`Toolbar.vue` 调整为：
+
+- 保留模板按钮接线和既有命令组合。
+- 不再内联 `setTimeout + getLogicFlowInstance + render` 细节，实现迁移到 composable。
+
 ## Task 6 落地（架构边界守卫）
 
 新增：`src/__tests__/toolbar-architecture.guard.test.ts`
