@@ -44,6 +44,43 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-03-04] Session 121 - RFX-008 Compat Declaration Exit Plan
+
+- Refactory Scope:
+  - Phase: Phase 0
+  - Task: 为 LogicFlow compat 声明建立冻结与退出路径，并落地“禁止新增 compat”检查
+- In Scope Files:
+  - `src/types/logicflow-core-compat.d.ts`
+  - `src/types/logicflow-extension-compat.d.ts`
+  - `src/types/logicflow-vue-node-registry-compat.d.ts`
+  - `scripts/check-logicflow-compat-freeze.cjs`（新增）
+  - `package.json`
+  - `docs/2design/ADR-006-logicflow-compat-exit.md`（新增）
+  - `docs/2design/Refactory.md`
+  - `docs/2design/ADR-004-instance-isolation.md`
+  - `docs/1management/refactory-fix-backlog.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - 一次性移除 compat 声明
+  - 运行时代码行为重构
+  - 进度百分比字段更新
+- Decisions:
+  - 采用“冻结新增 -> 存量替换 -> 最终删除”的三阶段策略，并以 ADR-006 固化。
+  - 通过 `lint:compat-freeze` 脚本阻止新增 `*compat.d.ts` 与新增 `declare module "@logicflow/*"` 落点。
+  - 在三份 compat 声明文件头部增加冻结与退出策略标注，避免误扩散。
+- Checks:
+  - `rg --files src | rg "logicflow-.*-compat"`: pass（当前 3 个兼容声明文件）
+  - `npm run lint`: pass（含 `lint:compat-freeze`）
+  - `npm run typecheck`: pass
+  - `npm test`: pass
+  - `prettier --check`: not-run
+  - `npm run build:lib`: not-run
+- Risks / Follow-up:
+  - 冻结脚本当前约束“新增 compat 声明位置”，尚未直接约束“compat 符号使用面收缩”。
+  - 后续应按 ADR-006 的 M1/M2 分步替换低风险类型（`GraphData/NodeData/EdgeData`、`VueNodeConfig`）。
+- Next Recommended Unit:
+  - `RFX-009（P1）图层字段语义统一（meta.z vs zIndex）`
+
 ## [2026-03-04] Session 120 - RFX-006 ESLint Rule Strength Governance
 
 - Refactory Scope:

@@ -118,6 +118,8 @@
    - 补齐 `extends` 与核心规则集，避免仅“跑通不报错”。
 6. 过渡类型声明治理：
    - 为 `src/types/logicflow-*-compat.d.ts` 设定收敛与退出条件（删除时间点和替代方案）。
+   - 冻结新增 compat：`npm run lint` 必须通过 `lint:compat-freeze`（`scripts/check-logicflow-compat-freeze.cjs`）。
+   - 退出策略见：`docs/2design/ADR-006-logicflow-compat-exit.md`。
 
 ### 4.0.3 验收标准
 

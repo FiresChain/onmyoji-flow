@@ -83,7 +83,7 @@
   - 来源：`Refactory.md` 4.2.2-1 / 4.2.2-2
   - 验收：组件体量下降，边界文档同步，关键路径回归测试通过。
 
-- [ ] **RFX-008（P0）compat 类型声明退出计划**
+- [x] **RFX-008（P0）compat 类型声明退出计划**
   - 目标：给 `src/types/logicflow-*-compat.d.ts` 建立分阶段退出与替代策略。
   - 主要文件：`src/types/logicflow-*.d.ts`、`docs/2design/*`（如需新增 ADR）
   - 来源：`Refactory.md` 4.0.2-6、8-5 风险缓解

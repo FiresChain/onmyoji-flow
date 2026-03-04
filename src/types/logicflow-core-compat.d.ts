@@ -1,3 +1,8 @@
+/**
+ * LogicFlow core compat declaration (temporary bridge).
+ * Freeze policy: do not add new compat modules/symbols.
+ * Exit plan: docs/2design/ADR-006-logicflow-compat-exit.md
+ */
 declare module "@logicflow/core" {
   export type Position = {
     x: number;

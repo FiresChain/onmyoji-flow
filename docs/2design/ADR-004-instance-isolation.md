@@ -37,3 +37,4 @@
 
 1. 新增依赖 LogicFlow 的模块必须显式采用当前 scope，不允许回退到隐式全局共享。
 2. 回归测试需持续覆盖“多实例隔离”场景，防止后续重构破坏此约束。
+3. 相关类型依赖应遵循 compat 退出策略（见 `ADR-006-logicflow-compat-exit.md`），避免通过新增 ambient compat 绕过边界。
