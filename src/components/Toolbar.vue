@@ -7,9 +7,9 @@
       <el-button icon="Download" type="primary" @click="handleExport">{{
         t("export")
       }}</el-button>
-      <el-button icon="View" type="success" @click="handlePreviewData"
-        >数据预览</el-button
-      >
+      <el-button icon="View" type="success" @click="handlePreviewData">{{
+        t("previewData")
+      }}</el-button>
       <el-button icon="Share" type="primary" @click="prepareCapture">{{
         t("prepareCapture")
       }}</el-button>
@@ -19,9 +19,9 @@
       <el-button icon="Picture" type="primary" plain @click="openAssetManager">
         {{ t("assetManager") }}
       </el-button>
-      <el-button icon="EditPen" type="primary" plain @click="openRuleManager"
-        >规则管理</el-button
-      >
+      <el-button icon="EditPen" type="primary" plain @click="openRuleManager">
+        {{ t("ruleManager") }}
+      </el-button>
       <el-button v-if="!props.isEmbed" type="info" @click="loadExample">{{
         t("loadExample")
       }}</el-button>
@@ -34,47 +34,60 @@
         @click="showFeedbackForm"
         >{{ t("feedback") }}</el-button
       >
-      <el-button type="danger" @click="handleResetWorkspace"
-        >重置工作区</el-button
-      >
-      <el-button type="warning" plain @click="handleClearCanvas"
-        >清空画布</el-button
-      >
+      <el-button type="danger" @click="handleResetWorkspace">{{
+        t("resetWorkspace")
+      }}</el-button>
+      <el-button type="warning" plain @click="handleClearCanvas">{{
+        t("clearCanvas")
+      }}</el-button>
     </div>
     <div class="toolbar-controls">
       <el-switch
         v-model="selectionEnabled"
         size="small"
         inline-prompt
-        active-text="框选开"
-        inactive-text="框选关"
+        :active-text="t('switch.selection.on')"
+        :inactive-text="t('switch.selection.off')"
       />
       <el-switch
         v-model="snapGridEnabled"
         size="small"
         inline-prompt
-        active-text="吸附开"
-        inactive-text="吸附关"
+        :active-text="t('switch.snapGrid.on')"
+        :inactive-text="t('switch.snapGrid.off')"
       />
       <el-switch
         v-model="snaplineEnabled"
         size="small"
         inline-prompt
-        active-text="对齐线开"
-        inactive-text="对齐线关"
+        :active-text="t('switch.snapline.on')"
+        :inactive-text="t('switch.snapline.off')"
       />
+      <el-select
+        v-model="currentLanguage"
+        size="small"
+        class="locale-select"
+        @change="handleLanguageChange"
+      >
+        <el-option
+          v-for="option in languageOptions"
+          :key="option.value"
+          :label="option.label"
+          :value="option.value"
+        />
+      </el-select>
     </div>
 
     <!-- 更新日志对话框 -->
     <el-dialog
       v-if="!props.isEmbed"
       v-model="state.showUpdateLogDialog"
-      title="更新日志"
+      :title="t('updateLog')"
       width="60%"
     >
       <ul>
         <li v-for="(log, index) in updateLogs" :key="index">
-          <strong>版本 {{ log.version }} - {{ log.date }}</strong>
+          <strong>{{ t("updateLog.versionPrefix") }} {{ log.version }} - {{ log.date }}</strong>
           <ul>
             <li v-for="(change, idx) in log.changes" :key="idx">
               {{ change }}
@@ -88,10 +101,10 @@
     <el-dialog
       v-if="!props.isEmbed"
       v-model="state.showFeedbackFormDialog"
-      title="更新日志"
+      :title="t('feedback')"
       width="60%"
     >
-      <span style="font-size: 24px">备注阴阳师</span>
+      <span style="font-size: 24px">{{ t("feedback.contactTitle") }}</span>
       <br />
       <img
         :src="contactImageUrl"
@@ -116,47 +129,55 @@
         <img
           v-if="state.previewImage"
           :src="state.previewImage"
-          alt="Preview"
+          :alt="t('preview.alt')"
           style="width: 100%; display: block"
         />
       </div>
       <span slot="footer" class="dialog-footer">
-        <el-button @click="state.previewVisible = false">取 消</el-button>
-        <el-button type="primary" @click="downloadImage">下 载</el-button>
+        <el-button @click="state.previewVisible = false">{{
+          t("common.cancel")
+        }}</el-button>
+        <el-button type="primary" @click="downloadImage">{{
+          t("common.download")
+        }}</el-button>
       </span>
     </el-dialog>
 
     <!-- 水印设置弹窗 -->
-    <el-dialog v-model="state.showWatermarkDialog" title="设置水印" width="30%">
+    <el-dialog
+      v-model="state.showWatermarkDialog"
+      :title="t('setWatermark')"
+      width="30%"
+    >
       <el-form>
-        <el-form-item label="水印文字">
+        <el-form-item :label="t('watermark.text')">
           <el-input v-model="watermark.text"></el-input>
         </el-form-item>
-        <el-form-item label="字体大小">
+        <el-form-item :label="t('watermark.fontSize')">
           <el-input-number
             v-model="watermark.fontSize"
             :min="10"
             :max="100"
           ></el-input-number>
         </el-form-item>
-        <el-form-item label="颜色">
+        <el-form-item :label="t('watermark.color')">
           <el-color-picker v-model="watermark.color"></el-color-picker>
         </el-form-item>
-        <el-form-item label="水印行数">
+        <el-form-item :label="t('watermark.rows')">
           <el-input-number
             v-model="watermark.rows"
             :min="1"
             :max="10"
           ></el-input-number>
         </el-form-item>
-        <el-form-item label="水印列数">
+        <el-form-item :label="t('watermark.cols')">
           <el-input-number
             v-model="watermark.cols"
             :min="1"
             :max="10"
           ></el-input-number>
         </el-form-item>
-        <el-form-item label="角度">
+        <el-form-item :label="t('watermark.angle')">
           <el-input-number
             v-model="watermark.angle"
             :min="-90"
@@ -166,10 +187,12 @@
       </el-form>
       <template #footer>
         <span class="dialog-footer">
-          <el-button @click="state.showWatermarkDialog = false">取消</el-button>
-          <el-button type="primary" @click="applyWatermarkSettings"
-            >确认</el-button
-          >
+          <el-button @click="state.showWatermarkDialog = false">{{
+            t("common.cancel")
+          }}</el-button>
+          <el-button type="primary" @click="applyWatermarkSettings">{{
+            t("common.confirm")
+          }}</el-button>
         </span>
       </template>
     </el-dialog>
@@ -177,7 +200,7 @@
     <!-- 数据预览对话框 -->
     <el-dialog
       v-model="state.showDataPreviewDialog"
-      title="数据预览"
+      :title="t('previewData')"
       width="70%"
     >
       <div style="max-height: 600px; overflow-y: auto">
@@ -194,33 +217,40 @@
       </div>
       <template #footer>
         <span class="dialog-footer">
-          <el-button @click="state.showDataPreviewDialog = false"
-            >关闭</el-button
-          >
-          <el-button type="primary" @click="copyDataToClipboard"
-            >复制到剪贴板</el-button
-          >
+          <el-button @click="state.showDataPreviewDialog = false">{{
+            t("common.close")
+          }}</el-button>
+          <el-button type="primary" @click="copyDataToClipboard">{{
+            t("copyClipboard")
+          }}</el-button>
         </span>
       </template>
     </el-dialog>
 
     <el-dialog v-model="state.showImportDialog" title="导入数据" width="560px">
       <el-form label-width="88px" class="import-form">
-        <el-form-item label="导入来源">
+        <el-form-item :label="t('importDialog.source')">
           <el-radio-group v-model="importSource">
-            <el-radio-button label="json">JSON 文件</el-radio-button>
-            <el-radio-button label="teamCode">阵容码</el-radio-button>
+            <el-radio-button label="json">{{
+              t("importDialog.source.json")
+            }}</el-radio-button>
+            <el-radio-button label="teamCode">{{
+              t("importDialog.source.teamCode")
+            }}</el-radio-button>
           </el-radio-group>
         </el-form-item>
-        <el-form-item v-if="importSource === 'teamCode'" label="阵容码">
+        <el-form-item
+          v-if="importSource === 'teamCode'"
+          :label="t('importDialog.teamCode')"
+        >
           <el-input
             v-model="teamCodeInput"
             type="textarea"
             :rows="7"
-            placeholder="请粘贴 #TA# 开头的阵容码"
+            :placeholder="t('importDialog.teamCodePlaceholder')"
           />
         </el-form-item>
-        <el-form-item v-if="importSource === 'teamCode'" label="二维码">
+        <el-form-item v-if="importSource === 'teamCode'" :label="t('importDialog.qr')">
           <div class="team-code-qr-actions">
             <input
               ref="teamCodeQrInputRef"
@@ -235,11 +265,9 @@
               :loading="state.decodingTeamCodeQr"
               @click="triggerTeamCodeQrImport"
             >
-              选择二维码图片
+              {{ t("importDialog.qrChoose") }}
             </el-button>
-            <span class="team-code-qr-tip"
-              >支持从截图或相册图片识别官方阵容码二维码</span
-            >
+            <span class="team-code-qr-tip">{{ t("importDialog.qrTip") }}</span>
           </div>
         </el-form-item>
         <el-alert
@@ -247,18 +275,20 @@
           type="info"
           :closable="false"
           show-icon
-          title="支持粘贴阵容码字符串，或上传二维码图片自动识别。"
+          :title="t('importDialog.alert')"
         />
       </el-form>
       <template #footer>
         <span class="dialog-footer">
-          <el-button @click="state.showImportDialog = false">取消</el-button>
+          <el-button @click="state.showImportDialog = false">{{
+            t("common.cancel")
+          }}</el-button>
           <el-button
             v-if="importSource === 'json'"
             type="primary"
             @click="triggerJsonFileImport"
           >
-            选择 JSON 文件
+            {{ t("importDialog.chooseJson") }}
           </el-button>
           <el-button
             v-else
@@ -266,7 +296,7 @@
             :loading="state.importingTeamCode"
             @click="handleTeamCodeImport"
           >
-            导入阵容码
+            {{ t("importDialog.importTeamCode") }}
           </el-button>
         </span>
       </template>
@@ -321,7 +351,7 @@
                 type="danger"
                 @click="removeManagedAsset(library.id, item)"
               >
-                删除
+                {{ t("common.delete") }}
               </el-button>
             </div>
           </div>
@@ -336,35 +366,34 @@
     <!-- 规则管理对话框 -->
     <el-dialog
       v-model="state.showRuleManagerDialog"
-      title="规则管理"
+      :title="t('ruleManager')"
       width="80%"
     >
       <div class="rule-manager-actions">
-        <el-button size="small" type="primary" @click="addExpressionRule"
-          >新增规则</el-button
-        >
-        <el-button size="small" type="primary" plain @click="addRuleVariable"
-          >新增变量</el-button
-        >
-        <el-button size="small" @click="exportRuleBundle"
-          >导出规则变量</el-button
-        >
-        <el-button size="small" @click="triggerRuleBundleImport"
-          >导入规则变量</el-button
-        >
-        <el-button size="small" @click="reloadRuleManagerDraft"
-          >重载当前配置</el-button
-        >
-        <el-button size="small" type="success" @click="applyRuleManagerConfig"
-          >应用并生效</el-button
-        >
+        <el-button size="small" type="primary" @click="addExpressionRule">{{
+          t("ruleManager.addRule")
+        }}</el-button>
+        <el-button size="small" type="primary" plain @click="addRuleVariable">{{
+          t("ruleManager.addVariable")
+        }}</el-button>
+        <el-button size="small" @click="exportRuleBundle">{{
+          t("ruleManager.exportBundle")
+        }}</el-button>
+        <el-button size="small" @click="triggerRuleBundleImport">{{
+          t("ruleManager.importBundle")
+        }}</el-button>
+        <el-button size="small" @click="reloadRuleManagerDraft">{{
+          t("ruleManager.reload")
+        }}</el-button>
+        <el-button size="small" type="success" @click="applyRuleManagerConfig">{{
+          t("ruleManager.apply")
+        }}</el-button>
         <el-button
           size="small"
           type="warning"
           plain
           @click="restoreDefaultRuleConfig"
-          >恢复默认</el-button
-        >
+          >{{ t("ruleManager.restoreDefault") }}</el-button>
         <input
           ref="ruleBundleImportInputRef"
           type="file"
@@ -375,7 +404,7 @@
       </div>
 
       <el-tabs v-model="ruleManagerTab" class="rule-manager-tabs">
-        <el-tab-pane label="规则" name="rules">
+        <el-tab-pane :label="t('ruleManager.tab.rules')" name="rules">
           <div class="rule-table-wrap">
             <el-table
               v-if="ruleConfigDraft.expressionRules.length > 0"
@@ -384,12 +413,12 @@
               border
               class="rule-table"
             >
-              <el-table-column label="启用" width="70" align="center">
+              <el-table-column :label="t('ruleManager.column.enabled')" width="70" align="center">
                 <template #default="{ row }">
                   <el-checkbox v-model="row.enabled" />
                 </template>
               </el-table-column>
-              <el-table-column label="级别" width="110" align="center">
+              <el-table-column :label="t('ruleManager.column.severity')" width="110" align="center">
                 <template #default="{ row }">
                   <el-select
                     v-model="row.severity"
@@ -400,32 +429,32 @@
                       `severity-select--${row.severity || 'warning'}`,
                     ]"
                   >
-                    <el-option label="warning" value="warning" />
-                    <el-option label="error" value="error" />
-                    <el-option label="info" value="info" />
+                    <el-option :label="t('ruleSeverity.warning')" value="warning" />
+                    <el-option :label="t('ruleSeverity.error')" value="error" />
+                    <el-option :label="t('ruleSeverity.info')" value="info" />
                   </el-select>
                 </template>
               </el-table-column>
-              <el-table-column label="作用域" width="130" align="center">
+              <el-table-column :label="t('ruleManager.column.scope')" width="130" align="center">
                 <template #default="{ row }">
                   <el-select
                     v-model="row.scopeKind"
                     size="small"
                     class="rule-inline-select"
                   >
-                    <el-option label="team" value="team" />
-                    <el-option label="shikigami" value="shikigami" />
+                    <el-option :label="t('ruleScope.team')" value="team" />
+                    <el-option :label="t('ruleScope.shikigami')" value="shikigami" />
                   </el-select>
                 </template>
               </el-table-column>
               <el-table-column
                 prop="id"
-                label="规则 ID"
+                :label="t('ruleManager.column.id')"
                 min-width="180"
                 show-overflow-tooltip
               />
               <el-table-column
-                label="条件"
+                :label="t('ruleManager.column.condition')"
                 min-width="260"
                 show-overflow-tooltip
               >
@@ -434,7 +463,7 @@
                 </template>
               </el-table-column>
               <el-table-column
-                label="提示"
+                :label="t('ruleManager.column.message')"
                 min-width="180"
                 show-overflow-tooltip
               >
@@ -442,48 +471,46 @@
                   <span class="rule-cell-ellipsis">{{ row.message }}</span>
                 </template>
               </el-table-column>
-              <el-table-column label="操作" width="140" fixed="right">
+              <el-table-column :label="t('ruleManager.column.actions')" width="140" fixed="right">
                 <template #default="{ $index }">
                   <el-button
                     size="small"
                     text
                     type="primary"
                     @click="openExpressionRuleEditor($index)"
-                    >编辑</el-button
-                  >
+                    >{{ t("common.edit") }}</el-button>
                   <el-button
                     size="small"
                     text
                     type="danger"
                     @click="removeExpressionRule($index)"
-                    >删除</el-button
-                  >
+                    >{{ t("common.delete") }}</el-button>
                 </template>
               </el-table-column>
             </el-table>
-            <el-empty v-else description="暂无规则，点击“新增规则”创建" />
+            <el-empty v-else :description="t('ruleManager.emptyRules')" />
           </div>
         </el-tab-pane>
 
-        <el-tab-pane label="变量" name="variables">
+        <el-tab-pane :label="t('ruleManager.tab.variables')" name="variables">
           <div class="variable-list">
             <div
               v-for="(item, index) in ruleConfigDraft.ruleVariables"
               :key="`${item.key}-${index}`"
               class="variable-item"
             >
-              <el-form-item label="Key" class="variable-key">
+              <el-form-item :label="t('ruleManager.variable.key')" class="variable-key">
                 <el-input
                   v-model="item.key"
-                  placeholder="如: fire_supporters"
+                  :placeholder="t('ruleManager.variable.keyPlaceholder')"
                 />
               </el-form-item>
-              <el-form-item label="Value" class="variable-value">
+              <el-form-item :label="t('ruleManager.variable.value')" class="variable-value">
                 <el-input
                   v-model="item.value"
                   type="textarea"
                   :rows="2"
-                  placeholder="逗号或换行分隔，如：辉夜姬,座敷童子"
+                  :placeholder="t('ruleManager.variable.valuePlaceholder')"
                 />
               </el-form-item>
               <el-button
@@ -491,46 +518,48 @@
                 text
                 type="danger"
                 @click="removeRuleVariable(index)"
-                >删除</el-button
-              >
+                >{{ t("common.delete") }}</el-button>
             </div>
             <el-empty
               v-if="ruleConfigDraft.ruleVariables.length === 0"
-              description="暂无变量，点击“新增变量”创建"
+              :description="t('ruleManager.emptyVariables')"
             />
           </div>
         </el-tab-pane>
 
-        <el-tab-pane label="文档说明" name="docs">
+        <el-tab-pane :label="t('ruleManager.tab.docs')" name="docs">
           <div class="rule-docs">
-            <h4>作用域约定</h4>
+            <h4>{{ t("ruleManager.docs.scope") }}</h4>
             <pre>{{ ruleScopeDoc }}</pre>
-            <h4>可用上下文</h4>
+            <h4>{{ t("ruleManager.docs.context") }}</h4>
             <pre>{{ ruleContextDoc }}</pre>
-            <h4>支持语法</h4>
+            <h4>{{ t("ruleManager.docs.syntax") }}</h4>
             <pre>{{ ruleSyntaxDoc }}</pre>
-            <h4>支持函数</h4>
+            <h4>{{ t("ruleManager.docs.functions") }}</h4>
             <pre>{{ ruleFunctionDoc }}</pre>
-            <h4>表达式示例</h4>
+            <h4>{{ t("ruleManager.docs.examples") }}</h4>
             <pre>{{ ruleExamplesDoc }}</pre>
           </div>
         </el-tab-pane>
       </el-tabs>
     </el-dialog>
 
-    <el-dialog v-model="ruleEditorVisible" title="编辑规则" width="56%">
+    <el-dialog v-model="ruleEditorVisible" :title="t('ruleEditor.title')" width="56%">
       <el-form
         v-if="ruleEditorDraft"
         label-width="96px"
         class="rule-editor-form"
       >
-        <el-form-item label="启用">
+        <el-form-item :label="t('ruleEditor.enabled')">
           <el-switch v-model="ruleEditorDraft.enabled" />
         </el-form-item>
-        <el-form-item label="规则 ID">
-          <el-input v-model="ruleEditorDraft.id" placeholder="unique_rule_id" />
+        <el-form-item :label="t('ruleEditor.id')">
+          <el-input
+            v-model="ruleEditorDraft.id"
+            :placeholder="t('ruleEditor.idPlaceholder')"
+          />
         </el-form-item>
-        <el-form-item label="级别">
+        <el-form-item :label="t('ruleEditor.severity')">
           <el-select
             v-model="ruleEditorDraft.severity"
             :class="[
@@ -539,42 +568,44 @@
             ]"
             style="width: 100%"
           >
-            <el-option label="warning" value="warning" />
-            <el-option label="error" value="error" />
-            <el-option label="info" value="info" />
+            <el-option :label="t('ruleSeverity.warning')" value="warning" />
+            <el-option :label="t('ruleSeverity.error')" value="error" />
+            <el-option :label="t('ruleSeverity.info')" value="info" />
           </el-select>
         </el-form-item>
-        <el-form-item label="作用域">
+        <el-form-item :label="t('ruleEditor.scope')">
           <el-select v-model="ruleEditorDraft.scopeKind" style="width: 100%">
-            <el-option label="team" value="team" />
-            <el-option label="shikigami" value="shikigami" />
+            <el-option :label="t('ruleScope.team')" value="team" />
+            <el-option :label="t('ruleScope.shikigami')" value="shikigami" />
           </el-select>
         </el-form-item>
-        <el-form-item label="告警 code">
+        <el-form-item :label="t('ruleEditor.code')">
           <el-input
             v-model="ruleEditorDraft.code"
-            placeholder="CUSTOM_EXPRESSION"
+            :placeholder="t('ruleEditor.codePlaceholder')"
           />
         </el-form-item>
-        <el-form-item label="条件表达式">
+        <el-form-item :label="t('ruleEditor.condition')">
           <el-input
             v-model="ruleEditorDraft.condition"
             type="textarea"
             :rows="3"
-            placeholder='示例：count(intersect(map(ctx.team.shikigamis, "name"), getVar("供火式神"))) == 0'
+            :placeholder="t('ruleEditor.conditionPlaceholder')"
           />
         </el-form-item>
-        <el-form-item label="提示文案">
+        <el-form-item :label="t('ruleEditor.message')">
           <el-input
             v-model="ruleEditorDraft.message"
-            placeholder="规则提示文案"
+            :placeholder="t('ruleEditor.messagePlaceholder')"
           />
         </el-form-item>
       </el-form>
       <template #footer>
         <span class="dialog-footer">
-          <el-button @click="cancelRuleEditor">取消</el-button>
-          <el-button type="primary" @click="saveRuleEditor">保存</el-button>
+          <el-button @click="cancelRuleEditor">{{ t("common.cancel") }}</el-button>
+          <el-button type="primary" @click="saveRuleEditor">{{
+            t("common.save")
+          }}</el-button>
         </span>
       </template>
     </el-dialog>
@@ -582,7 +613,7 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, onMounted, onBeforeUnmount, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, reactive, ref } from "vue";
 import updateLogs from "../data/updateLog.json";
 import { useFilesStore } from "@/ts/useStore";
 import { useGlobalMessage } from "@/ts/useGlobalMessage";
@@ -618,18 +649,140 @@ const { showMessage } = useGlobalMessage();
 const { selectionEnabled, snapGridEnabled, snaplineEnabled } =
   useCanvasSettings();
 
-const { t } = useSafeI18n({
+type SupportedLocale = "zh" | "ja" | "en";
+const LOCALE_STORAGE_KEY = "yys-editor.locale";
+const normalizeLocale = (input: unknown): SupportedLocale => {
+  const value =
+    typeof input === "string" ? input.trim().toLowerCase().split("-")[0] : "";
+  if (value === "ja" || value === "en") {
+    return value;
+  }
+  return "zh";
+};
+const safeI18n = useSafeI18n({
   import: "导入",
   export: "导出",
+  previewData: "数据预览",
   prepareCapture: "准备截图",
   setWatermark: "设置水印",
   loadExample: "加载样例",
   updateLog: "更新日志",
+  "updateLog.versionPrefix": "版本",
   feedback: "问题反馈",
+  "feedback.contactTitle": "备注阴阳师",
   assetManager: "素材管理",
   "assetManager.uploadCurrent": "上传当前分类素材",
   "assetManager.empty": "暂无{label}",
+  ruleManager: "规则管理",
+  resetWorkspace: "重置工作区",
+  clearCanvas: "清空画布",
+  "switch.selection.on": "框选开",
+  "switch.selection.off": "框选关",
+  "switch.snapGrid.on": "吸附开",
+  "switch.snapGrid.off": "吸附关",
+  "switch.snapline.on": "对齐线开",
+  "switch.snapline.off": "对齐线关",
+  "preview.alt": "预览图",
+  "common.cancel": "取消",
+  "common.confirm": "确认",
+  "common.close": "关闭",
+  "common.download": "下载",
+  "common.delete": "删除",
+  "common.edit": "编辑",
+  "common.save": "保存",
+  copyClipboard: "复制到剪贴板",
+  "watermark.text": "水印文字",
+  "watermark.fontSize": "字体大小",
+  "watermark.color": "颜色",
+  "watermark.rows": "水印行数",
+  "watermark.cols": "水印列数",
+  "watermark.angle": "角度",
+  "importDialog.title": "导入数据",
+  "importDialog.source": "导入来源",
+  "importDialog.source.json": "JSON 文件",
+  "importDialog.source.teamCode": "阵容码",
+  "importDialog.teamCode": "阵容码",
+  "importDialog.teamCodePlaceholder": "请粘贴 #TA# 开头的阵容码",
+  "importDialog.qr": "二维码",
+  "importDialog.qrChoose": "选择二维码图片",
+  "importDialog.qrTip": "支持从截图或相册图片识别官方阵容码二维码",
+  "importDialog.alert": "支持粘贴阵容码字符串，或上传二维码图片自动识别。",
+  "importDialog.chooseJson": "选择 JSON 文件",
+  "importDialog.importTeamCode": "导入阵容码",
+  "ruleManager.addRule": "新增规则",
+  "ruleManager.addVariable": "新增变量",
+  "ruleManager.exportBundle": "导出规则变量",
+  "ruleManager.importBundle": "导入规则变量",
+  "ruleManager.reload": "重载当前配置",
+  "ruleManager.apply": "应用并生效",
+  "ruleManager.restoreDefault": "恢复默认",
+  "ruleManager.tab.rules": "规则",
+  "ruleManager.tab.variables": "变量",
+  "ruleManager.tab.docs": "文档说明",
+  "ruleManager.column.enabled": "启用",
+  "ruleManager.column.severity": "级别",
+  "ruleManager.column.scope": "作用域",
+  "ruleManager.column.id": "规则 ID",
+  "ruleManager.column.condition": "条件",
+  "ruleManager.column.message": "提示",
+  "ruleManager.column.actions": "操作",
+  "ruleManager.emptyRules": "暂无规则，点击“新增规则”创建",
+  "ruleManager.variable.key": "Key",
+  "ruleManager.variable.value": "Value",
+  "ruleManager.variable.keyPlaceholder": "如: fire_supporters",
+  "ruleManager.variable.valuePlaceholder": "逗号或换行分隔，如：辉夜姬,座敷童子",
+  "ruleManager.emptyVariables": "暂无变量，点击“新增变量”创建",
+  "ruleManager.docs.scope": "作用域约定",
+  "ruleManager.docs.context": "可用上下文",
+  "ruleManager.docs.syntax": "支持语法",
+  "ruleManager.docs.functions": "支持函数",
+  "ruleManager.docs.examples": "表达式示例",
+  "ruleSeverity.warning": "warning",
+  "ruleSeverity.error": "error",
+  "ruleSeverity.info": "info",
+  "ruleScope.team": "team",
+  "ruleScope.shikigami": "shikigami",
+  "ruleEditor.title": "编辑规则",
+  "ruleEditor.enabled": "启用",
+  "ruleEditor.id": "规则 ID",
+  "ruleEditor.idPlaceholder": "unique_rule_id",
+  "ruleEditor.severity": "级别",
+  "ruleEditor.scope": "作用域",
+  "ruleEditor.code": "告警 code",
+  "ruleEditor.codePlaceholder": "CUSTOM_EXPRESSION",
+  "ruleEditor.condition": "条件表达式",
+  "ruleEditor.conditionPlaceholder":
+    '示例：count(intersect(map(ctx.team.shikigamis, "name"), getVar("供火式神"))) == 0',
+  "ruleEditor.message": "提示文案",
+  "ruleEditor.messagePlaceholder": "规则提示文案",
+  "locale.zh": "中文",
+  "locale.ja": "日本語",
+  "locale.en": "English",
 });
+const t = safeI18n.t;
+const getLocale =
+  typeof (safeI18n as any).getLocale === "function"
+    ? (safeI18n as any).getLocale
+    : () => "zh";
+const setLocale =
+  typeof (safeI18n as any).setLocale === "function"
+    ? (safeI18n as any).setLocale
+    : (_nextLocale: string) => {};
+
+const currentLanguage = ref<SupportedLocale>(normalizeLocale(getLocale()));
+
+const languageOptions = computed(() => [
+  { value: "zh" as const, label: t("locale.zh") },
+  { value: "ja" as const, label: t("locale.ja") },
+  { value: "en" as const, label: t("locale.en") },
+]);
+
+const handleLanguageChange = (nextLocale: SupportedLocale) => {
+  const normalized = normalizeLocale(nextLocale);
+  currentLanguage.value = normalized;
+  setLocale(normalized);
+  localStorage.setItem(LOCALE_STORAGE_KEY, normalized);
+};
 
 // 定义响应式数据
 const state = reactive({
@@ -798,6 +951,10 @@ const {
   gap: 12px;
   margin-top: 0;
   flex-shrink: 0;
+}
+
+.locale-select {
+  width: 110px;
 }
 
 .toolbar--embed .toolbar-actions {

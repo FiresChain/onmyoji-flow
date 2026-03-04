@@ -31,6 +31,9 @@ export function useSafeI18n(fallbackMap: Record<string, string> = {}) {
     }
     return "zh";
   };
+  let updateLocale = (_nextLocale: string) => {
+    // no-op fallback when vue-i18n is unavailable
+  };
 
   try {
     const { t, locale } = useI18n();
@@ -56,9 +59,16 @@ export function useSafeI18n(fallbackMap: Record<string, string> = {}) {
             : "zh";
       return rawLocale || "zh";
     };
+    updateLocale = (nextLocale: string) => {
+      if (typeof nextLocale !== "string") return;
+      const normalized = nextLocale.trim();
+      if (!normalized) return;
+      if (typeof locale === "string") return;
+      locale.value = normalized;
+    };
   } catch {
     // The host app may not install vue-i18n; fallback to key/default text.
   }
 
-  return { t: safeT, getLocale: resolveLocale };
+  return { t: safeT, getLocale: resolveLocale, setLocale: updateLocale };
 }

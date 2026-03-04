@@ -45,9 +45,7 @@ const resolveLocale = () => {
     typeof localStorage !== "undefined"
       ? normalizeLocale(localStorage.getItem("yys-editor.locale"))
       : "";
-  const browserLocale =
-    typeof navigator !== "undefined" ? normalizeLocale(navigator.language) : "";
-  const locale = queryLocale || storedLocale || browserLocale || "zh";
+  const locale = queryLocale || storedLocale || "zh";
 
   if (typeof localStorage !== "undefined" && queryLocale && queryLocale !== storedLocale) {
     localStorage.setItem("yys-editor.locale", queryLocale);
