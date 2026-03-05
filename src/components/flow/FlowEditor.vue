@@ -319,20 +319,6 @@ function applyMetaToModel(
   }
 }
 
-function applyStyleToModel(
-  model: BaseNodeModel,
-  styleInput?: Record<string, any>,
-) {
-  // 只有当 style 中明确指定了 width/height 时才更新 model
-  // 避免用默认值覆盖用户的手动缩放操作
-  if (styleInput?.width != null && model.width !== styleInput.width) {
-    model.width = styleInput.width;
-  }
-  if (styleInput?.height != null && model.height !== styleInput.height) {
-    model.height = styleInput.height;
-  }
-}
-
 function normalizeNodeModel(model: BaseNodeModel) {
   const lfInstance = lf.value;
   if (!lfInstance) return;
@@ -353,20 +339,24 @@ function normalizeNodeModel(model: BaseNodeModel) {
     currentMeta.locked !== incomingMeta.locked ||
     currentMeta.groupId !== incomingMeta.groupId;
 
-  // 只检查 style 的其他属性变化，不检查 width/height
-  // 因为 width/height 应该由 LogicFlow 的缩放控制，而不是由 properties 控制
-  const styleChanged = !styleEquals(props.style, normalized.style);
+  // 统一尺寸真源：节点实时尺寸与 style.width/height 保持一致，避免出现两套冲突尺寸
+  const syncedStyle = {
+    ...normalized.style,
+    width: model.width,
+    height: model.height,
+  };
+  const styleChanged = !styleEquals(props.style, syncedStyle);
+  const sizeChanged = props.width !== model.width || props.height !== model.height;
 
-  if (metaChanged || styleChanged) {
-    // 同步 style 到 properties，但保持 width/height 与 model 一致
+  if (metaChanged || styleChanged || sizeChanged) {
     lfInstance.setProperties(model.id, {
       ...normalized,
+      style: syncedStyle,
       width: model.width,
       height: model.height,
     });
   }
   applyMetaToModel(model, normalized.meta);
-  // 不再调用 applyStyleToModel，因为 width/height 应该由 LogicFlow 控制
 }
 
 function normalizeAllNodes() {

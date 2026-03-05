@@ -11,6 +11,11 @@ import {
   RootDocument,
   validateRootDocumentV1,
 } from "./schema";
+import {
+  hasNodeIconSizeByTypeOverrides,
+  normalizeNodeIconSizeByType,
+  type NodeIconSizeByType,
+} from "@/types/nodeIconSize";
 import { normalizeGraphRawDataSchema } from "@/utils/graphSchema";
 
 const { showMessage } = useGlobalMessage();
@@ -28,6 +33,7 @@ interface FlowFile {
   visible: boolean;
   type: string;
   graphRawData?: object;
+  nodeIconSizeByType?: NodeIconSizeByType;
   transform?: {
     SCALE_X: number;
     SCALE_Y: number;
@@ -125,20 +131,30 @@ export const useFilesStore = defineStore("files", () => {
 
   // 根据传入列表补全缺省字段并补齐 id
   const normalizeList = (list: any[]): FlowFile[] => {
-    return (list || []).map((f: any, i: number) => ({
-      id: f?.id || genId(),
-      label: f?.label ?? f?.name ?? `File ${i + 1}`,
-      name: f?.name ?? f?.label ?? `File ${i + 1}`,
-      visible: f?.visible ?? true,
-      type: f?.type ?? "FLOW",
-      graphRawData: normalizeGraphRawDataSchema(f?.graphRawData),
-      transform: f?.transform ?? {
-        SCALE_X: 1,
-        SCALE_Y: 1,
-        TRANSLATE_X: 0,
-        TRANSLATE_Y: 0,
-      },
-    }));
+    return (list || []).map((f: any, i: number) => {
+      const normalizedNodeIconSizeByType = normalizeNodeIconSizeByType(
+        f?.nodeIconSizeByType,
+      );
+      return {
+        ...(hasNodeIconSizeByTypeOverrides(normalizedNodeIconSizeByType)
+          ? {
+              nodeIconSizeByType: normalizedNodeIconSizeByType,
+            }
+          : {}),
+        id: f?.id || genId(),
+        label: f?.label ?? f?.name ?? `File ${i + 1}`,
+        name: f?.name ?? f?.label ?? `File ${i + 1}`,
+        visible: f?.visible ?? true,
+        type: f?.type ?? "FLOW",
+        graphRawData: normalizeGraphRawDataSchema(f?.graphRawData),
+        transform: f?.transform ?? {
+          SCALE_X: 1,
+          SCALE_Y: 1,
+          TRANSLATE_X: 0,
+          TRANSLATE_Y: 0,
+        },
+      };
+    });
   };
 
   const findById = (id?: string) => fileList.value.find((f) => f.id === id);
@@ -356,6 +372,34 @@ export const useFilesStore = defineStore("files", () => {
     return findById(targetId) || findByName(fileKey || "");
   };
 
+  const getActiveFileNodeIconSizeByType = (): NodeIconSizeByType => {
+    const activeFile = findById(activeFileId.value);
+    return normalizeNodeIconSizeByType(activeFile?.nodeIconSizeByType);
+  };
+
+  const setActiveFileNodeIconSizeByType = (next: NodeIconSizeByType) => {
+    const activeFile = findById(activeFileId.value);
+    if (!activeFile) {
+      return;
+    }
+    const normalized = normalizeNodeIconSizeByType(next);
+    if (hasNodeIconSizeByTypeOverrides(normalized)) {
+      activeFile.nodeIconSizeByType = normalized;
+    } else {
+      delete activeFile.nodeIconSizeByType;
+    }
+    persistState();
+  };
+
+  const resetActiveFileNodeIconSizeByType = () => {
+    const activeFile = findById(activeFileId.value);
+    if (!activeFile) {
+      return;
+    }
+    delete activeFile.nodeIconSizeByType;
+    persistState();
+  };
+
   type SwitchActiveFileOptions = {
     saveSourceFileId?: string;
     persistAfterSwitch?: boolean;
@@ -570,6 +614,9 @@ export const useFilesStore = defineStore("files", () => {
     setVisible,
     deleteFile,
     renameFile,
+    getActiveFileNodeIconSizeByType,
+    setActiveFileNodeIconSizeByType,
+    resetActiveFileNodeIconSizeByType,
     bindLogicFlowScope,
 
     fileList,

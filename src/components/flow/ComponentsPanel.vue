@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { getAssetDataSource } from "@/configs/assetCatalog";
 import iconDynamicGroup from "@/assets/component-icons/dynamic-group.svg";
 import iconEllipse from "@/assets/component-icons/ellipse.svg";
@@ -8,12 +8,30 @@ import iconRect from "@/assets/component-icons/rect.svg";
 import iconText from "@/assets/component-icons/text.svg";
 import iconVector from "@/assets/component-icons/vector.svg";
 import type { AssetLibraryId } from "@/types/assets";
+import type { Pinia } from "pinia";
 import { getLogicFlowInstance, useLogicFlowScope } from "@/ts/useLogicFlow";
+import { useFilesStore } from "@/ts/useStore";
 import { useSafeI18n } from "@/ts/useSafeI18n";
 import { resolveAssetUrl } from "@/utils/assetUrl";
+import {
+  readNodeIconSizeThemeConfig,
+  subscribeNodeIconSizeThemeConfig,
+} from "@/utils/nodeIconSizeThemeSource";
+import {
+  resolveNodeIconSize,
+  type NodeIconSizeByType,
+  type NodeIconSizeTarget,
+} from "@/types/nodeIconSize";
 
 const logicFlowScope = useLogicFlowScope();
 const { t } = useSafeI18n();
+const props = defineProps<{
+  piniaInstance?: Pinia;
+}>();
+
+const filesStore = props.piniaInstance
+  ? useFilesStore(props.piniaInstance)
+  : useFilesStore();
 const MIN_PANEL_WIDTH = 220;
 const MAX_PANEL_WIDTH = 420;
 const DEFAULT_PANEL_WIDTH = 260;
@@ -26,6 +44,10 @@ let resizeStartX = 0;
 let resizeStartWidth = DEFAULT_PANEL_WIDTH;
 let prevBodyCursor = "";
 let prevBodyUserSelect = "";
+const globalNodeIconSizeByType = ref<NodeIconSizeByType>(
+  readNodeIconSizeThemeConfig(),
+);
+let unsubscribeNodeIconSizeTheme: (() => void) | null = null;
 const assetLibraries: AssetLibraryId[] = [
   "shikigami",
   "yuhun",
@@ -33,7 +55,7 @@ const assetLibraries: AssetLibraryId[] = [
   "onmyojiSkill",
   "hunling",
 ];
-const assetPreviewByLibrary = computed(() => {
+const assetPreviewByLibrary = computed<Partial<Record<AssetLibraryId, string>>>(() => {
   const output: Partial<Record<AssetLibraryId, string>> = {};
   assetLibraries.forEach((library) => {
     const firstAsset = getAssetDataSource(library)?.[0] as
@@ -46,6 +68,20 @@ const assetPreviewByLibrary = computed(() => {
   });
   return output;
 });
+const activeFileNodeIconSizeByType = computed(() =>
+  filesStore.getActiveFileNodeIconSizeByType?.() || {},
+);
+
+const resolveTargetNodeSize = (
+  target: NodeIconSizeTarget,
+  explicit?: { width?: unknown; height?: unknown },
+) => {
+  return resolveNodeIconSize(target, {
+    globalOverride: globalNodeIconSizeByType.value,
+    fileOverride: activeFileNodeIconSizeByType.value,
+    explicit,
+  });
+};
 
 // 使用嵌套结构定义组件分组
 const componentGroups = computed(() => [
@@ -114,8 +150,6 @@ const componentGroups = computed(() => [
         description: t("flow.components.image.desc"),
         data: {
           url: "",
-          width: 180,
-          height: 120,
         },
         icon: iconImage,
       },
@@ -243,9 +277,32 @@ const handleMouseDown = (e, component) => {
   e.preventDefault(); // 阻止文字选中
   const lf = getLogicFlowInstance(logicFlowScope);
   if (!lf) return;
+
+  const nextData = {
+    ...(component.data || {}),
+  } as Record<string, unknown>;
+  if (component.type === "assetSelector" || component.type === "imageNode") {
+    const target = component.type as NodeIconSizeTarget;
+    const resolvedSize = resolveTargetNodeSize(target, {
+      width: nextData.width,
+      height: nextData.height,
+    });
+    nextData.width = resolvedSize.width;
+    nextData.height = resolvedSize.height;
+    const currentStyle =
+      nextData.style && typeof nextData.style === "object"
+        ? (nextData.style as Record<string, unknown>)
+        : {};
+    nextData.style = {
+      ...currentStyle,
+      width: resolvedSize.width,
+      height: resolvedSize.height,
+    };
+  }
+
   lf.dnd.startDrag({
     type: component.type,
-    properties: component.data,
+    properties: nextData,
   });
 };
 
@@ -283,6 +340,14 @@ const handleResizeMouseDown = (event: MouseEvent) => {
 
 onBeforeUnmount(() => {
   stopResize();
+  unsubscribeNodeIconSizeTheme?.();
+  unsubscribeNodeIconSizeTheme = null;
+});
+
+onMounted(() => {
+  unsubscribeNodeIconSizeTheme = subscribeNodeIconSizeThemeConfig(() => {
+    globalNodeIconSizeByType.value = readNodeIconSizeThemeConfig();
+  });
 });
 </script>
 

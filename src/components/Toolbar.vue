@@ -13,33 +13,51 @@
       <el-button icon="Share" type="primary" @click="prepareCapture">{{
         t("prepareCapture")
       }}</el-button>
-      <el-button icon="Setting" type="primary" @click="openWatermarkDialog">{{
-        t("setWatermark")
-      }}</el-button>
-      <el-button icon="Picture" type="primary" plain @click="openAssetManager">
-        {{ t("assetManager") }}
-      </el-button>
-      <el-button icon="EditPen" type="primary" plain @click="openRuleManager">
-        {{ t("ruleManager") }}
-      </el-button>
-      <el-button v-if="!props.isEmbed" type="info" @click="loadExample">{{
-        t("loadExample")
-      }}</el-button>
-      <el-button v-if="!props.isEmbed" type="info" @click="showUpdateLog">{{
-        t("updateLog")
-      }}</el-button>
-      <el-button
-        v-if="!props.isEmbed"
-        type="warning"
-        @click="showFeedbackForm"
-        >{{ t("feedback") }}</el-button
-      >
-      <el-button type="danger" @click="handleResetWorkspace">{{
-        t("resetWorkspace")
-      }}</el-button>
-      <el-button type="warning" plain @click="handleClearCanvas">{{
-        t("clearCanvas")
-      }}</el-button>
+      <el-dropdown trigger="click">
+        <el-button type="primary" plain>
+          {{ t("toolbar.menu.resources") }}
+        </el-button>
+        <template #dropdown>
+          <el-dropdown-menu>
+            <el-dropdown-item @click="openWatermarkDialog">
+              {{ t("setWatermark") }}
+            </el-dropdown-item>
+            <el-dropdown-item @click="openAssetManager">
+              {{ t("assetManager") }}
+            </el-dropdown-item>
+            <el-dropdown-item @click="openRuleManager">
+              {{ t("ruleManager") }}
+            </el-dropdown-item>
+            <el-dropdown-item @click="openNodeIconSizeDialog">
+              {{ t("toolbar.menu.nodeIconSize") }}
+            </el-dropdown-item>
+          </el-dropdown-menu>
+        </template>
+      </el-dropdown>
+      <el-dropdown trigger="click">
+        <el-button type="info" plain>
+          {{ t("toolbar.menu.workspace") }}
+        </el-button>
+        <template #dropdown>
+          <el-dropdown-menu>
+            <el-dropdown-item v-if="!props.isEmbed" @click="loadExample">
+              {{ t("loadExample") }}
+            </el-dropdown-item>
+            <el-dropdown-item v-if="!props.isEmbed" @click="showUpdateLog">
+              {{ t("updateLog") }}
+            </el-dropdown-item>
+            <el-dropdown-item v-if="!props.isEmbed" @click="showFeedbackForm">
+              {{ t("feedback") }}
+            </el-dropdown-item>
+            <el-dropdown-item @click="handleResetWorkspace">
+              {{ t("resetWorkspace") }}
+            </el-dropdown-item>
+            <el-dropdown-item @click="handleClearCanvas">
+              {{ t("clearCanvas") }}
+            </el-dropdown-item>
+          </el-dropdown-menu>
+        </template>
+      </el-dropdown>
     </div>
     <div class="toolbar-controls">
       <el-switch
@@ -191,6 +209,97 @@
             t("common.cancel")
           }}</el-button>
           <el-button type="primary" @click="applyWatermarkSettings">{{
+            t("common.confirm")
+          }}</el-button>
+        </span>
+      </template>
+    </el-dialog>
+
+    <el-dialog
+      v-model="showNodeIconSizeDialog"
+      :title="t('nodeIconSize.title')"
+      width="560px"
+    >
+      <el-tabs v-model="nodeIconSizeTab">
+        <el-tab-pane :label="t('nodeIconSize.tab.global')" name="global">
+          <div class="node-icon-size-grid">
+            <div
+              v-for="target in TARGETS"
+              :key="`global-${target}`"
+              class="node-icon-size-row"
+            >
+              <span class="node-icon-size-label">{{ labels[target] }}</span>
+              <el-input-number
+                v-model="globalDraft[target].width"
+                :min="40"
+                :max="1200"
+                controls-position="right"
+                size="small"
+              />
+              <el-input-number
+                v-model="globalDraft[target].height"
+                :min="40"
+                :max="1200"
+                controls-position="right"
+                size="small"
+              />
+              <el-button
+                size="small"
+                text
+                type="warning"
+                @click="resetSingleTarget('global', target)"
+              >
+                {{ t("nodeIconSize.resetSingle") }}
+              </el-button>
+            </div>
+          </div>
+        </el-tab-pane>
+        <el-tab-pane :label="t('nodeIconSize.tab.file')" name="file">
+          <div class="node-icon-size-grid">
+            <div
+              v-for="target in TARGETS"
+              :key="`file-${target}`"
+              class="node-icon-size-row"
+            >
+              <span class="node-icon-size-label">{{ labels[target] }}</span>
+              <el-input-number
+                v-model="fileDraft[target].width"
+                :min="40"
+                :max="1200"
+                controls-position="right"
+                size="small"
+              />
+              <el-input-number
+                v-model="fileDraft[target].height"
+                :min="40"
+                :max="1200"
+                controls-position="right"
+                size="small"
+              />
+              <el-button
+                size="small"
+                text
+                type="warning"
+                @click="resetSingleTarget('file', target)"
+              >
+                {{ t("nodeIconSize.resetSingle") }}
+              </el-button>
+            </div>
+          </div>
+        </el-tab-pane>
+      </el-tabs>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="resetGlobalNodeIconSizeConfig">{{
+            t("nodeIconSize.resetGlobal")
+          }}</el-button>
+          <el-button @click="resetFileNodeIconSizeConfig">{{
+            t("nodeIconSize.resetFile")
+          }}</el-button>
+          <el-button @click="showNodeIconSizeDialog = false">{{
+            t("common.close")
+          }}</el-button>
+          <el-button type="primary" @click="applyNodeIconSizeConfig">{{
             t("common.confirm")
           }}</el-button>
         </span>
@@ -628,6 +737,7 @@ import { useToolbarRuleManagement } from "@/components/composables/useToolbarRul
 import { useToolbarWorkspaceCommands } from "@/components/composables/useToolbarWorkspaceCommands";
 import { useToolbarDialogState } from "@/components/composables/useToolbarDialogState";
 import { useToolbarCanvasRefresh } from "@/components/composables/useToolbarCanvasRefresh";
+import { useToolbarNodeIconSizeConfig } from "@/components/composables/useToolbarNodeIconSizeConfig";
 
 const props = withDefaults(
   defineProps<{
@@ -773,6 +883,24 @@ const { loadExample, handleResetWorkspace, handleClearCanvas } =
     refreshLogicFlowCanvas,
   });
 
+const {
+  TARGETS,
+  labels,
+  showNodeIconSizeDialog,
+  nodeIconSizeTab,
+  globalDraft,
+  fileDraft,
+  openNodeIconSizeDialog,
+  applyNodeIconSizeConfig,
+  resetGlobalNodeIconSizeConfig,
+  resetFileNodeIconSizeConfig,
+  resetSingleTarget,
+} = useToolbarNodeIconSizeConfig({
+  filesStore,
+  showMessage,
+  t,
+});
+
 onMounted(() => {
   mountAssetManagement();
   mountDialogState();
@@ -834,6 +962,12 @@ const {
   flex: 1;
   min-width: 0;
   white-space: nowrap;
+}
+.toolbar-actions :deep(.el-dropdown) {
+  flex-shrink: 0;
+}
+.toolbar-actions :deep(.el-dropdown .el-button) {
+  width: auto;
 }
 
 .toolbar--embed {
@@ -1046,9 +1180,32 @@ const {
   word-break: break-word;
 }
 
+.node-icon-size-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.node-icon-size-row {
+  display: grid;
+  grid-template-columns: 1fr 120px 120px auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.node-icon-size-label {
+  font-size: 13px;
+  color: #303133;
+}
+
 @media (max-width: 900px) {
   .variable-item {
     grid-template-columns: 1fr;
+  }
+  .node-icon-size-row {
+    grid-template-columns: 1fr;
+    justify-items: stretch;
   }
 }
 </style>

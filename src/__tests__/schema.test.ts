@@ -233,4 +233,66 @@ describe("Schema 数据结构验证", () => {
       true,
     );
   });
+
+  it("validateRootDocumentV1 应校验 nodeIconSizeByType 的合法节点类型", () => {
+    const validation = validateRootDocumentV1({
+      schemaVersion: "1.0.0",
+      fileList: [
+        {
+          id: "f_1",
+          label: "File 1",
+          name: "File 1",
+          visible: true,
+          type: "FLOW",
+          graphRawData: {
+            nodes: [],
+            edges: [],
+          },
+          transform: {
+            SCALE_X: 1,
+            SCALE_Y: 1,
+            TRANSLATE_X: 0,
+            TRANSLATE_Y: 0,
+          },
+          nodeIconSizeByType: {
+            unknownNode: {
+              width: 100,
+              height: 100,
+            },
+          },
+        },
+      ],
+      activeFile: "File 1",
+      activeFileId: "f_1",
+    });
+
+    expect(validation.valid).toBe(false);
+    expect(
+      validation.errors.some((item) =>
+        item.path.includes("nodeIconSizeByType.unknownNode"),
+      ),
+    ).toBe(true);
+  });
+
+  it("migrateToV1 应保留并规范化 nodeIconSizeByType", () => {
+    const migrated = migrateToV1([
+      {
+        id: "file-1",
+        name: "File 1",
+        label: "File 1",
+        visible: true,
+        type: "FLOW",
+        graphRawData: { nodes: [], edges: [] },
+        nodeIconSizeByType: {
+          assetSelector: { width: "260", height: 140 },
+          imageNode: { width: 0, height: 9999 },
+        },
+      },
+    ]);
+
+    expect(migrated.fileList[0].nodeIconSizeByType).toEqual({
+      assetSelector: { width: 260, height: 140 },
+      imageNode: { width: 40, height: 1200 },
+    });
+  });
 });
