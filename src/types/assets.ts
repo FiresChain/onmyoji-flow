@@ -3,6 +3,7 @@ export const ASSET_LIBRARY_IDS = [
   "yuhun",
   "onmyoji",
   "onmyojiSkill",
+  "hunling",
 ] as const;
 
 export type AssetLibraryId = (typeof ASSET_LIBRARY_IDS)[number];
@@ -43,8 +44,13 @@ export interface OnmyojiSkillAssetRecord extends BaseAssetRecord {
   skillId: string;
 }
 
+export interface HunLingAssetRecord extends BaseAssetRecord {
+  library: "hunling";
+}
+
 export type AnyAssetRecord =
   | ShikigamiAssetRecord
   | YuhunAssetRecord
   | OnmyojiAssetRecord
-  | OnmyojiSkillAssetRecord;
+  | OnmyojiSkillAssetRecord
+  | HunLingAssetRecord;

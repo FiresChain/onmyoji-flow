@@ -13,6 +13,9 @@ const CANONICAL_LIBRARY_MAP: Record<string, AssetLibraryId> = {
   onmyojiskill: "onmyojiSkill",
   onmyoji_skill: "onmyojiSkill",
   "onmyoji-skill": "onmyojiSkill",
+  hunling: "hunling",
+  "hun-ling": "hunling",
+  "hun_ling": "hunling",
 };
 
 const normalizeText = (value: unknown): string =>

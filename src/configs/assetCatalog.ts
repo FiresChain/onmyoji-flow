@@ -7,6 +7,7 @@ import shikigamiAssets from "@/data/assets/shikigami.json";
 import yuhunAssets from "@/data/assets/yuhun.json";
 import onmyojiAssets from "@/data/assets/onmyoji.json";
 import onmyojiSkillAssets from "@/data/assets/onmyojiSkill.json";
+import hunlingAssets from "@/data/assets/hunling.json";
 
 type LocalizedText = Record<string, string>;
 
@@ -44,11 +45,19 @@ type DisplayOnmyojiSkill = {
   onmyojiName: string;
 };
 
+type DisplayHunLing = {
+  id: string;
+  library: "hunling";
+  avatar: string;
+  name: string;
+};
+
 export type DisplayAssetRecord =
   | DisplayShikigami
   | DisplayYuhun
   | DisplayOnmyoji
-  | DisplayOnmyojiSkill;
+  | DisplayOnmyojiSkill
+  | DisplayHunLing;
 
 const pickLocalizedText = (
   value: LocalizedText | undefined,
@@ -137,6 +146,17 @@ const toOnmyojiSkill = (locale: AssetLocale): DisplayOnmyojiSkill[] => {
   });
 };
 
+const toHunLing = (locale: AssetLocale): DisplayHunLing[] =>
+  (hunlingAssets as any[]).map((item) => {
+    const id = String(item?.id || "").trim();
+    return {
+      id,
+      library: "hunling",
+      avatar: String(item?.avatar || ""),
+      name: pickLocalizedText(item?.names, locale, id),
+    };
+  });
+
 export const getAssetDataSource = (
   library: AssetLibraryId,
   localeInput?: unknown,
@@ -151,6 +171,9 @@ export const getAssetDataSource = (
   }
   if (normalizedLibrary === "onmyoji") {
     return toOnmyoji(locale);
+  }
+  if (normalizedLibrary === "hunling") {
+    return toHunLing(locale);
   }
   return toOnmyojiSkill(locale);
 };

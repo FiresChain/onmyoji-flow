@@ -12,6 +12,12 @@ describe("assetLibrary normalization", () => {
     expect(normalizeAssetLibraryId("onmyoji-skill")).toBe("onmyojiSkill");
   });
 
+  it("normalizes hunling aliases", () => {
+    expect(normalizeAssetLibraryId("hunling")).toBe("hunling");
+    expect(normalizeAssetLibraryId("hun-ling")).toBe("hunling");
+    expect(normalizeAssetLibraryId("hun_ling")).toBe("hunling");
+  });
+
   it("returns fallback for unknown library", () => {
     expect(normalizeAssetLibraryId("unknown")).toBe("");
     expect(normalizeAssetLibraryIdWithFallback("unknown", "yuhun")).toBe(

@@ -185,6 +185,26 @@ const buildOnmyojiSkillPreset = (
   };
 };
 
+const buildHunLingPreset = (
+  localeInput: unknown,
+  t?: TranslateFn,
+): SelectorConfig => {
+  const dataSource = getAssetDataSource("hunling", localeInput) as Array<
+    Record<string, any>
+  >;
+  return {
+    title: translate(t, "selector.title.hunling", "请选择契灵"),
+    dataSource,
+    groupField: null,
+    groups: [createAllGroup(t)],
+    itemRender: {
+      imageField: "avatar",
+      labelField: "name",
+    },
+    itemKeyField: "id",
+  };
+};
+
 export const getSelectorPreset = (
   libraryInput: string,
   options?: {
@@ -205,6 +225,9 @@ export const getSelectorPreset = (
   if (library === "onmyoji") {
     return buildOnmyojiPreset(locale, t);
   }
+  if (library === "hunling") {
+    return buildHunLingPreset(locale, t);
+  }
   return buildOnmyojiSkillPreset(locale, t);
 };
 
@@ -218,6 +241,7 @@ export const getSelectorPresets = (
   yuhun: getSelectorPreset("yuhun", options),
   onmyoji: getSelectorPreset("onmyoji", options),
   onmyojiSkill: getSelectorPreset("onmyojiSkill", options),
+  hunling: getSelectorPreset("hunling", options),
 });
 
 export const SELECTOR_PRESETS = getSelectorPresets({

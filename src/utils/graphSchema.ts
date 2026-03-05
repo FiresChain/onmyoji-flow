@@ -23,6 +23,7 @@ const inferLibraryFromAvatar = (avatar: string): string => {
   if (!avatar) return "";
   if (avatar.includes("/Yuhun/")) return "yuhun";
   if (avatar.includes("/Shikigami/")) return "shikigami";
+  if (avatar.includes("/HunLing/")) return "hunling";
   if (avatar.includes("/hero_")) return "onmyoji";
   return "";
 };
@@ -197,17 +198,16 @@ export const normalizeGraphRawDataSchema = (
     }
 
     if (node?.type === "assetSelector") {
-      const currentLibrary =
-        normalizeAssetLibraryId(properties.assetLibrary) || "shikigami";
+      const normalizedLibrary = normalizeAssetLibraryId(properties.assetLibrary);
       const selectedAsset = normalizeSelectedAssetRecord(
         properties.selectedAsset,
-        currentLibrary,
+        normalizedLibrary,
       );
       return {
         ...normalizedNode,
         properties: {
           ...properties,
-          assetLibrary: selectedAsset?.library || currentLibrary,
+          assetLibrary: selectedAsset?.library || normalizedLibrary || "shikigami",
           selectedAsset,
         },
       };

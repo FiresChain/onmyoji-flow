@@ -162,6 +162,16 @@ const componentGroups = computed(() => [
           selectedAsset: null,
         },
       },
+      {
+        id: "hunling-select",
+        name: t("flow.components.hunling.name"),
+        type: "assetSelector",
+        description: t("flow.components.hunling.desc"),
+        data: {
+          assetLibrary: "hunling",
+          selectedAsset: null,
+        },
+      },
     ],
   },
   {

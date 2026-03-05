@@ -12,13 +12,16 @@ describe("selector presets", () => {
       locale: "zh",
       t,
     });
+    const hunling = getSelectorPreset("hunling", { locale: "zh", t });
 
     expect(shikigami.dataSource.length).toBeGreaterThan(0);
     expect(yuhun.dataSource.length).toBeGreaterThan(0);
     expect(onmyoji.dataSource.length).toBeGreaterThan(0);
     expect(onmyojiSkill.dataSource.length).toBeGreaterThan(0);
+    expect(hunling.dataSource.length).toBeGreaterThan(0);
 
     expect(shikigami.itemKeyField).toBe("id");
     expect(onmyojiSkill.groupField).toBe("onmyojiName");
+    expect(hunling.groupField).toBe(null);
   });
 });

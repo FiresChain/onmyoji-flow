@@ -32,4 +32,11 @@ describe("assetCatalog", () => {
     expect(unknown.length).toBe(zh.length);
     expect((unknown[0] as any).name).toBe((zh[0] as any).name);
   });
+
+  it("returns hunling records", () => {
+    const hunling = getAssetDataSource("hunling", "zh") as any[];
+    expect(hunling.length).toBeGreaterThan(0);
+    expect(hunling[0].library).toBe("hunling");
+    expect(typeof hunling[0].name).toBe("string");
+  });
 });

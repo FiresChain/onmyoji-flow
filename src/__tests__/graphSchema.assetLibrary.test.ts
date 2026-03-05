@@ -26,4 +26,28 @@ describe("graphSchema asset library normalization", () => {
     expect(node.properties.selectedAsset.library).toBe("onmyojiSkill");
     expect(node.properties.selectedAsset.assetId).toContain("onmyojiSkill:");
   });
+
+  it("infers hunling library from avatar path", () => {
+    const graph = normalizeGraphRawDataSchema({
+      nodes: [
+        {
+          id: "n2",
+          type: "assetSelector",
+          properties: {
+            selectedAsset: {
+              id: "100",
+              name: "魂灵100",
+              avatar: "/assets/HunLing/100.png",
+            },
+          },
+        },
+      ],
+      edges: [],
+    });
+
+    const node = graph.nodes[0];
+    expect(node.properties.assetLibrary).toBe("hunling");
+    expect(node.properties.selectedAsset.library).toBe("hunling");
+    expect(node.properties.selectedAsset.assetId).toContain("hunling:");
+  });
 });
