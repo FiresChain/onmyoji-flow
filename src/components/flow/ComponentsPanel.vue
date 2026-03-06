@@ -15,6 +15,7 @@ import {
   readNodeCreateSizeConfig,
   resolveCreateNodeSize,
 } from "@/utils/nodeCreateSizeConfig";
+import { buildAssetNodeCreateProperties } from "@/utils/assetTheme";
 
 const logicFlowScope = useLogicFlowScope();
 const { t } = useSafeI18n();
@@ -255,6 +256,12 @@ const handleMouseDown = (e, component) => {
     assetLibrary: nextProperties.assetLibrary,
     config: sizeConfig,
   });
+  if (component.type === "assetSelector") {
+    Object.assign(
+      nextProperties,
+      buildAssetNodeCreateProperties(nextProperties, { config: sizeConfig }),
+    );
+  }
   if (resolvedSize) {
     nextProperties.width = resolvedSize.width;
     nextProperties.height = resolvedSize.height;

@@ -66,6 +66,7 @@ export interface NodeMeta {
   visible?: boolean;
   groupId?: string;
   name?: string;
+  assetNameOwnerId?: string;
   createdAt?: number;
   updatedAt?: number;
 }
@@ -89,6 +90,13 @@ export interface NodeProperties {
     avatar?: string;
     [key: string]: any;
   } | null;
+  assetName?: {
+    visible?: boolean;
+    labelNodeId?: string | null;
+    offsetX?: number;
+    offsetY?: number;
+    lastSyncedAssetName?: string;
+  };
   image?: { url: string; fit?: "fill" | "contain" | "cover" };
   text?: { content: string; rich?: boolean };
   vector?: {

@@ -68,6 +68,7 @@ interface NodeProperties {
   style: NodeStyle; // 通用样式
   meta?: NodeMeta; // 通用元信息（锁定/可见/分组等）
   // 具体节点类型的扩展字段（如下）
+  assetName?: AssetNameProps; // 资产节点名称文本（独立 textNode）控制
   image?: ImageProps;
   text?: TextProps;
   vector?: VectorProps;
@@ -116,6 +117,7 @@ interface NodeMeta {
   visible?: boolean; // 可见性
   groupId?: string; // 组合/分组标识
   name?: string; // 可选显示名
+  assetNameOwnerId?: string; // 当节点为资产名称 textNode 时，指向所属 assetSelector 节点 ID
   createdAt?: number;
   updatedAt?: number;
 }
@@ -140,6 +142,18 @@ interface ImageProps {
 interface TextProps {
   content: string; // 文本内容（富文本后续扩展）
   rich?: boolean; // 是否富文本（v1 仅纯文本）
+}
+```
+
+- Asset Name（assetSelector 的名称文本联动）
+
+```ts
+interface AssetNameProps {
+  visible?: boolean; // 是否显示名称文本
+  labelNodeId?: string | null; // 关联的 textNode ID
+  offsetX?: number; // 相对资产节点中心的 X 偏移
+  offsetY?: number; // 相对资产节点底部的 Y 偏移
+  lastSyncedAssetName?: string; // 最近一次由 selectedAsset 同步的名称
 }
 ```
 

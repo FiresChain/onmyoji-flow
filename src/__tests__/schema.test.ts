@@ -86,6 +86,26 @@ describe("Schema 数据结构验证", () => {
     expect(properties.yuhun?.type).toBe("攻击");
   });
 
+  it("NodeProperties 应支持资产名称文本关联字段", () => {
+    const properties: NodeProperties = {
+      style: DefaultNodeStyle,
+      meta: {
+        assetNameOwnerId: "asset-node-1",
+      },
+      assetName: {
+        visible: true,
+        labelNodeId: "text-node-1",
+        offsetX: 0,
+        offsetY: 78,
+        lastSyncedAssetName: "茨木童子",
+      },
+    };
+
+    expect(properties.meta?.assetNameOwnerId).toBe("asset-node-1");
+    expect(properties.assetName?.labelNodeId).toBe("text-node-1");
+    expect(properties.assetName?.visible).toBe(true);
+  });
+
   it("RootDocument 应该包含文件列表和活动文件", () => {
     const doc: RootDocument = {
       schemaVersion: "1.0.0",

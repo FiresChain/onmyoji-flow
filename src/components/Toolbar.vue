@@ -249,13 +249,19 @@
     <el-dialog
       v-model="showNodeSizeDialog"
       :title="t('nodeSize.title')"
-      width="560px"
+      width="640px"
     >
       <div class="node-size-grid">
         <div class="node-size-row node-size-row--header">
           <span class="node-size-label"></span>
           <span class="node-size-dimension">{{ t("nodeSize.width") }}</span>
           <span class="node-size-dimension">{{ t("nodeSize.height") }}</span>
+          <span class="node-size-dimension">{{
+            t("nodeSize.section.assetStyle")
+          }}</span>
+          <span class="node-size-dimension">{{
+            t("nodeSize.section.assetName")
+          }}</span>
         </div>
         <div class="node-size-row">
           <span class="node-size-label">{{ t("flow.components.image.name") }}</span>
@@ -273,6 +279,8 @@
             controls-position="right"
             size="small"
           />
+          <span class="node-size-placeholder">-</span>
+          <span class="node-size-placeholder">-</span>
         </div>
         <div
           v-for="library in nodeSizeLibraries"
@@ -294,6 +302,20 @@
             controls-position="right"
             size="small"
           />
+          <el-button
+            size="small"
+            class="node-size-action"
+            @click="openThemeDetailDialog(library, 'nodeStyle')"
+          >
+            {{ t("common.edit") }}
+          </el-button>
+          <el-button
+            size="small"
+            class="node-size-action"
+            @click="openThemeDetailDialog(library, 'name')"
+          >
+            {{ t("common.edit") }}
+          </el-button>
         </div>
       </div>
       <template #footer>
@@ -301,11 +323,163 @@
           <el-button @click="handleResetNodeSizeConfig">{{
             t("nodeSize.reset")
           }}</el-button>
+          <el-button
+            type="primary"
+            plain
+            :loading="state.applyingThemeToCurrent"
+            @click="applyThemeToCurrentCanvas"
+          >
+            {{ t("nodeSize.applyCurrent") }}
+          </el-button>
           <el-button @click="showNodeSizeDialog = false">{{
             t("common.close")
           }}</el-button>
           <el-button type="primary" @click="applyNodeSizeConfig">{{
             t("common.confirm")
+          }}</el-button>
+        </span>
+      </template>
+    </el-dialog>
+
+    <el-dialog
+      v-model="showThemeDetailDialog"
+      :title="themeDetailDialogTitle"
+      width="620px"
+    >
+      <div v-if="themeDetailMode === 'nodeStyle'" class="node-theme-grid">
+        <div class="node-theme-item">
+          <span class="node-size-label">{{ t("flow.style.fill") }}</span>
+          <el-color-picker v-model="themeDetailDraft.nodeStyle.fill" />
+        </div>
+        <div class="node-theme-item">
+          <span class="node-size-label">{{ t("flow.style.stroke") }}</span>
+          <el-color-picker v-model="themeDetailDraft.nodeStyle.stroke" />
+        </div>
+        <div class="node-theme-item">
+          <span class="node-size-label">{{ t("flow.style.stroke") }} px</span>
+          <el-input-number
+            v-model="themeDetailDraft.nodeStyle.strokeWidth"
+            :min="0"
+            :max="20"
+            controls-position="right"
+            size="small"
+          />
+        </div>
+        <div class="node-theme-item">
+          <span class="node-size-label">{{ t("flow.style.radius") }}</span>
+          <el-input-number
+            v-model="themeDetailDraft.nodeStyle.radius"
+            :min="0"
+            :max="200"
+            controls-position="right"
+            size="small"
+          />
+        </div>
+        <div class="node-theme-item node-theme-item--full">
+          <span class="node-size-label">{{ t("flow.style.opacity") }}</span>
+          <el-slider
+            v-model="themeDetailDraft.nodeStyle.opacity"
+            :min="0"
+            :max="1"
+            :step="0.05"
+            show-input
+            :show-input-controls="false"
+          />
+        </div>
+      </div>
+      <div v-else class="node-theme-grid">
+        <div class="node-theme-item">
+          <span class="node-size-label">{{ t("assetPanel.nameVisible") }}</span>
+          <el-switch v-model="themeDetailDraft.name.show" />
+        </div>
+        <div class="node-theme-item">
+          <span class="node-size-label">{{ t("nodeSize.nameOffsetX") }}</span>
+          <el-input-number
+            v-model="themeDetailDraft.name.offsetX"
+            :min="-600"
+            :max="600"
+            controls-position="right"
+            size="small"
+          />
+        </div>
+        <div class="node-theme-item">
+          <span class="node-size-label">{{ t("nodeSize.nameOffsetY") }}</span>
+          <el-input-number
+            v-model="themeDetailDraft.name.offsetY"
+            :min="-600"
+            :max="600"
+            controls-position="right"
+            size="small"
+          />
+        </div>
+        <div class="node-theme-item">
+          <span class="node-size-label">{{ t("nodeSize.nameWidth") }}</span>
+          <el-input-number
+            v-model="themeDetailDraft.name.width"
+            :min="40"
+            :max="1200"
+            controls-position="right"
+            size="small"
+          />
+        </div>
+        <div class="node-theme-item">
+          <span class="node-size-label">{{ t("nodeSize.nameHeight") }}</span>
+          <el-input-number
+            v-model="themeDetailDraft.name.height"
+            :min="20"
+            :max="1200"
+            controls-position="right"
+            size="small"
+          />
+        </div>
+        <div class="node-theme-item">
+          <span class="node-size-label">{{ t("nodeSize.textColor") }}</span>
+          <el-color-picker v-model="themeDetailDraft.name.textStyle.color" />
+        </div>
+        <div class="node-theme-item">
+          <span class="node-size-label">{{ t("nodeSize.fontSize") }}</span>
+          <el-input-number
+            v-model="themeDetailDraft.name.textStyle.fontSize"
+            :min="8"
+            :max="96"
+            controls-position="right"
+            size="small"
+          />
+        </div>
+        <div class="node-theme-item">
+          <span class="node-size-label">{{ t("nodeSize.fontWeight") }}</span>
+          <el-select v-model="themeDetailDraft.name.textStyle.fontWeight" size="small">
+            <el-option :label="t('flow.style.weight.300')" :value="300" />
+            <el-option :label="t('flow.style.weight.400')" :value="400" />
+            <el-option :label="t('flow.style.weight.500')" :value="500" />
+            <el-option :label="t('flow.style.weight.600')" :value="600" />
+            <el-option :label="t('flow.style.weight.700')" :value="700" />
+          </el-select>
+        </div>
+        <div class="node-theme-item">
+          <span class="node-size-label">{{ t("nodeSize.lineHeight") }}</span>
+          <el-input-number
+            v-model="themeDetailDraft.name.textStyle.lineHeight"
+            :min="0.8"
+            :max="3"
+            :step="0.1"
+            controls-position="right"
+            size="small"
+          />
+        </div>
+        <div class="node-theme-item">
+          <span class="node-size-label">{{ t("flow.style.textAlign") }}</span>
+          <el-select v-model="themeDetailDraft.name.textStyle.align" size="small">
+            <el-option :label="t('flow.style.align.left')" value="left" />
+            <el-option :label="t('flow.style.align.center')" value="center" />
+            <el-option :label="t('flow.style.align.right')" value="right" />
+          </el-select>
+        </div>
+      </div>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="showThemeDetailDialog = false">{{
+            t("common.close")
           }}</el-button>
         </span>
       </template>
@@ -732,16 +906,18 @@ import { ElDropdown, ElDropdownItem, ElDropdownMenu } from "element-plus";
 import updateLogs from "../data/updateLog.json";
 import { useFilesStore } from "@/ts/useStore";
 import { useGlobalMessage } from "@/ts/useGlobalMessage";
-import { useLogicFlowScope } from "@/ts/useLogicFlow";
+import { getLogicFlowInstance, useLogicFlowScope } from "@/ts/useLogicFlow";
 import { useCanvasSettings } from "@/ts/useCanvasSettings";
 import { useSafeI18n } from "@/ts/useSafeI18n";
 import type { Pinia } from "pinia";
 import { ASSET_LIBRARY_IDS, type AssetLibraryId } from "@/types/assets";
 import { resolveAssetUrl } from "@/utils/assetUrl";
+import { applyAssetThemeToCurrentFile } from "@/utils/assetTheme";
 import {
   cloneNodeCreateSizeConfig,
+  DEFAULT_NODE_CREATE_SIZE_CONFIG,
+  normalizeNodeCreateSizeConfig,
   readNodeCreateSizeConfig,
-  resetNodeCreateSizeConfig,
   writeNodeCreateSizeConfig,
 } from "@/utils/nodeCreateSizeConfig";
 import { useToolbarImportExportCommands } from "@/components/composables/useToolbarImportExportCommands";
@@ -821,6 +997,7 @@ const state = reactive({
   showAssetManagerDialog: false, // 控制素材管理对话框的显示状态
   showRuleManagerDialog: false, // 控制规则管理对话框的显示状态
   previewDataContent: "", // 存储预览的数据内容
+  applyingThemeToCurrent: false,
 });
 const importSource = ref<"json" | "teamCode">("json");
 const teamCodeInput = ref("");
@@ -898,6 +1075,28 @@ const { loadExample, handleResetWorkspace, handleClearCanvas } =
 const nodeSizeLibraries: AssetLibraryId[] = [...ASSET_LIBRARY_IDS];
 const showNodeSizeDialog = ref(false);
 const nodeSizeDraft = ref(readNodeCreateSizeConfig());
+const showThemeDetailDialog = ref(false);
+const themeDetailLibrary = ref<AssetLibraryId>("shikigami");
+const themeDetailMode = ref<"nodeStyle" | "name">("nodeStyle");
+const themeDetailDraft = computed(
+  () => nodeSizeDraft.value.assetThemeByLibrary[themeDetailLibrary.value],
+);
+const themeDetailDialogTitle = computed(() => {
+  const sectionKey =
+    themeDetailMode.value === "nodeStyle"
+      ? "nodeSize.section.assetStyle"
+      : "nodeSize.section.assetName";
+  return `${t(`assetLibrary.${themeDetailLibrary.value}`)} · ${t(sectionKey)}`;
+});
+
+const openThemeDetailDialog = (
+  library: AssetLibraryId,
+  mode: "nodeStyle" | "name",
+) => {
+  themeDetailLibrary.value = library;
+  themeDetailMode.value = mode;
+  showThemeDetailDialog.value = true;
+};
 
 const openNodeSizeDialog = () => {
   nodeSizeDraft.value = readNodeCreateSizeConfig();
@@ -910,8 +1109,28 @@ const applyNodeSizeConfig = () => {
   showMessage("success", t("nodeSize.message.applied"));
 };
 
+const applyThemeToCurrentCanvas = () => {
+  const logicFlowInstance = getLogicFlowInstance(logicFlowScope);
+  if (!logicFlowInstance) {
+    showMessage("error", t("nodeSize.message.applyCurrentFailed"));
+    return;
+  }
+  state.applyingThemeToCurrent = true;
+  try {
+    nodeSizeDraft.value = normalizeNodeCreateSizeConfig(nodeSizeDraft.value);
+    applyAssetThemeToCurrentFile(logicFlowInstance as any, {
+      config: nodeSizeDraft.value,
+    });
+    showMessage("success", t("nodeSize.message.applyCurrentSuccess"));
+  } finally {
+    state.applyingThemeToCurrent = false;
+  }
+};
+
 const handleResetNodeSizeConfig = () => {
-  nodeSizeDraft.value = cloneNodeCreateSizeConfig(resetNodeCreateSizeConfig());
+  nodeSizeDraft.value = cloneNodeCreateSizeConfig(
+    DEFAULT_NODE_CREATE_SIZE_CONFIG,
+  );
   showMessage("success", t("nodeSize.message.reset"));
 };
 
@@ -1201,11 +1420,12 @@ const {
   flex-direction: column;
   gap: 10px;
   margin-top: 8px;
+  margin-bottom: 10px;
 }
 
 .node-size-row {
   display: grid;
-  grid-template-columns: 1fr 120px 120px;
+  grid-template-columns: 1fr 120px 120px 120px 120px;
   gap: 10px;
   align-items: center;
 }
@@ -1225,6 +1445,39 @@ const {
   text-align: center;
 }
 
+.node-size-placeholder {
+  text-align: center;
+  color: #c0c4cc;
+  font-size: 12px;
+}
+
+.node-size-action {
+  width: 100%;
+}
+
+.node-theme-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 12px;
+}
+
+.node-theme-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.node-theme-item :deep(.el-select),
+.node-theme-item :deep(.el-input-number),
+.node-theme-item :deep(.el-slider) {
+  flex: 1;
+}
+
+.node-theme-item--full {
+  grid-column: 1 / -1;
+}
+
 @media (max-width: 900px) {
   .variable-item {
     grid-template-columns: 1fr;
@@ -1232,6 +1485,9 @@ const {
   .node-size-row {
     grid-template-columns: 1fr;
     justify-items: stretch;
+  }
+  .node-theme-grid {
+    grid-template-columns: 1fr;
   }
 }
 </style>

@@ -11,6 +11,7 @@ import {
 import { deleteCustomAsset, listCustomAssets } from "@/utils/customAssets";
 import { normalizeSelectedAssetRecord } from "@/utils/graphSchema";
 import { useSafeI18n } from "@/ts/useSafeI18n";
+import { readNodeCreateSizeConfig, resolveAssetThemeConfig } from "@/utils/nodeCreateSizeConfig";
 
 const props = defineProps<{
   node: any;
@@ -27,6 +28,29 @@ const currentLibrary = computed(
 const currentAsset = computed(() => {
   return props.node.properties?.selectedAsset || { name: "未选择" };
 });
+
+const nameVisible = computed(() => {
+  const themeDefault = resolveAssetThemeConfig({
+    config: readNodeCreateSizeConfig(),
+    assetLibrary: currentLibrary.value,
+  }).name.show;
+  const raw = props.node.properties?.assetName?.visible;
+  return raw == null ? themeDefault : raw !== false;
+});
+
+const handleToggleNameVisible = (nextVisible: boolean) => {
+  const lf = getLogicFlowInstance(logicFlowScope);
+  const node = props.node;
+  if (!lf || !node) return;
+  const currentAssetName = node.properties?.assetName || {};
+  lf.setProperties(node.id, {
+    ...node.properties,
+    assetName: {
+      ...currentAssetName,
+      visible: nextVisible,
+    },
+  });
+};
 
 const handleOpenSelector = () => {
   const lf = getLogicFlowInstance(logicFlowScope);
@@ -106,18 +130,26 @@ const handleOpenSelector = () => {
 
 <template>
   <div class="property-section">
-    <div class="section-header">资产属性</div>
+    <div class="section-header">{{ t("assetPanel.title") }}</div>
 
     <div class="property-item">
-      <div class="property-label">当前选择</div>
+      <div class="property-label">{{ t("assetPanel.current") }}</div>
       <span>{{ currentAsset.name }}</span>
       <el-button
         type="primary"
         @click="handleOpenSelector"
         style="width: 100%; margin-top: 8px"
       >
-        选择资产
+        {{ t("assetPanel.pick") }}
       </el-button>
+    </div>
+
+    <div class="property-item">
+      <div class="property-label">{{ t("assetPanel.nameVisible") }}</div>
+      <el-switch
+        :model-value="nameVisible"
+        @change="(value: unknown) => handleToggleNameVisible(value !== false)"
+      />
     </div>
   </div>
 </template>

@@ -72,7 +72,6 @@ const normalizedAvatar = computed(
       draggable="false"
     />
     <div v-else class="placeholder-text" :style="textStyle">点击选择资产</div>
-    <div class="name-text" :style="textStyle">{{ currentAsset.name }}</div>
   </div>
 </template>
 
@@ -105,10 +104,5 @@ const normalizedAvatar = computed(
 .placeholder-text {
   color: #909399;
   font-size: 12px;
-}
-.name-text {
-  font-size: 14px;
-  text-align: center;
-  margin-top: 8px;
 }
 </style>

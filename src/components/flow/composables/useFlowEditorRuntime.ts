@@ -24,6 +24,12 @@ import TextNodeModel from "../nodes/common/TextNodeModel";
 import VectorNode from "../nodes/common/VectorNode.vue";
 import VectorNodeModel from "../nodes/common/VectorNodeModel";
 import { setLogicFlowInstance, type LogicFlowScope } from "@/ts/useLogicFlow";
+import {
+  clearAssetNodeReferenceByLabelOwner,
+  getAssetLabelOwnerFromNode,
+  isAssetNameLabelTextNode,
+  syncAssetNameLabelForNode,
+} from "@/utils/assetTheme";
 
 type ShortcutHandler = (event?: KeyboardEvent) => boolean | void;
 
@@ -181,6 +187,24 @@ export function useFlowEditorRuntime() {
       handler: (event?: KeyboardEvent) => boolean | void,
     ) => {
       lfInstance.keyboard.on(keys, (event: KeyboardEvent) => handler(event));
+    };
+
+    const syncingAssetNodeIds = new Set<string>();
+    const syncAssetNameLabelSafely = (
+      assetNodeId: string,
+      syncOptions?: {
+        forceSyncText?: boolean;
+      },
+    ) => {
+      if (!assetNodeId || syncingAssetNodeIds.has(assetNodeId)) return;
+      syncingAssetNodeIds.add(assetNodeId);
+      try {
+        syncAssetNameLabelForNode(lfInstance, assetNodeId, {
+          forceSyncText: syncOptions?.forceSyncText,
+        });
+      } finally {
+        syncingAssetNodeIds.delete(assetNodeId);
+      }
     };
 
     bindShortcut(["del", "backspace"], deleteSelectedElements);
@@ -348,6 +372,9 @@ export function useFlowEditorRuntime() {
         normalizeNodeModel(model);
         model.setZIndex(1000);
         (model as any)._isNewNode = true;
+        if (model.type === "assetSelector") {
+          syncAssetNameLabelSafely(model.id, { forceSyncText: true });
+        }
       }
       scheduleGroupRuleValidation();
       emitGraphDataChange();
@@ -359,6 +386,9 @@ export function useFlowEditorRuntime() {
       if (model) {
         model.setZIndex(1000);
         (model as any)._isNewNode = true;
+        if (model.type === "assetSelector") {
+          syncAssetNameLabelSafely(model.id, { forceSyncText: true });
+        }
       }
       scheduleGroupRuleValidation();
       emitGraphDataChange();
@@ -368,6 +398,12 @@ export function useFlowEditorRuntime() {
       sanitizeGraphLabels();
       applySelectionSelect(selectionEnabled.value);
       normalizeAllNodes();
+      const nodes = (lfInstance.graphModel?.nodes || []) as BaseNodeModel[];
+      nodes.forEach((node) => {
+        if (node.type === "assetSelector") {
+          syncAssetNameLabelSafely(node.id);
+        }
+      });
       scheduleGroupRuleValidation(0);
     });
 
@@ -391,7 +427,12 @@ export function useFlowEditorRuntime() {
         }
       }
       const model = lfInstance.getNodeModelById(nodeId);
-      if (model) normalizeNodeModel(model);
+      if (model) {
+        normalizeNodeModel(model);
+        if (model.type === "assetSelector") {
+          syncAssetNameLabelSafely(nodeId);
+        }
+      }
       scheduleGroupRuleValidation();
       emitGraphDataChange();
     });
@@ -403,13 +444,61 @@ export function useFlowEditorRuntime() {
     lfInstance.on(EventType.NODE_DROP, () => {
       emitGraphDataChange();
     });
+    lfInstance.on(EventType.NODE_DRAG, ({ data, deltaX, deltaY }) => {
+      const nodeId = data?.id;
+      if (!nodeId) return;
+      const model = lfInstance.getNodeModelById(nodeId) as any;
+      if (!model || model.type !== "assetSelector") return;
+      const props =
+        (model.getProperties?.() as Record<string, any>) || model.properties || {};
+      const labelNodeId = props.assetName?.labelNodeId;
+      if (!labelNodeId || typeof labelNodeId !== "string") return;
+      if (!Number.isFinite(deltaX) || !Number.isFinite(deltaY)) return;
+      lfInstance.graphModel?.moveNodes?.([labelNodeId], deltaX, deltaY);
+    });
+    lfInstance.on(EventType.NODE_DROP, ({ data }) => {
+      const nodeId = data?.id;
+      if (!nodeId) return;
+      const model = lfInstance.getNodeModelById(nodeId);
+      if (!model || model.type !== "assetSelector") return;
+      syncAssetNameLabelSafely(nodeId);
+    });
     lfInstance.on(EventType.TEXT_UPDATE, () => {
       emitGraphDataChange();
     });
     lfInstance.on(EventType.LABEL_UPDATE, () => {
       emitGraphDataChange();
     });
-    lfInstance.on(EventType.NODE_DELETE, () => {
+    lfInstance.on(EventType.NODE_DELETE, (payload: any) => {
+      const nodeData = payload?.data || payload || {};
+      const deletedNodeId =
+        typeof nodeData.id === "string" ? nodeData.id : "";
+      if (deletedNodeId) {
+        if (nodeData.type === "assetSelector") {
+          const labelId = nodeData?.properties?.assetName?.labelNodeId;
+          if (typeof labelId === "string" && labelId) {
+            lfInstance.deleteNode(labelId);
+          } else {
+            const danglingLabel = (lfInstance.graphModel?.nodes || []).find(
+              (node: any) =>
+                node?.type === "textNode" &&
+                node?.properties?.meta?.assetNameOwnerId === deletedNodeId,
+            );
+            if (danglingLabel?.id) {
+              lfInstance.deleteNode(danglingLabel.id);
+            }
+          }
+        } else if (isAssetNameLabelTextNode(nodeData)) {
+          const ownerId = getAssetLabelOwnerFromNode(nodeData);
+          if (ownerId) {
+            clearAssetNodeReferenceByLabelOwner(
+              lfInstance,
+              ownerId,
+              deletedNodeId,
+            );
+          }
+        }
+      }
       scheduleGroupRuleValidation();
       emitGraphDataChange();
     });
@@ -429,6 +518,12 @@ export function useFlowEditorRuntime() {
       emitGraphDataChange();
     });
     lfInstance.on(EventType.HISTORY_CHANGE, () => {
+      const nodes = (lfInstance.graphModel?.nodes || []) as BaseNodeModel[];
+      nodes.forEach((node) => {
+        if (node.type === "assetSelector") {
+          syncAssetNameLabelSafely(node.id);
+        }
+      });
       emitGraphDataChange();
     });
 
