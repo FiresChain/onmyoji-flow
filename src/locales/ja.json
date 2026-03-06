@@ -330,6 +330,7 @@
   "flow.style.radius": "角丸",
   "flow.style.shadow": "影",
   "flow.style.opacity": "不透明度",
+  "flow.style.transparent": "透明",
   "flow.style.textAlign": "文字揃え",
   "flow.style.lineHeightWeight": "行間 / 太さ",
   "flow.style.align.left": "左寄せ",

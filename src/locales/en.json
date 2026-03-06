@@ -330,6 +330,7 @@
   "flow.style.radius": "Radius",
   "flow.style.shadow": "Shadow",
   "flow.style.opacity": "Opacity",
+  "flow.style.transparent": "Transparent",
   "flow.style.textAlign": "Text Align",
   "flow.style.lineHeightWeight": "Line Height / Weight",
   "flow.style.align.left": "Left",

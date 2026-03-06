@@ -357,7 +357,19 @@
       >
         <div class="node-theme-item">
           <span class="node-size-label">{{ t("flow.style.fill") }}</span>
-          <el-color-picker v-model="themeDetailDraft.nodeStyle.fill" />
+          <div class="node-theme-inline">
+            <el-color-picker
+              v-model="themeDetailDraft.nodeStyle.fill"
+              show-alpha
+            />
+            <el-button
+              size="small"
+              text
+              @click="setThemeFillTransparent"
+            >
+              {{ t("flow.style.transparent") }}
+            </el-button>
+          </div>
         </div>
         <div class="node-theme-item">
           <span class="node-size-label">{{ t("flow.style.stroke") }}</span>
@@ -1111,6 +1123,10 @@ const clearThemeDetailDialog = () => {
   showThemeDetailDialog.value = false;
   themeDetailDraft.value = null;
 };
+const setThemeFillTransparent = () => {
+  if (!themeDetailDraft.value) return;
+  themeDetailDraft.value.nodeStyle.fill = "transparent";
+};
 
 const openThemeDetailDialog = (
   library: AssetLibraryId,
@@ -1512,6 +1528,12 @@ const {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
+}
+
+.node-theme-inline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .node-theme-item :deep(.el-select),
