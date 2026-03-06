@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { reactive, watch } from "vue";
+import { reactive, ref, watch } from "vue";
 import { getLogicFlowInstance, useLogicFlowScope } from "@/ts/useLogicFlow";
 import { normalizeNodeStyle, type NodeStyle } from "@/ts/nodeStyle";
 import { useSafeI18n } from "@/ts/useSafeI18n";
@@ -39,6 +39,7 @@ const form = reactive<StyleForm>({
   lineHeight: 1.4,
   fontWeight: 400,
 });
+const lastOpaqueFill = ref("#ffffff");
 
 const syncFromNode = (node?: any) => {
   if (!node) return;
@@ -48,6 +49,9 @@ const syncFromNode = (node?: any) => {
     height: baseProps.height ?? node.height,
   });
   form.fill = style.fill ?? form.fill;
+  if (style.fill && style.fill !== "transparent") {
+    lastOpaqueFill.value = style.fill;
+  }
   form.stroke = style.stroke ?? form.stroke;
   form.strokeWidth = style.strokeWidth ?? form.strokeWidth;
   form.radius =
@@ -131,6 +135,26 @@ const applyTextStyle = (override?: Partial<NodeStyle["textStyle"]>) => {
     },
   });
 };
+
+const handleFillColorChange = (val: string) => {
+  if (val && val !== "transparent") {
+    lastOpaqueFill.value = val;
+  }
+  applyStyle({ fill: val });
+};
+
+const handleFillTransparentChange = (checked: boolean) => {
+  if (checked) {
+    if (form.fill && form.fill !== "transparent") {
+      lastOpaqueFill.value = form.fill;
+    }
+    form.fill = "transparent";
+    applyStyle({ fill: "transparent" });
+    return;
+  }
+  form.fill = lastOpaqueFill.value;
+  applyStyle({ fill: lastOpaqueFill.value });
+};
 </script>
 
 <template>
@@ -139,12 +163,19 @@ const applyTextStyle = (override?: Partial<NodeStyle["textStyle"]>) => {
 
     <div class="property-item">
       <div class="property-label">{{ t("flow.style.fill") }}</div>
-      <div class="property-value">
+      <div class="property-value row">
         <el-color-picker
           v-model="form.fill"
+          show-alpha
           size="small"
-          @change="(val: string) => applyStyle({ fill: val })"
+          @change="(val: string) => handleFillColorChange(val)"
         />
+        <el-checkbox
+          :model-value="form.fill === 'transparent'"
+          @change="(val) => handleFillTransparentChange(Boolean(val))"
+        >
+          {{ t("flow.style.transparent") }}
+        </el-checkbox>
       </div>
     </div>
 

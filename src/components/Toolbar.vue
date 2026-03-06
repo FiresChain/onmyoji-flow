@@ -361,14 +361,14 @@
             <el-color-picker
               v-model="themeDetailDraft.nodeStyle.fill"
               show-alpha
+              @change="(val) => handleThemeFillColorChange(String(val || ''))"
             />
-            <el-button
-              size="small"
-              text
-              @click="setThemeFillTransparent"
+            <el-checkbox
+              :model-value="themeDetailDraft.nodeStyle.fill === 'transparent'"
+              @change="(val) => handleThemeFillTransparentChange(Boolean(val))"
             >
               {{ t("flow.style.transparent") }}
-            </el-button>
+            </el-checkbox>
           </div>
         </div>
         <div class="node-theme-item">
@@ -1101,6 +1101,7 @@ const showThemeDetailDialog = ref(false);
 const themeDetailLibrary = ref<AssetLibraryId>("shikigami");
 const themeDetailMode = ref<"nodeStyle" | "name">("nodeStyle");
 const themeDetailDraft = ref<AssetThemeConfig | null>(null);
+const themeDetailLastOpaqueFill = ref("#ffffff");
 const cloneAssetThemeDraft = (value: AssetThemeConfig): AssetThemeConfig => ({
   nodeStyle: {
     ...value.nodeStyle,
@@ -1123,9 +1124,23 @@ const clearThemeDetailDialog = () => {
   showThemeDetailDialog.value = false;
   themeDetailDraft.value = null;
 };
-const setThemeFillTransparent = () => {
+const handleThemeFillColorChange = (nextFill: string) => {
   if (!themeDetailDraft.value) return;
-  themeDetailDraft.value.nodeStyle.fill = "transparent";
+  if (nextFill && nextFill !== "transparent") {
+    themeDetailLastOpaqueFill.value = nextFill;
+  }
+};
+const handleThemeFillTransparentChange = (checked: boolean) => {
+  if (!themeDetailDraft.value) return;
+  if (checked) {
+    const currentFill = themeDetailDraft.value.nodeStyle.fill;
+    if (currentFill && currentFill !== "transparent") {
+      themeDetailLastOpaqueFill.value = currentFill;
+    }
+    themeDetailDraft.value.nodeStyle.fill = "transparent";
+    return;
+  }
+  themeDetailDraft.value.nodeStyle.fill = themeDetailLastOpaqueFill.value;
 };
 
 const openThemeDetailDialog = (
@@ -1137,6 +1152,10 @@ const openThemeDetailDialog = (
   themeDetailDraft.value = cloneAssetThemeDraft(
     nodeSizeDraft.value.assetThemeByLibrary[library],
   );
+  const currentFill = themeDetailDraft.value.nodeStyle.fill;
+  if (currentFill && currentFill !== "transparent") {
+    themeDetailLastOpaqueFill.value = currentFill;
+  }
   showThemeDetailDialog.value = true;
 };
 const confirmThemeDetailDialog = () => {
