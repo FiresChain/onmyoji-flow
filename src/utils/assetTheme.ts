@@ -199,6 +199,7 @@ const syncLabelNodeContentAndStyle = (
   labelText: string,
   theme: AssetThemeConfig,
   shouldOverrideText: boolean,
+  applyThemeStyle: boolean,
 ) => {
   const nextPosition = buildLabelPosition(assetModel, nameConfig);
   if (labelNode.x !== nextPosition.x || labelNode.y !== nextPosition.y) {
@@ -216,12 +217,18 @@ const syncLabelNodeContentAndStyle = (
   };
   const nextProps = {
     ...labelProps,
-    width: theme.name.width,
-    height: theme.name.height,
     text: nextText,
-    style: buildLabelNodeStyle(theme),
     meta: nextMeta,
   };
+  if (applyThemeStyle || labelProps.width == null) {
+    nextProps.width = theme.name.width;
+  }
+  if (applyThemeStyle || labelProps.height == null) {
+    nextProps.height = theme.name.height;
+  }
+  if (applyThemeStyle || !labelProps.style) {
+    nextProps.style = buildLabelNodeStyle(theme);
+  }
   if (stringify(nextProps) !== stringify(labelProps)) {
     lf.setProperties(labelNode.id, nextProps);
   }
@@ -358,6 +365,7 @@ export const syncAssetNameLabelForNode = (
     nextName,
     theme,
     shouldOverrideText,
+    options?.applyThemeStyle === true,
   );
 
   const finalProps = {
