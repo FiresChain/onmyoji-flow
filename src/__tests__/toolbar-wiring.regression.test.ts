@@ -19,7 +19,6 @@ const wiringSpies = vi.hoisted(() => ({
   showUpdateLog: vi.fn(),
   showFeedbackForm: vi.fn(),
   openWatermarkDialog: vi.fn(),
-  openNodeIconSizeDialog: vi.fn(),
   mountDialogState: vi.fn(),
   mountAssetManagement: vi.fn(),
   disposeAssetManagement: vi.fn(),
@@ -167,71 +166,12 @@ vi.mock("@/components/composables/useToolbarDialogState", () => ({
   })),
 }));
 
-vi.mock("@/components/composables/useToolbarNodeIconSizeConfig", () => ({
-  useToolbarNodeIconSizeConfig: vi.fn(() => ({
-    TARGETS: ["assetSelector", "imageNode"],
-    labels: ref({
-      assetSelector: "资产选择器",
-      imageNode: "图片节点",
-    }),
-    showNodeIconSizeDialog: ref(false),
-    nodeIconSizeTab: ref<"global" | "file">("global"),
-    globalDraft: ref({
-      assetSelector: { width: 180, height: 120 },
-      imageNode: { width: 180, height: 120 },
-    }),
-    fileDraft: ref({
-      assetSelector: { width: 180, height: 120 },
-      imageNode: { width: 180, height: 120 },
-    }),
-    openNodeIconSizeDialog: wiringSpies.openNodeIconSizeDialog,
-    applyNodeIconSizeConfig: vi.fn(),
-    resetGlobalNodeIconSizeConfig: vi.fn(),
-    resetFileNodeIconSizeConfig: vi.fn(),
-    resetSingleTarget: vi.fn(),
-  })),
-}));
-
 const ElButtonStub = defineComponent({
   name: "ElButton",
   emits: ["click"],
   setup(_, { emit, slots }) {
     return () =>
       h("button", { onClick: () => emit("click") }, slots.default?.());
-  },
-});
-
-const ElDropdownStub = defineComponent({
-  name: "ElDropdown",
-  setup(_, { slots }) {
-    return () =>
-      h("div", { class: "el-dropdown-stub" }, [
-        slots.default?.(),
-        slots.dropdown?.(),
-      ]);
-  },
-});
-
-const ElDropdownMenuStub = defineComponent({
-  name: "ElDropdownMenu",
-  setup(_, { slots }) {
-    return () => h("div", { class: "el-dropdown-menu-stub" }, slots.default?.());
-  },
-});
-
-const ElDropdownItemStub = defineComponent({
-  name: "ElDropdownItem",
-  emits: ["click"],
-  setup(_, { emit, slots }) {
-    return () =>
-      h(
-        "button",
-        {
-          class: "el-dropdown-item-stub",
-          onClick: () => emit("click"),
-        },
-        slots.default?.(),
-      );
   },
 });
 
@@ -2086,9 +2026,6 @@ const createWrapper = (options?: {
     global: {
       stubs: {
         "el-button": ElButtonStub,
-        "el-dropdown": ElDropdownStub,
-        "el-dropdown-menu": ElDropdownMenuStub,
-        "el-dropdown-item": ElDropdownItemStub,
         "el-switch": true,
         "el-dialog": dialogStub,
         "el-form": ElFormStub,
@@ -2332,9 +2269,6 @@ describe("toolbar wiring regression", () => {
 
     await clickButtonByText("规则管理");
     expect(wiringSpies.openRuleManager).toHaveBeenCalledTimes(1);
-
-    await clickButtonByText("节点图标尺寸");
-    expect(wiringSpies.openNodeIconSizeDialog).toHaveBeenCalledTimes(1);
 
     await clickButtonByText("加载样例");
     expect(wiringSpies.loadExample).toHaveBeenCalledTimes(1);

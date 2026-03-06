@@ -59,31 +59,20 @@ const mergedContainerStyle = computed<CSSProperties>(() => ({
 const normalizedAvatar = computed(
   () => resolveAssetUrl(currentAsset.value.avatar) as string,
 );
-const hasSelectedAsset = computed(() => !!currentAsset.value.avatar);
 </script>
 
 <template>
   <div class="node-content" :style="mergedContainerStyle">
     <div class="zindex-badge">{{ zIndex }}</div>
-    <template v-if="hasSelectedAsset">
-      <div class="asset-media">
-        <img
-          :src="normalizedAvatar"
-          :alt="currentAsset.name"
-          class="asset-image"
-          draggable="false"
-        />
-      </div>
-      <div class="name-text" :style="textStyle" :title="currentAsset.name">
-        {{ currentAsset.name }}
-      </div>
-    </template>
-    <template v-else>
-      <div class="placeholder-wrap">
-        <div class="placeholder-text" :style="textStyle">点击选择资产</div>
-        <div class="placeholder-sub" :style="textStyle">未选择资产</div>
-      </div>
-    </template>
+    <img
+      v-if="currentAsset.avatar"
+      :src="normalizedAvatar"
+      :alt="currentAsset.name"
+      class="asset-image"
+      draggable="false"
+    />
+    <div v-else class="placeholder-text" :style="textStyle">点击选择资产</div>
+    <div class="name-text" :style="textStyle">{{ currentAsset.name }}</div>
   </div>
 </template>
 
@@ -94,11 +83,6 @@ const hasSelectedAsset = computed(() => !!currentAsset.value.avatar);
   align-items: center;
   justify-content: center;
   position: relative;
-  width: 100%;
-  height: 100%;
-  padding: 6px;
-  gap: 4px;
-  overflow: hidden;
 }
 .zindex-badge {
   position: absolute;
@@ -113,58 +97,18 @@ const hasSelectedAsset = computed(() => !!currentAsset.value.avatar);
   z-index: 10;
   pointer-events: none;
 }
-.asset-media {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
 .asset-image {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
+  width: 85%;
+  height: 85%;
+  object-fit: cover;
 }
 .placeholder-text {
   color: #909399;
   font-size: 12px;
-  line-height: 1.2;
-  text-align: center;
-}
-.placeholder-wrap {
-  height: 100%;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-}
-.placeholder-sub {
-  width: 100%;
-  color: #606266;
-  font-size: 12px;
-  line-height: 1.2;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  text-align: center;
 }
 .name-text {
-  position: absolute;
-  left: 6px;
-  right: 6px;
-  bottom: 6px;
-  z-index: 2;
-  padding: 2px 6px;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.88);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
-  font-size: 12px;
-  line-height: 1.2;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-size: 14px;
   text-align: center;
+  margin-top: 8px;
 }
 </style>

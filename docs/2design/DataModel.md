@@ -23,10 +23,6 @@
         "TRANSLATE_X": 0,
         "TRANSLATE_Y": 0
       },
-      "nodeIconSizeByType": {
-        "assetSelector": { "width": 180, "height": 120 },
-        "imageNode": { "width": 180, "height": 120 }
-      },
       "createdAt": 0,
       "updatedAt": 0
     }
@@ -124,25 +120,6 @@ interface NodeMeta {
   updatedAt?: number;
 }
 ```
-
-## 文件级节点图标尺寸覆盖（v1 增量）
-
-用于“节点图标尺寸主题化”第一期，按节点类型保存当前文件覆盖配置（可选字段）：
-
-```ts
-type NodeIconSizeTarget = "assetSelector" | "imageNode";
-
-type NodeIconSizeByType = Partial<
-  Record<NodeIconSizeTarget, { width: number; height: number }>
->;
-
-interface FlowFile {
-  // ...
-  nodeIconSizeByType?: NodeIconSizeByType;
-}
-```
-
-运行时优先级：内置默认 < 全局默认（localStorage） < 当前文件覆盖（flowFile） < 节点显式尺寸。
 
 > 说明：上述 `GraphDocument`、`GraphNode`、`GraphEdge`、`NodeStyle`、`NodeMeta` 主要用于说明结构，实际实现直接使用 LogicFlow 提供的 GraphData；样式/图层字段属于可选扩展，v1 只要求节点 `properties` 中的业务字段与阴阳师相关业务数据。
 

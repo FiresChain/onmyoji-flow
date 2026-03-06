@@ -83,7 +83,7 @@ const handleOpenSelector = () => {
     },
   };
 
-  openGenericSelector(config, async (selectedItem) => {
+  openGenericSelector(config, (selectedItem) => {
     const normalizedSelectedRecord = normalizeSelectedAssetRecord(
       selectedItem,
       library,
@@ -95,13 +95,11 @@ const handleOpenSelector = () => {
         }
       : null;
 
-    const nextProperties: Record<string, any> = {
+    lf.setProperties(node.id, {
       ...node.properties,
       selectedAsset: normalizedSelected,
       assetLibrary: library,
-    };
-
-    lf.setProperties(node.id, nextProperties);
+    });
   });
 };
 </script>

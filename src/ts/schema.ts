@@ -1,10 +1,5 @@
 import rootDocumentV1SchemaJson from "@/schemas/root-document.v1.json";
 import type { AssetLibraryId } from "@/types/assets";
-import {
-  hasNodeIconSizeByTypeOverrides,
-  normalizeNodeIconSizeByType,
-  type NodeIconSizeByType,
-} from "@/types/nodeIconSize";
 
 export const CURRENT_SCHEMA_VERSION = "1.0.0";
 export const ROOT_DOCUMENT_V1_SCHEMA = rootDocumentV1SchemaJson;
@@ -137,19 +132,6 @@ export interface GraphDocument {
   edges: GraphEdge[];
 }
 
-export interface FlowFile {
-  id: string;
-  label: string;
-  name: string;
-  visible: boolean;
-  type: string;
-  graphRawData: GraphDocument;
-  transform: Transform;
-  createdAt?: number;
-  updatedAt?: number;
-  nodeIconSizeByType?: NodeIconSizeByType;
-}
-
 export interface RootDocument {
   schemaVersion: string;
   fileList: FlowFile[];
@@ -264,23 +246,6 @@ const validateTransform = (
   });
 };
 
-const validateNodeIconSizeByType = (
-  value: unknown,
-  path: string,
-  errors: RootDocumentValidationError[],
-) => {
-  if (!isPlainObject(value)) {
-    pushValidationError(errors, path, "必须是对象");
-    return;
-  }
-  const normalized = normalizeNodeIconSizeByType(value);
-  Object.keys(value).forEach((key) => {
-    if (!Object.prototype.hasOwnProperty.call(normalized, key)) {
-      pushValidationError(errors, `${path}.${key}`, "不是受支持的节点类型");
-    }
-  });
-};
-
 const validateFlowFile = (
   value: unknown,
   path: string,
@@ -329,14 +294,6 @@ const validateFlowFile = (
   }
 
   validateTransform(value.transform, `${path}.transform`, errors);
-
-  if (value.nodeIconSizeByType != null) {
-    validateNodeIconSizeByType(
-      value.nodeIconSizeByType,
-      `${path}.nodeIconSizeByType`,
-      errors,
-    );
-  }
 };
 
 export function validateRootDocumentV1(
@@ -430,13 +387,6 @@ function ensureTransform(t?: Partial<Transform>): Transform {
   };
 }
 
-const normalizeOptionalNodeIconSizeByType = (
-  value: unknown,
-): NodeIconSizeByType | undefined => {
-  const normalized = normalizeNodeIconSizeByType(value);
-  return hasNodeIconSizeByTypeOverrides(normalized) ? normalized : undefined;
-};
-
 // Migration to v1 root document
 export function migrateToV1(input: any): RootDocument {
   const now = Date.now();
@@ -519,23 +469,17 @@ export function migrateToV1(input: any): RootDocument {
     return { nodes, edges };
   };
   const wrap = (files: any[], activeName?: string): RootDocument => {
-    const normalizedFiles = files.map((f, i) => {
-      const nodeIconSizeByType = normalizeOptionalNodeIconSizeByType(
-        f?.nodeIconSizeByType,
-      );
-      return {
-        label: f?.label ?? `File ${i + 1}`,
-        name: f?.name ?? `File ${i + 1}`,
-        visible: f?.visible ?? true,
-        type: f?.type ?? "FLOW",
-        graphRawData: ensureGraphDocument(f),
-        transform: ensureTransform(f?.transform),
-        createdAt: f?.createdAt ?? now,
-        updatedAt: f?.updatedAt ?? now,
-        id: f?.id,
-        ...(nodeIconSizeByType ? { nodeIconSizeByType } : {}),
-      };
-    });
+    const normalizedFiles = files.map((f, i) => ({
+      label: f?.label ?? `File ${i + 1}`,
+      name: f?.name ?? `File ${i + 1}`,
+      visible: f?.visible ?? true,
+      type: f?.type ?? "FLOW",
+      graphRawData: ensureGraphDocument(f),
+      transform: ensureTransform(f?.transform),
+      createdAt: f?.createdAt ?? now,
+      updatedAt: f?.updatedAt ?? now,
+      id: f?.id,
+    }));
 
     const fallbackName = normalizedFiles[0]?.name ?? "File 1";
     const resolvedActiveName = activeName ?? fallbackName;

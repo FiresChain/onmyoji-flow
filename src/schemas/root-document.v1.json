@@ -37,23 +37,6 @@
         "TRANSLATE_Y": { "type": "number" }
       }
     },
-    "nodeIconSize": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["width", "height"],
-      "properties": {
-        "width": { "type": "number" },
-        "height": { "type": "number" }
-      }
-    },
-    "nodeIconSizeByType": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "assetSelector": { "$ref": "#/$defs/nodeIconSize" },
-        "imageNode": { "$ref": "#/$defs/nodeIconSize" }
-      }
-    },
     "graphNode": {
       "type": "object",
       "required": ["id", "type", "properties"],
@@ -125,7 +108,6 @@
         "type": { "type": "string", "minLength": 1 },
         "graphRawData": { "$ref": "#/$defs/graphDocument" },
         "transform": { "$ref": "#/$defs/transform" },
-        "nodeIconSizeByType": { "$ref": "#/$defs/nodeIconSizeByType" },
         "createdAt": { "type": "number" },
         "updatedAt": { "type": "number" }
       },

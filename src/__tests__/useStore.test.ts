@@ -590,55 +590,6 @@ describe("useFilesStore 数据操作测试", () => {
     expect(logicFlowMocks.getGraphRawData).not.toHaveBeenCalled();
   });
 
-  it("节点图标尺寸：应支持当前文件覆盖的读写与重置", () => {
-    const store = useFilesStore();
-    store.importData(createSampleRootDocument());
-
-    store.setActiveFileNodeIconSizeByType({
-      assetSelector: { width: 260, height: 140 },
-      imageNode: { width: 220, height: 180 },
-    });
-
-    expect(store.getActiveFileNodeIconSizeByType()).toEqual({
-      assetSelector: { width: 260, height: 140 },
-      imageNode: { width: 220, height: 180 },
-    });
-
-    store.resetActiveFileNodeIconSizeByType();
-    expect(store.getActiveFileNodeIconSizeByType()).toEqual({});
-  });
-
-  it("节点图标尺寸：importData 时应规范化 file override", () => {
-    const store = useFilesStore();
-    store.importData({
-      schemaVersion: "1.0.0",
-      fileList: [
-        {
-          id: "test-file",
-          name: "Test File",
-          label: "Test File",
-          visible: true,
-          type: "FLOW",
-          graphRawData: {
-            nodes: [],
-            edges: [],
-          },
-          nodeIconSizeByType: {
-            assetSelector: { width: "280", height: 130 },
-            imageNode: { width: -10, height: 5000 },
-          },
-        },
-      ],
-      activeFileId: "test-file",
-      activeFile: "Test File",
-    });
-
-    expect(store.getActiveFileNodeIconSizeByType()).toEqual({
-      assetSelector: { width: 280, height: 130 },
-      imageNode: { width: 40, height: 1200 },
-    });
-  });
-
   it("重置工作区应该恢复到默认状态", async () => {
     const store = useFilesStore();
     store.initializeWithPrompt();

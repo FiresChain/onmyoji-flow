@@ -23,10 +23,7 @@
       <!-- 主内容区 -->
       <div class="editor-content" :style="editorContentStyle">
         <!-- 左侧组件库 -->
-        <ComponentsPanel
-          v-if="showComponentPanel"
-          :pinia-instance="localPinia"
-        />
+        <ComponentsPanel v-if="showComponentPanel" />
 
         <!-- 中间画布 + 右侧属性面板 -->
         <FlowEditor
