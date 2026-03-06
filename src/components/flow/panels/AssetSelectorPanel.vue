@@ -11,7 +11,11 @@ import {
 import { deleteCustomAsset, listCustomAssets } from "@/utils/customAssets";
 import { normalizeSelectedAssetRecord } from "@/utils/graphSchema";
 import { useSafeI18n } from "@/ts/useSafeI18n";
-import { readNodeCreateSizeConfig, resolveAssetThemeConfig } from "@/utils/nodeCreateSizeConfig";
+import {
+  readNodeCreateSizeConfig,
+  resolveAssetThemeConfig,
+  resolveAssetThemeEnabled,
+} from "@/utils/nodeCreateSizeConfig";
 
 const props = defineProps<{
   node: any;
@@ -30,8 +34,13 @@ const currentAsset = computed(() => {
 });
 
 const nameVisible = computed(() => {
+  const config = readNodeCreateSizeConfig();
+  if (!resolveAssetThemeEnabled({ config })) {
+    const rawDisabled = props.node.properties?.assetName?.visible;
+    return rawDisabled === true;
+  }
   const themeDefault = resolveAssetThemeConfig({
-    config: readNodeCreateSizeConfig(),
+    config,
     assetLibrary: currentLibrary.value,
   }).name.show;
   const raw = props.node.properties?.assetName?.visible;

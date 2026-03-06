@@ -318,6 +318,10 @@
           </el-button>
         </div>
       </div>
+      <div class="node-theme-toggle">
+        <span class="node-size-label">{{ t("nodeSize.enableTheme") }}</span>
+        <el-switch v-model="nodeSizeDraft.assetThemeEnabled" />
+      </div>
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="handleResetNodeSizeConfig">{{
@@ -345,8 +349,12 @@
       v-model="showThemeDetailDialog"
       :title="themeDetailDialogTitle"
       width="620px"
+      @closed="themeDetailDraft = null"
     >
-      <div v-if="themeDetailMode === 'nodeStyle'" class="node-theme-grid">
+      <div
+        v-if="themeDetailMode === 'nodeStyle' && themeDetailDraft"
+        class="node-theme-grid"
+      >
         <div class="node-theme-item">
           <span class="node-size-label">{{ t("flow.style.fill") }}</span>
           <el-color-picker v-model="themeDetailDraft.nodeStyle.fill" />
@@ -387,7 +395,7 @@
           />
         </div>
       </div>
-      <div v-else class="node-theme-grid">
+      <div v-else-if="themeDetailDraft" class="node-theme-grid">
         <div class="node-theme-item">
           <span class="node-size-label">{{ t("assetPanel.nameVisible") }}</span>
           <el-switch v-model="themeDetailDraft.name.show" />
@@ -478,8 +486,8 @@
       </div>
       <template #footer>
         <span class="dialog-footer">
-          <el-button @click="showThemeDetailDialog = false">{{
-            t("common.close")
+          <el-button type="primary" @click="confirmThemeDetailDialog">{{
+            t("common.confirm")
           }}</el-button>
         </span>
       </template>
@@ -914,10 +922,12 @@ import { ASSET_LIBRARY_IDS, type AssetLibraryId } from "@/types/assets";
 import { resolveAssetUrl } from "@/utils/assetUrl";
 import { applyAssetThemeToCurrentFile } from "@/utils/assetTheme";
 import {
+  type AssetThemeConfig,
   cloneNodeCreateSizeConfig,
   DEFAULT_NODE_CREATE_SIZE_CONFIG,
   normalizeNodeCreateSizeConfig,
   readNodeCreateSizeConfig,
+  resolveAssetThemeEnabled,
   writeNodeCreateSizeConfig,
 } from "@/utils/nodeCreateSizeConfig";
 import { useToolbarImportExportCommands } from "@/components/composables/useToolbarImportExportCommands";
@@ -1078,9 +1088,18 @@ const nodeSizeDraft = ref(readNodeCreateSizeConfig());
 const showThemeDetailDialog = ref(false);
 const themeDetailLibrary = ref<AssetLibraryId>("shikigami");
 const themeDetailMode = ref<"nodeStyle" | "name">("nodeStyle");
-const themeDetailDraft = computed(
-  () => nodeSizeDraft.value.assetThemeByLibrary[themeDetailLibrary.value],
-);
+const themeDetailDraft = ref<AssetThemeConfig | null>(null);
+const cloneAssetThemeDraft = (value: AssetThemeConfig): AssetThemeConfig => ({
+  nodeStyle: {
+    ...value.nodeStyle,
+  },
+  name: {
+    ...value.name,
+    textStyle: {
+      ...value.name.textStyle,
+    },
+  },
+});
 const themeDetailDialogTitle = computed(() => {
   const sectionKey =
     themeDetailMode.value === "nodeStyle"
@@ -1088,6 +1107,10 @@ const themeDetailDialogTitle = computed(() => {
       : "nodeSize.section.assetName";
   return `${t(`assetLibrary.${themeDetailLibrary.value}`)} · ${t(sectionKey)}`;
 });
+const clearThemeDetailDialog = () => {
+  showThemeDetailDialog.value = false;
+  themeDetailDraft.value = null;
+};
 
 const openThemeDetailDialog = (
   library: AssetLibraryId,
@@ -1095,7 +1118,19 @@ const openThemeDetailDialog = (
 ) => {
   themeDetailLibrary.value = library;
   themeDetailMode.value = mode;
+  themeDetailDraft.value = cloneAssetThemeDraft(
+    nodeSizeDraft.value.assetThemeByLibrary[library],
+  );
   showThemeDetailDialog.value = true;
+};
+const confirmThemeDetailDialog = () => {
+  if (!themeDetailDraft.value) {
+    clearThemeDetailDialog();
+    return;
+  }
+  nodeSizeDraft.value.assetThemeByLibrary[themeDetailLibrary.value] =
+    cloneAssetThemeDraft(themeDetailDraft.value);
+  clearThemeDetailDialog();
 };
 
 const openNodeSizeDialog = () => {
@@ -1113,6 +1148,10 @@ const applyThemeToCurrentCanvas = () => {
   const logicFlowInstance = getLogicFlowInstance(logicFlowScope);
   if (!logicFlowInstance) {
     showMessage("error", t("nodeSize.message.applyCurrentFailed"));
+    return;
+  }
+  if (!resolveAssetThemeEnabled({ config: nodeSizeDraft.value })) {
+    showMessage("warning", t("nodeSize.message.themeDisabled"));
     return;
   }
   state.applyingThemeToCurrent = true;
@@ -1453,6 +1492,13 @@ const {
 
 .node-size-action {
   width: 100%;
+}
+
+.node-theme-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 0 10px;
 }
 
 .node-theme-grid {

@@ -5,7 +5,10 @@ import type {
   AssetThemeConfig,
   NodeCreateSizeConfig,
 } from "@/utils/nodeCreateSizeConfig";
-import { resolveAssetThemeConfig } from "@/utils/nodeCreateSizeConfig";
+import {
+  resolveAssetThemeConfig,
+  resolveAssetThemeEnabled,
+} from "@/utils/nodeCreateSizeConfig";
 
 export const ASSET_NAME_FALLBACK = "未选择资产";
 
@@ -240,6 +243,11 @@ export const buildAssetNodeCreateProperties = (
     config?: NodeCreateSizeConfig;
   },
 ) => {
+  if (!resolveAssetThemeEnabled({ config: options?.config })) {
+    return {
+      ...baseProperties,
+    };
+  }
   const assetLibrary = resolveAssetLibrary(
     baseProperties.assetLibrary,
     (baseProperties as any).selectedAsset?.library,
@@ -303,6 +311,7 @@ export const syncAssetNameLabelForNode = (
     forceSyncText?: boolean;
   },
 ) => {
+  if (!resolveAssetThemeEnabled({ config: options?.config })) return;
   const assetModel = lf.getNodeModelById(assetNodeId) as any;
   if (!assetModel || !isAssetSelectorNode(assetModel)) return;
 
@@ -389,6 +398,7 @@ export const applyAssetThemeToCurrentFile = (
     config?: NodeCreateSizeConfig;
   },
 ) => {
+  if (!resolveAssetThemeEnabled({ config: options?.config })) return;
   const nodes = ((lf as any).graphModel?.nodes || []) as any[];
   nodes
     .filter((node) => isAssetSelectorNode(node))

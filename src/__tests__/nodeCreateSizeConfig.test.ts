@@ -16,6 +16,7 @@ describe("nodeCreateSizeConfig", () => {
 
   it("writes and reads normalized config", () => {
     writeNodeCreateSizeConfig({
+      assetThemeEnabled: false,
       imageNode: {
         width: "240",
         height: 100,
@@ -33,6 +34,7 @@ describe("nodeCreateSizeConfig", () => {
       width: 240,
       height: 100,
     });
+    expect(config.assetThemeEnabled).toBe(false);
     expect(config.assetSelectorByLibrary.onmyoji).toEqual({
       width: 40,
       height: 1200,

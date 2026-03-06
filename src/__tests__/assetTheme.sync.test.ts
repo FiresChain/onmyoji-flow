@@ -1,8 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  syncAssetNameLabelForNode,
-  type ASSET_NAME_FALLBACK,
-} from "@/utils/assetTheme";
+import { syncAssetNameLabelForNode } from "@/utils/assetTheme";
 import {
   DEFAULT_NODE_CREATE_SIZE_CONFIG,
   cloneNodeCreateSizeConfig,

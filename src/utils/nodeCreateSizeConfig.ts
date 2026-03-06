@@ -38,6 +38,7 @@ export interface AssetThemeConfig {
 export interface NodeCreateSizeConfig {
   imageNode: NodeCreateSize;
   assetSelectorByLibrary: Record<AssetLibraryId, NodeCreateSize>;
+  assetThemeEnabled: boolean;
   assetThemeByLibrary: Record<AssetLibraryId, AssetThemeConfig>;
   // Backward-compatible fallback for old persisted payloads.
   assetTheme: AssetThemeConfig;
@@ -120,6 +121,7 @@ const buildDefaultAssetSelectorSizeByLibrary = (): Record<
 export const DEFAULT_NODE_CREATE_SIZE_CONFIG: NodeCreateSizeConfig = {
   imageNode: { width: 180, height: 120 },
   assetSelectorByLibrary: buildDefaultAssetSelectorSizeByLibrary(),
+  assetThemeEnabled: true,
   assetThemeByLibrary: buildDefaultAssetThemeByLibrary(),
   assetTheme: buildDefaultAssetTheme(),
 };
@@ -330,6 +332,7 @@ export const normalizeNodeCreateSizeConfig = (
       DEFAULT_NODE_CREATE_SIZE_CONFIG.imageNode,
     ),
     assetSelectorByLibrary,
+    assetThemeEnabled: source.assetThemeEnabled !== false,
     assetThemeByLibrary,
     assetTheme:
       source.assetTheme == null
@@ -349,6 +352,7 @@ export const cloneNodeCreateSizeConfig = (
     },
     {} as Record<AssetLibraryId, NodeCreateSize>,
   ),
+  assetThemeEnabled: value.assetThemeEnabled !== false,
   assetThemeByLibrary: ASSET_LIBRARY_IDS.reduce(
     (acc, library) => {
       acc[library] = cloneAssetTheme(value.assetThemeByLibrary[library]);
@@ -426,4 +430,11 @@ export const resolveAssetThemeConfig = (options?: {
     return cloneAssetTheme(config.assetThemeByLibrary[options.assetLibrary]);
   }
   return cloneAssetTheme(config.assetTheme);
+};
+
+export const resolveAssetThemeEnabled = (options?: {
+  config?: NodeCreateSizeConfig;
+}): boolean => {
+  const config = options?.config || readNodeCreateSizeConfig();
+  return config.assetThemeEnabled !== false;
 };
