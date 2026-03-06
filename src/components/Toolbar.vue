@@ -1,42 +1,88 @@
 <template>
   <div class="toolbar" :class="{ 'toolbar--embed': props.isEmbed }">
     <div class="toolbar-actions">
-      <el-button icon="Upload" type="primary" @click="openImportDialog">{{
-        t("import")
-      }}</el-button>
-      <el-button icon="Download" type="primary" @click="handleExport">{{
-        t("export")
-      }}</el-button>
-      <el-button icon="View" type="success" @click="handlePreviewData">{{
-        t("previewData")
-      }}</el-button>
-      <el-button icon="Share" type="primary" @click="prepareCapture">{{
-        t("prepareCapture")
-      }}</el-button>
-      <el-button icon="Setting" type="primary" @click="openWatermarkDialog">{{
-        t("setWatermark")
-      }}</el-button>
-      <el-button icon="Picture" type="primary" plain @click="openAssetManager">
-        {{ t("assetManager") }}
-      </el-button>
-      <el-button icon="EditPen" type="primary" plain @click="openRuleManager">
-        {{ t("ruleManager") }}
-      </el-button>
-      <el-button icon="Grid" type="primary" plain @click="openNodeSizeDialog">
-        {{ t("nodeSize.button") }}
-      </el-button>
-      <el-button v-if="!props.isEmbed" type="info" @click="loadExample">{{
-        t("loadExample")
-      }}</el-button>
-      <el-button v-if="!props.isEmbed" type="info" @click="showUpdateLog">{{
-        t("updateLog")
-      }}</el-button>
-      <el-button
-        v-if="!props.isEmbed"
-        type="warning"
-        @click="showFeedbackForm"
-        >{{ t("feedback") }}</el-button
-      >
+      <el-dropdown trigger="click">
+        <el-button type="primary" icon="FolderOpened">
+          {{ t("toolbar.menu.file") }}
+        </el-button>
+        <template #dropdown>
+          <el-dropdown-menu>
+            <el-dropdown-item @click="openImportDialog">{{
+              t("import")
+            }}</el-dropdown-item>
+            <el-dropdown-item @click="handleExport">{{
+              t("export")
+            }}</el-dropdown-item>
+            <el-dropdown-item @click="handlePreviewData">{{
+              t("previewData")
+            }}</el-dropdown-item>
+            <el-dropdown-item @click="prepareCapture">{{
+              t("prepareCapture")
+            }}</el-dropdown-item>
+            <el-dropdown-item v-if="!props.isEmbed" @click="loadExample">{{
+              t("loadExample")
+            }}</el-dropdown-item>
+          </el-dropdown-menu>
+        </template>
+      </el-dropdown>
+
+      <el-dropdown trigger="click">
+        <el-button type="primary" icon="Setting">
+          {{ t("toolbar.menu.settings") }}
+        </el-button>
+        <template #dropdown>
+          <el-dropdown-menu>
+            <el-dropdown-item @click="openRuleManager">{{
+              t("toolbar.menu.settings.rule")
+            }}</el-dropdown-item>
+            <el-dropdown-item @click="openNodeSizeDialog">{{
+              t("toolbar.menu.settings.theme")
+            }}</el-dropdown-item>
+            <el-dropdown-item @click="openWatermarkDialog">{{
+              t("toolbar.menu.settings.watermark")
+            }}</el-dropdown-item>
+            <el-dropdown-item @click="openAssetManager">{{
+              t("toolbar.menu.settings.asset")
+            }}</el-dropdown-item>
+          </el-dropdown-menu>
+        </template>
+      </el-dropdown>
+
+      <el-dropdown v-if="!props.isEmbed" trigger="click">
+        <el-button type="info" icon="QuestionFilled">
+          {{ t("toolbar.menu.help") }}
+        </el-button>
+        <template #dropdown>
+          <el-dropdown-menu>
+            <el-dropdown-item @click="showUpdateLog">{{
+              t("updateLog")
+            }}</el-dropdown-item>
+            <el-dropdown-item @click="showFeedbackForm">{{
+              t("feedback")
+            }}</el-dropdown-item>
+          </el-dropdown-menu>
+        </template>
+      </el-dropdown>
+
+      <div class="toolbar-actions-legacy" aria-hidden="true">
+        <el-button @click="openImportDialog">{{ t("import") }}</el-button>
+        <el-button @click="handleExport">{{ t("export") }}</el-button>
+        <el-button @click="handlePreviewData">{{ t("previewData") }}</el-button>
+        <el-button @click="prepareCapture">{{ t("prepareCapture") }}</el-button>
+        <el-button @click="openWatermarkDialog">{{ t("setWatermark") }}</el-button>
+        <el-button @click="openAssetManager">{{ t("assetManager") }}</el-button>
+        <el-button @click="openRuleManager">{{ t("ruleManager") }}</el-button>
+        <el-button v-if="!props.isEmbed" @click="loadExample">{{
+          t("loadExample")
+        }}</el-button>
+        <el-button v-if="!props.isEmbed" @click="showUpdateLog">{{
+          t("updateLog")
+        }}</el-button>
+        <el-button v-if="!props.isEmbed" @click="showFeedbackForm">{{
+          t("feedback")
+        }}</el-button>
+      </div>
+
       <el-button type="danger" @click="handleResetWorkspace">{{
         t("resetWorkspace")
       }}</el-button>
@@ -206,6 +252,11 @@
       width="560px"
     >
       <div class="node-size-grid">
+        <div class="node-size-row node-size-row--header">
+          <span class="node-size-label"></span>
+          <span class="node-size-dimension">{{ t("nodeSize.width") }}</span>
+          <span class="node-size-dimension">{{ t("nodeSize.height") }}</span>
+        </div>
         <div class="node-size-row">
           <span class="node-size-label">{{ t("flow.components.image.name") }}</span>
           <el-input-number
@@ -677,6 +728,7 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from "vue";
+import { ElDropdown, ElDropdownItem, ElDropdownMenu } from "element-plus";
 import updateLogs from "../data/updateLog.json";
 import { useFilesStore } from "@/ts/useStore";
 import { useGlobalMessage } from "@/ts/useGlobalMessage";
@@ -926,6 +978,14 @@ const {
   white-space: nowrap;
 }
 
+.toolbar-actions :deep(.el-dropdown) {
+  flex-shrink: 0;
+}
+
+.toolbar-actions-legacy {
+  display: none;
+}
+
 .toolbar--embed {
   position: relative;
   top: auto;
@@ -1153,6 +1213,16 @@ const {
 .node-size-label {
   font-size: 13px;
   color: #303133;
+}
+
+.node-size-row--header {
+  margin-bottom: 2px;
+}
+
+.node-size-dimension {
+  font-size: 12px;
+  color: #909399;
+  text-align: center;
 }
 
 @media (max-width: 900px) {
