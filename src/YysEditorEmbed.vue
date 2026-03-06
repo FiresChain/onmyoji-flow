@@ -98,6 +98,7 @@ export interface NodeData {
   type: string;
   x: number;
   y: number;
+  zIndex?: number;
   properties?: Record<string, any>;
   text?: { value: string };
 }
@@ -180,6 +181,63 @@ const sanitizeGraphData = (
     );
 
   return { nodes, edges };
+};
+
+const normalizeZIndex = (value: unknown): number | undefined => {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) {
+    return undefined;
+  }
+  return Math.trunc(parsed);
+};
+
+const applyNodeZIndexToInstance = (lfInstance: any, graphData: GraphData) => {
+  const nodes = Array.isArray(graphData?.nodes) ? graphData.nodes : [];
+  nodes.forEach((node) => {
+    const nodeId = typeof node?.id === "string" ? node.id : "";
+    if (!nodeId) return;
+    const zIndex = normalizeZIndex(node?.zIndex);
+    if (zIndex == null) return;
+    const model = lfInstance.getNodeModelById?.(nodeId);
+    model?.setZIndex?.(zIndex);
+  });
+};
+
+const renderGraphDataWithLayer = (lfInstance: any, graphData: GraphData) => {
+  lfInstance.render(graphData);
+  applyNodeZIndexToInstance(lfInstance, graphData);
+};
+
+const collectGraphDataWithLayer = (lfInstance: any): GraphData | null => {
+  if (!lfInstance || typeof lfInstance.getGraphRawData !== "function") {
+    return null;
+  }
+
+  const graphData = lfInstance.getGraphRawData() as GraphData;
+  if (!graphData || !Array.isArray(graphData.nodes)) {
+    return { nodes: [], edges: [] };
+  }
+
+  const nodes = graphData.nodes.map((node) => {
+    const nodeId = typeof node?.id === "string" ? node.id : "";
+    const model = nodeId ? lfInstance.getNodeModelById?.(nodeId) : null;
+    const modelZIndex = normalizeZIndex(model?.zIndex);
+    const nodeZIndex = normalizeZIndex(node?.zIndex);
+    const mergedZIndex = modelZIndex ?? nodeZIndex;
+    if (mergedZIndex == null) {
+      return { ...node };
+    }
+    return {
+      ...node,
+      zIndex: mergedZIndex,
+    };
+  });
+
+  return {
+    ...graphData,
+    nodes,
+    edges: Array.isArray(graphData.edges) ? graphData.edges : [],
+  };
 };
 
 export interface EditorConfig {
@@ -387,9 +445,8 @@ const initPreviewMode = () => {
 
   // 渲染数据
   if (props.data) {
-    previewLf.value.render(
-      sanitizeGraphData(props.data, { hideDynamicGroups: true }),
-    );
+    const safeData = sanitizeGraphData(props.data, { hideDynamicGroups: true });
+    renderGraphDataWithLayer(previewLf.value, safeData);
   }
 };
 
@@ -410,7 +467,8 @@ const handleCancel = () => {
 };
 
 const handleGraphDataChange = (graphData: GraphData) => {
-  emit("update:data", graphData);
+  const latestData = getGraphData();
+  emit("update:data", latestData ?? graphData);
 };
 
 // 公开方法（供父组件调用）
@@ -418,10 +476,10 @@ const getGraphData = (): GraphData | null => {
   if (props.mode === "edit") {
     const lfInstance = getLogicFlowInstance(logicFlowScope);
     if (lfInstance) {
-      return lfInstance.getGraphRawData() as GraphData;
+      return collectGraphDataWithLayer(lfInstance);
     }
   } else if (props.mode === "preview" && previewLf.value) {
-    return previewLf.value.getGraphRawData() as GraphData;
+    return collectGraphDataWithLayer(previewLf.value);
   }
   return null;
 };
@@ -433,10 +491,10 @@ const setGraphData = (data: GraphData) => {
   if (props.mode === "edit") {
     const lfInstance = getLogicFlowInstance(logicFlowScope);
     if (lfInstance) {
-      lfInstance.render(safeData);
+      renderGraphDataWithLayer(lfInstance, safeData);
     }
   } else if (props.mode === "preview" && previewLf.value) {
-    previewLf.value.render(safeData);
+    renderGraphDataWithLayer(previewLf.value, safeData);
   }
 };
 
