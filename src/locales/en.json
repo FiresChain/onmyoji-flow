@@ -363,6 +363,7 @@
   "flow.vector.kind.polygon": "Polygon",
   "flow.vector.kind.path": "Path",
   "flow.vector.kind.svg": "Custom SVG",
+  "flow.vector.kind.fancyFrame": "Fancy Frame",
   "flow.vector.tileSize": "Tile Size (W×H)",
   "flow.vector.fill": "Fill Color",
   "flow.vector.stroke": "Stroke Color",

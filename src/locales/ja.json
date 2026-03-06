@@ -363,6 +363,7 @@
   "flow.vector.kind.polygon": "多角形",
   "flow.vector.kind.path": "パス",
   "flow.vector.kind.svg": "カスタムSVG",
+  "flow.vector.kind.fancyFrame": "装飾フレーム",
   "flow.vector.tileSize": "タイルサイズ (幅×高さ)",
   "flow.vector.fill": "塗り色",
   "flow.vector.stroke": "線色",

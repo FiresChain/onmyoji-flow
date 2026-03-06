@@ -100,7 +100,7 @@ export interface NodeProperties {
   image?: { url: string; fit?: "fill" | "contain" | "cover" };
   text?: { content: string; rich?: boolean };
   vector?: {
-    kind: "path" | "rect" | "ellipse" | "polygon" | "svg";
+    kind: "path" | "rect" | "ellipse" | "polygon" | "svg" | "fancyFrame";
     svgContent?: string;
     path?: string;
     points?: Array<[number, number]>;

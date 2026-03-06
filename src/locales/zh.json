@@ -363,6 +363,7 @@
   "flow.vector.kind.polygon": "多边形",
   "flow.vector.kind.path": "路径",
   "flow.vector.kind.svg": "自定义SVG",
+  "flow.vector.kind.fancyFrame": "花纹边框",
   "flow.vector.tileSize": "平铺尺寸 (宽×高)",
   "flow.vector.fill": "填充颜色",
   "flow.vector.stroke": "描边颜色",

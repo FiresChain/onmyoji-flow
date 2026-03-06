@@ -50,6 +50,7 @@ const kindOptions = computed(() => [
   { label: t("flow.vector.kind.polygon"), value: "polygon" },
   { label: t("flow.vector.kind.path"), value: "path" },
   { label: t("flow.vector.kind.svg"), value: "svg" },
+  { label: t("flow.vector.kind.fancyFrame"), value: "fancyFrame" },
 ]);
 </script>
 
