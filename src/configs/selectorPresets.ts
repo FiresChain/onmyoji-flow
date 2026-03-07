@@ -11,9 +11,17 @@ type TranslateFn = (key: string) => string;
 const ALL_GROUP_NAME = "ALL";
 const ALL_GROUP_KEY = "selector.group.all";
 
-const translate = (t: TranslateFn | undefined, key: string, fallback: string) => {
+const translate = (
+  t: TranslateFn | undefined,
+  key: string,
+  fallback: string,
+) => {
   const translated = t?.(key);
-  if (typeof translated === "string" && translated.trim() && translated !== key) {
+  if (
+    typeof translated === "string" &&
+    translated.trim() &&
+    translated !== key
+  ) {
     return translated;
   }
   return fallback;
@@ -112,17 +120,9 @@ const buildYuhunPreset = (
       Health: translate(t, "selector.group.yuhun.Health", "生命类"),
       Defense: translate(t, "selector.group.yuhun.Defense", "防御类"),
       ControlHit: translate(t, "selector.group.yuhun.ControlHit", "效果命中"),
-      ControlMiss: translate(
-        t,
-        "selector.group.yuhun.ControlMiss",
-        "效果抵抗",
-      ),
+      ControlMiss: translate(t, "selector.group.yuhun.ControlMiss", "效果抵抗"),
       PVE: translate(t, "selector.group.yuhun.PVE", "PVE"),
-      CritDamage: translate(
-        t,
-        "selector.group.yuhun.CritDamage",
-        "暴击伤害",
-      ),
+      CritDamage: translate(t, "selector.group.yuhun.CritDamage", "暴击伤害"),
     },
   });
   return {
@@ -231,12 +231,10 @@ export const getSelectorPreset = (
   return buildOnmyojiSkillPreset(locale, t);
 };
 
-export const getSelectorPresets = (
-  options?: {
-    locale?: unknown;
-    t?: TranslateFn;
-  },
-): Record<AssetLibraryId, SelectorConfig> => ({
+export const getSelectorPresets = (options?: {
+  locale?: unknown;
+  t?: TranslateFn;
+}): Record<AssetLibraryId, SelectorConfig> => ({
   shikigami: getSelectorPreset("shikigami", options),
   yuhun: getSelectorPreset("yuhun", options),
   onmyoji: getSelectorPreset("onmyoji", options),

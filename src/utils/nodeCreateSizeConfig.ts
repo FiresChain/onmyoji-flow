@@ -97,7 +97,10 @@ const buildAssetThemePreset = (
   },
 });
 
-const DEFAULT_ASSET_SELECTOR_SIZE_BY_LIBRARY: Record<AssetLibraryId, NodeCreateSize> = {
+const DEFAULT_ASSET_SELECTOR_SIZE_BY_LIBRARY: Record<
+  AssetLibraryId,
+  NodeCreateSize
+> = {
   shikigami: { width: 180, height: 180 },
   yuhun: { width: 75, height: 75 },
   onmyoji: { width: 147, height: 147 },
@@ -105,38 +108,39 @@ const DEFAULT_ASSET_SELECTOR_SIZE_BY_LIBRARY: Record<AssetLibraryId, NodeCreateS
   hunling: { width: 120, height: 120 },
 };
 
-const DEFAULT_ASSET_THEME_BY_LIBRARY: Record<AssetLibraryId, AssetThemeConfig> = {
-  shikigami: buildAssetThemePreset({
-    fill: "#ffffff",
-    stroke: "#dcdfe6",
-    strokeWidth: 0,
-    radius: 200,
-  }),
-  yuhun: buildAssetThemePreset({
-    fill: "transparent",
-    stroke: "#dcdfe6",
-    strokeWidth: 0,
-    radius: 4,
-  }),
-  onmyoji: buildAssetThemePreset({
-    fill: "#ffffff",
-    stroke: "#dcdfe6",
-    strokeWidth: 1,
-    radius: 4,
-  }),
-  onmyojiSkill: buildAssetThemePreset({
-    fill: "transparent",
-    stroke: "#dcdfe6",
-    strokeWidth: 1,
-    radius: 100,
-  }),
-  hunling: buildAssetThemePreset({
-    fill: "transparent",
-    stroke: "#dcdfe6",
-    strokeWidth: 1,
-    radius: 100,
-  }),
-};
+const DEFAULT_ASSET_THEME_BY_LIBRARY: Record<AssetLibraryId, AssetThemeConfig> =
+  {
+    shikigami: buildAssetThemePreset({
+      fill: "#ffffff",
+      stroke: "#dcdfe6",
+      strokeWidth: 0,
+      radius: 200,
+    }),
+    yuhun: buildAssetThemePreset({
+      fill: "transparent",
+      stroke: "#dcdfe6",
+      strokeWidth: 0,
+      radius: 4,
+    }),
+    onmyoji: buildAssetThemePreset({
+      fill: "#ffffff",
+      stroke: "#dcdfe6",
+      strokeWidth: 1,
+      radius: 4,
+    }),
+    onmyojiSkill: buildAssetThemePreset({
+      fill: "transparent",
+      stroke: "#dcdfe6",
+      strokeWidth: 1,
+      radius: 100,
+    }),
+    hunling: buildAssetThemePreset({
+      fill: "transparent",
+      stroke: "#dcdfe6",
+      strokeWidth: 1,
+      radius: 100,
+    }),
+  };
 
 const buildDefaultAssetTheme = (): AssetThemeConfig =>
   cloneAssetTheme(DEFAULT_ASSET_THEME_BY_LIBRARY.shikigami);
@@ -229,8 +233,12 @@ const normalizeSize = (
   const width = toNumber(source.width);
   const height = toNumber(source.height);
   return {
-    width: Math.round(clamp(width ?? fallback.width, MIN_NODE_SIZE, MAX_NODE_SIZE)),
-    height: Math.round(clamp(height ?? fallback.height, MIN_NODE_SIZE, MAX_NODE_SIZE)),
+    width: Math.round(
+      clamp(width ?? fallback.width, MIN_NODE_SIZE, MAX_NODE_SIZE),
+    ),
+    height: Math.round(
+      clamp(height ?? fallback.height, MIN_NODE_SIZE, MAX_NODE_SIZE),
+    ),
   };
 };
 
@@ -250,7 +258,11 @@ const normalizeAssetThemeNodeStyle = (
       0,
       20,
     ),
-    radius: clamp(Math.round(toNumber(source.radius) ?? fallback.radius), 0, 200),
+    radius: clamp(
+      Math.round(toNumber(source.radius) ?? fallback.radius),
+      0,
+      200,
+    ),
     opacity: clamp(
       toNumber(source.opacity) ?? fallback.opacity,
       MIN_OPACITY,
@@ -322,7 +334,10 @@ const normalizeAssetTheme = (
       ? (value as Record<string, unknown>)
       : {};
   return {
-    nodeStyle: normalizeAssetThemeNodeStyle(source.nodeStyle, fallback.nodeStyle),
+    nodeStyle: normalizeAssetThemeNodeStyle(
+      source.nodeStyle,
+      fallback.nodeStyle,
+    ),
     name: normalizeAssetThemeName(source.name, fallback.name),
   };
 };
@@ -363,7 +378,8 @@ export const normalizeNodeCreateSizeConfig = (
   );
   const assetThemeByLibrary = ASSET_LIBRARY_IDS.reduce(
     (acc, library) => {
-      const fallback = DEFAULT_NODE_CREATE_SIZE_CONFIG.assetThemeByLibrary[library];
+      const fallback =
+        DEFAULT_NODE_CREATE_SIZE_CONFIG.assetThemeByLibrary[library];
       acc[library] = normalizeAssetTheme(
         assetThemeByLibraryRaw[library],
         source.assetTheme == null ? fallback : legacyAssetTheme,
@@ -435,7 +451,10 @@ export const writeNodeCreateSizeConfig = (
 ): NodeCreateSizeConfig => {
   const normalized = normalizeNodeCreateSizeConfig(input);
   if (isClient()) {
-    localStorage.setItem(NODE_CREATE_SIZE_STORAGE_KEY, JSON.stringify(normalized));
+    localStorage.setItem(
+      NODE_CREATE_SIZE_STORAGE_KEY,
+      JSON.stringify(normalized),
+    );
   }
   return normalized;
 };

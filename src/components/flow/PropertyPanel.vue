@@ -89,13 +89,19 @@ const getAssetLibraryLabel = (libraryId: string) =>
         <!-- 游戏属性 Tab -->
         <el-tab-pane :label="t('flow.property.tab.game')" name="game">
           <div class="property-section">
-            <div class="section-header">{{ t("flow.property.section.basic") }}</div>
+            <div class="section-header">
+              {{ t("flow.property.section.basic") }}
+            </div>
             <div class="property-item">
-              <div class="property-label">{{ t("flow.property.label.nodeId") }}</div>
+              <div class="property-label">
+                {{ t("flow.property.label.nodeId") }}
+              </div>
               <div class="property-value">{{ selectedNode.id }}</div>
             </div>
             <div class="property-item">
-              <div class="property-label">{{ t("flow.property.label.nodeType") }}</div>
+              <div class="property-label">
+                {{ t("flow.property.label.nodeType") }}
+              </div>
               <div class="property-value">{{ nodeType }}</div>
             </div>
           </div>
@@ -106,7 +112,9 @@ const getAssetLibraryLabel = (libraryId: string) =>
               {{ t("flow.property.section.selectorType") }}
             </div>
             <div class="property-item">
-              <div class="property-label">{{ t("flow.property.label.assetType") }}</div>
+              <div class="property-label">
+                {{ t("flow.property.label.assetType") }}
+              </div>
               <el-select
                 v-model="currentAssetLibrary"
                 :placeholder="t('flow.property.placeholder.assetType')"
@@ -129,9 +137,13 @@ const getAssetLibraryLabel = (libraryId: string) =>
             :node="selectedNode"
           />
           <div v-else class="property-section">
-            <div class="section-header">{{ t("flow.property.section.none") }}</div>
+            <div class="section-header">
+              {{ t("flow.property.section.none") }}
+            </div>
             <div class="property-item">
-              <div class="property-value">{{ t("flow.property.value.none") }}</div>
+              <div class="property-value">
+                {{ t("flow.property.value.none") }}
+              </div>
             </div>
           </div>
         </el-tab-pane>

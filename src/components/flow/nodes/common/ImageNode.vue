@@ -28,7 +28,9 @@ const { containerStyle } = useNodeAppearance({
         draggable="false"
       />
       <div v-else class="placeholder">
-        <div class="placeholder-text">{{ t("flow.imageNode.placeholder") }}</div>
+        <div class="placeholder-text">
+          {{ t("flow.imageNode.placeholder") }}
+        </div>
         <div class="placeholder-hint">{{ t("flow.imageNode.hint") }}</div>
       </div>
     </div>

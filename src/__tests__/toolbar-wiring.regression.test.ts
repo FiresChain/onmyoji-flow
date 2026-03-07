@@ -2608,4 +2608,3 @@ describe("toolbar wiring regression", () => {
     wrapper.unmount();
   });
 });
-

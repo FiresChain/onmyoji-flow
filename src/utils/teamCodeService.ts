@@ -1,6 +1,7 @@
 import jsQR from "jsqr";
 
-const DEFAULT_TEAM_CODE_SERVICE_URL = "http://127.0.0.1:8787/onmyoji/v1/team-code/decode";
+const DEFAULT_TEAM_CODE_SERVICE_URL =
+  "http://127.0.0.1:8787/onmyoji/v1/team-code/decode";
 
 export const TEAM_CODE_SERVICE_URL =
   (import.meta.env.VITE_TEAM_CODE_SERVICE_URL as string | undefined)?.trim() ||
@@ -99,7 +100,8 @@ export const convertTeamCodeToRootDocument = async (
     throw new Error("请输入阵容码");
   }
 
-  const serviceUrl = normalizeText(options?.serviceUrl) || TEAM_CODE_SERVICE_URL;
+  const serviceUrl =
+    normalizeText(options?.serviceUrl) || TEAM_CODE_SERVICE_URL;
   const requestBody: Record<string, unknown> = { teamCode: normalizedTeamCode };
   if (options?.formationValidation === true) {
     requestBody.formationValidation = true;

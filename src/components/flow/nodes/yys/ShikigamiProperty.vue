@@ -13,19 +13,27 @@
     @cancel="cancel"
     :before-close="cancel"
   >
-    <span>{{ t("yys.property.currentSelectionPrefix") }}{{ current.name }}</span>
+    <span
+      >{{ t("yys.property.currentSelectionPrefix") }}{{ current.name }}</span
+    >
     <el-form :model="shikigami" label-width="120px">
       <el-form-item :label="t('yys.property.levelRequired')">
         <el-radio-group v-model="shikigami.levelRequired" class="ml-4">
           <el-radio value="40" size="large">40</el-radio>
-          <el-radio value="0" size="large">{{ t("yys.property.sacrifice") }}</el-radio>
+          <el-radio value="0" size="large">{{
+            t("yys.property.sacrifice")
+          }}</el-radio>
         </el-radio-group>
       </el-form-item>
       <el-form-item :label="t('yys.property.skillRequired')">
         <el-radio-group v-model="shikigami.skillRequiredMode" class="ml-4">
-          <el-radio value="all" size="large">{{ t("yys.property.skillAll") }}</el-radio>
+          <el-radio value="all" size="large">{{
+            t("yys.property.skillAll")
+          }}</el-radio>
           <el-radio value="111" size="large">111</el-radio>
-          <el-radio value="custom" size="large">{{ t("yys.property.skillCustom") }}</el-radio>
+          <el-radio value="custom" size="large">{{
+            t("yys.property.skillCustom")
+          }}</el-radio>
         </el-radio-group>
         <div
           v-if="shikigami.skillRequiredMode === 'custom'"
@@ -89,10 +97,22 @@
               :max-collapse-tags="2"
               v-model="shikigami.yuhun.property2"
             >
-              <el-option :label="t('yuhun_property.fullName.Attack')" value="Attack" />
-              <el-option :label="t('yuhun_property.fullName.Defense')" value="Defense" />
-              <el-option :label="t('yuhun_property.fullName.Health')" value="Health" />
-              <el-option :label="t('yuhun_property.fullName.Speed')" value="Speed" />
+              <el-option
+                :label="t('yuhun_property.fullName.Attack')"
+                value="Attack"
+              />
+              <el-option
+                :label="t('yuhun_property.fullName.Defense')"
+                value="Defense"
+              />
+              <el-option
+                :label="t('yuhun_property.fullName.Health')"
+                value="Health"
+              />
+              <el-option
+                :label="t('yuhun_property.fullName.Speed')"
+                value="Speed"
+              />
             </el-select>
           </el-form-item>
           <el-form-item :label="t('yys.property.slot4Main')">
@@ -103,11 +123,26 @@
               :max-collapse-tags="2"
               v-model="shikigami.yuhun.property4"
             >
-              <el-option :label="t('yuhun_property.fullName.Attack')" value="Attack" />
-              <el-option :label="t('yuhun_property.fullName.Defense')" value="Defense" />
-              <el-option :label="t('yuhun_property.fullName.Health')" value="Health" />
-              <el-option :label="t('yuhun_property.fullName.ControlHit')" value="ControlHit" />
-              <el-option :label="t('yuhun_property.fullName.ControlMiss')" value="ControlMiss" />
+              <el-option
+                :label="t('yuhun_property.fullName.Attack')"
+                value="Attack"
+              />
+              <el-option
+                :label="t('yuhun_property.fullName.Defense')"
+                value="Defense"
+              />
+              <el-option
+                :label="t('yuhun_property.fullName.Health')"
+                value="Health"
+              />
+              <el-option
+                :label="t('yuhun_property.fullName.ControlHit')"
+                value="ControlHit"
+              />
+              <el-option
+                :label="t('yuhun_property.fullName.ControlMiss')"
+                value="ControlMiss"
+              />
             </el-select>
           </el-form-item>
           <el-form-item :label="t('yys.property.slot6Main')">
@@ -118,11 +153,26 @@
               :max-collapse-tags="2"
               v-model="shikigami.yuhun.property6"
             >
-              <el-option :label="t('yuhun_property.fullName.Attack')" value="Attack" />
-              <el-option :label="t('yuhun_property.fullName.Defense')" value="Defense" />
-              <el-option :label="t('yuhun_property.fullName.Health')" value="Health" />
-              <el-option :label="t('yuhun_property.fullName.Crit')" value="Crit" />
-              <el-option :label="t('yuhun_property.fullName.CritDamage')" value="CritDamage" />
+              <el-option
+                :label="t('yuhun_property.fullName.Attack')"
+                value="Attack"
+              />
+              <el-option
+                :label="t('yuhun_property.fullName.Defense')"
+                value="Defense"
+              />
+              <el-option
+                :label="t('yuhun_property.fullName.Health')"
+                value="Health"
+              />
+              <el-option
+                :label="t('yuhun_property.fullName.Crit')"
+                value="Crit"
+              />
+              <el-option
+                :label="t('yuhun_property.fullName.CritDamage')"
+                value="CritDamage"
+              />
             </el-select>
           </el-form-item>
         </div>
@@ -139,7 +189,9 @@
         <el-input v-model="shikigami.desc" type="textarea" />
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" @click="confirm">{{ t("common.confirm") }}</el-button>
+        <el-button type="primary" @click="confirm">{{
+          t("common.confirm")
+        }}</el-button>
         <el-button @click="cancel">{{ t("common.cancel") }}</el-button>
       </el-form-item>
     </el-form>

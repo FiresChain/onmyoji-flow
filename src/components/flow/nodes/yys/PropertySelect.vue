@@ -26,8 +26,12 @@
           <div v-if="property.type === 'attack'">
             <el-form-item :label="t('yys.selector.attackType')">
               <el-radio-group v-model="property.attackType">
-                <el-radio label="fixed" size="large">{{ t("yys.selector.fixedValue") }}</el-radio>
-                <el-radio label="percentage" size="large">{{ t("yys.selector.percentageValue") }}</el-radio>
+                <el-radio label="fixed" size="large">{{
+                  t("yys.selector.fixedValue")
+                }}</el-radio>
+                <el-radio label="percentage" size="large">{{
+                  t("yys.selector.percentageValue")
+                }}</el-radio>
               </el-radio-group>
             </el-form-item>
             <el-form-item :label="t('yys.selector.attackValue')">
@@ -44,8 +48,12 @@
           <div v-if="property.type === 'health'">
             <el-form-item :label="t('yys.selector.healthType')">
               <el-radio-group v-model="property.healthType">
-                <el-radio label="fixed" size="large">{{ t("yys.selector.fixedValue") }}</el-radio>
-                <el-radio label="percentage" size="large">{{ t("yys.selector.percentageValue") }}</el-radio>
+                <el-radio label="fixed" size="large">{{
+                  t("yys.selector.fixedValue")
+                }}</el-radio>
+                <el-radio label="percentage" size="large">{{
+                  t("yys.selector.percentageValue")
+                }}</el-radio>
               </el-radio-group>
             </el-form-item>
             <el-form-item :label="t('yys.selector.healthValue')">
@@ -62,8 +70,12 @@
           <div v-if="property.type === 'defense'">
             <el-form-item :label="t('yys.selector.defenseType')">
               <el-radio-group v-model="property.defenseType">
-                <el-radio label="fixed" size="large">{{ t("yys.selector.fixedValue") }}</el-radio>
-                <el-radio label="percentage" size="large">{{ t("yys.selector.percentageValue") }}</el-radio>
+                <el-radio label="fixed" size="large">{{
+                  t("yys.selector.fixedValue")
+                }}</el-radio>
+                <el-radio label="percentage" size="large">{{
+                  t("yys.selector.percentageValue")
+                }}</el-radio>
               </el-radio-group>
             </el-form-item>
             <el-form-item :label="t('yys.selector.defenseValue')">
@@ -137,9 +149,18 @@
           <!-- 所有属性都显示的字段 -->
           <el-form-item :label="t('yys.selector.priority')">
             <el-select v-model="property.priority">
-              <el-option :label="t('yys.selector.priority.required')" value="required" />
-              <el-option :label="t('yys.selector.priority.recommended')" value="recommended" />
-              <el-option :label="t('yys.selector.priority.optional')" value="optional" />
+              <el-option
+                :label="t('yys.selector.priority.required')"
+                value="required"
+              />
+              <el-option
+                :label="t('yys.selector.priority.recommended')"
+                value="recommended"
+              />
+              <el-option
+                :label="t('yys.selector.priority.optional')"
+                value="optional"
+              />
             </el-select>
           </el-form-item>
         </el-tab-pane>
@@ -149,15 +170,21 @@
           <el-form-item :label="t('yys.property.levelRequired')">
             <el-radio-group v-model="property.levelRequired" class="ml-4">
               <el-radio value="40" size="large">40</el-radio>
-              <el-radio value="0" size="large">{{ t("yys.property.sacrifice") }}</el-radio>
+              <el-radio value="0" size="large">{{
+                t("yys.property.sacrifice")
+              }}</el-radio>
             </el-radio-group>
           </el-form-item>
 
           <el-form-item :label="t('yys.property.skillRequired')">
             <el-radio-group v-model="property.skillRequiredMode" class="ml-4">
-              <el-radio value="all" size="large">{{ t("yys.property.skillAll") }}</el-radio>
+              <el-radio value="all" size="large">{{
+                t("yys.property.skillAll")
+              }}</el-radio>
               <el-radio value="111" size="large">111</el-radio>
-              <el-radio value="custom" size="large">{{ t("yys.property.skillCustom") }}</el-radio>
+              <el-radio value="custom" size="large">{{
+                t("yys.property.skillCustom")
+              }}</el-radio>
             </el-radio-group>
             <div
               v-if="property.skillRequiredMode === 'custom'"
@@ -234,10 +261,22 @@
                   :max-collapse-tags="2"
                   v-model="property.yuhun.property2"
                 >
-                  <el-option :label="t('yuhun_property.fullName.Attack')" value="Attack" />
-                  <el-option :label="t('yuhun_property.fullName.Defense')" value="Defense" />
-                  <el-option :label="t('yuhun_property.fullName.Health')" value="Health" />
-                  <el-option :label="t('yuhun_property.fullName.Speed')" value="Speed" />
+                  <el-option
+                    :label="t('yuhun_property.fullName.Attack')"
+                    value="Attack"
+                  />
+                  <el-option
+                    :label="t('yuhun_property.fullName.Defense')"
+                    value="Defense"
+                  />
+                  <el-option
+                    :label="t('yuhun_property.fullName.Health')"
+                    value="Health"
+                  />
+                  <el-option
+                    :label="t('yuhun_property.fullName.Speed')"
+                    value="Speed"
+                  />
                 </el-select>
               </el-form-item>
 
@@ -249,11 +288,26 @@
                   :max-collapse-tags="2"
                   v-model="property.yuhun.property4"
                 >
-                  <el-option :label="t('yuhun_property.fullName.Attack')" value="Attack" />
-                  <el-option :label="t('yuhun_property.fullName.Defense')" value="Defense" />
-                  <el-option :label="t('yuhun_property.fullName.Health')" value="Health" />
-                  <el-option :label="t('yuhun_property.fullName.ControlHit')" value="ControlHit" />
-                  <el-option :label="t('yuhun_property.fullName.ControlMiss')" value="ControlMiss" />
+                  <el-option
+                    :label="t('yuhun_property.fullName.Attack')"
+                    value="Attack"
+                  />
+                  <el-option
+                    :label="t('yuhun_property.fullName.Defense')"
+                    value="Defense"
+                  />
+                  <el-option
+                    :label="t('yuhun_property.fullName.Health')"
+                    value="Health"
+                  />
+                  <el-option
+                    :label="t('yuhun_property.fullName.ControlHit')"
+                    value="ControlHit"
+                  />
+                  <el-option
+                    :label="t('yuhun_property.fullName.ControlMiss')"
+                    value="ControlMiss"
+                  />
                 </el-select>
               </el-form-item>
 
@@ -265,11 +319,26 @@
                   :max-collapse-tags="2"
                   v-model="property.yuhun.property6"
                 >
-                  <el-option :label="t('yuhun_property.fullName.Attack')" value="Attack" />
-                  <el-option :label="t('yuhun_property.fullName.Defense')" value="Defense" />
-                  <el-option :label="t('yuhun_property.fullName.Health')" value="Health" />
-                  <el-option :label="t('yuhun_property.fullName.Crit')" value="Crit" />
-                  <el-option :label="t('yuhun_property.fullName.CritDamage')" value="CritDamage" />
+                  <el-option
+                    :label="t('yuhun_property.fullName.Attack')"
+                    value="Attack"
+                  />
+                  <el-option
+                    :label="t('yuhun_property.fullName.Defense')"
+                    value="Defense"
+                  />
+                  <el-option
+                    :label="t('yuhun_property.fullName.Health')"
+                    value="Health"
+                  />
+                  <el-option
+                    :label="t('yuhun_property.fullName.Crit')"
+                    value="Crit"
+                  />
+                  <el-option
+                    :label="t('yuhun_property.fullName.CritDamage')"
+                    value="CritDamage"
+                  />
                 </el-select>
               </el-form-item>
             </div>
@@ -296,9 +365,18 @@
 
           <el-form-item :label="t('yys.selector.damageType')">
             <el-select v-model="property.damageType">
-              <el-option :label="t('yys.selector.damageType.normal')" value="normal" />
-              <el-option :label="t('yys.selector.damageType.skill')" value="skill" />
-              <el-option :label="t('yys.selector.damageType.balanced')" value="balanced" />
+              <el-option
+                :label="t('yys.selector.damageType.normal')"
+                value="normal"
+              />
+              <el-option
+                :label="t('yys.selector.damageType.skill')"
+                value="skill"
+              />
+              <el-option
+                :label="t('yys.selector.damageType.balanced')"
+                value="balanced"
+              />
             </el-select>
           </el-form-item>
         </el-tab-pane>
@@ -309,8 +387,12 @@
       </el-form-item>
 
       <el-form-item>
-        <el-button type="primary" @click="confirm">{{ t("common.confirm") }}</el-button>
-        <el-button @click="emit('closePropertySelect')">{{ t("common.cancel") }}</el-button>
+        <el-button type="primary" @click="confirm">{{
+          t("common.confirm")
+        }}</el-button>
+        <el-button @click="emit('closePropertySelect')">{{
+          t("common.cancel")
+        }}</el-button>
       </el-form-item>
     </el-form>
   </el-dialog>
