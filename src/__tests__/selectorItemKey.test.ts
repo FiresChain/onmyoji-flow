@@ -15,9 +15,7 @@ const config: SelectorConfig = {
 describe("selector item key", () => {
   it("prefers id-like stable keys", () => {
     expect(buildSelectorItemKey({ id: "abc" }, 0, config)).toBe("abc");
-    expect(buildSelectorItemKey({ assetId: "lib:1" }, 0, config)).toBe(
-      "lib:1",
-    );
+    expect(buildSelectorItemKey({ assetId: "lib:1" }, 0, config)).toBe("lib:1");
   });
 
   it("generates fallback keys for duplicate names", () => {

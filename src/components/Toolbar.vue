@@ -69,7 +69,9 @@
         <el-button @click="handleExport">{{ t("export") }}</el-button>
         <el-button @click="handlePreviewData">{{ t("previewData") }}</el-button>
         <el-button @click="prepareCapture">{{ t("prepareCapture") }}</el-button>
-        <el-button @click="openWatermarkDialog">{{ t("setWatermark") }}</el-button>
+        <el-button @click="openWatermarkDialog">{{
+          t("setWatermark")
+        }}</el-button>
         <el-button @click="openAssetManager">{{ t("assetManager") }}</el-button>
         <el-button @click="openRuleManager">{{ t("ruleManager") }}</el-button>
         <el-button v-if="!props.isEmbed" @click="loadExample">{{
@@ -136,7 +138,10 @@
     >
       <ul>
         <li v-for="(log, index) in updateLogs" :key="index">
-          <strong>{{ t("updateLog.versionPrefix") }} {{ log.version }} - {{ log.date }}</strong>
+          <strong
+            >{{ t("updateLog.versionPrefix") }} {{ log.version }} -
+            {{ log.date }}</strong
+          >
           <ul>
             <li v-for="(change, idx) in log.changes" :key="idx">
               {{ change }}
@@ -264,7 +269,9 @@
           }}</span>
         </div>
         <div class="node-size-row">
-          <span class="node-size-label">{{ t("flow.components.image.name") }}</span>
+          <span class="node-size-label">{{
+            t("flow.components.image.name")
+          }}</span>
           <el-input-number
             v-model="nodeSizeDraft.imageNode.width"
             :min="40"
@@ -287,7 +294,9 @@
           :key="library"
           class="node-size-row"
         >
-          <span class="node-size-label">{{ t(`assetLibrary.${library}`) }}</span>
+          <span class="node-size-label">{{
+            t(`assetLibrary.${library}`)
+          }}</span>
           <el-input-number
             v-model="nodeSizeDraft.assetSelectorByLibrary[library].width"
             :min="40"
@@ -468,7 +477,10 @@
         </div>
         <div class="node-theme-item">
           <span class="node-size-label">{{ t("nodeSize.fontWeight") }}</span>
-          <el-select v-model="themeDetailDraft.name.textStyle.fontWeight" size="small">
+          <el-select
+            v-model="themeDetailDraft.name.textStyle.fontWeight"
+            size="small"
+          >
             <el-option :label="t('flow.style.weight.300')" :value="300" />
             <el-option :label="t('flow.style.weight.400')" :value="400" />
             <el-option :label="t('flow.style.weight.500')" :value="500" />
@@ -489,7 +501,10 @@
         </div>
         <div class="node-theme-item">
           <span class="node-size-label">{{ t("flow.style.textAlign") }}</span>
-          <el-select v-model="themeDetailDraft.name.textStyle.align" size="small">
+          <el-select
+            v-model="themeDetailDraft.name.textStyle.align"
+            size="small"
+          >
             <el-option :label="t('flow.style.align.left')" value="left" />
             <el-option :label="t('flow.style.align.center')" value="center" />
             <el-option :label="t('flow.style.align.right')" value="right" />
@@ -566,7 +581,10 @@
             {{ t("importDialog.formationValidation") }}
           </el-checkbox>
         </el-form-item>
-        <el-form-item v-if="importSource === 'teamCode'" :label="t('importDialog.qr')">
+        <el-form-item
+          v-if="importSource === 'teamCode'"
+          :label="t('importDialog.qr')"
+        >
           <div class="team-code-qr-actions">
             <input
               ref="teamCodeQrInputRef"
@@ -701,15 +719,19 @@
         <el-button size="small" @click="reloadRuleManagerDraft">{{
           t("ruleManager.reload")
         }}</el-button>
-        <el-button size="small" type="success" @click="applyRuleManagerConfig">{{
-          t("ruleManager.apply")
-        }}</el-button>
+        <el-button
+          size="small"
+          type="success"
+          @click="applyRuleManagerConfig"
+          >{{ t("ruleManager.apply") }}</el-button
+        >
         <el-button
           size="small"
           type="warning"
           plain
           @click="restoreDefaultRuleConfig"
-          >{{ t("ruleManager.restoreDefault") }}</el-button>
+          >{{ t("ruleManager.restoreDefault") }}</el-button
+        >
         <input
           ref="ruleBundleImportInputRef"
           type="file"
@@ -729,12 +751,20 @@
               border
               class="rule-table"
             >
-              <el-table-column :label="t('ruleManager.column.enabled')" width="70" align="center">
+              <el-table-column
+                :label="t('ruleManager.column.enabled')"
+                width="70"
+                align="center"
+              >
                 <template #default="{ row }">
                   <el-checkbox v-model="row.enabled" />
                 </template>
               </el-table-column>
-              <el-table-column :label="t('ruleManager.column.severity')" width="110" align="center">
+              <el-table-column
+                :label="t('ruleManager.column.severity')"
+                width="110"
+                align="center"
+              >
                 <template #default="{ row }">
                   <el-select
                     v-model="row.severity"
@@ -745,13 +775,20 @@
                       `severity-select--${row.severity || 'warning'}`,
                     ]"
                   >
-                    <el-option :label="t('ruleSeverity.warning')" value="warning" />
+                    <el-option
+                      :label="t('ruleSeverity.warning')"
+                      value="warning"
+                    />
                     <el-option :label="t('ruleSeverity.error')" value="error" />
                     <el-option :label="t('ruleSeverity.info')" value="info" />
                   </el-select>
                 </template>
               </el-table-column>
-              <el-table-column :label="t('ruleManager.column.scope')" width="130" align="center">
+              <el-table-column
+                :label="t('ruleManager.column.scope')"
+                width="130"
+                align="center"
+              >
                 <template #default="{ row }">
                   <el-select
                     v-model="row.scopeKind"
@@ -759,7 +796,10 @@
                     class="rule-inline-select"
                   >
                     <el-option :label="t('ruleScope.team')" value="team" />
-                    <el-option :label="t('ruleScope.shikigami')" value="shikigami" />
+                    <el-option
+                      :label="t('ruleScope.shikigami')"
+                      value="shikigami"
+                    />
                   </el-select>
                 </template>
               </el-table-column>
@@ -787,20 +827,26 @@
                   <span class="rule-cell-ellipsis">{{ row.message }}</span>
                 </template>
               </el-table-column>
-              <el-table-column :label="t('ruleManager.column.actions')" width="140" fixed="right">
+              <el-table-column
+                :label="t('ruleManager.column.actions')"
+                width="140"
+                fixed="right"
+              >
                 <template #default="{ $index }">
                   <el-button
                     size="small"
                     text
                     type="primary"
                     @click="openExpressionRuleEditor($index)"
-                    >{{ t("common.edit") }}</el-button>
+                    >{{ t("common.edit") }}</el-button
+                  >
                   <el-button
                     size="small"
                     text
                     type="danger"
                     @click="removeExpressionRule($index)"
-                    >{{ t("common.delete") }}</el-button>
+                    >{{ t("common.delete") }}</el-button
+                  >
                 </template>
               </el-table-column>
             </el-table>
@@ -815,13 +861,19 @@
               :key="`${item.key}-${index}`"
               class="variable-item"
             >
-              <el-form-item :label="t('ruleManager.variable.key')" class="variable-key">
+              <el-form-item
+                :label="t('ruleManager.variable.key')"
+                class="variable-key"
+              >
                 <el-input
                   v-model="item.key"
                   :placeholder="t('ruleManager.variable.keyPlaceholder')"
                 />
               </el-form-item>
-              <el-form-item :label="t('ruleManager.variable.value')" class="variable-value">
+              <el-form-item
+                :label="t('ruleManager.variable.value')"
+                class="variable-value"
+              >
                 <el-input
                   v-model="item.value"
                   type="textarea"
@@ -834,7 +886,8 @@
                 text
                 type="danger"
                 @click="removeRuleVariable(index)"
-                >{{ t("common.delete") }}</el-button>
+                >{{ t("common.delete") }}</el-button
+              >
             </div>
             <el-empty
               v-if="ruleConfigDraft.ruleVariables.length === 0"
@@ -860,7 +913,11 @@
       </el-tabs>
     </el-dialog>
 
-    <el-dialog v-model="ruleEditorVisible" :title="t('ruleEditor.title')" width="56%">
+    <el-dialog
+      v-model="ruleEditorVisible"
+      :title="t('ruleEditor.title')"
+      width="56%"
+    >
       <el-form
         v-if="ruleEditorDraft"
         label-width="96px"
@@ -918,7 +975,9 @@
       </el-form>
       <template #footer>
         <span class="dialog-footer">
-          <el-button @click="cancelRuleEditor">{{ t("common.cancel") }}</el-button>
+          <el-button @click="cancelRuleEditor">{{
+            t("common.cancel")
+          }}</el-button>
           <el-button type="primary" @click="saveRuleEditor">{{
             t("common.save")
           }}</el-button>

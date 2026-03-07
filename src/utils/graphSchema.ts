@@ -131,7 +131,7 @@ export const normalizeSelectedAssetRecord = (
     ? existingAssetId
     : sourceId
       ? `${library || "asset"}:${sourceId}`
-    : `asset_${createStableHash(identitySeed || String(Date.now()))}`;
+      : `asset_${createStableHash(identitySeed || String(Date.now()))}`;
 
   return {
     ...raw,
@@ -198,7 +198,9 @@ export const normalizeGraphRawDataSchema = (
     }
 
     if (node?.type === "assetSelector") {
-      const normalizedLibrary = normalizeAssetLibraryId(properties.assetLibrary);
+      const normalizedLibrary = normalizeAssetLibraryId(
+        properties.assetLibrary,
+      );
       const selectedAsset = normalizeSelectedAssetRecord(
         properties.selectedAsset,
         normalizedLibrary,
@@ -207,7 +209,8 @@ export const normalizeGraphRawDataSchema = (
         ...normalizedNode,
         properties: {
           ...properties,
-          assetLibrary: selectedAsset?.library || normalizedLibrary || "shikigami",
+          assetLibrary:
+            selectedAsset?.library || normalizedLibrary || "shikigami",
           selectedAsset,
         },
       };

@@ -321,7 +321,11 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="components-panel" :class="{ 'is-resizing': isResizing }" :style="panelStyle">
+  <div
+    class="components-panel"
+    :class="{ 'is-resizing': isResizing }"
+    :style="panelStyle"
+  >
     <h3>{{ t("flow.components.title") }}</h3>
     <!-- 使用两层遍历生成界面元素 -->
     <div
