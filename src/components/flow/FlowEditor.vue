@@ -1,77 +1,105 @@
 <template>
   <div class="editor-layout" :style="{ height }">
     <!-- 中间流程图区域 -->
-    <div ref="flowHostRef" class="flow-container" :class="{ 'snapline-disabled': !snaplineEnabled }">
-      <div class="flow-controls" :class="{ 'flow-controls--collapsed': flowControlsCollapsed }">
+    <div
+      ref="flowHostRef"
+      class="flow-container"
+      :class="{ 'snapline-disabled': !snaplineEnabled }"
+    >
+      <div
+        class="flow-controls"
+        :class="{ 'flow-controls--collapsed': flowControlsCollapsed }"
+      >
         <div class="control-row control-header">
-          <button class="control-button" type="button" @click="flowControlsCollapsed = !flowControlsCollapsed">
-            {{ flowControlsCollapsed ? `显示画布控制${groupRuleWarnings.length ? `(${groupRuleWarnings.length})` : ''}` : '收起画布控制' }}
+          <button
+            class="control-button"
+            type="button"
+            @click="flowControlsCollapsed = !flowControlsCollapsed"
+          >
+            {{ flowControlsToggleLabel }}
           </button>
         </div>
         <template v-if="!flowControlsCollapsed">
-        <div class="control-row toggles">
-          <label class="control-toggle">
-            <input type="checkbox" v-model="selectionEnabled" />
-            <span>框选</span>
-          </label>
-          <label class="control-toggle">
-            <input type="checkbox" v-model="snapGridEnabled" />
-            <span>吸附网格</span>
-          </label>
-          <label class="control-toggle">
-            <input type="checkbox" v-model="snaplineEnabled" />
-            <span>对齐线</span>
-          </label>
-          <span class="control-hint">已选 {{ selectedCount }}</span>
-          <button class="control-button" type="button" @click="showAllNodes">显示全部</button>
-        </div>
-        <div class="control-row">
-          <div class="control-label">对齐</div>
-          <div class="control-buttons">
-            <button
-              v-for="btn in alignmentButtons"
-              :key="btn.key"
-              class="control-button"
-              type="button"
-              :disabled="selectedCount < 2"
-              @click="() => alignSelected(btn.key)"
-            >
-              {{ btn.label }}
+          <div class="control-row toggles">
+            <label class="control-toggle">
+              <input type="checkbox" v-model="selectionEnabled" />
+              <span>{{ t("flowEditor.controls.selection") }}</span>
+            </label>
+            <label class="control-toggle">
+              <input type="checkbox" v-model="snapGridEnabled" />
+              <span>{{ t("flowEditor.controls.snapGrid") }}</span>
+            </label>
+            <label class="control-toggle">
+              <input type="checkbox" v-model="snaplineEnabled" />
+              <span>{{ t("flowEditor.controls.snapline") }}</span>
+            </label>
+            <span class="control-hint">{{
+              t("flowEditor.controls.selectedCount", { count: selectedCount })
+            }}</span>
+            <button class="control-button" type="button" @click="showAllNodes">
+              {{ t("flowEditor.controls.showAll") }}
             </button>
           </div>
-        </div>
-        <div class="control-row">
-          <div class="control-label">分布</div>
-          <div class="control-buttons">
-            <button
-              v-for="btn in distributeButtons"
-              :key="btn.key"
-              class="control-button"
-              type="button"
-              :disabled="selectedCount < 3"
-              @click="() => distributeSelected(btn.key)"
-            >
-              {{ btn.label }}
-            </button>
+          <div class="control-row">
+            <div class="control-label">{{ t("flowEditor.controls.align") }}</div>
+            <div class="control-buttons">
+              <button
+                v-for="btn in alignmentButtons"
+                :key="btn.key"
+                class="control-button"
+                type="button"
+                :disabled="selectedCount < 2"
+                @click="() => alignSelected(btn.key)"
+              >
+                {{ t(btn.labelKey) }}
+              </button>
+            </div>
           </div>
-        </div>
+          <div class="control-row">
+            <div class="control-label">{{ t("flowEditor.controls.distribute") }}</div>
+            <div class="control-buttons">
+              <button
+                v-for="btn in distributeButtons"
+                :key="btn.key"
+                class="control-button"
+                type="button"
+                :disabled="selectedCount < 3"
+                @click="() => distributeSelected(btn.key)"
+              >
+                {{ t(btn.labelKey) }}
+              </button>
+            </div>
+          </div>
         </template>
       </div>
-      <div class="container" ref="containerRef" :style="{ height: '100%' }"></div>
-      <div class="problems-dock" :class="{ 'problems-dock--open': problemsPanelOpen }">
+      <div
+        class="container"
+        ref="containerRef"
+        :style="{ height: '100%' }"
+      ></div>
+      <div
+        class="problems-dock"
+        :class="{ 'problems-dock--open': problemsPanelOpen }"
+      >
         <div class="problems-dock-bar">
-          <button class="problems-tab" type="button" @click="problemsPanelOpen = !problemsPanelOpen">
-            Problems
+          <button
+            class="problems-tab"
+            type="button"
+            @click="problemsPanelOpen = !problemsPanelOpen"
+          >
+            {{ t("flowEditor.problems.tab") }}
             <span class="problems-badge">{{ groupRuleWarnings.length }}</span>
           </button>
         </div>
         <div v-if="problemsPanelOpen" class="problems-panel">
           <div class="problems-header">
-            <span>规则告警</span>
-            <span>{{ groupRuleWarnings.length }} 条</span>
+            <span>{{ t("flowEditor.problems.header") }}</span>
+            <span>{{
+              t("flowEditor.problems.count", { count: groupRuleWarnings.length })
+            }}</span>
           </div>
           <div v-if="!groupRuleWarnings.length" class="problems-empty">
-            当前没有告警
+            {{ t("flowEditor.problems.empty") }}
           </div>
           <div v-else class="problems-list">
             <div
@@ -83,10 +111,15 @@
               @click="locateProblemNode(warning)"
               @keydown.enter.prevent="locateProblemNode(warning)"
             >
-              <div class="problem-severity">{{ warning.severity.toUpperCase() }}</div>
+              <div class="problem-severity">
+                {{ warning.severity.toUpperCase() }}
+              </div>
               <div class="problem-content">
                 <div class="problem-message">{{ warning.message }}</div>
-                <div class="problem-meta">{{ warning.groupName || warning.groupId }} · {{ warning.ruleId }}</div>
+                <div class="problem-meta">
+                  {{ warning.groupName || warning.groupId }} ·
+                  {{ warning.ruleId }}
+                </div>
               </div>
             </div>
           </div>
@@ -94,197 +127,148 @@
       </div>
     </div>
     <!-- 右侧属性面板 -->
-    <PropertyPanel :height="height" :node="selectedNode" :lf="lf" />
+    <PropertyPanel
+      v-if="showPropertyPanel"
+      :height="height"
+      :node="selectedNode"
+      :lf="lf"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, onBeforeUnmount, nextTick } from 'vue';
-import LogicFlow, { EventType } from '@logicflow/core';
-import type { Position, NodeData, EdgeData, BaseNodeModel, GraphModel, GraphData } from '@logicflow/core';
-import '@logicflow/core/lib/style/index.css';
-import { Menu, Label, Snapshot, SelectionSelect, MiniMap, Control, DynamicGroup } from '@logicflow/extension';
-import '@logicflow/extension/lib/style/index.css';
-import '@logicflow/core/es/index.css';
-import '@logicflow/extension/es/index.css';
+import { ref, watch, onMounted, onBeforeUnmount, nextTick, computed } from "vue";
+import type LogicFlow from "@logicflow/core";
+import type {
+  NodeData,
+  BaseNodeModel,
+  GraphModel,
+  GraphData,
+} from "@logicflow/core";
+import "@logicflow/core/lib/style/index.css";
+import "@logicflow/extension/lib/style/index.css";
+import "@logicflow/core/es/index.css";
+import "@logicflow/extension/es/index.css";
 
-import { register } from '@logicflow/vue-node-registry';
-import PropertySelectNode from './nodes/yys/PropertySelectNode.vue';
-import ImageNode from './nodes/common/ImageNode.vue';
-import AssetSelectorNode from './nodes/common/AssetSelectorNode.vue';
-import TextNode from './nodes/common/TextNode.vue';
-import TextNodeModel from './nodes/common/TextNodeModel';
-import VectorNode from './nodes/common/VectorNode.vue';
-import VectorNodeModel from './nodes/common/VectorNodeModel';
-import PropertyPanel from './PropertyPanel.vue';
-import { useGlobalMessage } from '@/ts/useGlobalMessage';
-import { setLogicFlowInstance, destroyLogicFlowInstance } from '@/ts/useLogicFlow';
-import { normalizePropertiesWithStyle, normalizeNodeStyle, styleEquals } from '@/ts/nodeStyle';
-import { useCanvasSettings } from '@/ts/useCanvasSettings';
-import { validateGraphGroupRules, type GroupRuleWarning } from '@/utils/groupRules';
-import { subscribeSharedGroupRulesConfig } from '@/utils/groupRulesConfigSource';
-import { getProblemTargetCandidateIds } from '@/utils/problemTarget';
-
-type AlignType = 'left' | 'right' | 'top' | 'bottom' | 'hcenter' | 'vcenter';
-type DistributeType = 'horizontal' | 'vertical';
+import PropertyPanel from "./PropertyPanel.vue";
+import { useFlowArrangeCommands } from "./composables/useFlowArrangeCommands";
+import { useFlowCanvasInteraction } from "./composables/useFlowCanvasInteraction";
+import { useFlowEditorRuntime } from "./composables/useFlowEditorRuntime";
+import { useFlowGroupRuleOrchestrator } from "./composables/useFlowGroupRuleOrchestrator";
+import { useFlowLayerCommands } from "./composables/useFlowLayerCommands";
+import { useGlobalMessage } from "@/ts/useGlobalMessage";
+import { destroyLogicFlowInstance, useLogicFlowScope } from "@/ts/useLogicFlow";
+import {
+  normalizePropertiesWithStyle,
+  normalizeNodeStyle,
+  styleEquals,
+} from "@/ts/nodeStyle";
+import {
+  destroyCanvasSettingsScope,
+  useCanvasSettings,
+} from "@/ts/useCanvasSettings";
+import { useSafeI18n } from "@/ts/useSafeI18n";
 
 const MOVE_STEP = 2;
 const MOVE_STEP_LARGE = 10;
-const RIGHT_MOUSE_BUTTON = 2;
-const RIGHT_DRAG_THRESHOLD = 2;
-const RIGHT_DRAG_CONTEXTMENU_SUPPRESS_MS = 300;
 
-const props = withDefaults(defineProps<{
-  height?: string;
-  enableLabel?: boolean;
-}>(), {
-  enableLabel: false
-});
+const props = withDefaults(
+  defineProps<{
+    height?: string;
+    enableLabel?: boolean;
+    showPropertyPanel?: boolean;
+    configSnapGridEnabled?: boolean;
+    configSnaplineEnabled?: boolean;
+    configKeyboardEnabled?: boolean;
+  }>(),
+  {
+    enableLabel: false,
+    showPropertyPanel: true,
+    configSnapGridEnabled: true,
+    configSnaplineEnabled: true,
+    configKeyboardEnabled: true,
+  },
+);
+const emit = defineEmits<{
+  "graph-data-change": [data: GraphData];
+}>();
 
 const flowHostRef = ref<HTMLElement | null>(null);
 const containerRef = ref<HTMLElement | null>(null);
 const lf = ref<LogicFlow | null>(null);
+const logicFlowScope = useLogicFlowScope();
 const selectedCount = ref(0);
-const { selectionEnabled, snapGridEnabled, snaplineEnabled } = useCanvasSettings();
-const alignmentButtons: { key: AlignType; label: string }[] = [
-  { key: 'left', label: '左对齐' },
-  { key: 'right', label: '右对齐' },
-  { key: 'top', label: '上对齐' },
-  { key: 'bottom', label: '下对齐' },
-  { key: 'hcenter', label: '水平居中' },
-  { key: 'vcenter', label: '垂直居中' }
-];
-const distributeButtons: { key: DistributeType; label: string }[] = [
-  { key: 'horizontal', label: '水平等距' },
-  { key: 'vertical', label: '垂直等距' }
-];
+const { selectionEnabled, snapGridEnabled, snaplineEnabled } =
+  useCanvasSettings();
 const { showMessage } = useGlobalMessage();
+const { t } = useSafeI18n();
 
 // 当前选中节点
 const selectedNode = ref<any>(null);
-const groupRuleWarnings = ref<GroupRuleWarning[]>([]);
 const flowControlsCollapsed = ref(true);
 const problemsPanelOpen = ref(false);
-let containerResizeObserver: ResizeObserver | null = null;
-let groupRuleValidationTimer: ReturnType<typeof setTimeout> | null = null;
-let unsubscribeSharedGroupRules: (() => void) | null = null;
-let isRightDragging = false;
-let rightDragMoved = false;
-let rightDragLastX = 0;
-let rightDragLastY = 0;
-let rightDragDistance = 0;
-let suppressContextMenuUntil = 0;
+let disposeFlowEditorRuntime: (() => void) | null = null;
+const { mountFlowEditorRuntime } = useFlowEditorRuntime();
+const { bringToFront, sendToBack, bringForward, sendBackward } =
+  useFlowLayerCommands({
+    lf,
+    selectedNode,
+  });
+const {
+  groupRuleWarnings,
+  scheduleGroupRuleValidation,
+  locateProblemNode,
+  mountGroupRuleOrchestrator,
+  disposeGroupRuleOrchestrator,
+} = useFlowGroupRuleOrchestrator({
+  lf,
+  selectedNode,
+  showMessage,
+});
+const flowControlsToggleLabel = computed(() => {
+  if (flowControlsCollapsed.value) {
+    const countSuffix = groupRuleWarnings.value.length
+      ? `(${groupRuleWarnings.value.length})`
+      : "";
+    return `${t("flowEditor.controls.expand")}${countSuffix}`;
+  }
+  return t("flowEditor.controls.collapse");
+});
+const { resizeCanvas, mountCanvasInteraction, disposeCanvasInteraction } =
+  useFlowCanvasInteraction({
+    lf,
+    flowHostRef,
+    containerRef,
+  });
 
-function logClipboardDebug(stage: string, payload: Record<string, unknown> = {}) {
+function logClipboardDebug(
+  stage: string,
+  payload: Record<string, unknown> = {},
+) {
   if (!import.meta.env.DEV) return;
   const lfInstance = lf.value as any;
   const graphModel = lfInstance?.graphModel;
-  const selectNodeIds: string[] = graphModel?.selectNodes?.map((node: BaseNodeModel) => node.id) ?? [];
+  const selectNodeIds: string[] =
+    graphModel?.selectNodes?.map((node: BaseNodeModel) => node.id) ?? [];
   const selectElementIds: string[] = graphModel?.selectElements
     ? Array.from(graphModel.selectElements.keys())
     : [];
-  console.info('[FlowClipboardDebug]', stage, {
+  console.info("[FlowClipboardDebug]", stage, {
     selectedCount: selectedCount.value,
     selectNodeIds,
     selectElementIds,
-    ...payload
+    ...payload,
   });
-}
-
-const resolveResizeHost = () => {
-  const container = containerRef.value;
-  if (!container) return null;
-  return flowHostRef.value ?? (container.parentElement as HTMLElement | null) ?? container;
-};
-
-const resizeCanvas = () => {
-  const lfInstance = lf.value as any;
-  const resizeHost = resolveResizeHost();
-  if (!lfInstance || !resizeHost || typeof lfInstance.resize !== 'function') {
-    return;
-  }
-  const width = resizeHost.clientWidth;
-  const height = resizeHost.clientHeight;
-  if (width > 0 && height > 0) {
-    lfInstance.resize(width, height);
-    return;
-  }
-};
-
-const handleWindowResize = () => {
-  resizeCanvas();
-};
-
-function handleRightDragMouseMove(event: MouseEvent) {
-  if (!isRightDragging) return;
-
-  const deltaX = event.clientX - rightDragLastX;
-  const deltaY = event.clientY - rightDragLastY;
-  rightDragLastX = event.clientX;
-  rightDragLastY = event.clientY;
-
-  if (deltaX === 0 && deltaY === 0) return;
-
-  rightDragDistance += Math.abs(deltaX) + Math.abs(deltaY);
-  if (!rightDragMoved && rightDragDistance >= RIGHT_DRAG_THRESHOLD) {
-    rightDragMoved = true;
-  }
-
-  if (rightDragMoved) {
-    lf.value?.translate(deltaX, deltaY);
-    event.preventDefault();
-  }
-}
-
-function stopRightDrag() {
-  if (!isRightDragging) return;
-
-  isRightDragging = false;
-  flowHostRef.value?.classList.remove('flow-container--panning');
-  window.removeEventListener('mousemove', handleRightDragMouseMove);
-  window.removeEventListener('mouseup', handleRightDragMouseUp);
-
-  if (rightDragMoved) {
-    suppressContextMenuUntil = Date.now() + RIGHT_DRAG_CONTEXTMENU_SUPPRESS_MS;
-  }
-}
-
-function handleRightDragMouseUp() {
-  stopRightDrag();
-}
-
-function handleCanvasMouseDown(event: MouseEvent) {
-  if (event.button !== RIGHT_MOUSE_BUTTON) return;
-
-  const target = event.target as HTMLElement | null;
-  if (target?.closest('.lf-menu')) return;
-  if (!containerRef.value?.contains(target)) return;
-
-  isRightDragging = true;
-  rightDragMoved = false;
-  rightDragDistance = 0;
-  rightDragLastX = event.clientX;
-  rightDragLastY = event.clientY;
-  suppressContextMenuUntil = 0;
-
-  flowHostRef.value?.classList.add('flow-container--panning');
-  window.addEventListener('mousemove', handleRightDragMouseMove);
-  window.addEventListener('mouseup', handleRightDragMouseUp);
-}
-
-function handleCanvasContextMenu(event: MouseEvent) {
-  if (Date.now() >= suppressContextMenuUntil) return;
-
-  event.preventDefault();
-  event.stopPropagation();
-  suppressContextMenuUntil = 0;
 }
 
 function isInputLike(event?: KeyboardEvent) {
   const target = event?.target as HTMLElement | null;
   if (!target) return false;
   const tag = target.tagName?.toLowerCase();
-  return ['input', 'textarea', 'select', 'option'].includes(tag) || target.isContentEditable;
+  return (
+    ["input", "textarea", "select", "option"].includes(tag) ||
+    target.isContentEditable
+  );
 }
 
 function shouldSkipShortcut(event?: KeyboardEvent) {
@@ -296,11 +280,10 @@ function shouldSkipShortcut(event?: KeyboardEvent) {
   return false;
 }
 
-const queueCanvasResize = () => {
-  resizeCanvas();
-  if (typeof window === 'undefined') return;
-  window.requestAnimationFrame(() => resizeCanvas());
-  setTimeout(() => resizeCanvas(), 120);
+const emitGraphDataChange = () => {
+  const lfInstance = lf.value;
+  if (!lfInstance) return;
+  emit("graph-data-change", lfInstance.getGraphRawData() as GraphData);
 };
 
 function ensureMeta(meta?: Record<string, any>) {
@@ -310,9 +293,16 @@ function ensureMeta(meta?: Record<string, any>) {
   return next;
 }
 
-function applyMetaToModel(model: BaseNodeModel, metaInput?: Record<string, any>) {
+function applyMetaToModel(
+  model: BaseNodeModel,
+  metaInput?: Record<string, any>,
+) {
   const lfInstance = lf.value;
-  const meta = ensureMeta(metaInput ?? (model.getProperties?.() as any)?.meta ?? (model as any)?.properties?.meta);
+  const meta = ensureMeta(
+    metaInput ??
+      (model.getProperties?.() as any)?.meta ??
+      (model as any)?.properties?.meta,
+  );
   model.visible = meta.visible !== false;
   model.draggable = !meta.locked;
   model.setHittable?.(!meta.locked);
@@ -329,7 +319,10 @@ function applyMetaToModel(model: BaseNodeModel, metaInput?: Record<string, any>)
   }
 }
 
-function applyStyleToModel(model: BaseNodeModel, styleInput?: Record<string, any>) {
+function applyStyleToModel(
+  model: BaseNodeModel,
+  styleInput?: Record<string, any>,
+) {
   // 只有当 style 中明确指定了 width/height 时才更新 model
   // 避免用默认值覆盖用户的手动缩放操作
   if (styleInput?.width != null && model.width !== styleInput.width) {
@@ -344,13 +337,14 @@ function normalizeNodeModel(model: BaseNodeModel) {
   const lfInstance = lf.value;
   if (!lfInstance) return;
 
-  const props = (model.getProperties?.() as any) ?? (model as any)?.properties ?? {};
+  const props =
+    (model.getProperties?.() as any) ?? (model as any)?.properties ?? {};
   const incomingMeta = ensureMeta(props.meta);
 
   // 优先使用 model 的实际尺寸（用户可能刚刚手动缩放了节点）
   const normalized = normalizePropertiesWithStyle(
     { ...props, meta: incomingMeta },
-    { width: model.width, height: model.height }
+    { width: model.width, height: model.height },
   );
 
   const currentMeta = ensureMeta((model as any)?.properties?.meta);
@@ -368,7 +362,7 @@ function normalizeNodeModel(model: BaseNodeModel) {
     lfInstance.setProperties(model.id, {
       ...normalized,
       width: model.width,
-      height: model.height
+      height: model.height,
     });
   }
   applyMetaToModel(model, normalized.meta);
@@ -378,24 +372,33 @@ function normalizeNodeModel(model: BaseNodeModel) {
 function normalizeAllNodes() {
   const lfInstance = lf.value;
   if (!lfInstance) return;
-  lfInstance.graphModel?.nodes.forEach((model: BaseNodeModel) => normalizeNodeModel(model));
+  lfInstance.graphModel?.nodes.forEach((model: BaseNodeModel) =>
+    normalizeNodeModel(model),
+  );
 
   // 清除新节点标记
   const allNodes = lfInstance.graphModel?.nodes || [];
-  allNodes.forEach(node => {
+  allNodes.forEach((node) => {
     delete (node as any)._isNewNode;
   });
 }
 
-function sanitizeLabelInProperties(properties: Record<string, any> | undefined) {
-  if (!properties || !Object.prototype.hasOwnProperty.call(properties, '_label')) {
+function sanitizeLabelInProperties(
+  properties: Record<string, any> | undefined,
+) {
+  if (
+    !properties ||
+    !Object.prototype.hasOwnProperty.call(properties, "_label")
+  ) {
     return properties;
   }
   const currentLabel = properties._label;
   if (!Array.isArray(currentLabel)) {
     return properties;
   }
-  const cleaned = currentLabel.filter((item) => item && typeof item === 'object');
+  const cleaned = currentLabel.filter(
+    (item) => item && typeof item === "object",
+  );
   if (cleaned.length === currentLabel.length) {
     return properties;
   }
@@ -405,7 +408,7 @@ function sanitizeLabelInProperties(properties: Record<string, any> | undefined) 
   }
   return {
     ...properties,
-    _label: cleaned
+    _label: cleaned,
   };
 }
 
@@ -418,7 +421,7 @@ function sanitizeGraphLabels() {
     if (!props) return;
     const next = sanitizeLabelInProperties(props);
     if (!next || next === props) return;
-    if (typeof model.setProperties === 'function') {
+    if (typeof model.setProperties === "function") {
       model.setProperties(next);
       return;
     }
@@ -429,27 +432,48 @@ function sanitizeGraphLabels() {
   (graphModel.edges ?? []).forEach((model: any) => sanitizeModel(model));
 }
 
-function updateNodeMeta(model: BaseNodeModel, updater: (meta: Record<string, any>) => Record<string, any>) {
+function updateNodeMeta(
+  model: BaseNodeModel,
+  updater: (meta: Record<string, any>) => Record<string, any>,
+) {
   const lfInstance = lf.value;
   if (!lfInstance) return;
-  const props = (model.getProperties?.() as any) ?? (model as any)?.properties ?? {};
+  const props =
+    (model.getProperties?.() as any) ?? (model as any)?.properties ?? {};
   const nextMeta = updater(ensureMeta(props.meta));
   lfInstance.setProperties(model.id, { ...props, meta: nextMeta });
   applyMetaToModel(model, nextMeta);
 }
 
-function getSelectedNodeModelsFiltered(options?: { includeHidden?: boolean; includeLocked?: boolean }) {
+function getSelectedNodeModelsFiltered(options?: {
+  includeHidden?: boolean;
+  includeLocked?: boolean;
+}) {
   const includeHidden = options?.includeHidden ?? false;
   const includeLocked = options?.includeLocked ?? false;
   const graphModel = lf.value?.graphModel;
   if (!graphModel) return [];
   return graphModel.selectNodes.filter((model: BaseNodeModel) => {
-    const meta = ensureMeta((model.getProperties?.() as any)?.meta ?? (model as any)?.properties?.meta);
+    const meta = ensureMeta(
+      (model.getProperties?.() as any)?.meta ??
+        (model as any)?.properties?.meta,
+    );
     if (!includeHidden && meta.visible === false) return false;
     if (!includeLocked && meta.locked) return false;
     return true;
   });
 }
+
+const {
+  alignmentButtons,
+  distributeButtons,
+  alignSelected,
+  distributeSelected,
+} = useFlowArrangeCommands({
+  lf,
+  showMessage,
+  getSelectedNodeModelsFiltered,
+});
 
 function getSelectedNodeModels() {
   const graphModel = lf.value?.graphModel;
@@ -462,11 +486,17 @@ function collectGroupNodeIds(models: BaseNodeModel[]) {
   if (!graphModel) return [];
   const ids = new Set<string>();
   models.forEach((model) => {
-    const meta = ensureMeta((model.getProperties?.() as any)?.meta ?? (model as any)?.properties?.meta);
+    const meta = ensureMeta(
+      (model.getProperties?.() as any)?.meta ??
+        (model as any)?.properties?.meta,
+    );
     if (meta.locked) return;
     if (meta.groupId) {
       graphModel.nodes.forEach((node) => {
-        const peerMeta = ensureMeta((node.getProperties?.() as any)?.meta ?? (node as any)?.properties?.meta);
+        const peerMeta = ensureMeta(
+          (node.getProperties?.() as any)?.meta ??
+            (node as any)?.properties?.meta,
+        );
         if (peerMeta.groupId === meta.groupId && !peerMeta.locked) {
           ids.add(node.id);
         }
@@ -486,74 +516,6 @@ function moveSelectedNodes(deltaX: number, deltaY: number) {
   graphModel.moveNodes(targets, deltaX, deltaY);
 }
 
-// ========== 图层命令 ==========
-function bringToFront(nodeId?: string) {
-  const lfInstance = lf.value;
-  if (!lfInstance) return;
-  const targetId = nodeId || selectedNode.value?.id;
-  if (!targetId) return;
-
-  // 诊断日志：查看所有节点的 zIndex
-  const allNodes = lfInstance.graphModel.nodes;
-  console.log('[置于顶层] 目标节点ID:', targetId);
-  console.log('[置于顶层] 所有节点的 zIndex:', allNodes.map(n => ({ id: n.id, zIndex: n.zIndex })));
-
-  lfInstance.setElementZIndex(targetId, 'top');
-
-  // 操作后再次查看
-  console.log('[置于顶层] 操作后所有节点的 zIndex:', allNodes.map(n => ({ id: n.id, zIndex: n.zIndex })));
-}
-
-function sendToBack(nodeId?: string) {
-  const lfInstance = lf.value;
-  if (!lfInstance) return;
-  const targetId = nodeId || selectedNode.value?.id;
-  if (!targetId) return;
-
-  const currentNode = lfInstance.getNodeModelById(targetId);
-  if (!currentNode) return;
-
-  const allNodes = lfInstance.graphModel.nodes;
-  console.log('[置于底层] 目标节点ID:', targetId);
-  console.log('[置于底层] 所有节点的 zIndex:', allNodes.map(n => ({ id: n.id, zIndex: n.zIndex })));
-
-  // 修复：找到所有节点中最小的 zIndex，然后设置为比它更小
-  const allZIndexes = allNodes.map(n => n.zIndex).filter(z => z !== undefined);
-  const minZIndex = allZIndexes.length > 0 ? Math.min(...allZIndexes) : 1;
-  const newZIndex = minZIndex - 1;
-
-  currentNode.setZIndex(newZIndex);
-
-  // 操作后再次查看
-  console.log('[置于底层] 操作后所有节点的 zIndex:', allNodes.map(n => ({ id: n.id, zIndex: n.zIndex })));
-}
-
-function bringForward(nodeId?: string) {
-  const lfInstance = lf.value;
-  if (!lfInstance) return;
-  const targetId = nodeId || selectedNode.value?.id;
-  if (!targetId) return;
-
-  const currentNode = lfInstance.getNodeModelById(targetId);
-  if (!currentNode) return;t
-
-  const currentZIndex = currentNode.zIndex;
-  currentNode.setZIndex(currentZIndex + 1);
-}
-
-function sendBackward(nodeId?: string) {
-  const lfInstance = lf.value;
-  if (!lfInstance) return;
-  const targetId = nodeId || selectedNode.value?.id;
-  if (!targetId) return;
-
-  const currentNode = lfInstance.getNodeModelById(targetId);
-  if (!currentNode) return;
-
-  const currentZIndex = currentNode.zIndex;
-  currentNode.setZIndex(currentZIndex - 1);
-}
-
 // ========== 删除操作 ==========
 function deleteSelectedElements(event?: KeyboardEvent) {
   if (shouldSkipShortcut(event)) return true;
@@ -561,8 +523,13 @@ function deleteSelectedElements(event?: KeyboardEvent) {
   if (!lfInstance) return true;
 
   const { edges } = lfInstance.getSelectElements(true);
-  const nodes = getSelectedNodeModelsFiltered({ includeHidden: false, includeLocked: true });
-  const lockedNodes = nodes.filter((node) => ensureMeta((node as any).properties?.meta).locked);
+  const nodes = getSelectedNodeModelsFiltered({
+    includeHidden: false,
+    includeLocked: true,
+  });
+  const lockedNodes = nodes.filter(
+    (node) => ensureMeta((node as any).properties?.meta).locked,
+  );
   edges.forEach((edge) => edge.id && lfInstance.deleteEdge(edge.id));
   nodes
     .filter((node) => {
@@ -572,7 +539,7 @@ function deleteSelectedElements(event?: KeyboardEvent) {
     .forEach((node) => node.id && lfInstance.deleteNode(node.id));
 
   if (lockedNodes.length) {
-    showMessage('warning', '部分节点已锁定，未删除');
+    showMessage("warning", t("flowEditor.message.lockedNodesSkipped"));
   }
   updateSelectedCount();
   selectedNode.value = null;
@@ -587,7 +554,7 @@ function deleteNode(nodeId: string) {
 
   const meta = ensureMeta((node as any).properties?.meta);
   if (meta.locked) {
-    showMessage('warning', '节点已锁定，无法删除');
+    showMessage("warning", t("flowEditor.message.nodeLockedCannotDelete"));
     return;
   }
 
@@ -598,12 +565,17 @@ function toggleLockSelected(event?: KeyboardEvent) {
   if (shouldSkipShortcut(event)) return true;
   const models = getSelectedNodeModels();
   if (!models.length) {
-    showMessage('info', '请选择节点后再执行锁定/解锁');
+    showMessage("info", t("flowEditor.message.selectNodeToToggleLock"));
     return true;
   }
-  const hasUnlocked = models.some((model) => !ensureMeta((model.getProperties?.() as any)?.meta).locked);
+  const hasUnlocked = models.some(
+    (model) => !ensureMeta((model.getProperties?.() as any)?.meta).locked,
+  );
   models.forEach((model) => {
-    updateNodeMeta(model, (meta) => ({ ...meta, locked: hasUnlocked ? true : false }));
+    updateNodeMeta(model, (meta) => ({
+      ...meta,
+      locked: hasUnlocked ? true : false,
+    }));
   });
   return false;
 }
@@ -612,12 +584,18 @@ function toggleVisibilitySelected(event?: KeyboardEvent) {
   if (shouldSkipShortcut(event)) return true;
   const models = getSelectedNodeModelsFiltered({ includeLocked: true });
   if (!models.length) {
-    showMessage('info', '请选择节点后再执行显示/隐藏');
+    showMessage("info", t("flowEditor.message.selectNodeToToggleVisibility"));
     return true;
   }
-  const hasVisible = models.some((model) => ensureMeta((model.getProperties?.() as any)?.meta).visible !== false);
+  const hasVisible = models.some(
+    (model) =>
+      ensureMeta((model.getProperties?.() as any)?.meta).visible !== false,
+  );
   models.forEach((model) => {
-    updateNodeMeta(model, (meta) => ({ ...meta, visible: !hasVisible ? true : false }));
+    updateNodeMeta(model, (meta) => ({
+      ...meta,
+      visible: !hasVisible ? true : false,
+    }));
   });
   if (hasVisible) {
     selectedNode.value = null;
@@ -631,7 +609,8 @@ function showAllNodes() {
   if (!lfInstance) return;
   let changed = 0;
   lfInstance.graphModel?.nodes.forEach((model: BaseNodeModel) => {
-    const props = (model.getProperties?.() as any) ?? (model as any)?.properties ?? {};
+    const props =
+      (model.getProperties?.() as any) ?? (model as any)?.properties ?? {};
     const meta = ensureMeta(props.meta);
     if (meta.visible === false) {
       meta.visible = true;
@@ -641,9 +620,9 @@ function showAllNodes() {
     }
   });
   if (changed > 0) {
-    showMessage('success', `已显示 ${changed} 个节点`);
+    showMessage("success", t("flowEditor.message.showAllSuccess", { count: changed }));
   } else {
-    showMessage('info', '没有隐藏的节点');
+    showMessage("info", t("flowEditor.message.noHiddenNodes"));
   }
   updateSelectedCount();
 }
@@ -652,7 +631,7 @@ function groupSelectedNodes(event?: KeyboardEvent) {
   if (shouldSkipShortcut(event)) return true;
   const models = getSelectedNodeModelsFiltered();
   if (models.length < 2) {
-    showMessage('warning', '请选择至少两个未锁定的节点进行分组');
+    showMessage("warning", t("flowEditor.message.groupNeedTwo"));
     return true;
   }
   const groupId = `group_${Date.now().toString(36)}`;
@@ -667,7 +646,7 @@ function ungroupSelectedNodes(event?: KeyboardEvent) {
   if (shouldSkipShortcut(event)) return true;
   const models = getSelectedNodeModels();
   if (!models.length) {
-    showMessage('info', '请选择节点后再执行解组');
+    showMessage("info", t("flowEditor.message.selectNodeToUngroup"));
     return true;
   }
   models.forEach((model) => {
@@ -681,10 +660,15 @@ function ungroupSelectedNodes(event?: KeyboardEvent) {
   return false;
 }
 
-function handleArrowMove(direction: 'left' | 'right' | 'up' | 'down', event?: KeyboardEvent) {
+function handleArrowMove(
+  direction: "left" | "right" | "up" | "down",
+  event?: KeyboardEvent,
+) {
   if (shouldSkipShortcut(event)) return true;
-  const step = (event?.shiftKey ? MOVE_STEP_LARGE : MOVE_STEP) * (direction === 'left' || direction === 'up' ? -1 : 1);
-  if (direction === 'left' || direction === 'right') {
+  const step =
+    (event?.shiftKey ? MOVE_STEP_LARGE : MOVE_STEP) *
+    (direction === "left" || direction === "up" ? -1 : 1);
+  if (direction === "left" || direction === "right") {
     moveSelectedNodes(step, 0);
   } else {
     moveSelectedNodes(0, step);
@@ -692,7 +676,11 @@ function handleArrowMove(direction: 'left' | 'right' | 'up' | 'down', event?: Ke
   return false;
 }
 
-function handleNodeDrag(args: { data: NodeData; deltaX: number; deltaY: number }) {
+function handleNodeDrag(args: {
+  data: NodeData;
+  deltaX: number;
+  deltaY: number;
+}) {
   const { data, deltaX, deltaY } = args;
   if (!deltaX && !deltaY) return;
   const graphModel = lf.value?.graphModel;
@@ -708,50 +696,6 @@ function updateSelectedCount(model?: GraphModel) {
   const lfInstance = lf.value;
   const graphModel = model ?? lfInstance?.graphModel;
   selectedCount.value = graphModel?.selectNodes.length ?? 0;
-}
-
-function refreshGroupRuleWarnings() {
-  const lfInstance = lf.value;
-  if (!lfInstance) {
-    groupRuleWarnings.value = [];
-    return;
-  }
-  const graphData = lfInstance.getGraphRawData() as GraphData;
-  groupRuleWarnings.value = validateGraphGroupRules(graphData);
-}
-
-function scheduleGroupRuleValidation(delay = 120) {
-  if (groupRuleValidationTimer) {
-    clearTimeout(groupRuleValidationTimer);
-  }
-  groupRuleValidationTimer = setTimeout(() => {
-    refreshGroupRuleWarnings();
-  }, delay);
-}
-
-function locateProblemNode(warning: GroupRuleWarning) {
-  const lfInstance = lf.value as any;
-  if (!lfInstance) return;
-
-  const candidateIds = getProblemTargetCandidateIds(warning);
-  const targetId = candidateIds.find((id) => !!lfInstance.getNodeModelById(id));
-  if (!targetId) {
-    showMessage('warning', '未找到告警对应节点，可能已被删除');
-    return;
-  }
-
-  try {
-    lfInstance.clearSelectElements?.();
-    lfInstance.selectElementById?.(targetId, false, false);
-    lfInstance.focusOn?.(targetId);
-    const nodeData = lfInstance.getNodeDataById?.(targetId);
-    if (nodeData) {
-      selectedNode.value = nodeData;
-    }
-  } catch (error) {
-    console.error('定位告警节点失败:', error);
-    showMessage('error', '定位节点失败');
-  }
 }
 
 function applySelectionSelect(enabled: boolean) {
@@ -770,436 +714,52 @@ function applySnapGrid(enabled: boolean) {
   lfInstance.updateEditConfig({ snapGrid: enabled });
 }
 
-function getSelectedRects() {
-  const lfInstance = lf.value;
-  if (!lfInstance) return [];
-  const actionable = getSelectedNodeModelsFiltered();
-  return actionable.map((model: BaseNodeModel) => {
-    const bounds = model.getBounds();
-    const width = bounds.maxX - bounds.minX;
-    const height = bounds.maxY - bounds.minY;
-    return {
-      model,
-      bounds,
-      width,
-      height,
-      centerX: (bounds.maxX + bounds.minX) / 2,
-      centerY: (bounds.maxY + bounds.minY) / 2
-    };
-  });
-}
-
-function alignSelected(direction: AlignType) {
-  const rects = getSelectedRects();
-  if (rects.length < 2) {
-    showMessage('warning', '请选择至少两个节点再执行对齐');
+function applyKeyboardEnabled(enabled: boolean) {
+  const lfInstance = lf.value as any;
+  if (!lfInstance?.keyboard) return;
+  if (enabled) {
+    lfInstance.keyboard.enable?.(true);
     return;
   }
-
-  const minX = Math.min(...rects.map((item) => item.bounds.minX));
-  const maxX = Math.max(...rects.map((item) => item.bounds.maxX));
-  const minY = Math.min(...rects.map((item) => item.bounds.minY));
-  const maxY = Math.max(...rects.map((item) => item.bounds.maxY));
-  const centerX = (minX + maxX) / 2;
-  const centerY = (minY + maxY) / 2;
-
-  rects.forEach(({ model, width, height }) => {
-    let targetX = model.x;
-    let targetY = model.y;
-
-    switch (direction) {
-      case 'left':
-        targetX = minX + width / 2;
-        break;
-      case 'right':
-        targetX = maxX - width / 2;
-        break;
-      case 'hcenter':
-        targetX = centerX;
-        break;
-      case 'top':
-        targetY = minY + height / 2;
-        break;
-      case 'bottom':
-        targetY = maxY - height / 2;
-        break;
-      case 'vcenter':
-        targetY = centerY;
-        break;
-    }
-
-    model.moveTo(targetX, targetY);
-  });
+  lfInstance.keyboard.disable?.();
 }
 
-function distributeSelected(type: DistributeType) {
-  const rects = getSelectedRects();
-  if (rects.length < 3) {
-    showMessage('warning', '请选择至少三个节点再执行分布');
-    return;
-  }
-
-  const sorted = [...rects].sort((a, b) =>
-    type === 'horizontal' ? a.bounds.minX - b.bounds.minX : a.bounds.minY - b.bounds.minY
-  );
-  const first = sorted[0];
-  const last = sorted[sorted.length - 1];
-
-  if (type === 'horizontal') {
-    const totalWidth = sorted.reduce((sum, item) => sum + item.width, 0);
-    const gap = (last.bounds.maxX - first.bounds.minX - totalWidth) / (sorted.length - 1);
-    let cursor = first.bounds.minX + first.width;
-
-    for (let i = 1; i < sorted.length - 1; i += 1) {
-      cursor += gap;
-      const item = sorted[i];
-      item.model.moveTo(cursor + item.width / 2, item.centerY);
-      cursor += item.width;
-    }
-  } else {
-    const totalHeight = sorted.reduce((sum, item) => sum + item.height, 0);
-    const gap = (last.bounds.maxY - first.bounds.minY - totalHeight) / (sorted.length - 1);
-    let cursor = first.bounds.minY + first.height;
-
-    for (let i = 1; i < sorted.length - 1; i += 1) {
-      cursor += gap;
-      const item = sorted[i];
-      item.model.moveTo(item.centerX, cursor + item.height / 2);
-      cursor += item.height;
-    }
-  }
-}
-
-// 注册自定义节点
-function registerNodes(lfInstance: LogicFlow) {
-  register({ type: 'propertySelect', component: PropertySelectNode }, lfInstance);
-
-  register({ type: 'imageNode', component: ImageNode }, lfInstance);
-  register({ type: 'assetSelector', component: AssetSelectorNode }, lfInstance);
-  register({ type: 'textNode', component: TextNode, model: TextNodeModel }, lfInstance);
-  register({ type: 'vectorNode', component: VectorNode, model: VectorNodeModel }, lfInstance);
-}
-
-// 初始化 LogicFlow
 onMounted(() => {
-  lf.value = new LogicFlow({
-    container: containerRef.value,
-    grid: { type: 'dot', size: 10 },
-    stopMoveGraph: true,
-    allowResize: true,
-    allowRotate: true,
-    overlapMode: -1,
-    snapline: snaplineEnabled.value,
-    keyboard: {
-      enabled: true
-    },
-    style: {
-      text: {
-        color: '#333333',
-        fontSize: 14,
-        background: {
-          fill: '#ffffff',
-          stroke: '#dcdfe6',
-          strokeWidth: 1,
-          radius: 4
-        }
-      },
-      nodeText: {
-        color: '#333333',
-        fontSize: 14
-      }
-    },
-    plugins: [
-      DynamicGroup,
-      Menu,
-      ...(props.enableLabel ? [Label] : []),
-      Snapshot,
-      SelectionSelect,
-      MiniMap,
-      Control
-    ],
-    pluginsOptions: {
-      label: {
-        isMultiple: false, // 每个节点只允许一个 label
-        // 不设置全局 labelWidth，让每个节点自己控制
-        // textOverflowMode -> 'ellipsis' | 'wrap' | 'clip' | 'nowrap' | 'default'
-        textOverflowMode: 'wrap',
-      },
-      miniMap: {
-        isShowHeader: false,
-        isShowCloseIcon: true,
-        width: 200,
-        height: 140,
-        rightPosition: 16,
-        bottomPosition: 16
-      }
-    },
+  mountGroupRuleOrchestrator();
+  disposeFlowEditorRuntime = mountFlowEditorRuntime({
+    lf,
+    containerRef,
+    logicFlowScope,
+    enableLabel: props.enableLabel,
+    configSnapGridEnabled: props.configSnapGridEnabled,
+    configSnaplineEnabled: props.configSnaplineEnabled,
+    configKeyboardEnabled: props.configKeyboardEnabled,
+    snaplineEnabled,
+    snapGridEnabled,
+    selectionEnabled,
+    selectedNode,
+    bringToFront,
+    bringForward,
+    sendBackward,
+    sendToBack,
+    deleteNode,
+    deleteSelectedElements,
+    groupSelectedNodes,
+    ungroupSelectedNodes,
+    toggleLockSelected,
+    toggleVisibilitySelected,
+    handleArrowMove,
+    normalizeNodeModel,
+    scheduleGroupRuleValidation,
+    emitGraphDataChange,
+    sanitizeGraphLabels,
+    updateSelectedCount,
+    normalizeAllNodes,
+    logClipboardDebug,
+    applyKeyboardEnabled,
+    applySelectionSelect,
   });
-
-  const lfInstance = lf.value;
-  if (!lfInstance) return;
-
-  lfInstance.keyboard.off(['backspace']);
-
-  const bindShortcut = (keys: string | string[], handler: (event?: KeyboardEvent) => boolean | void) => {
-    lfInstance.keyboard.on(keys, (event: KeyboardEvent) => handler(event));
-  };
-
-  bindShortcut(['del', 'backspace'], deleteSelectedElements);
-  bindShortcut(['left'], (event) => handleArrowMove('left', event));
-  bindShortcut(['right'], (event) => handleArrowMove('right', event));
-  bindShortcut(['up'], (event) => handleArrowMove('up', event));
-  bindShortcut(['down'], (event) => handleArrowMove('down', event));
-  bindShortcut(['cmd + g', 'ctrl + g'], groupSelectedNodes);
-  bindShortcut(['cmd + u', 'ctrl + u'], ungroupSelectedNodes);
-  bindShortcut(['cmd + l', 'ctrl + l'], toggleLockSelected);
-  bindShortcut(['cmd + shift + h', 'ctrl + shift + h'], toggleVisibilitySelected);
-
-  lfInstance.extension.menu.addMenuConfig({
-    nodeMenu: [
-      {
-        text: '置于顶层',
-        callback(node: NodeData) {
-          bringToFront(node.id);
-        }
-      },
-      {
-        text: '上移一层',
-        callback(node: NodeData) {
-          bringForward(node.id);
-        }
-      },
-      {
-        text: '下移一层',
-        callback(node: NodeData) {
-          sendBackward(node.id);
-        }
-      },
-      {
-        text: '置于底层',
-        callback(node: NodeData) {
-          sendToBack(node.id);
-        }
-      },
-      {
-        text: '---' // 分隔线
-      },
-      {
-        text: '组合 (Ctrl+G)',
-        callback() {
-          groupSelectedNodes();
-        }
-      },
-      {
-        text: '解组 (Ctrl+U)',
-        callback() {
-          ungroupSelectedNodes();
-        }
-      },
-      {
-        text: '---' // 分隔线
-      },
-      {
-        text: '锁定/解锁 (Ctrl+L)',
-        callback() {
-          toggleLockSelected();
-        }
-      },
-      {
-        text: '显示/隐藏 (Ctrl+Shift+H)',
-        callback() {
-          toggleVisibilitySelected();
-        }
-      },
-      {
-        text: '---' // 分隔线
-      },
-      {
-        text: '删除节点 (Del)',
-        callback(node: NodeData) {
-          deleteNode(node.id);
-        }
-      }
-    ],
-    edgeMenu: [
-      {
-        text: '删除边',
-        callback(edge: EdgeData) {
-          lfInstance.deleteEdge(edge.id);
-        }
-      }
-    ],
-    graphMenu: [
-      {
-        text: '添加节点',
-        callback(data: Position) {
-          lfInstance.addNode({
-            type: 'rect',
-            x: data.x,
-            y: data.y
-          });
-        }
-      },
-      {
-        text: '提示：使用 Ctrl+V 粘贴',
-      },
-    ]
-  });
-
-  // 配置多选时的右键菜单（选区菜单）
-  lfInstance.extension.menu.setMenuByType({
-    type: 'lf:defaultSelectionMenu',
-    menu: [
-      {
-        text: '组合 (Ctrl+G)',
-        callback() {
-          groupSelectedNodes();
-        }
-      },
-      {
-        text: '解组 (Ctrl+U)',
-        callback() {
-          ungroupSelectedNodes();
-        }
-      },
-      {
-        text: '---' // 分隔线
-      },
-      {
-        text: '锁定/解锁 (Ctrl+L)',
-        callback() {
-          toggleLockSelected();
-        }
-      },
-      {
-        text: '显示/隐藏 (Ctrl+Shift+H)',
-        callback() {
-          toggleVisibilitySelected();
-        }
-      },
-      {
-        text: '---' // 分隔线
-      },
-      {
-        text: '删除选中 (Del)',
-        callback() {
-          deleteSelectedElements();
-        }
-      }
-    ]
-  });
-
-  registerNodes(lfInstance);
-  setLogicFlowInstance(lfInstance);
-  applySelectionSelect(selectionEnabled.value);
-  containerRef.value?.addEventListener('mousedown', handleCanvasMouseDown);
-  containerRef.value?.addEventListener('contextmenu', handleCanvasContextMenu, true);
-
-  // 监听所有可能的节点添加事件
-  lfInstance.on(EventType.NODE_ADD, ({ data }) => {
-    if (!data?.id) {
-      logClipboardDebug('node:add-invalid-payload', {
-        payload: data ?? null
-      });
-      return;
-    }
-    const model = lfInstance.getNodeModelById(data.id);
-    if (model) {
-      normalizeNodeModel(model);
-      // 设置新节点的 zIndex 为 1000
-      model.setZIndex(1000);
-      // 标记这个节点是新创建的，避免被 normalizeAllNodes 重置
-      (model as any)._isNewNode = true;
-    }
-    scheduleGroupRuleValidation();
-  });
-
-  // 监听 DND 添加节点事件
-  lfInstance.on('node:dnd-add', ({ data }) => {
-    if (!data?.id) return;
-    const model = lfInstance.getNodeModelById(data.id);
-    if (model) {
-      // 设置新节点的 zIndex 为 1000
-      model.setZIndex(1000);
-      // 标记这个节点是新创建的
-      (model as any)._isNewNode = true;
-    }
-    scheduleGroupRuleValidation();
-  });
-
-  lfInstance.on(EventType.GRAPH_RENDERED, () => {
-    sanitizeGraphLabels();
-    applySelectionSelect(selectionEnabled.value);
-    normalizeAllNodes();
-    scheduleGroupRuleValidation(0);
-  });
-
-  // 监听节点点击事件，更新选中节点
-  lfInstance.on(EventType.NODE_CLICK, ({ data }) => {
-    selectedNode.value = data;
-  });
-
-  // 监听空白点击事件，取消选中
-  lfInstance.on(EventType.BLANK_CLICK, () => {
-    selectedNode.value = null;
-    updateSelectedCount();
-  });
-
-  // 节点属性改变，如果当前节点是选中节点，则同步更新 selectedNode
-  lfInstance.on(EventType.NODE_PROPERTIES_CHANGE, (data) => {
-    const nodeId = data.id;
-    if (selectedNode.value && nodeId === selectedNode.value.id) {
-      if (data.properties) {
-        selectedNode.value = {
-          ...selectedNode.value,
-          properties: data.properties
-        };
-      }
-    }
-    const model = lfInstance.getNodeModelById(nodeId);
-    if (model) normalizeNodeModel(model);
-    scheduleGroupRuleValidation();
-  });
-
-  lfInstance.on(EventType.NODE_DELETE, () => {
-    scheduleGroupRuleValidation();
-  });
-  lfInstance.on(EventType.EDGE_ADD, () => {
-    scheduleGroupRuleValidation();
-  });
-  lfInstance.on(EventType.EDGE_DELETE, () => {
-    scheduleGroupRuleValidation();
-  });
-
-  lfInstance.on('selection:selected', () => {
-    sanitizeGraphLabels();
-    updateSelectedCount();
-    logClipboardDebug('selection:selected');
-  });
-  lfInstance.on('selection:drop', () => {
-    sanitizeGraphLabels();
-    updateSelectedCount();
-    logClipboardDebug('selection:drop');
-  });
-
-  nextTick(() => {
-    queueCanvasResize();
-  });
-  if (typeof ResizeObserver !== 'undefined') {
-    containerResizeObserver = new ResizeObserver(() => {
-      resizeCanvas();
-    });
-    if (flowHostRef.value) {
-      containerResizeObserver.observe(flowHostRef.value);
-    }
-    if (containerRef.value && containerRef.value !== flowHostRef.value) {
-      containerResizeObserver.observe(containerRef.value);
-    }
-  }
-  window.addEventListener('resize', handleWindowResize);
-  unsubscribeSharedGroupRules = subscribeSharedGroupRulesConfig(() => {
-    scheduleGroupRuleValidation(0);
-  });
+  mountCanvasInteraction();
 });
 
 watch(selectionEnabled, (enabled) => {
@@ -1219,40 +779,49 @@ watch(snaplineEnabled, (enabled) => {
 });
 
 watch(
+  () => props.configSnapGridEnabled,
+  (enabled) => {
+    snapGridEnabled.value = enabled;
+  },
+);
+
+watch(
+  () => props.configSnaplineEnabled,
+  (enabled) => {
+    snaplineEnabled.value = enabled;
+  },
+);
+
+watch(
+  () => props.configKeyboardEnabled,
+  (enabled) => {
+    applyKeyboardEnabled(enabled);
+  },
+);
+
+watch(
   () => props.height,
   () => {
     nextTick(() => {
       resizeCanvas();
     });
-  }
+  },
 );
 
 defineExpose({
-  resizeCanvas
+  resizeCanvas,
 });
 
 // 销毁 LogicFlow
 onBeforeUnmount(() => {
-  window.removeEventListener('resize', handleWindowResize);
-  containerResizeObserver?.disconnect();
-  containerResizeObserver = null;
-  if (groupRuleValidationTimer) {
-    clearTimeout(groupRuleValidationTimer);
-    groupRuleValidationTimer = null;
-  }
-  unsubscribeSharedGroupRules?.();
-  unsubscribeSharedGroupRules = null;
-  containerRef.value?.removeEventListener('mousedown', handleCanvasMouseDown);
-  containerRef.value?.removeEventListener('contextmenu', handleCanvasContextMenu, true);
-  stopRightDrag();
-  lf.value?.destroy();
+  disposeCanvasInteraction();
+  disposeFlowEditorRuntime?.();
+  disposeFlowEditorRuntime = null;
+  disposeGroupRuleOrchestrator();
+  destroyLogicFlowInstance(logicFlowScope);
+  destroyCanvasSettingsScope(logicFlowScope);
   lf.value = null;
-  destroyLogicFlowInstance();
 });
-
-
-
-
 </script>
 
 <style scoped>

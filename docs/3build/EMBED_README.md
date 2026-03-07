@@ -2,7 +2,7 @@
 
 ## 📋 概述
 
-yys-editor 现在支持两种使用方式：
+onmyoji-flow 现在支持两种使用方式：
 
 1. **独立应用模式**：完整的流程图编辑应用（原有功能）
 2. **嵌入组件模式**：可嵌入到其他项目中的 Vue 组件（新增功能）
@@ -27,7 +27,7 @@ yys-editor 现在支持两种使用方式：
    - 支持 ES Module 和 UMD 两种格式
 
 4. **文档和示例**
-   - 创建了 `docs/3usage/YysEditorEmbed.md` 使用文档
+   - 创建了 `docs/3build/YysEditorEmbed.md` 使用文档
    - 创建了 `examples/embed-demo.html` 示例页面
    - 创建了 `src/TestEmbed.vue` 测试组件
 
@@ -51,9 +51,9 @@ npm run dev
 npm run build:lib
 
 # 输出文件：
-# - dist/yys-editor.es.js (ES Module)
-# - dist/yys-editor.umd.js (UMD)
-# - dist/yys-editor.css (样式)
+# - dist/onmyoji-flow.es.js (ES Module)
+# - dist/onmyoji-flow.umd.js (UMD)
+# - dist/onmyoji-flow.css (样式)
 ```
 
 ### 3. 在其他项目中使用
@@ -65,7 +65,7 @@ npm run build:lib
 ```json
 {
   "dependencies": {
-    "yys-editor": "file:../yys-editor"
+    "@rookie4show/onmyoji-flow": "file:../onmyoji-flow"
   }
 }
 ```
@@ -82,8 +82,8 @@ npm install
 ```vue
 <script setup>
 import { ref } from 'vue'
-import { YysEditorEmbed } from 'yys-editor'
-import 'yys-editor/style.css'
+import { YysEditorEmbed } from '@rookie4show/onmyoji-flow'
+import '@rookie4show/onmyoji-flow/style.css'
 
 const flowData = ref({
   nodes: [],
@@ -116,9 +116,9 @@ const handleSave = (data) => {
 | `width` | `string \| number` | `'100%'` | 宽度 |
 | `height` | `string \| number` | `'600px'` | 高度 |
 | `showToolbar` | `boolean` | `true` | 显示工具栏 |
-| `showPropertyPanel` | `boolean` | `true` | 显示属性面板 |
+| `showPropertyPanel` | `boolean` | `true` | 编辑模式下控制右侧属性面板显示 |
 | `showComponentPanel` | `boolean` | `true` | 显示组件库 |
-| `config` | `EditorConfig` | `{}` | 编辑器配置 |
+| `config` | `EditorConfig` | `{}` | 最小实现已生效：`grid/snapline/keyboard` |
 
 ### Events
 
@@ -129,6 +129,8 @@ const handleSave = (data) => {
 | `cancel` | `()` | 取消 |
 | `error` | `(error: Error)` | 错误 |
 
+> 契约说明（2026-03）：`showPropertyPanel` 已在 `mode='edit'` 下生效；`config` 当前已生效 `grid/snapline/keyboard`，其余字段（如 `theme/locale`）仍为兼容保留。
+
 ### 方法
 
 | 方法 | 说明 |
@@ -136,7 +138,7 @@ const handleSave = (data) => {
 | `getGraphData()` | 获取当前画布数据 |
 | `setGraphData(data)` | 设置画布数据 |
 
-详细文档请查看：`docs/3usage/YysEditorEmbed.md`
+详细文档请查看：`docs/3build/YysEditorEmbed.md`
 
 ## 🧪 测试
 
@@ -167,7 +169,7 @@ const handleSave = (data) => {
 ## 📁 文件结构
 
 ```
-yys-editor/
+onmyoji-flow/
 ├── src/
 │   ├── YysEditorEmbed.vue          # 嵌入式组件 ⭐
 │   ├── TestEmbed.vue               # 测试组件
@@ -176,7 +178,7 @@ yys-editor/
 ├── docs/
 │   ├── 2design/
 │   │   └── ComponentArchitecture.md  # 设计文档
-│   └── 3usage/
+│   └── 3build/
 │       └── YysEditorEmbed.md         # 使用文档
 ├── examples/
 │   └── embed-demo.html             # 示例页面
@@ -192,7 +194,7 @@ yys-editor/
 1. **安装依赖**
    ```bash
    cd ../onmyoji-wiki
-   npm install file:../yys-editor
+   npm install file:../onmyoji-flow
    ```
 
 2. **创建 MDC 组件**
@@ -247,9 +249,9 @@ yys-editor/
 
 ## 📚 相关文档
 
-- [设计文档](./docs/2design/ComponentArchitecture.md)
-- [使用文档](./docs/3usage/YysEditorEmbed.md)
-- [项目计划](./docs/1management/plan.md)
+- [设计文档](../2design/ComponentArchitecture.md)
+- [使用文档](./YysEditorEmbed.md)
+- [项目计划](../1management/plan.md)
 
 ## 🤝 贡献
 
@@ -258,3 +260,4 @@ yys-editor/
 ## 📄 许可证
 
 MIT
+

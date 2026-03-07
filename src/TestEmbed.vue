@@ -23,11 +23,7 @@
     <div class="test-section">
       <h2>测试 2：预览模式</h2>
       <button @click="togglePreviewMode">切换到编辑模式</button>
-      <YysEditorEmbed
-        mode="preview"
-        :data="testData"
-        :height="400"
-      />
+      <YysEditorEmbed mode="preview" :data="testData" :height="400" />
     </div>
 
     <div class="test-section">
@@ -64,101 +60,101 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import YysEditorEmbed from '../src/YysEditorEmbed.vue'
+import { ref } from "vue";
+import YysEditorEmbed from "../src/YysEditorEmbed.vue";
 
-const editorRef = ref()
-const showToolbar = ref(true)
-const showComponentPanel = ref(true)
-const showPropertyPanel = ref(true)
-const outputData = ref(null)
+const editorRef = ref();
+const showToolbar = ref(true);
+const showComponentPanel = ref(true);
+const showPropertyPanel = ref(true);
+const outputData = ref(null);
 
 const testData = ref({
   nodes: [
     {
-      id: 'node1',
-      type: 'rect',
+      id: "node1",
+      type: "rect",
       x: 100,
       y: 100,
-      text: { value: '测试节点 1' },
+      text: { value: "测试节点 1" },
       properties: {
         width: 120,
-        height: 60
-      }
+        height: 60,
+      },
     },
     {
-      id: 'node2',
-      type: 'rect',
+      id: "node2",
+      type: "rect",
       x: 300,
       y: 100,
-      text: { value: '测试节点 2' },
+      text: { value: "测试节点 2" },
       properties: {
         width: 120,
-        height: 60
-      }
-    }
+        height: 60,
+      },
+    },
   ],
   edges: [
     {
-      id: 'edge1',
-      type: 'polyline',
-      sourceNodeId: 'node1',
-      targetNodeId: 'node2'
-    }
-  ]
-})
+      id: "edge1",
+      type: "polyline",
+      sourceNodeId: "node1",
+      targetNodeId: "node2",
+    },
+  ],
+});
 
 const handleSave = (data: any) => {
-  console.log('保存数据:', data)
-  outputData.value = data
-  alert('数据已保存！查看控制台和下方输出。')
-}
+  console.log("保存数据:", data);
+  outputData.value = data;
+  alert("数据已保存！查看控制台和下方输出。");
+};
 
 const handleCancel = () => {
-  console.log('取消编辑')
-  alert('已取消编辑')
-}
+  console.log("取消编辑");
+  alert("已取消编辑");
+};
 
 const handleError = (error: Error) => {
-  console.error('错误:', error)
-  alert(`发生错误: ${error.message}`)
-}
+  console.error("错误:", error);
+  alert(`发生错误: ${error.message}`);
+};
 
 const testSave = () => {
-  const data = editorRef.value?.getGraphData()
-  console.log('手动获取数据:', data)
-  outputData.value = data
-}
+  const data = editorRef.value?.getGraphData();
+  console.log("手动获取数据:", data);
+  outputData.value = data;
+};
 
 const testGetData = () => {
-  const data = editorRef.value?.getGraphData()
-  console.log('获取数据:', data)
-  alert('数据已输出到控制台')
-}
+  const data = editorRef.value?.getGraphData();
+  console.log("获取数据:", data);
+  alert("数据已输出到控制台");
+};
 
 const testSetData = () => {
   const newData = {
     nodes: [
       {
-        id: 'node3',
-        type: 'circle',
+        id: "node3",
+        type: "circle",
         x: 200,
         y: 200,
-        text: { value: '新节点' },
+        text: { value: "新节点" },
         properties: {
-          r: 40
-        }
-      }
+          r: 40,
+        },
+      },
     ],
-    edges: []
-  }
-  editorRef.value?.setGraphData(newData)
-  alert('已设置新数据')
-}
+    edges: [],
+  };
+  editorRef.value?.setGraphData(newData);
+  alert("已设置新数据");
+};
 
 const togglePreviewMode = () => {
-  alert('切换模式功能需要在实际应用中实现（通过改变 mode prop）')
-}
+  alert("切换模式功能需要在实际应用中实现（通过改变 mode prop）");
+};
 </script>
 
 <style scoped>
@@ -178,7 +174,7 @@ h1 {
   padding: 20px;
   background: white;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .test-section h2 {

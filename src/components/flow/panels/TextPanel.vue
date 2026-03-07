@@ -1,41 +1,44 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue';
-import { QuillEditor } from '@vueup/vue-quill';
-import '@vueup/vue-quill/dist/vue-quill.snow.css';
-import { getLogicFlowInstance } from '@/ts/useLogicFlow';
+import { ref, watch } from "vue";
+import { QuillEditor } from "@vueup/vue-quill";
+import "@vueup/vue-quill/dist/vue-quill.snow.css";
+import { getLogicFlowInstance, useLogicFlowScope } from "@/ts/useLogicFlow";
+import { useSafeI18n } from "@/ts/useSafeI18n";
 
 const props = defineProps<{ node: any }>();
+const logicFlowScope = useLogicFlowScope();
+const { t } = useSafeI18n();
 
-const DEFAULT_HTML = '<p>请输入文本</p>';
+const DEFAULT_HTML = t("flow.text.defaultHtml");
 
 const editorHtml = ref(DEFAULT_HTML);
 
 const toolbarOptions = [
   [{ header: [1, 2, 3, false] }],
-  ['bold', 'italic', 'underline', 'strike'],
+  ["bold", "italic", "underline", "strike"],
   [{ color: [] }, { background: [] }],
-  [{ list: 'ordered' }, { list: 'bullet' }],
+  [{ list: "ordered" }, { list: "bullet" }],
   [{ align: [] }],
-  ['clean']
+  ["clean"],
 ] as const;
 
 const escapeHtml = (value: string) =>
   value
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#39;');
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
 
 const normalizeTextHtml = (rawText: any): string => {
-  if (typeof rawText === 'string') {
+  if (typeof rawText === "string") {
     const trimmed = rawText.trim();
     if (!trimmed) return DEFAULT_HTML;
-    return trimmed.startsWith('<') ? trimmed : `<p>${escapeHtml(rawText)}</p>`;
+    return trimmed.startsWith("<") ? trimmed : `<p>${escapeHtml(rawText)}</p>`;
   }
 
-  if (rawText && typeof rawText === 'object') {
-    const content = typeof rawText.content === 'string' ? rawText.content : '';
+  if (rawText && typeof rawText === "object") {
+    const content = typeof rawText.content === "string" ? rawText.content : "";
     if (!content.trim()) return DEFAULT_HTML;
     return rawText.rich === false ? `<p>${escapeHtml(content)}</p>` : content;
   }
@@ -55,11 +58,11 @@ watch(
   (node) => {
     syncEditorFromNode(node);
   },
-  { immediate: true, deep: true }
+  { immediate: true, deep: true },
 );
 
 const handleContentChange = (value: string) => {
-  const lf = getLogicFlowInstance();
+  const lf = getLogicFlowInstance(logicFlowScope);
   const node = props.node;
   if (!lf || !node) return;
 
@@ -73,18 +76,18 @@ const handleContentChange = (value: string) => {
     ...(node.properties || {}),
     text: {
       content: nextHtml,
-      rich: true
-    }
+      rich: true,
+    },
   });
 };
 </script>
 
 <template>
   <div class="property-section">
-    <div class="section-header">文本节点</div>
+    <div class="section-header">{{ t("flow.text.title") }}</div>
 
     <div class="property-item">
-      <label class="property-label">内容</label>
+      <label class="property-label">{{ t("flow.text.content") }}</label>
       <div class="editor-wrapper">
         <QuillEditor
           :content="editorHtml"

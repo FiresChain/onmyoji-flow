@@ -30,6 +30,7 @@
 #### 问题1: 置底操作逻辑错误
 
 **场景3: 置底操作**
+
 ```
 初始 zIndex: { node1: 1, node2: 2, node3: 3 }
 置底后 zIndex: { node1: 1, node2: 2, node3: 998 }
@@ -44,14 +45,16 @@
 #### 问题2: zIndex 不会保存到数据中
 
 **场景6: 数据预览验证**
+
 ```javascript
-const graphData = lf.getGraphRawData()
+const graphData = lf.getGraphRawData();
 // graphData.nodes 中的 zIndex 都是 undefined
 ```
 
 **问题**: 调用 `getGraphRawData()` 后，返回的数据中没有 zIndex 字段
 
 **影响**:
+
 - 用户点击 Toolbar 的"数据预览"按钮时，看不到 zIndex
 - 导出数据时，zIndex 信息会丢失
 - 重新导入数据后，图层顺序会错乱
@@ -71,6 +74,7 @@ const graphData = lf.getGraphRawData()
 #### 问题4: 底层节点置底逻辑错误
 
 **场景9: 边界情况 - 最底层节点继续置底**
+
 ```
 初始 zIndex: { node1: 1, node2: 2, node3: 3 }
 置底后 zIndex: { node1: 996, node2: 2, node3: 3 }
@@ -105,18 +109,18 @@ const graphData = lf.getGraphRawData()
 ```typescript
 // 在 NODE_ADD 事件中
 lfInstance.on(EventType.NODE_ADD, ({ data }) => {
-  const model = lfInstance.getNodeModelById(data.id)
+  const model = lfInstance.getNodeModelById(data.id);
   if (model) {
-    const newZIndex = 1000
-    model.setZIndex(newZIndex)
+    const newZIndex = 1000;
+    model.setZIndex(newZIndex);
 
     // 保存 zIndex 到 properties
     lfInstance.setProperties(model.id, {
       ...model.getProperties(),
-      zIndex: newZIndex
-    })
+      zIndex: newZIndex,
+    });
   }
-})
+});
 ```
 
 ### 方案2: 修改数据导出逻辑
@@ -124,13 +128,13 @@ lfInstance.on(EventType.NODE_ADD, ({ data }) => {
 在 Toolbar.vue 的 `handlePreviewData` 中，手动添加 zIndex：
 
 ```typescript
-const graphData = lf.getGraphRawData()
+const graphData = lf.getGraphRawData();
 graphData.nodes.forEach((node: any) => {
-  const model = lf.getNodeModelById(node.id)
+  const model = lf.getNodeModelById(node.id);
   if (model) {
-    node.zIndex = model.zIndex
+    node.zIndex = model.zIndex;
   }
-})
+});
 ```
 
 ### 方案3: 修复置底逻辑
@@ -157,11 +161,13 @@ npm run test:watch -- layer-management-real-scenario
 ## 测试文件说明
 
 ### `layer-management-real-scenario.spec.ts`
+
 - **真实场景测试**：直接使用 LogicFlow 实例
 - **模拟用户操作**：创建节点、右键菜单、数据预览
 - **可以发现真实问题**：不是 Mock，而是真实的代码逻辑
 
 ### `layer-management-real.spec.ts`（旧文件）
+
 - **Mock 测试**：使用模拟类
 - **只验证理想逻辑**：不能发现真实代码的问题
 - **建议删除或重命名**

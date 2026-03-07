@@ -2,7 +2,7 @@
   {
     "label": "Welcome",
     "name": "1",
-    "type":"PVE",
+    "type": "PVE",
     "visible": true,
     "groups": [
       {
@@ -66,25 +66,14 @@
                   }
                 ],
                 "target": "1",
-                "property2": [
-                  "Attack"
-                ],
-                "property4": [
-                  "Attack"
-                ],
-                "property6": [
-                  "Crit",
-                  "CritDamage"
-                ]
+                "property2": ["Attack"],
+                "property4": ["Attack"],
+                "property6": ["Crit", "CritDamage"]
               },
               "levelRequired": "40",
               "speed": "",
               "skillRequiredMode": "all",
-              "skillRequired": [
-                "5",
-                "5",
-                "5"
-              ]
+              "skillRequired": ["5", "5", "5"]
             }
           },
           {
@@ -109,25 +98,14 @@
                   }
                 ],
                 "target": "0",
-                "property2": [
-                  "Attack"
-                ],
-                "property4": [
-                  "Attack"
-                ],
-                "property6": [
-                  "Crit",
-                  "CritDamage"
-                ]
+                "property2": ["Attack"],
+                "property4": ["Attack"],
+                "property6": ["Crit", "CritDamage"]
               },
               "levelRequired": "40",
               "speed": "",
               "skillRequiredMode": "all",
-              "skillRequired": [
-                "5",
-                "5",
-                "5"
-              ]
+              "skillRequired": ["5", "5", "5"]
             }
           },
           {
@@ -154,28 +132,16 @@
     "label": "Test",
     "name": "2",
     "visible": true,
-    "type":"PVE",
+    "type": "PVE",
     "groups": [
       {
         "shortDescription": "<h1>御魂·悲鸣</h1><p>这是一个演示项目，用于测试不同标签页的切换效果</p>",
-        "groupInfo": [
-          {},
-          {},
-          {},
-          {},
-          {}
-        ],
+        "groupInfo": [{}, {}, {}, {}, {}],
         "details": ""
       },
       {
         "shortDescription": "",
-        "groupInfo": [
-          {},
-          {},
-          {},
-          {},
-          {}
-        ],
+        "groupInfo": [{}, {}, {}, {}, {}],
         "details": ""
       }
     ]

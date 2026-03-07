@@ -1,4 +1,4 @@
-import { HtmlNodeModel } from '@logicflow/core';
+import { HtmlNodeModel } from "@logicflow/core";
 
 class VectorNodeModel extends HtmlNodeModel {
   initNodeData(data: any) {
@@ -19,13 +19,13 @@ class VectorNodeModel extends HtmlNodeModel {
 
     // 初始化默认矢量配置
     if (!data.properties?.vector) {
-      this.setProperty('vector', {
-        kind: 'rect',
+      this.setProperty("vector", {
+        kind: "rect",
         tileWidth: 50,
         tileHeight: 50,
-        fill: '#409EFF',
-        stroke: '#303133',
-        strokeWidth: 1
+        fill: "#409EFF",
+        stroke: "#303133",
+        strokeWidth: 1,
       });
     }
   }
@@ -34,8 +34,8 @@ class VectorNodeModel extends HtmlNodeModel {
     const result = super.resize?.(deltaX, deltaY);
 
     // 持久化宽高到 properties
-    this.setProperty('width', this.width);
-    this.setProperty('height', this.height);
+    this.setProperty("width", this.width);
+    this.setProperty("height", this.height);
 
     return result;
   }

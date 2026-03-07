@@ -4,8 +4,8 @@
 
 ## Package
 
-- npm name: `@fireschain/onmyoji-flow`
-- style entry: `@fireschain/onmyoji-flow/style.css`
+- npm name: `@rookie4show/onmyoji-flow`
+- style entry: `@rookie4show/onmyoji-flow/style.css`
 
 ## Local Development
 
@@ -27,11 +27,20 @@ npm run build:app
 npm run build:pages
 ```
 
+## Quality Gates
+
+```bash
+npm test
+npm run lint
+npm run typecheck
+npm run format:check
+```
+
 ## Use as Vue Component
 
 ```ts
-import { YysEditorEmbed, YysEditorPreview } from '@fireschain/onmyoji-flow'
-import '@fireschain/onmyoji-flow/style.css'
+import { YysEditorEmbed, YysEditorPreview } from '@rookie4show/onmyoji-flow'
+import '@rookie4show/onmyoji-flow/style.css'
 ```
 
 ## Publish to npm

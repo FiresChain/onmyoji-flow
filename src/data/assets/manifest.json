@@ -1,0 +1,26 @@
+{
+  "version": 2,
+  "generatedAt": "2026-03-04T16:12:06.753Z",
+  "libraries": {
+    "shikigami": {
+      "count": 264,
+      "source": "official",
+      "syncMode": "json-sync"
+    },
+    "yuhun": {
+      "count": 65,
+      "source": "official-image-only",
+      "syncMode": "image-only-sync"
+    },
+    "onmyoji": {
+      "count": 6,
+      "source": "manual",
+      "syncMode": "manual-only"
+    },
+    "onmyojiSkill": {
+      "count": 48,
+      "source": "manual",
+      "syncMode": "manual-only"
+    }
+  }
+}

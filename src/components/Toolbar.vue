@@ -1,135 +1,572 @@
 <template>
   <div class="toolbar" :class="{ 'toolbar--embed': props.isEmbed }">
     <div class="toolbar-actions">
-      <el-button icon="Upload" type="primary" @click="openImportDialog">{{ t('import') }}</el-button>
-      <el-button icon="Download" type="primary" @click="handleExport">{{ t('export') }}</el-button>
-      <el-button icon="View" type="success" @click="handlePreviewData">数据预览</el-button>
-      <el-button icon="Share" type="primary" @click="prepareCapture">{{ t('prepareCapture') }}</el-button>
-      <el-button icon="Setting" type="primary" @click="state.showWatermarkDialog = true">{{ t('setWatermark') }}</el-button>
-      <el-button icon="Picture" type="primary" plain @click="openAssetManager">素材管理</el-button>
-      <el-button icon="EditPen" type="primary" plain @click="openRuleManager">规则管理</el-button>
-      <el-button v-if="!props.isEmbed" type="info" @click="loadExample">{{ t('loadExample') }}</el-button>
-      <el-button v-if="!props.isEmbed" type="info" @click="showUpdateLog">{{ t('updateLog') }}</el-button>
-      <el-button v-if="!props.isEmbed" type="warning" @click="showFeedbackForm">{{ t('feedback') }}</el-button>
-      <el-button type="danger" @click="handleResetWorkspace">重置工作区</el-button>
-      <el-button type="warning" plain @click="handleClearCanvas">清空画布</el-button>
+      <el-dropdown trigger="click">
+        <el-button type="primary" icon="FolderOpened">
+          {{ t("toolbar.menu.file") }}
+        </el-button>
+        <template #dropdown>
+          <el-dropdown-menu>
+            <el-dropdown-item @click="openImportDialog">{{
+              t("import")
+            }}</el-dropdown-item>
+            <el-dropdown-item @click="handleExport">{{
+              t("export")
+            }}</el-dropdown-item>
+            <el-dropdown-item @click="handlePreviewData">{{
+              t("previewData")
+            }}</el-dropdown-item>
+            <el-dropdown-item @click="prepareCapture">{{
+              t("prepareCapture")
+            }}</el-dropdown-item>
+            <el-dropdown-item v-if="!props.isEmbed" @click="loadExample">{{
+              t("loadExample")
+            }}</el-dropdown-item>
+          </el-dropdown-menu>
+        </template>
+      </el-dropdown>
+
+      <el-dropdown trigger="click">
+        <el-button type="primary" icon="Setting">
+          {{ t("toolbar.menu.settings") }}
+        </el-button>
+        <template #dropdown>
+          <el-dropdown-menu>
+            <el-dropdown-item @click="openRuleManager">{{
+              t("toolbar.menu.settings.rule")
+            }}</el-dropdown-item>
+            <el-dropdown-item @click="openNodeSizeDialog">{{
+              t("toolbar.menu.settings.theme")
+            }}</el-dropdown-item>
+            <el-dropdown-item @click="openWatermarkDialog">{{
+              t("toolbar.menu.settings.watermark")
+            }}</el-dropdown-item>
+            <el-dropdown-item @click="openAssetManager">{{
+              t("toolbar.menu.settings.asset")
+            }}</el-dropdown-item>
+          </el-dropdown-menu>
+        </template>
+      </el-dropdown>
+
+      <el-dropdown v-if="!props.isEmbed" trigger="click">
+        <el-button type="info" icon="QuestionFilled">
+          {{ t("toolbar.menu.help") }}
+        </el-button>
+        <template #dropdown>
+          <el-dropdown-menu>
+            <el-dropdown-item @click="showUpdateLog">{{
+              t("updateLog")
+            }}</el-dropdown-item>
+            <el-dropdown-item @click="showFeedbackForm">{{
+              t("feedback")
+            }}</el-dropdown-item>
+          </el-dropdown-menu>
+        </template>
+      </el-dropdown>
+
+      <div class="toolbar-actions-legacy" aria-hidden="true">
+        <el-button @click="openImportDialog">{{ t("import") }}</el-button>
+        <el-button @click="handleExport">{{ t("export") }}</el-button>
+        <el-button @click="handlePreviewData">{{ t("previewData") }}</el-button>
+        <el-button @click="prepareCapture">{{ t("prepareCapture") }}</el-button>
+        <el-button @click="openWatermarkDialog">{{ t("setWatermark") }}</el-button>
+        <el-button @click="openAssetManager">{{ t("assetManager") }}</el-button>
+        <el-button @click="openRuleManager">{{ t("ruleManager") }}</el-button>
+        <el-button v-if="!props.isEmbed" @click="loadExample">{{
+          t("loadExample")
+        }}</el-button>
+        <el-button v-if="!props.isEmbed" @click="showUpdateLog">{{
+          t("updateLog")
+        }}</el-button>
+        <el-button v-if="!props.isEmbed" @click="showFeedbackForm">{{
+          t("feedback")
+        }}</el-button>
+      </div>
+
+      <el-button type="danger" @click="handleResetWorkspace">{{
+        t("resetWorkspace")
+      }}</el-button>
+      <el-button type="warning" plain @click="handleClearCanvas">{{
+        t("clearCanvas")
+      }}</el-button>
     </div>
     <div class="toolbar-controls">
       <el-switch
         v-model="selectionEnabled"
         size="small"
         inline-prompt
-        active-text="框选开"
-        inactive-text="框选关"
+        :active-text="t('switch.selection.on')"
+        :inactive-text="t('switch.selection.off')"
       />
       <el-switch
         v-model="snapGridEnabled"
         size="small"
         inline-prompt
-        active-text="吸附开"
-        inactive-text="吸附关"
+        :active-text="t('switch.snapGrid.on')"
+        :inactive-text="t('switch.snapGrid.off')"
       />
       <el-switch
         v-model="snaplineEnabled"
         size="small"
         inline-prompt
-        active-text="对齐线开"
-        inactive-text="对齐线关"
+        :active-text="t('switch.snapline.on')"
+        :inactive-text="t('switch.snapline.off')"
       />
+      <el-select
+        v-model="currentLanguage"
+        size="small"
+        class="locale-select"
+        @change="handleLanguageChange"
+      >
+        <el-option
+          v-for="option in languageOptions"
+          :key="option.value"
+          :label="option.label"
+          :value="option.value"
+        />
+      </el-select>
     </div>
 
     <!-- 更新日志对话框 -->
-    <el-dialog v-if="!props.isEmbed" v-model="state.showUpdateLogDialog" title="更新日志" width="60%">
+    <el-dialog
+      v-if="!props.isEmbed"
+      v-model="state.showUpdateLogDialog"
+      :title="t('updateLog')"
+      width="60%"
+    >
       <ul>
         <li v-for="(log, index) in updateLogs" :key="index">
-          <strong>版本 {{ log.version }} - {{ log.date }}</strong>
+          <strong>{{ t("updateLog.versionPrefix") }} {{ log.version }} - {{ log.date }}</strong>
           <ul>
-            <li v-for="(change, idx) in log.changes" :key="idx">{{ change }}</li>
+            <li v-for="(change, idx) in log.changes" :key="idx">
+              {{ change }}
+            </li>
           </ul>
         </li>
       </ul>
     </el-dialog>
 
     <!-- 问题反馈对话框 -->
-    <el-dialog v-if="!props.isEmbed" v-model="state.showFeedbackFormDialog" title="更新日志" width="60%">
-      <span style="font-size: 24px;">备注阴阳师</span>
-      <br/>
-      <img :src="contactImageUrl"
-           style="cursor: pointer; vertical-align: bottom; width: 200px; height: auto;"/>
+    <el-dialog
+      v-if="!props.isEmbed"
+      v-model="state.showFeedbackFormDialog"
+      :title="t('feedback')"
+      width="60%"
+    >
+      <span style="font-size: 24px">{{ t("feedback.contactTitle") }}</span>
+      <br />
+      <img
+        :src="contactImageUrl"
+        style="
+          cursor: pointer;
+          vertical-align: bottom;
+          width: 200px;
+          height: auto;
+        "
+      />
     </el-dialog>
 
     <!-- 预览弹窗 -->
-    <el-dialog id="preview-container" v-model="state.previewVisible" width="80%" height="80%"
-               :before-close="handleClose">
-      <div style="max-height: 500px; overflow-y: auto;">
-        <img v-if="state.previewImage" :src="state.previewImage" alt="Preview" style="width: 100%; display: block;"/>
+    <el-dialog
+      id="preview-container"
+      v-model="state.previewVisible"
+      width="80%"
+      height="80%"
+      :before-close="handleClose"
+    >
+      <div style="max-height: 500px; overflow-y: auto">
+        <img
+          v-if="state.previewImage"
+          :src="state.previewImage"
+          :alt="t('preview.alt')"
+          style="width: 100%; display: block"
+        />
       </div>
       <span slot="footer" class="dialog-footer">
-        <el-button @click="state.previewVisible = false">取 消</el-button>
-        <el-button type="primary" @click="downloadImage">下 载</el-button>
+        <el-button @click="state.previewVisible = false">{{
+          t("common.cancel")
+        }}</el-button>
+        <el-button type="primary" @click="downloadImage">{{
+          t("common.download")
+        }}</el-button>
       </span>
     </el-dialog>
 
     <!-- 水印设置弹窗 -->
-    <el-dialog v-model="state.showWatermarkDialog" title="设置水印" width="30%">
+    <el-dialog
+      v-model="state.showWatermarkDialog"
+      :title="t('setWatermark')"
+      width="30%"
+    >
       <el-form>
-        <el-form-item label="水印文字">
+        <el-form-item :label="t('watermark.text')">
           <el-input v-model="watermark.text"></el-input>
         </el-form-item>
-        <el-form-item label="字体大小">
-          <el-input-number v-model="watermark.fontSize" :min="10" :max="100"></el-input-number>
+        <el-form-item :label="t('watermark.fontSize')">
+          <el-input-number
+            v-model="watermark.fontSize"
+            :min="10"
+            :max="100"
+          ></el-input-number>
         </el-form-item>
-        <el-form-item label="颜色">
+        <el-form-item :label="t('watermark.color')">
           <el-color-picker v-model="watermark.color"></el-color-picker>
         </el-form-item>
-        <el-form-item label="水印行数">
-          <el-input-number v-model="watermark.rows" :min="1" :max="10"></el-input-number>
+        <el-form-item :label="t('watermark.rows')">
+          <el-input-number
+            v-model="watermark.rows"
+            :min="1"
+            :max="10"
+          ></el-input-number>
         </el-form-item>
-        <el-form-item label="水印列数">
-          <el-input-number v-model="watermark.cols" :min="1" :max="10"></el-input-number>
+        <el-form-item :label="t('watermark.cols')">
+          <el-input-number
+            v-model="watermark.cols"
+            :min="1"
+            :max="10"
+          ></el-input-number>
         </el-form-item>
-        <el-form-item label="角度">
-          <el-input-number v-model="watermark.angle" :min="-90" :max="90"></el-input-number>
+        <el-form-item :label="t('watermark.angle')">
+          <el-input-number
+            v-model="watermark.angle"
+            :min="-90"
+            :max="90"
+          ></el-input-number>
         </el-form-item>
       </el-form>
       <template #footer>
         <span class="dialog-footer">
-          <el-button @click="state.showWatermarkDialog = false">取消</el-button>
-          <el-button type="primary" @click="applyWatermarkSettings">确认</el-button>
+          <el-button @click="state.showWatermarkDialog = false">{{
+            t("common.cancel")
+          }}</el-button>
+          <el-button type="primary" @click="applyWatermarkSettings">{{
+            t("common.confirm")
+          }}</el-button>
+        </span>
+      </template>
+    </el-dialog>
+
+    <el-dialog
+      v-model="showNodeSizeDialog"
+      :title="t('nodeSize.title')"
+      width="640px"
+    >
+      <div class="node-size-grid">
+        <div class="node-size-row node-size-row--header">
+          <span class="node-size-label"></span>
+          <span class="node-size-dimension">{{ t("nodeSize.width") }}</span>
+          <span class="node-size-dimension">{{ t("nodeSize.height") }}</span>
+          <span class="node-size-dimension">{{
+            t("nodeSize.section.assetStyle")
+          }}</span>
+          <span class="node-size-dimension">{{
+            t("nodeSize.section.assetName")
+          }}</span>
+        </div>
+        <div class="node-size-row">
+          <span class="node-size-label">{{ t("flow.components.image.name") }}</span>
+          <el-input-number
+            v-model="nodeSizeDraft.imageNode.width"
+            :min="40"
+            :max="1200"
+            controls-position="right"
+            size="small"
+          />
+          <el-input-number
+            v-model="nodeSizeDraft.imageNode.height"
+            :min="40"
+            :max="1200"
+            controls-position="right"
+            size="small"
+          />
+          <span class="node-size-placeholder">-</span>
+          <span class="node-size-placeholder">-</span>
+        </div>
+        <div
+          v-for="library in nodeSizeLibraries"
+          :key="library"
+          class="node-size-row"
+        >
+          <span class="node-size-label">{{ t(`assetLibrary.${library}`) }}</span>
+          <el-input-number
+            v-model="nodeSizeDraft.assetSelectorByLibrary[library].width"
+            :min="40"
+            :max="1200"
+            controls-position="right"
+            size="small"
+          />
+          <el-input-number
+            v-model="nodeSizeDraft.assetSelectorByLibrary[library].height"
+            :min="40"
+            :max="1200"
+            controls-position="right"
+            size="small"
+          />
+          <el-button
+            size="small"
+            class="node-size-action"
+            @click="openThemeDetailDialog(library, 'nodeStyle')"
+          >
+            {{ t("common.edit") }}
+          </el-button>
+          <el-button
+            size="small"
+            class="node-size-action"
+            @click="openThemeDetailDialog(library, 'name')"
+          >
+            {{ t("common.edit") }}
+          </el-button>
+        </div>
+      </div>
+      <div class="node-theme-toggle">
+        <span class="node-size-label">{{ t("nodeSize.enableTheme") }}</span>
+        <el-switch v-model="nodeSizeDraft.assetThemeEnabled" />
+      </div>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="handleResetNodeSizeConfig">{{
+            t("nodeSize.reset")
+          }}</el-button>
+          <el-button
+            type="primary"
+            plain
+            :loading="state.applyingThemeToCurrent"
+            @click="applyThemeToCurrentCanvas"
+          >
+            {{ t("nodeSize.applyCurrent") }}
+          </el-button>
+          <el-button @click="showNodeSizeDialog = false">{{
+            t("common.close")
+          }}</el-button>
+          <el-button type="primary" @click="applyNodeSizeConfig">{{
+            t("common.confirm")
+          }}</el-button>
+        </span>
+      </template>
+    </el-dialog>
+
+    <el-dialog
+      v-model="showThemeDetailDialog"
+      :title="themeDetailDialogTitle"
+      width="620px"
+      @closed="themeDetailDraft = null"
+    >
+      <div
+        v-if="themeDetailMode === 'nodeStyle' && themeDetailDraft"
+        class="node-theme-grid"
+      >
+        <div class="node-theme-item">
+          <span class="node-size-label">{{ t("flow.style.fill") }}</span>
+          <div class="node-theme-inline">
+            <el-color-picker
+              v-model="themeDetailDraft.nodeStyle.fill"
+              show-alpha
+              @change="(val) => handleThemeFillColorChange(String(val || ''))"
+            />
+            <el-checkbox
+              :model-value="themeDetailDraft.nodeStyle.fill === 'transparent'"
+              @change="(val) => handleThemeFillTransparentChange(Boolean(val))"
+            >
+              {{ t("flow.style.transparent") }}
+            </el-checkbox>
+          </div>
+        </div>
+        <div class="node-theme-item">
+          <span class="node-size-label">{{ t("flow.style.stroke") }}</span>
+          <el-color-picker v-model="themeDetailDraft.nodeStyle.stroke" />
+        </div>
+        <div class="node-theme-item">
+          <span class="node-size-label">{{ t("flow.style.stroke") }} px</span>
+          <el-input-number
+            v-model="themeDetailDraft.nodeStyle.strokeWidth"
+            :min="0"
+            :max="20"
+            controls-position="right"
+            size="small"
+          />
+        </div>
+        <div class="node-theme-item">
+          <span class="node-size-label">{{ t("flow.style.radius") }}</span>
+          <el-input-number
+            v-model="themeDetailDraft.nodeStyle.radius"
+            :min="0"
+            :max="200"
+            controls-position="right"
+            size="small"
+          />
+        </div>
+        <div class="node-theme-item node-theme-item--full">
+          <span class="node-size-label">{{ t("flow.style.opacity") }}</span>
+          <el-slider
+            v-model="themeDetailDraft.nodeStyle.opacity"
+            :min="0"
+            :max="1"
+            :step="0.05"
+            show-input
+            :show-input-controls="false"
+          />
+        </div>
+      </div>
+      <div v-else-if="themeDetailDraft" class="node-theme-grid">
+        <div class="node-theme-item">
+          <span class="node-size-label">{{ t("assetPanel.nameVisible") }}</span>
+          <el-switch v-model="themeDetailDraft.name.show" />
+        </div>
+        <div class="node-theme-item">
+          <span class="node-size-label">{{ t("nodeSize.nameOffsetX") }}</span>
+          <el-input-number
+            v-model="themeDetailDraft.name.offsetX"
+            :min="-600"
+            :max="600"
+            controls-position="right"
+            size="small"
+          />
+        </div>
+        <div class="node-theme-item">
+          <span class="node-size-label">{{ t("nodeSize.nameOffsetY") }}</span>
+          <el-input-number
+            v-model="themeDetailDraft.name.offsetY"
+            :min="-600"
+            :max="600"
+            controls-position="right"
+            size="small"
+          />
+        </div>
+        <div class="node-theme-item">
+          <span class="node-size-label">{{ t("nodeSize.nameWidth") }}</span>
+          <el-input-number
+            v-model="themeDetailDraft.name.width"
+            :min="40"
+            :max="1200"
+            controls-position="right"
+            size="small"
+          />
+        </div>
+        <div class="node-theme-item">
+          <span class="node-size-label">{{ t("nodeSize.nameHeight") }}</span>
+          <el-input-number
+            v-model="themeDetailDraft.name.height"
+            :min="20"
+            :max="1200"
+            controls-position="right"
+            size="small"
+          />
+        </div>
+        <div class="node-theme-item">
+          <span class="node-size-label">{{ t("nodeSize.textColor") }}</span>
+          <el-color-picker v-model="themeDetailDraft.name.textStyle.color" />
+        </div>
+        <div class="node-theme-item">
+          <span class="node-size-label">{{ t("nodeSize.fontSize") }}</span>
+          <el-input-number
+            v-model="themeDetailDraft.name.textStyle.fontSize"
+            :min="8"
+            :max="96"
+            controls-position="right"
+            size="small"
+          />
+        </div>
+        <div class="node-theme-item">
+          <span class="node-size-label">{{ t("nodeSize.fontWeight") }}</span>
+          <el-select v-model="themeDetailDraft.name.textStyle.fontWeight" size="small">
+            <el-option :label="t('flow.style.weight.300')" :value="300" />
+            <el-option :label="t('flow.style.weight.400')" :value="400" />
+            <el-option :label="t('flow.style.weight.500')" :value="500" />
+            <el-option :label="t('flow.style.weight.600')" :value="600" />
+            <el-option :label="t('flow.style.weight.700')" :value="700" />
+          </el-select>
+        </div>
+        <div class="node-theme-item">
+          <span class="node-size-label">{{ t("nodeSize.lineHeight") }}</span>
+          <el-input-number
+            v-model="themeDetailDraft.name.textStyle.lineHeight"
+            :min="0.8"
+            :max="3"
+            :step="0.1"
+            controls-position="right"
+            size="small"
+          />
+        </div>
+        <div class="node-theme-item">
+          <span class="node-size-label">{{ t("flow.style.textAlign") }}</span>
+          <el-select v-model="themeDetailDraft.name.textStyle.align" size="small">
+            <el-option :label="t('flow.style.align.left')" value="left" />
+            <el-option :label="t('flow.style.align.center')" value="center" />
+            <el-option :label="t('flow.style.align.right')" value="right" />
+          </el-select>
+        </div>
+      </div>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button type="primary" @click="confirmThemeDetailDialog">{{
+            t("common.confirm")
+          }}</el-button>
         </span>
       </template>
     </el-dialog>
 
     <!-- 数据预览对话框 -->
-    <el-dialog v-model="state.showDataPreviewDialog" title="数据预览" width="70%">
-      <div style="max-height: 600px; overflow-y: auto;">
-        <pre style="background: #f5f5f5; padding: 16px; border-radius: 4px; font-size: 12px; line-height: 1.5;">{{ state.previewDataContent }}</pre>
+    <el-dialog
+      v-model="state.showDataPreviewDialog"
+      :title="t('previewData')"
+      width="70%"
+    >
+      <div style="max-height: 600px; overflow-y: auto">
+        <pre
+          style="
+            background: #f5f5f5;
+            padding: 16px;
+            border-radius: 4px;
+            font-size: 12px;
+            line-height: 1.5;
+          "
+          >{{ state.previewDataContent }}</pre
+        >
       </div>
       <template #footer>
         <span class="dialog-footer">
-          <el-button @click="state.showDataPreviewDialog = false">关闭</el-button>
-          <el-button type="primary" @click="copyDataToClipboard">复制到剪贴板</el-button>
+          <el-button @click="state.showDataPreviewDialog = false">{{
+            t("common.close")
+          }}</el-button>
+          <el-button type="primary" @click="copyDataToClipboard">{{
+            t("copyClipboard")
+          }}</el-button>
         </span>
       </template>
     </el-dialog>
 
     <el-dialog v-model="state.showImportDialog" title="导入数据" width="560px">
       <el-form label-width="88px" class="import-form">
-        <el-form-item label="导入来源">
+        <el-form-item :label="t('importDialog.source')">
           <el-radio-group v-model="importSource">
-            <el-radio-button label="json">JSON 文件</el-radio-button>
-            <el-radio-button label="teamCode">阵容码</el-radio-button>
+            <el-radio-button label="json">{{
+              t("importDialog.source.json")
+            }}</el-radio-button>
+            <el-radio-button label="teamCode">{{
+              t("importDialog.source.teamCode")
+            }}</el-radio-button>
           </el-radio-group>
         </el-form-item>
-        <el-form-item v-if="importSource === 'teamCode'" label="阵容码">
+        <el-form-item
+          v-if="importSource === 'teamCode'"
+          :label="t('importDialog.teamCode')"
+        >
           <el-input
             v-model="teamCodeInput"
             type="textarea"
             :rows="7"
-            placeholder="请粘贴 #TA# 开头的阵容码"
+            :placeholder="t('importDialog.teamCodePlaceholder')"
           />
         </el-form-item>
-        <el-form-item v-if="importSource === 'teamCode'" label="二维码">
+        <el-form-item
+          v-if="importSource === 'teamCode'"
+          :label="t('importDialog.validation')"
+        >
+          <el-checkbox v-model="teamCodeValidationEnabled">
+            {{ t("importDialog.formationValidation") }}
+          </el-checkbox>
+        </el-form-item>
+        <el-form-item v-if="importSource === 'teamCode'" :label="t('importDialog.qr')">
           <div class="team-code-qr-actions">
             <input
               ref="teamCodeQrInputRef"
@@ -144,9 +581,9 @@
               :loading="state.decodingTeamCodeQr"
               @click="triggerTeamCodeQrImport"
             >
-              选择二维码图片
+              {{ t("importDialog.qrChoose") }}
             </el-button>
-            <span class="team-code-qr-tip">支持从截图或相册图片识别官方阵容码二维码</span>
+            <span class="team-code-qr-tip">{{ t("importDialog.qrTip") }}</span>
           </div>
         </el-form-item>
         <el-alert
@@ -154,18 +591,20 @@
           type="info"
           :closable="false"
           show-icon
-          title="支持粘贴阵容码字符串，或上传二维码图片自动识别。"
+          :title="t('importDialog.alert')"
         />
       </el-form>
       <template #footer>
         <span class="dialog-footer">
-          <el-button @click="state.showImportDialog = false">取消</el-button>
+          <el-button @click="state.showImportDialog = false">{{
+            t("common.cancel")
+          }}</el-button>
           <el-button
             v-if="importSource === 'json'"
             type="primary"
             @click="triggerJsonFileImport"
           >
-            选择 JSON 文件
+            {{ t("importDialog.chooseJson") }}
           </el-button>
           <el-button
             v-else
@@ -173,14 +612,18 @@
             :loading="state.importingTeamCode"
             @click="handleTeamCodeImport"
           >
-            导入阵容码
+            {{ t("importDialog.importTeamCode") }}
           </el-button>
         </span>
       </template>
     </el-dialog>
 
     <!-- 素材管理对话框 -->
-    <el-dialog v-model="state.showAssetManagerDialog" title="素材管理" width="70%">
+    <el-dialog
+      v-model="state.showAssetManagerDialog"
+      :title="t('assetManager')"
+      width="70%"
+    >
       <div class="asset-manager-actions">
         <input
           ref="assetUploadInputRef"
@@ -189,8 +632,12 @@
           class="asset-upload-input"
           @change="handleAssetManagerUpload"
         />
-        <el-button size="small" type="primary" @click="triggerAssetManagerUpload">
-          上传当前分类素材
+        <el-button
+          size="small"
+          type="primary"
+          @click="triggerAssetManagerUpload"
+        >
+          {{ t("assetManager.uploadCurrent") }}
         </el-button>
       </div>
 
@@ -209,7 +656,9 @@
             >
               <div
                 class="asset-manager-image"
-                :style="{ backgroundImage: `url('${resolveAssetUrl(item.avatar)}')` }"
+                :style="{
+                  backgroundImage: `url('${resolveAssetUrl(item.avatar)}')`,
+                }"
               />
               <div class="asset-manager-name">{{ item.name }}</div>
               <el-button
@@ -218,28 +667,49 @@
                 type="danger"
                 @click="removeManagedAsset(library.id, item)"
               >
-                删除
+                {{ t("common.delete") }}
               </el-button>
             </div>
           </div>
           <el-empty
             v-if="getManagedAssets(library.id).length === 0"
-            :description="`暂无${library.label}`"
+            :description="t('assetManager.empty', { label: library.label })"
           />
         </el-tab-pane>
       </el-tabs>
     </el-dialog>
 
     <!-- 规则管理对话框 -->
-    <el-dialog v-model="state.showRuleManagerDialog" title="规则管理" width="80%">
+    <el-dialog
+      v-model="state.showRuleManagerDialog"
+      :title="t('ruleManager')"
+      width="80%"
+    >
       <div class="rule-manager-actions">
-        <el-button size="small" type="primary" @click="addExpressionRule">新增规则</el-button>
-        <el-button size="small" type="primary" plain @click="addRuleVariable">新增变量</el-button>
-        <el-button size="small" @click="exportRuleBundle">导出规则变量</el-button>
-        <el-button size="small" @click="triggerRuleBundleImport">导入规则变量</el-button>
-        <el-button size="small" @click="reloadRuleManagerDraft">重载当前配置</el-button>
-        <el-button size="small" type="success" @click="applyRuleManagerConfig">应用并生效</el-button>
-        <el-button size="small" type="warning" plain @click="restoreDefaultRuleConfig">恢复默认</el-button>
+        <el-button size="small" type="primary" @click="addExpressionRule">{{
+          t("ruleManager.addRule")
+        }}</el-button>
+        <el-button size="small" type="primary" plain @click="addRuleVariable">{{
+          t("ruleManager.addVariable")
+        }}</el-button>
+        <el-button size="small" @click="exportRuleBundle">{{
+          t("ruleManager.exportBundle")
+        }}</el-button>
+        <el-button size="small" @click="triggerRuleBundleImport">{{
+          t("ruleManager.importBundle")
+        }}</el-button>
+        <el-button size="small" @click="reloadRuleManagerDraft">{{
+          t("ruleManager.reload")
+        }}</el-button>
+        <el-button size="small" type="success" @click="applyRuleManagerConfig">{{
+          t("ruleManager.apply")
+        }}</el-button>
+        <el-button
+          size="small"
+          type="warning"
+          plain
+          @click="restoreDefaultRuleConfig"
+          >{{ t("ruleManager.restoreDefault") }}</el-button>
         <input
           ref="ruleBundleImportInputRef"
           type="file"
@@ -250,7 +720,7 @@
       </div>
 
       <el-tabs v-model="ruleManagerTab" class="rule-manager-tabs">
-        <el-tab-pane label="规则" name="rules">
+        <el-tab-pane :label="t('ruleManager.tab.rules')" name="rules">
           <div class="rule-table-wrap">
             <el-table
               v-if="ruleConfigDraft.expressionRules.length > 0"
@@ -259,184 +729,289 @@
               border
               class="rule-table"
             >
-              <el-table-column label="启用" width="70" align="center">
+              <el-table-column :label="t('ruleManager.column.enabled')" width="70" align="center">
                 <template #default="{ row }">
                   <el-checkbox v-model="row.enabled" />
                 </template>
               </el-table-column>
-              <el-table-column label="级别" width="110" align="center">
+              <el-table-column :label="t('ruleManager.column.severity')" width="110" align="center">
                 <template #default="{ row }">
                   <el-select
                     v-model="row.severity"
                     size="small"
-                    :class="['rule-inline-select', 'severity-select', `severity-select--${row.severity || 'warning'}`]"
+                    :class="[
+                      'rule-inline-select',
+                      'severity-select',
+                      `severity-select--${row.severity || 'warning'}`,
+                    ]"
                   >
-                    <el-option label="warning" value="warning" />
-                    <el-option label="error" value="error" />
-                    <el-option label="info" value="info" />
+                    <el-option :label="t('ruleSeverity.warning')" value="warning" />
+                    <el-option :label="t('ruleSeverity.error')" value="error" />
+                    <el-option :label="t('ruleSeverity.info')" value="info" />
                   </el-select>
                 </template>
               </el-table-column>
-              <el-table-column prop="id" label="规则 ID" min-width="180" show-overflow-tooltip />
-              <el-table-column label="条件" min-width="260" show-overflow-tooltip>
+              <el-table-column :label="t('ruleManager.column.scope')" width="130" align="center">
+                <template #default="{ row }">
+                  <el-select
+                    v-model="row.scopeKind"
+                    size="small"
+                    class="rule-inline-select"
+                  >
+                    <el-option :label="t('ruleScope.team')" value="team" />
+                    <el-option :label="t('ruleScope.shikigami')" value="shikigami" />
+                  </el-select>
+                </template>
+              </el-table-column>
+              <el-table-column
+                prop="id"
+                :label="t('ruleManager.column.id')"
+                min-width="180"
+                show-overflow-tooltip
+              />
+              <el-table-column
+                :label="t('ruleManager.column.condition')"
+                min-width="260"
+                show-overflow-tooltip
+              >
                 <template #default="{ row }">
                   <span class="rule-cell-ellipsis">{{ row.condition }}</span>
                 </template>
               </el-table-column>
-              <el-table-column label="提示" min-width="180" show-overflow-tooltip>
+              <el-table-column
+                :label="t('ruleManager.column.message')"
+                min-width="180"
+                show-overflow-tooltip
+              >
                 <template #default="{ row }">
                   <span class="rule-cell-ellipsis">{{ row.message }}</span>
                 </template>
               </el-table-column>
-              <el-table-column label="操作" width="140" fixed="right">
+              <el-table-column :label="t('ruleManager.column.actions')" width="140" fixed="right">
                 <template #default="{ $index }">
-                  <el-button size="small" text type="primary" @click="openExpressionRuleEditor($index)">编辑</el-button>
-                  <el-button size="small" text type="danger" @click="removeExpressionRule($index)">删除</el-button>
+                  <el-button
+                    size="small"
+                    text
+                    type="primary"
+                    @click="openExpressionRuleEditor($index)"
+                    >{{ t("common.edit") }}</el-button>
+                  <el-button
+                    size="small"
+                    text
+                    type="danger"
+                    @click="removeExpressionRule($index)"
+                    >{{ t("common.delete") }}</el-button>
                 </template>
               </el-table-column>
             </el-table>
-            <el-empty v-else description="暂无规则，点击“新增规则”创建" />
+            <el-empty v-else :description="t('ruleManager.emptyRules')" />
           </div>
         </el-tab-pane>
 
-        <el-tab-pane label="变量" name="variables">
+        <el-tab-pane :label="t('ruleManager.tab.variables')" name="variables">
           <div class="variable-list">
             <div
               v-for="(item, index) in ruleConfigDraft.ruleVariables"
               :key="`${item.key}-${index}`"
               class="variable-item"
             >
-              <el-form-item label="Key" class="variable-key">
-                <el-input v-model="item.key" placeholder="如: fire_supporters" />
+              <el-form-item :label="t('ruleManager.variable.key')" class="variable-key">
+                <el-input
+                  v-model="item.key"
+                  :placeholder="t('ruleManager.variable.keyPlaceholder')"
+                />
               </el-form-item>
-              <el-form-item label="Value" class="variable-value">
+              <el-form-item :label="t('ruleManager.variable.value')" class="variable-value">
                 <el-input
                   v-model="item.value"
                   type="textarea"
                   :rows="2"
-                  placeholder="逗号或换行分隔，如：辉夜姬,座敷童子"
+                  :placeholder="t('ruleManager.variable.valuePlaceholder')"
                 />
               </el-form-item>
-              <el-button size="small" text type="danger" @click="removeRuleVariable(index)">删除</el-button>
+              <el-button
+                size="small"
+                text
+                type="danger"
+                @click="removeRuleVariable(index)"
+                >{{ t("common.delete") }}</el-button>
             </div>
-            <el-empty v-if="ruleConfigDraft.ruleVariables.length === 0" description="暂无变量，点击“新增变量”创建" />
+            <el-empty
+              v-if="ruleConfigDraft.ruleVariables.length === 0"
+              :description="t('ruleManager.emptyVariables')"
+            />
           </div>
         </el-tab-pane>
 
-        <el-tab-pane label="文档说明" name="docs">
+        <el-tab-pane :label="t('ruleManager.tab.docs')" name="docs">
           <div class="rule-docs">
-            <h4>作用域约定</h4>
+            <h4>{{ t("ruleManager.docs.scope") }}</h4>
             <pre>{{ ruleScopeDoc }}</pre>
-            <h4>可用上下文</h4>
+            <h4>{{ t("ruleManager.docs.context") }}</h4>
             <pre>{{ ruleContextDoc }}</pre>
-            <h4>支持语法</h4>
+            <h4>{{ t("ruleManager.docs.syntax") }}</h4>
             <pre>{{ ruleSyntaxDoc }}</pre>
-            <h4>支持函数</h4>
+            <h4>{{ t("ruleManager.docs.functions") }}</h4>
             <pre>{{ ruleFunctionDoc }}</pre>
-            <h4>表达式示例</h4>
+            <h4>{{ t("ruleManager.docs.examples") }}</h4>
             <pre>{{ ruleExamplesDoc }}</pre>
           </div>
         </el-tab-pane>
       </el-tabs>
     </el-dialog>
 
-    <el-dialog v-model="ruleEditorVisible" title="编辑规则" width="56%">
-      <el-form v-if="ruleEditorDraft" label-width="96px" class="rule-editor-form">
-        <el-form-item label="启用">
+    <el-dialog v-model="ruleEditorVisible" :title="t('ruleEditor.title')" width="56%">
+      <el-form
+        v-if="ruleEditorDraft"
+        label-width="96px"
+        class="rule-editor-form"
+      >
+        <el-form-item :label="t('ruleEditor.enabled')">
           <el-switch v-model="ruleEditorDraft.enabled" />
         </el-form-item>
-        <el-form-item label="规则 ID">
-          <el-input v-model="ruleEditorDraft.id" placeholder="unique_rule_id" />
+        <el-form-item :label="t('ruleEditor.id')">
+          <el-input
+            v-model="ruleEditorDraft.id"
+            :placeholder="t('ruleEditor.idPlaceholder')"
+          />
         </el-form-item>
-        <el-form-item label="级别">
+        <el-form-item :label="t('ruleEditor.severity')">
           <el-select
             v-model="ruleEditorDraft.severity"
-            :class="['severity-select', `severity-select--${ruleEditorDraft.severity || 'warning'}`]"
+            :class="[
+              'severity-select',
+              `severity-select--${ruleEditorDraft.severity || 'warning'}`,
+            ]"
             style="width: 100%"
           >
-            <el-option label="warning" value="warning" />
-            <el-option label="error" value="error" />
-            <el-option label="info" value="info" />
+            <el-option :label="t('ruleSeverity.warning')" value="warning" />
+            <el-option :label="t('ruleSeverity.error')" value="error" />
+            <el-option :label="t('ruleSeverity.info')" value="info" />
           </el-select>
         </el-form-item>
-        <el-form-item label="告警 code">
-          <el-input v-model="ruleEditorDraft.code" placeholder="CUSTOM_EXPRESSION" />
+        <el-form-item :label="t('ruleEditor.scope')">
+          <el-select v-model="ruleEditorDraft.scopeKind" style="width: 100%">
+            <el-option :label="t('ruleScope.team')" value="team" />
+            <el-option :label="t('ruleScope.shikigami')" value="shikigami" />
+          </el-select>
         </el-form-item>
-        <el-form-item label="条件表达式">
+        <el-form-item :label="t('ruleEditor.code')">
+          <el-input
+            v-model="ruleEditorDraft.code"
+            :placeholder="t('ruleEditor.codePlaceholder')"
+          />
+        </el-form-item>
+        <el-form-item :label="t('ruleEditor.condition')">
           <el-input
             v-model="ruleEditorDraft.condition"
             type="textarea"
             :rows="3"
-            placeholder='示例：count(intersect(map(ctx.team.shikigamis, "name"), getVar("供火式神"))) == 0'
+            :placeholder="t('ruleEditor.conditionPlaceholder')"
           />
         </el-form-item>
-        <el-form-item label="提示文案">
-          <el-input v-model="ruleEditorDraft.message" placeholder="规则提示文案" />
+        <el-form-item :label="t('ruleEditor.message')">
+          <el-input
+            v-model="ruleEditorDraft.message"
+            :placeholder="t('ruleEditor.messagePlaceholder')"
+          />
         </el-form-item>
       </el-form>
       <template #footer>
         <span class="dialog-footer">
-          <el-button @click="cancelRuleEditor">取消</el-button>
-          <el-button type="primary" @click="saveRuleEditor">保存</el-button>
+          <el-button @click="cancelRuleEditor">{{ t("common.cancel") }}</el-button>
+          <el-button type="primary" @click="saveRuleEditor">{{
+            t("common.save")
+          }}</el-button>
         </span>
       </template>
     </el-dialog>
-
   </div>
 </template>
 
 <script setup lang="ts">
-import { reactive, onMounted, onBeforeUnmount, ref } from 'vue';
-import updateLogs from "../data/updateLog.json"
+import { computed, onBeforeUnmount, onMounted, reactive, ref } from "vue";
+import { ElDropdown, ElDropdownItem, ElDropdownMenu } from "element-plus";
+import updateLogs from "../data/updateLog.json";
 import { useFilesStore } from "@/ts/useStore";
-import { ElMessageBox } from "element-plus";
 import { useGlobalMessage } from "@/ts/useGlobalMessage";
-import { getLogicFlowInstance } from "@/ts/useLogicFlow";
-import { useCanvasSettings } from '@/ts/useCanvasSettings';
-import { useSafeI18n } from '@/ts/useSafeI18n';
-import { ASSET_LIBRARIES } from '@/types/nodeTypes';
-import type { Pinia } from 'pinia';
-import { resolveAssetUrl } from '@/utils/assetUrl';
+import { getLogicFlowInstance, useLogicFlowScope } from "@/ts/useLogicFlow";
+import { useCanvasSettings } from "@/ts/useCanvasSettings";
+import { useSafeI18n } from "@/ts/useSafeI18n";
+import type { Pinia } from "pinia";
+import { ASSET_LIBRARY_IDS, type AssetLibraryId } from "@/types/assets";
+import { resolveAssetUrl } from "@/utils/assetUrl";
+import { applyAssetThemeToCurrentFile } from "@/utils/assetTheme";
 import {
-  createCustomAssetFromFile,
-  deleteCustomAsset,
-  listCustomAssets,
-  subscribeCustomAssetStore,
-  type CustomAssetItem
-} from '@/utils/customAssets';
-import {
-  readSharedGroupRulesConfig,
-  writeSharedGroupRulesConfig
-} from '@/utils/groupRulesConfigSource';
-import {
-  DEFAULT_GROUP_RULES_CONFIG,
-  type GroupRulesConfig,
-  type ExpressionRuleDefinition,
-  type RuleVariableDefinition
-} from '@/configs/groupRules';
-import { convertTeamCodeToRootDocument, decodeTeamCodeFromQrImage } from '@/utils/teamCodeService';
+  type AssetThemeConfig,
+  cloneNodeCreateSizeConfig,
+  DEFAULT_NODE_CREATE_SIZE_CONFIG,
+  normalizeNodeCreateSizeConfig,
+  readNodeCreateSizeConfig,
+  resolveAssetThemeEnabled,
+  writeNodeCreateSizeConfig,
+} from "@/utils/nodeCreateSizeConfig";
+import { useToolbarImportExportCommands } from "@/components/composables/useToolbarImportExportCommands";
+import { useToolbarAssetManagement } from "@/components/composables/useToolbarAssetManagement";
+import { useToolbarRuleManagement } from "@/components/composables/useToolbarRuleManagement";
+import { useToolbarWorkspaceCommands } from "@/components/composables/useToolbarWorkspaceCommands";
+import { useToolbarDialogState } from "@/components/composables/useToolbarDialogState";
+import { useToolbarCanvasRefresh } from "@/components/composables/useToolbarCanvasRefresh";
 
-const props = withDefaults(defineProps<{
-  isEmbed?: boolean;
-  piniaInstance?: Pinia;
-}>(), {
-  isEmbed: false
-});
+const props = withDefaults(
+  defineProps<{
+    isEmbed?: boolean;
+    piniaInstance?: Pinia;
+  }>(),
+  {
+    isEmbed: false,
+  },
+);
 
-const filesStore = props.piniaInstance ? useFilesStore(props.piniaInstance) : useFilesStore();
-const contactImageUrl = resolveAssetUrl('/assets/Other/Contact.png') as string;
+const filesStore = props.piniaInstance
+  ? useFilesStore(props.piniaInstance)
+  : useFilesStore();
+const logicFlowScope = useLogicFlowScope();
+filesStore.bindLogicFlowScope(logicFlowScope);
+const contactImageUrl = resolveAssetUrl("/assets/Other/Contact.png") as string;
 const { showMessage } = useGlobalMessage();
-const { selectionEnabled, snapGridEnabled, snaplineEnabled } = useCanvasSettings();
+const { selectionEnabled, snapGridEnabled, snaplineEnabled } =
+  useCanvasSettings();
 
-const { t } = useSafeI18n({
-  import: '导入',
-  export: '导出',
-  prepareCapture: '准备截图',
-  setWatermark: '设置水印',
-  loadExample: '加载样例',
-  updateLog: '更新日志',
-  feedback: '问题反馈'
-});
+type SupportedLocale = "zh" | "ja" | "en";
+const LOCALE_STORAGE_KEY = "yys-editor.locale";
+const normalizeLocale = (input: unknown): SupportedLocale => {
+  const value =
+    typeof input === "string" ? input.trim().toLowerCase().split("-")[0] : "";
+  if (value === "ja" || value === "en") {
+    return value;
+  }
+  return "zh";
+};
+const safeI18n = useSafeI18n();
+const t = safeI18n.t;
+const getLocale =
+  typeof (safeI18n as any).getLocale === "function"
+    ? (safeI18n as any).getLocale
+    : () => "zh";
+const setLocale =
+  typeof (safeI18n as any).setLocale === "function"
+    ? (safeI18n as any).setLocale
+    : (_nextLocale: string) => {};
+
+const currentLanguage = ref<SupportedLocale>(normalizeLocale(getLocale()));
+
+const languageOptions = computed(() => [
+  { value: "zh" as const, label: t("locale.zh") },
+  { value: "ja" as const, label: t("locale.ja") },
+  { value: "en" as const, label: t("locale.en") },
+]);
+
+const handleLanguageChange = (nextLocale: SupportedLocale) => {
+  const normalized = normalizeLocale(nextLocale);
+  currentLanguage.value = normalized;
+  setLocale(normalized);
+  localStorage.setItem(LOCALE_STORAGE_KEY, normalized);
+};
 
 // 定义响应式数据
 const state = reactive({
@@ -451,839 +1026,230 @@ const state = reactive({
   decodingTeamCodeQr: false, // 阵容码二维码识别中
   showAssetManagerDialog: false, // 控制素材管理对话框的显示状态
   showRuleManagerDialog: false, // 控制规则管理对话框的显示状态
-  previewDataContent: '', // 存储预览的数据内容
+  previewDataContent: "", // 存储预览的数据内容
+  applyingThemeToCurrent: false,
 });
-const importSource = ref<'json' | 'teamCode'>('json');
-const teamCodeInput = ref('');
+const importSource = ref<"json" | "teamCode">("json");
+const teamCodeInput = ref("");
+const teamCodeValidationEnabled = ref(false);
 const teamCodeQrInputRef = ref<HTMLInputElement | null>(null);
-const assetLibraries = ASSET_LIBRARIES.map((item) => ({
-  id: item.id,
-  label: `${item.label}素材`
-}));
-const assetManagerLibrary = ref(assetLibraries[0]?.id || 'shikigami');
-const assetUploadInputRef = ref<HTMLInputElement | null>(null);
-const ruleBundleImportInputRef = ref<HTMLInputElement | null>(null);
-const managedAssets = reactive<Record<string, CustomAssetItem[]>>({});
-assetLibraries.forEach((item) => {
-  managedAssets[item.id] = [];
+const {
+  watermark,
+  showUpdateLog,
+  showFeedbackForm,
+  openWatermarkDialog,
+  applyWatermarkSettings,
+  mountDialogState,
+} = useToolbarDialogState({
+  state,
+  isEmbed: props.isEmbed,
+  currentAppVersion: updateLogs[0].version,
 });
-let unsubscribeAssetStore: (() => void) | null = null;
-
-const ruleManagerTab = ref<'rules' | 'variables' | 'docs'>('rules');
-
-const cloneRuleConfig = (config: GroupRulesConfig): GroupRulesConfig => ({
-  version: config.version,
-  fireShikigamiWhitelist: [...config.fireShikigamiWhitelist],
-  shikigamiYuhunBlacklist: config.shikigamiYuhunBlacklist.map((rule) => ({ ...rule })),
-  shikigamiConflictPairs: config.shikigamiConflictPairs.map((rule) => ({ ...rule })),
-  expressionRules: config.expressionRules.map((rule) => ({ ...rule })),
-  ruleVariables: config.ruleVariables.map((item) => ({ ...item }))
+const {
+  assetLibraries,
+  assetManagerLibrary,
+  assetUploadInputRef,
+  mountAssetManagement,
+  disposeAssetManagement,
+  openAssetManager,
+  getManagedAssets,
+  triggerAssetManagerUpload,
+  handleAssetManagerUpload,
+  removeManagedAsset,
+} = useToolbarAssetManagement({
+  state,
+  showMessage,
+});
+const {
+  ruleBundleImportInputRef,
+  ruleManagerTab,
+  ruleConfigDraft,
+  ruleEditorVisible,
+  ruleEditorDraft,
+  ruleScopeDoc,
+  ruleContextDoc,
+  ruleSyntaxDoc,
+  ruleFunctionDoc,
+  ruleExamplesDoc,
+  openRuleManager,
+  addExpressionRule,
+  addRuleVariable,
+  exportRuleBundle,
+  triggerRuleBundleImport,
+  reloadRuleManagerDraft,
+  applyRuleManagerConfig,
+  restoreDefaultRuleConfig,
+  handleRuleBundleImport,
+  openExpressionRuleEditor,
+  removeExpressionRule,
+  removeRuleVariable,
+  cancelRuleEditor,
+  saveRuleEditor,
+} = useToolbarRuleManagement({
+  state,
+  showMessage,
 });
 
-const createExpressionRule = (): ExpressionRuleDefinition => ({
-  id: `rule_${Date.now()}`,
-  enabled: true,
-  severity: 'warning',
-  code: 'CUSTOM_EXPRESSION',
-  condition: 'false',
-  message: '请补充规则提示文案'
+const { refreshLogicFlowCanvas } = useToolbarCanvasRefresh({
+  filesStore,
+  logicFlowScope,
 });
 
-const createRuleVariable = (): RuleVariableDefinition => ({
-  key: `var_${Date.now()}`,
-  value: ''
-});
-
-const ruleConfigDraft = ref<GroupRulesConfig>(cloneRuleConfig(readSharedGroupRulesConfig()));
-const ruleEditorVisible = ref(false);
-const editingRuleIndex = ref<number | null>(null);
-const ruleEditorDraft = ref<ExpressionRuleDefinition | null>(null);
-
-const cloneExpressionRule = (rule: ExpressionRuleDefinition): ExpressionRuleDefinition => ({
-  id: rule.id || `rule_${Date.now()}`,
-  enabled: rule.enabled !== false,
-  severity: rule.severity || 'warning',
-  code: rule.code || 'CUSTOM_EXPRESSION',
-  condition: rule.condition || 'false',
-  message: rule.message || '请补充规则提示文案'
-});
-
-const normalizeText = (value: unknown): string => (typeof value === 'string' ? value.trim() : '');
-const normalizeSeverity = (value: unknown): 'warning' | 'error' | 'info' => {
-  return value === 'error' || value === 'info' ? value : 'warning';
-};
-const normalizeImportedExpressionRules = (value: unknown): ExpressionRuleDefinition[] => {
-  if (!Array.isArray(value)) return [];
-  return value
-    .map((item) => {
-      if (!item || typeof item !== 'object') return null;
-      const raw = item as Record<string, unknown>;
-      const id = normalizeText(raw.id);
-      const condition = normalizeText(raw.condition);
-      const message = normalizeText(raw.message);
-      if (!id || !condition || !message) return null;
-      const code = normalizeText(raw.code);
-      return {
-        id,
-        condition,
-        message,
-        enabled: raw.enabled !== false,
-        severity: normalizeSeverity(raw.severity),
-        ...(code ? { code } : {})
-      };
-    })
-    .filter((item): item is ExpressionRuleDefinition => !!item);
-};
-const normalizeImportedRuleVariables = (value: unknown): RuleVariableDefinition[] => {
-  if (!Array.isArray(value)) return [];
-  return value
-    .map((item) => {
-      if (!item || typeof item !== 'object') return null;
-      const raw = item as Record<string, unknown>;
-      const key = normalizeText(raw.key);
-      if (!key) return null;
-      const variableValue = typeof raw.value === 'string' ? raw.value : String(raw.value ?? '');
-      return { key, value: variableValue };
-    })
-    .filter((item): item is RuleVariableDefinition => !!item);
-};
-
-const ruleScopeDoc = `规则新增字段（建议）: scopeKind
-- team: 在队伍组(dynamic-group: team)上执行（当前已生效）
-- shikigami: 在式神组(dynamic-group: shikigami)上执行（规划中，当前未生效）
-
-注意
-- scopeKind 决定“规则运行上下文”
-- 告警点击定位固定为：触发该规则的 dynamic-group`;
-
-const ruleContextDoc = `当 scopeKind = "team"（队伍规则）
-ctx.team.shikigamis: 式神数组
-- 单项示例: { nodeId: "n1", assetId: "sp_kaguya", name: "辉夜姬", library: "shikigami" }
-
-ctx.team.yuhuns: 御魂数组
-- 单项示例: { nodeId: "n2", assetId: "p4_poshi", name: "破势", library: "yuhun" }
-
-ctx.group.id / ctx.group.name
-- 示例: "team-1" / "冲榜队A"
-
-当 scopeKind = "shikigami"（式神规则，规划中，当前未生效）
-ctx.unit.shikigami: 当前式神对象（单个）
-- 示例: { nodeId: "n1", assetId: "sp_kaguya", name: "辉夜姬", library: "shikigami" }
-
-ctx.unit.yuhuns: 当前式神关联御魂数组
-- 单项示例: { nodeId: "n2", assetId: "p4_poshi", name: "破势", library: "yuhun" }
-
-通用共享变量
-shared.vars（变量 tab 配置后的 key/value 映射）
-- 示例:
-  shared.vars["供火式神"] = ["辉夜姬", "座敷童子"]
-  shared.vars["输出式神"] = ["阿修罗", "茨木童子"]`;
-
-const ruleFunctionDoc = `count(value)
-- 用途: 计算数量（数组长度 / 字符串长度）
-- team 示例: count(ctx.team.shikigamis) >= 5
-- shikigami 示例: count(ctx.unit.yuhuns) >= 1
-
-contains(collection, target)
-- 用途: 判断集合或字符串是否包含目标值
-- team 示例: contains(map(ctx.team.shikigamis, "name"), "辉夜姬")
-
-intersect(leftArray, rightArray)
-- 用途: 取数组交集（去重）
-- team 示例: count(intersect(map(ctx.team.shikigamis, "name"), getVar("供火式神"))) > 0
-
-map(collection, "fieldName")
-- 用途: 提取对象数组字段
-- team 示例: map(ctx.team.shikigamis, "name")
-- shikigami 示例: map(ctx.unit.yuhuns, "name")
-
-unique(collection)
-- 用途: 数组去重
-- team 示例: count(unique(map(ctx.team.yuhuns, "name"))) >= 2
-
-exists(value)
-- 用途: 判断值是否存在（非 null/空串；数组需长度>0）
-- 示例: exists(getVar("核心式神"))
-
-lower(value) / upper(value)
-- 用途: 字符串大小写转换
-- 示例: contains(lower("PoShi"), "poshi")
-
-getVar("变量Key")
-- 用途: 获取变量 tab 里配置的值（通常返回字符串数组）
-- 示例: getVar("供火式神")`;
-
-const ruleSyntaxDoc = `支持
-- 字面量: "文本" / 数字 / true / false / null
-- 数组: ["辉夜姬", "座敷童子"]
-- 路径: ctx.team.shikigamis / ctx.unit.shikigami / shared.vars
-- 函数调用: count(...), contains(...), intersect(...), map(...)
-- 逻辑运算: && || !
-- 比较运算: == != > >= < <=
-- 算术运算: + - * /
-- 括号: ( ... )
-
-不支持
-- index 语法（如 getIndexOf / arr[0]）
-- 自定义遍历语法（for/while/foreach）
-- 自定义函数定义
-- 赋值语句
-- eval/new Function`;
-
-const ruleExamplesDoc = `1) [team] 队伍至少有一个供火式神
-count(intersect(map(ctx.team.shikigamis, "name"), getVar("供火式神"))) > 0
-
-2) [team] 队伍里不能同时出现千姬和腹肌清姬
-contains(map(ctx.team.shikigamis, "name"), "千姬") && contains(map(ctx.team.shikigamis, "name"), "腹肌清姬")
-
-3) [team] 队伍御魂至少 2 种（避免全员同御魂）
-count(unique(map(ctx.team.yuhuns, "name"))) >= 2
-
-4) [规划中的 shikigami scope] 当前式神是辉夜姬且其关联御魂包含破势
-ctx.unit.shikigami.name == "辉夜姬" && contains(map(ctx.unit.yuhuns, "name"), "破势")`;
-
-const refreshManagedAssets = (library?: string) => {
-  if (library) {
-    managedAssets[library] = listCustomAssets(library);
-    return;
-  }
-  assetLibraries.forEach((item) => {
-    managedAssets[item.id] = listCustomAssets(item.id);
+const { loadExample, handleResetWorkspace, handleClearCanvas } =
+  useToolbarWorkspaceCommands({
+    filesStore,
+    logicFlowScope,
+    showMessage,
+    refreshLogicFlowCanvas,
   });
-};
 
-const openAssetManager = () => {
-  refreshManagedAssets();
-  state.showAssetManagerDialog = true;
+const nodeSizeLibraries: AssetLibraryId[] = [...ASSET_LIBRARY_IDS];
+const showNodeSizeDialog = ref(false);
+const nodeSizeDraft = ref(readNodeCreateSizeConfig());
+const showThemeDetailDialog = ref(false);
+const themeDetailLibrary = ref<AssetLibraryId>("shikigami");
+const themeDetailMode = ref<"nodeStyle" | "name">("nodeStyle");
+const themeDetailDraft = ref<AssetThemeConfig | null>(null);
+const themeDetailLastOpaqueFill = ref("#ffffff");
+const cloneAssetThemeDraft = (value: AssetThemeConfig): AssetThemeConfig => ({
+  nodeStyle: {
+    ...value.nodeStyle,
+  },
+  name: {
+    ...value.name,
+    textStyle: {
+      ...value.name.textStyle,
+    },
+  },
+});
+const themeDetailDialogTitle = computed(() => {
+  const sectionKey =
+    themeDetailMode.value === "nodeStyle"
+      ? "nodeSize.section.assetStyle"
+      : "nodeSize.section.assetName";
+  return `${t(`assetLibrary.${themeDetailLibrary.value}`)} · ${t(sectionKey)}`;
+});
+const clearThemeDetailDialog = () => {
+  showThemeDetailDialog.value = false;
+  themeDetailDraft.value = null;
 };
-
-const reloadRuleManagerDraft = () => {
-  ruleConfigDraft.value = cloneRuleConfig(readSharedGroupRulesConfig());
-  cancelRuleEditor();
-};
-
-const openRuleManager = () => {
-  reloadRuleManagerDraft();
-  ruleManagerTab.value = 'rules';
-  state.showRuleManagerDialog = true;
-  ruleEditorVisible.value = false;
-  editingRuleIndex.value = null;
-  ruleEditorDraft.value = null;
-};
-
-const exportRuleBundle = () => {
-  try {
-    const payload = {
-      version: ruleConfigDraft.value.version,
-      expressionRules: ruleConfigDraft.value.expressionRules,
-      ruleVariables: ruleConfigDraft.value.ruleVariables
-    };
-    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement('a');
-    anchor.href = url;
-    anchor.download = `rule-bundle-${new Date().toISOString().slice(0, 10)}.json`;
-    anchor.click();
-    URL.revokeObjectURL(url);
-    showMessage('success', '规则变量已导出');
-  } catch (error) {
-    console.error('导出规则变量失败:', error);
-    showMessage('error', '导出失败');
+const handleThemeFillColorChange = (nextFill: string) => {
+  if (!themeDetailDraft.value) return;
+  if (nextFill && nextFill !== "transparent") {
+    themeDetailLastOpaqueFill.value = nextFill;
   }
 };
-
-const triggerRuleBundleImport = () => {
-  ruleBundleImportInputRef.value?.click();
-};
-
-const handleRuleBundleImport = async (event: Event) => {
-  const target = event.target as HTMLInputElement | null;
-  const file = target?.files?.[0];
-  if (!file) {
-    if (target) target.value = '';
-    return;
-  }
-
-  try {
-    const rawText = await file.text();
-    const parsed = JSON.parse(rawText) as Record<string, unknown>;
-    const importedRules = normalizeImportedExpressionRules(parsed.expressionRules);
-    const importedVariables = normalizeImportedRuleVariables(parsed.ruleVariables);
-    if (!importedRules.length && !importedVariables.length) {
-      showMessage('warning', '导入文件中没有可用的规则或变量');
-      return;
+const handleThemeFillTransparentChange = (checked: boolean) => {
+  if (!themeDetailDraft.value) return;
+  if (checked) {
+    const currentFill = themeDetailDraft.value.nodeStyle.fill;
+    if (currentFill && currentFill !== "transparent") {
+      themeDetailLastOpaqueFill.value = currentFill;
     }
-    ruleConfigDraft.value = {
-      ...ruleConfigDraft.value,
-      expressionRules: importedRules,
-      ruleVariables: importedVariables
-    };
-    cancelRuleEditor();
-    showMessage('success', '规则变量已导入，请点击“应用并生效”');
-  } catch (error) {
-    console.error('导入规则变量失败:', error);
-    showMessage('error', '导入失败，文件格式错误');
-  } finally {
-    if (target) target.value = '';
-  }
-};
-
-const addExpressionRule = () => {
-  const newRule = createExpressionRule();
-  ruleConfigDraft.value.expressionRules.push(newRule);
-  openExpressionRuleEditor(ruleConfigDraft.value.expressionRules.length - 1);
-  ruleManagerTab.value = 'rules';
-};
-
-const removeExpressionRule = (index: number) => {
-  if (editingRuleIndex.value === index) {
-    cancelRuleEditor();
-  }
-  ruleConfigDraft.value.expressionRules.splice(index, 1);
-  if (editingRuleIndex.value != null && editingRuleIndex.value > index) {
-    editingRuleIndex.value -= 1;
-  }
-};
-
-const openExpressionRuleEditor = (index: number) => {
-  const target = ruleConfigDraft.value.expressionRules[index];
-  if (!target) return;
-  editingRuleIndex.value = index;
-  ruleEditorDraft.value = cloneExpressionRule(target);
-  ruleEditorVisible.value = true;
-};
-
-const cancelRuleEditor = () => {
-  ruleEditorVisible.value = false;
-  editingRuleIndex.value = null;
-  ruleEditorDraft.value = null;
-};
-
-const saveRuleEditor = () => {
-  const index = editingRuleIndex.value;
-  const draft = ruleEditorDraft.value;
-  if (index == null || !draft) {
+    themeDetailDraft.value.nodeStyle.fill = "transparent";
     return;
   }
-  const ruleId = draft.id?.trim();
-  const condition = draft.condition?.trim();
-  const message = draft.message?.trim();
-  if (!ruleId || !condition || !message) {
-    showMessage('warning', '规则 ID、条件表达式、提示文案不能为空');
+  themeDetailDraft.value.nodeStyle.fill = themeDetailLastOpaqueFill.value;
+};
+
+const openThemeDetailDialog = (
+  library: AssetLibraryId,
+  mode: "nodeStyle" | "name",
+) => {
+  themeDetailLibrary.value = library;
+  themeDetailMode.value = mode;
+  themeDetailDraft.value = cloneAssetThemeDraft(
+    nodeSizeDraft.value.assetThemeByLibrary[library],
+  );
+  const currentFill = themeDetailDraft.value.nodeStyle.fill;
+  if (currentFill && currentFill !== "transparent") {
+    themeDetailLastOpaqueFill.value = currentFill;
+  }
+  showThemeDetailDialog.value = true;
+};
+const confirmThemeDetailDialog = () => {
+  if (!themeDetailDraft.value) {
+    clearThemeDetailDialog();
     return;
   }
-  const normalized = cloneExpressionRule({
-    ...draft,
-    id: ruleId,
-    condition,
-    message
-  });
-  ruleConfigDraft.value.expressionRules[index] = normalized;
-  cancelRuleEditor();
+  nodeSizeDraft.value.assetThemeByLibrary[themeDetailLibrary.value] =
+    cloneAssetThemeDraft(themeDetailDraft.value);
+  clearThemeDetailDialog();
 };
 
-const addRuleVariable = () => {
-  ruleConfigDraft.value.ruleVariables.push(createRuleVariable());
-  ruleManagerTab.value = 'variables';
+const openNodeSizeDialog = () => {
+  nodeSizeDraft.value = readNodeCreateSizeConfig();
+  showNodeSizeDialog.value = true;
 };
 
-const removeRuleVariable = (index: number) => {
-  ruleConfigDraft.value.ruleVariables.splice(index, 1);
+const applyNodeSizeConfig = () => {
+  nodeSizeDraft.value = writeNodeCreateSizeConfig(nodeSizeDraft.value);
+  showNodeSizeDialog.value = false;
+  showMessage("success", t("nodeSize.message.applied"));
 };
 
-const applyRuleManagerConfig = () => {
+const applyThemeToCurrentCanvas = () => {
+  const logicFlowInstance = getLogicFlowInstance(logicFlowScope);
+  if (!logicFlowInstance) {
+    showMessage("error", t("nodeSize.message.applyCurrentFailed"));
+    return;
+  }
+  if (!resolveAssetThemeEnabled({ config: nodeSizeDraft.value })) {
+    showMessage("warning", t("nodeSize.message.themeDisabled"));
+    return;
+  }
+  state.applyingThemeToCurrent = true;
   try {
-    const normalized = writeSharedGroupRulesConfig(ruleConfigDraft.value);
-    ruleConfigDraft.value = cloneRuleConfig(normalized);
-    showMessage('success', '规则配置已生效');
-  } catch (error) {
-    console.error('应用规则配置失败:', error);
-    showMessage('error', '规则配置应用失败');
-  }
-};
-
-const restoreDefaultRuleConfig = () => {
-  ElMessageBox.confirm('恢复默认会覆盖当前规则和变量，是否继续？', '提示', {
-    confirmButtonText: '恢复默认',
-    cancelButtonText: '取消',
-    type: 'warning',
-  }).then(() => {
-    const normalized = writeSharedGroupRulesConfig(DEFAULT_GROUP_RULES_CONFIG);
-    ruleConfigDraft.value = cloneRuleConfig(normalized);
-    cancelRuleEditor();
-    showMessage('success', '已恢复默认规则配置');
-  }).catch(() => {
-    // 用户取消
-  });
-};
-
-const getManagedAssets = (libraryId: string) => {
-  return managedAssets[libraryId] || [];
-};
-
-const triggerAssetManagerUpload = () => {
-  assetUploadInputRef.value?.click();
-};
-
-const handleAssetManagerUpload = async (event: Event) => {
-  const target = event.target as HTMLInputElement | null;
-  const file = target?.files?.[0];
-  if (!file) {
-    if (target) target.value = '';
-    return;
-  }
-
-  try {
-    await createCustomAssetFromFile(assetManagerLibrary.value, file);
-    refreshManagedAssets(assetManagerLibrary.value);
-    showMessage('success', '素材上传成功');
-  } catch (error) {
-    console.error('素材上传失败:', error);
-    showMessage('error', '素材上传失败');
+    nodeSizeDraft.value = normalizeNodeCreateSizeConfig(nodeSizeDraft.value);
+    applyAssetThemeToCurrentFile(logicFlowInstance as any, {
+      config: nodeSizeDraft.value,
+    });
+    showMessage("success", t("nodeSize.message.applyCurrentSuccess"));
   } finally {
-    if (target) target.value = '';
+    state.applyingThemeToCurrent = false;
   }
 };
 
-const removeManagedAsset = (libraryId: string, item: CustomAssetItem) => {
-  deleteCustomAsset(libraryId, item);
-  refreshManagedAssets(libraryId);
-};
-
-// 重新渲染 LogicFlow 画布的通用方法
-const refreshLogicFlowCanvas = (message?: string) => {
-  setTimeout(() => {
-    const logicFlowInstance = getLogicFlowInstance();
-    if (logicFlowInstance) {
-      // 获取当前活动文件的数据
-      const currentFileData = filesStore.getTab(filesStore.activeFileId);
-      if (currentFileData) {
-        // 清空画布并重新渲染
-        logicFlowInstance.clearData();
-        // 注意：此处根据你的画布 API 传入 graphRawData 或整个文件数据
-        const data = (currentFileData as any).graphRawData || currentFileData;
-        logicFlowInstance.render(data);
-        console.log(message || 'LogicFlow 画布已重新渲染');
-      }
-    }
-  }, 100); // 延迟一点确保数据更新完成
-};
-
-const loadExample = () => {
-  ElMessageBox.confirm(
-      '加载样例会覆盖当前数据，是否覆盖？',
-      '提示',
-      {
-        confirmButtonText: '覆盖',
-        cancelButtonText: '取消',
-        type: 'warning',
-      }
-  ).then(() => {
-    // 使用默认状态作为示例
-    const defaultState = {
-      fileList: [{
-        "label": "示例文件",
-        "name": "example",
-        "visible": true,
-        "type": "FLOW",
-        "groups": [
-          {
-            "shortDescription": "示例组",
-            "groupInfo": [{}, {}, {}, {}, {}],
-            "details": "这是一个示例文件"
-          }
-        ],
-        "flowData": {
-          "nodes": [],
-          "edges": [],
-          "viewport": { "x": 0, "y": 0, "zoom": 1 }
-        }
-      }],
-      activeFile: "example"
-    };
-    filesStore.importData(defaultState);
-    refreshLogicFlowCanvas('LogicFlow 画布已重新渲染（示例数据）');
-    showMessage('success', '数据已恢复');
-  }).catch(() => {
-    showMessage('info', '选择了不恢复旧数据');
-  });
-}
-
-const CURRENT_APP_VERSION = updateLogs[0].version;
-const showUpdateLog = () => {
-  state.showUpdateLogDialog = !state.showUpdateLogDialog;
+const handleResetNodeSizeConfig = () => {
+  nodeSizeDraft.value = cloneNodeCreateSizeConfig(
+    DEFAULT_NODE_CREATE_SIZE_CONFIG,
+  );
+  showMessage("success", t("nodeSize.message.reset"));
 };
 
 onMounted(() => {
-  refreshManagedAssets();
-  unsubscribeAssetStore = subscribeCustomAssetStore(() => {
-    refreshManagedAssets();
-  });
-
-  if (props.isEmbed) {
-    return;
-  }
-
-  const lastVersion = localStorage.getItem('appVersion');
-
-  if (lastVersion !== CURRENT_APP_VERSION) {
-    // 如果版本号不同，则显示更新日志对话框
-    state.showUpdateLogDialog = true;
-    // 更新本地存储中的版本号为当前版本
-    localStorage.setItem('appVersion', CURRENT_APP_VERSION);
-  }
+  mountAssetManagement();
+  mountDialogState();
 });
 
 onBeforeUnmount(() => {
-  unsubscribeAssetStore?.();
-  unsubscribeAssetStore = null;
+  disposeAssetManagement();
 });
 
-
-const showFeedbackForm = () => {
-  state.showFeedbackFormDialog = !state.showFeedbackFormDialog;
-};
-
-const handleExport = () => {
-  // 导出前先更新当前数据，确保不丢失最新修改
-  filesStore.updateTab();
-
-  // 延迟一点确保更新完成后再导出
-  setTimeout(() => {
-    filesStore.exportData();
-  }, 2000);
-};
-
-const handlePreviewData = () => {
-  // 预览前先更新当前数据
-  filesStore.updateTab();
-
-  // 延迟一点确保更新完成后再预览
-  setTimeout(() => {
-    try {
-      const activeName = filesStore.fileList.find(f => f.id === filesStore.activeFileId)?.name || '';
-      const dataObj = {
-        schemaVersion: 1,
-        fileList: filesStore.fileList,
-        activeFileId: filesStore.activeFileId,
-        activeFile: activeName,
-      };
-      state.previewDataContent = JSON.stringify(dataObj, null, 2);
-      state.showDataPreviewDialog = true;
-    } catch (error) {
-      console.error('生成预览数据失败:', error);
-      showMessage('error', '数据预览失败');
-    }
-  }, 100);
-};
-
-const copyDataToClipboard = async () => {
-  try {
-    await navigator.clipboard.writeText(state.previewDataContent);
-    showMessage('success', '已复制到剪贴板');
-  } catch (error) {
-    console.error('复制失败:', error);
-    showMessage('error', '复制失败');
-  }
-};
-
-const openImportDialog = () => {
-  importSource.value = 'json';
-  teamCodeInput.value = '';
-  state.showImportDialog = true;
-};
-
-const triggerJsonFileImport = () => {
-  state.showImportDialog = false;
-  handleJsonImport();
-};
-
-const triggerTeamCodeQrImport = () => {
-  teamCodeQrInputRef.value?.click();
-};
-
-const handleJsonImport = () => {
-  const input = document.createElement('input');
-  input.type = 'file';
-  input.accept = '.json';
-  input.onchange = (e) => {
-    const target = e.target as HTMLInputElement;
-    const file = target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        try {
-          const target = e.target as FileReader;
-          const data = JSON.parse(target.result as string);
-          filesStore.importData(data);
-          refreshLogicFlowCanvas('LogicFlow 画布已重新渲染（导入数据）');
-        } catch (error) {
-          console.error('Failed to import file', error);
-          showMessage('error', '文件格式错误');
-        }
-      };
-      reader.readAsText(file);
-    }
-    target.value = '';
-  };
-  input.click();
-};
-
-const handleTeamCodeImport = async () => {
-  const rawTeamCode = teamCodeInput.value.trim();
-  if (!rawTeamCode) {
-    showMessage('warning', '请先粘贴阵容码');
-    return;
-  }
-
-  state.importingTeamCode = true;
-  try {
-    const rootDocument = await convertTeamCodeToRootDocument(rawTeamCode);
-    filesStore.importData(rootDocument);
-    refreshLogicFlowCanvas('LogicFlow 画布已重新渲染（阵容码导入）');
-    state.showImportDialog = false;
-    teamCodeInput.value = '';
-    showMessage('success', '阵容码导入成功');
-  } catch (error: any) {
-    console.error('阵容码导入失败:', error);
-    showMessage('error', error?.message || '阵容码导入失败');
-  } finally {
-    state.importingTeamCode = false;
-  }
-};
-
-const handleTeamCodeQrImport = async (event: Event) => {
-  const target = event.target as HTMLInputElement | null;
-  const file = target?.files?.[0];
-  if (!file) {
-    if (target) target.value = '';
-    return;
-  }
-
-  state.decodingTeamCodeQr = true;
-  try {
-    const decodedTeamCode = await decodeTeamCodeFromQrImage(file);
-    teamCodeInput.value = decodedTeamCode;
-    showMessage('success', '二维码识别成功，已填入阵容码');
-  } catch (error: any) {
-    console.error('二维码识别失败:', error);
-    showMessage('error', error?.message || '二维码识别失败');
-  } finally {
-    state.decodingTeamCodeQr = false;
-    if (target) target.value = '';
-  }
-};
-
-const handleResetWorkspace = () => {
-  ElMessageBox.confirm('确定重置当前工作区？该操作不可撤销', '提示', {
-    confirmButtonText: '重置',
-    cancelButtonText: '取消',
-    type: 'warning',
-  }).then(() => {
-    filesStore.resetWorkspace();
-  }).catch(() => {
-    // 用户取消
-  });
-};
-
-const handleClearCanvas = () => {
-  ElMessageBox.confirm('仅清空当前画布，不影响其他文件，确定继续？', '提示', {
-    confirmButtonText: '清空',
-    cancelButtonText: '取消',
-    type: 'warning',
-  }).then(() => {
-    const lfInstance = getLogicFlowInstance();
-    const activeId = filesStore.activeFileId;
-    const activeFile = filesStore.getTab(activeId);
-
-    if (lfInstance) {
-      lfInstance.clearData();
-      lfInstance.render({ nodes: [], edges: [] });
-      lfInstance.zoom(1, [0, 0]);
-    }
-
-    if (activeFile) {
-      activeFile.graphRawData = { nodes: [], edges: [] };
-      activeFile.transform = {
-        SCALE_X: 1,
-        SCALE_Y: 1,
-        TRANSLATE_X: 0,
-        TRANSLATE_Y: 0
-      };
-      filesStore.updateTab(activeId);
-    }
-
-    showMessage('success', '当前画布已清空');
-  }).catch(() => {
-    // 用户取消
-  });
-};
-
-const watermark = reactive({
-  text: localStorage.getItem('watermark.text') || '示例水印',
-  fontSize: Number(localStorage.getItem('watermark.fontSize')) || 30,
-  color: localStorage.getItem('watermark.color') || 'rgba(184, 184, 184, 0.3)',
-  angle: Number(localStorage.getItem('watermark.angle')) || -20,
-  rows: Number(localStorage.getItem('watermark.rows')) || 1,
-  cols: Number(localStorage.getItem('watermark.cols')) || 1,
+const {
+  handleExport,
+  handlePreviewData,
+  copyDataToClipboard,
+  openImportDialog,
+  triggerJsonFileImport,
+  triggerTeamCodeQrImport,
+  handleTeamCodeImport,
+  handleTeamCodeQrImport,
+  prepareCapture,
+  downloadImage,
+  handleClose,
+} = useToolbarImportExportCommands({
+  state,
+  filesStore,
+  logicFlowScope,
+  importSource,
+  teamCodeInput,
+  teamCodeValidationEnabled,
+  teamCodeQrInputRef,
+  watermark,
+  showMessage,
+  refreshLogicFlowCanvas,
 });
-
-const applyWatermarkSettings = () => {
-  // 保存水印设置到 localStorage
-  localStorage.setItem('watermark.text', watermark.text);
-  localStorage.setItem('watermark.fontSize', String(watermark.fontSize));
-  localStorage.setItem('watermark.color', watermark.color);
-  localStorage.setItem('watermark.angle', String(watermark.angle));
-  localStorage.setItem('watermark.rows', String(watermark.rows));
-  localStorage.setItem('watermark.cols', String(watermark.cols));
-
-  state.showWatermarkDialog = false;
-};
-
-
-const addWatermarkToImage = (base64: string) => {
-  const rows = Math.max(1, Number(watermark.rows) || 1);
-  const cols = Math.max(1, Number(watermark.cols) || 1);
-  const angle = (Number(watermark.angle) * Math.PI) / 180;
-
-  return new Promise<string>((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      canvas.width = img.width;
-      canvas.height = img.height;
-
-      if (!ctx) {
-        reject(new Error('无法创建画布上下文'));
-        return;
-      }
-
-      ctx.drawImage(img, 0, 0);
-      ctx.font = `${watermark.fontSize}px sans-serif`;
-      ctx.fillStyle = watermark.color;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-
-      const rowStep = canvas.height / rows;
-      const colStep = canvas.width / cols;
-
-      for (let r = 0; r < rows; r++) {
-        for (let c = 0; c < cols; c++) {
-          const x = (c + 0.5) * colStep;
-          const y = (r + 0.5) * rowStep;
-          ctx.save();
-          ctx.translate(x, y);
-          ctx.rotate(angle);
-          ctx.fillText(watermark.text, 0, 0);
-          ctx.restore();
-        }
-      }
-
-      resolve(canvas.toDataURL('image/png'));
-    };
-    img.onerror = () => reject(new Error('快照加载失败'));
-    img.src = base64;
-  });
-};
-
-const waitForNextPaint = () => {
-  return new Promise<void>((resolve) => {
-    if (typeof window === 'undefined' || typeof window.requestAnimationFrame !== 'function') {
-      resolve();
-      return;
-    }
-    window.requestAnimationFrame(() => resolve());
-  });
-};
-
-const withDynamicGroupsHiddenForSnapshot = async <T>(
-  logicFlowInstance: any,
-  runner: () => Promise<T>,
-): Promise<T> => {
-  const graphModel = logicFlowInstance?.graphModel;
-  const dynamicGroupModels = (graphModel?.nodes ?? []).filter(
-    (node: any) => node?.type === 'dynamic-group',
-  );
-
-  if (!dynamicGroupModels.length) {
-    return runner();
-  }
-
-  const previousStates = dynamicGroupModels.map((model: any) => ({
-    model,
-    visible: model.visible,
-  }));
-
-  try {
-    previousStates.forEach(({ model }) => {
-      model.visible = false;
-    });
-    await waitForNextPaint();
-    return await runner();
-  } finally {
-    previousStates.forEach(({ model, visible }) => {
-      model.visible = visible;
-    });
-    await waitForNextPaint();
-  }
-};
-
-const captureLogicFlowSnapshot = async () => {
-  const logicFlowInstance = getLogicFlowInstance() as any;
-  if (!logicFlowInstance || typeof logicFlowInstance.getSnapshotBase64 !== 'function') {
-    showMessage('error', '未找到 LogicFlow 实例，无法截图');
-    return null;
-  }
-
-  const snapshotResult = await withDynamicGroupsHiddenForSnapshot(
-    logicFlowInstance,
-    () => logicFlowInstance.getSnapshotBase64(
-      undefined,
-      undefined,
-      {
-        fileType: 'png',
-        backgroundColor: '#ffffff',
-        partial: false,
-        padding: 20,
-      },
-    ),
-  );
-
-  const base64 = typeof snapshotResult === 'string' ? snapshotResult : snapshotResult?.data;
-  if (!base64) {
-    showMessage('error', '未获取到截图数据');
-    return null;
-  }
-
-  return addWatermarkToImage(base64);
-};
-
-const prepareCapture = async () => {
-  try {
-    const img = await captureLogicFlowSnapshot();
-    if (!img) return;
-    state.previewImage = img;
-    state.previewVisible = true;
-  } catch (e) {
-    showMessage('error', '截图失败: ' + (e?.message || e));
-  }
-};
-
-const downloadImage = () => {
-  if (state.previewImage) {
-    const link = document.createElement('a');
-    link.href = state.previewImage;
-    link.download = 'screenshot.png';
-    link.click();
-    state.previewVisible = false;
-  }
-};
-
-const handleClose = (done) => {
-  state.previewImage = null; // 清除预览图像
-  done(); // 关闭弹窗
-};
 </script>
 
 <style scoped>
@@ -1315,6 +1281,14 @@ const handleClose = (done) => {
   white-space: nowrap;
 }
 
+.toolbar-actions :deep(.el-dropdown) {
+  flex-shrink: 0;
+}
+
+.toolbar-actions-legacy {
+  display: none;
+}
+
 .toolbar--embed {
   position: relative;
   top: auto;
@@ -1333,6 +1307,10 @@ const handleClose = (done) => {
   flex-shrink: 0;
 }
 
+.locale-select {
+  width: 110px;
+}
+
 .toolbar--embed .toolbar-actions {
   flex-wrap: nowrap;
 }
@@ -1343,7 +1321,8 @@ const handleClose = (done) => {
   font-size: 16px;
 }
 
-.left, .right {
+.left,
+.right {
   flex-basis: 120px;
   display: flex;
   gap: 8px;
@@ -1520,8 +1499,91 @@ const handleClose = (done) => {
   word-break: break-word;
 }
 
+.node-size-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+  margin-bottom: 10px;
+}
+
+.node-size-row {
+  display: grid;
+  grid-template-columns: 1fr 120px 120px 120px 120px;
+  gap: 10px;
+  align-items: center;
+}
+
+.node-size-label {
+  font-size: 13px;
+  color: #303133;
+}
+
+.node-size-row--header {
+  margin-bottom: 2px;
+}
+
+.node-size-dimension {
+  font-size: 12px;
+  color: #909399;
+  text-align: center;
+}
+
+.node-size-placeholder {
+  text-align: center;
+  color: #c0c4cc;
+  font-size: 12px;
+}
+
+.node-size-action {
+  width: 100%;
+}
+
+.node-theme-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 0 10px;
+}
+
+.node-theme-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 12px;
+}
+
+.node-theme-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.node-theme-inline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.node-theme-item :deep(.el-select),
+.node-theme-item :deep(.el-input-number),
+.node-theme-item :deep(.el-slider) {
+  flex: 1;
+}
+
+.node-theme-item--full {
+  grid-column: 1 / -1;
+}
+
 @media (max-width: 900px) {
   .variable-item {
+    grid-template-columns: 1fr;
+  }
+  .node-size-row {
+    grid-template-columns: 1fr;
+    justify-items: stretch;
+  }
+  .node-theme-grid {
     grid-template-columns: 1fr;
   }
 }

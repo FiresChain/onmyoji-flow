@@ -5,12 +5,12 @@
 ### 为什么需要组件化改造
 
 **当前状态**：
-- yys-editor 是一个独立的单页应用（SPA）
+- onmyoji-flow 是一个独立的单页应用（SPA）
 - 只能作为独立应用运行
 - 无法嵌入到其他项目中
 
 **目标**：
-- 将 yys-editor 改造为可嵌入的 Vue 组件
+- 将 onmyoji-flow 改造为可嵌入的 Vue 组件
 - 支持在 onmyoji-wiki 中作为块插件使用
 - 保持独立应用功能不变（双重角色）
 
@@ -36,7 +36,7 @@
 **不修改现有代码，创建独立的嵌入式组件**
 
 ```
-yys-editor/
+onmyoji-flow/
 ├── src/
 │   ├── App.vue                    # 独立应用（保持不变）
 │   ├── YysEditorEmbed.vue         # 嵌入式组件（新增）⭐
@@ -50,8 +50,8 @@ yys-editor/
 │       ├── useStore.ts            # 状态管理（共享）
 │       └── useLogicFlow.ts        # LogicFlow 封装（共享）
 └── dist/                          # 构建输出
-    ├── yys-editor.es.js           # ES Module（库模式）
-    └── yys-editor.umd.js          # UMD（库模式）
+    ├── onmyoji-flow.es.js         # ES Module（库模式）
+    └── onmyoji-flow.umd.js        # UMD（库模式）
 ```
 
 ### 架构设计
@@ -60,7 +60,7 @@ yys-editor/
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                    yys-editor 项目                       │
+│                    onmyoji-flow 项目                       │
 ├─────────────────────────────────────────────────────────┤
 │                                                          │
 │  ┌──────────────────┐         ┌──────────────────┐     │
@@ -135,10 +135,10 @@ interface YysEditorEmbedProps {
 
   // UI 控制（仅在 edit 模式有效）
   showToolbar?: boolean
-  showPropertyPanel?: boolean
+  showPropertyPanel?: boolean // 编辑模式下控制属性面板显示
   showComponentPanel?: boolean
 
-  // 配置选项
+  // 配置选项（最小实现已生效：grid/snapline/keyboard）
   config?: EditorConfig
 }
 
@@ -165,7 +165,7 @@ interface EdgeData {
   properties?: Record<string, any>
 }
 
-// 编辑器配置
+// 编辑器配置（当前最小实现：grid/snapline/keyboard）
 interface EditorConfig {
   // 画布配置
   grid?: boolean
@@ -206,9 +206,9 @@ const defaultProps = {
   width: '100%',
   height: '600px',
   showToolbar: true,
-  showPropertyPanel: true,
+  showPropertyPanel: true, // 编辑模式默认显示属性面板
   showComponentPanel: true,
-  config: {
+  config: { // 当前最小实现已生效（grid/snapline/keyboard）
     grid: true,
     snapline: true,
     keyboard: true,
@@ -217,6 +217,12 @@ const defaultProps = {
   }
 }
 ```
+
+### 契约状态（2026-03）
+
+1. `showPropertyPanel`：在 `mode='edit'` 下生效，用于控制右侧属性面板显示；默认值 `true`。
+2. `config`：当前最小可用实现已生效 `grid/snapline/keyboard` 三项。
+3. `config` 其余字段（如 `theme/locale`）仍为兼容保留，暂未接入运行时消费。
 
 ---
 
@@ -249,11 +255,8 @@ const defaultProps = {
         <FlowEditor
           ref="flowEditorRef"
           :initial-data="data"
-          @data-change="handleDataChange"
+          @graph-data-change="handleDataChange"
         />
-
-        <!-- 右侧属性面板 -->
-        <PropertyPanel v-if="showPropertyPanel" />
       </div>
     </template>
 
@@ -273,7 +276,6 @@ import { ref, computed, watch, onMounted } from 'vue'
 import FlowEditor from './components/flow/FlowEditor.vue'
 import Toolbar from './components/Toolbar.vue'
 import ComponentsPanel from './components/flow/ComponentsPanel.vue'
-import PropertyPanel from './components/flow/PropertyPanel.vue'
 import type { GraphData, EditorConfig } from './ts/schema'
 
 // Props
@@ -283,15 +285,15 @@ const props = withDefaults(defineProps<{
   width?: string | number
   height?: string | number
   showToolbar?: boolean
-  showPropertyPanel?: boolean
+  showPropertyPanel?: boolean // 编辑模式下控制属性面板显示
   showComponentPanel?: boolean
-  config?: EditorConfig
+  config?: EditorConfig // 最小实现已生效（grid/snapline/keyboard）
 }>(), {
   mode: 'edit',
   width: '100%',
   height: '600px',
   showToolbar: true,
-  showPropertyPanel: true,
+  showPropertyPanel: true, // 编辑模式默认显示属性面板
   showComponentPanel: true
 })
 
@@ -383,22 +385,41 @@ onMounted(() => {
 
 ### 2. 状态隔离策略
 
-**问题**：独立应用使用全局 Pinia store，嵌入式组件需要隔离状态
+**问题**：同页多实例嵌入时，若沿用模块级共享状态，会出现跨实例互相污染（画布实例、画布设置、store 写入目标串扰）。
 
-**方案**：使用 provide/inject 创建局部状态
+**已落地方案（Phase 1）**：以 `LogicFlowScope` 作为实例边界，三层隔离对齐到同一 scope。
 
 ```typescript
 // YysEditorEmbed.vue
-import { provide } from 'vue'
 import { createPinia } from 'pinia'
+import { useFilesStore } from '@/ts/useStore'
+import { createLogicFlowScope, provideLogicFlowScope } from '@/ts/useLogicFlow'
 
-// 创建局部 Pinia 实例
+// 1) 每个嵌入实例创建独立 Pinia
 const localPinia = createPinia()
-provide('pinia', localPinia)
 
-// 子组件使用局部 store
-const store = useFilesStore(localPinia)
+// 2) 每个嵌入实例创建并 provide 独立 LogicFlowScope
+const logicFlowScope = provideLogicFlowScope(createLogicFlowScope())
+
+// 3) store 显式绑定当前 scope，确保 updateTab/switch/save 读写本实例画布
+const filesStore = useFilesStore(localPinia)
+filesStore.bindLogicFlowScope(logicFlowScope)
 ```
+
+```typescript
+// FlowEditor.vue / useCanvasSettings.ts
+import { useLogicFlowScope, setLogicFlowInstance } from '@/ts/useLogicFlow'
+import { useCanvasSettings } from '@/ts/useCanvasSettings'
+
+const scope = useLogicFlowScope()
+setLogicFlowInstance(lfInstance, scope)
+const { selectionEnabled, snapGridEnabled, snaplineEnabled } = useCanvasSettings(scope)
+```
+
+实现要点：
+1. `useLogicFlow` 使用 `Map<LogicFlowScope, LogicFlow>` 管理实例，组件卸载时按 scope 销毁。
+2. `useCanvasSettings` 使用 `Map<LogicFlowScope, CanvasSettingsState>` 管理画布设置，跨实例不共享开关状态。
+3. `useStore` 通过 `bindLogicFlowScope(scope)` 显式绑定画布来源，避免切换文件时误写其他实例数据。
 
 ### 3. 样式隔离策略
 
@@ -435,7 +456,7 @@ export default defineConfig({
       entry: resolve(__dirname, 'src/YysEditorEmbed.vue'),
       name: 'YysEditor',
       // 输出文件名
-      fileName: (format) => `yys-editor.${format}.js`
+      fileName: (format) => `onmyoji-flow.${format}.js`
     },
     rollupOptions: {
       // 外部化依赖（不打包进库）
@@ -456,31 +477,37 @@ export default defineConfig({
 
 ```json
 {
-  "name": "yys-editor",
-  "version": "1.0.0",
+  "name": "@rookie4show/onmyoji-flow",
+  "version": "0.1.0",
   "type": "module",
-  "main": "./dist/yys-editor.umd.js",
-  "module": "./dist/yys-editor.es.js",
-  "types": "./dist/YysEditorEmbed.d.ts",
+  "main": "./dist/onmyoji-flow.umd.js",
+  "module": "./dist/onmyoji-flow.es.js",
   "exports": {
     ".": {
-      "import": "./dist/yys-editor.es.js",
-      "require": "./dist/yys-editor.umd.js",
-      "types": "./dist/YysEditorEmbed.d.ts"
+      "import": "./dist/onmyoji-flow.es.js",
+      "require": "./dist/onmyoji-flow.umd.js"
     },
-    "./style.css": "./dist/style.css"
+    "./style.css": "./dist/onmyoji-flow.css"
   },
   "files": [
-    "dist"
+    "dist/onmyoji-flow.css",
+    "dist/onmyoji-flow.es.js",
+    "dist/onmyoji-flow.es.js.map",
+    "dist/onmyoji-flow.umd.js",
+    "dist/onmyoji-flow.umd.js.map"
   ],
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
-    "build:lib": "vite build --config vite.config.lib.ts"
+    "build": "vite build --config vite.config.lib.js",
+    "build:lib": "vite build --config vite.config.lib.js"
   },
   "peerDependencies": {
     "vue": "^3.3.0",
-    "element-plus": "^2.9.0"
+    "element-plus": "^2.9.0",
+    "pinia": "^3.0.0",
+    "@logicflow/core": "^2.0.0",
+    "@logicflow/extension": "^2.0.0",
+    "@logicflow/vue-node-registry": "^1.0.0"
   }
 }
 ```
@@ -520,8 +547,8 @@ export default defineConfig({
 
 <script setup>
 import { ref } from 'vue'
-import { YysEditorEmbed } from 'yys-editor'
-import 'yys-editor/style.css'
+import { YysEditorEmbed } from '@rookie4show/onmyoji-flow'
+import '@rookie4show/onmyoji-flow/style.css'
 
 const isEditing = ref(false)
 const flowData = ref({
@@ -554,10 +581,10 @@ const handleError = (error) => {
 
 ```bash
 # 在 onmyoji-wiki 项目中
-npm install file:../yys-editor
+npm install file:../onmyoji-flow
 
 # 或发布到 npm 后
-npm install yys-editor
+npm install @rookie4show/onmyoji-flow
 ```
 
 ---
@@ -638,5 +665,6 @@ npm install yys-editor
 
 ---
 
-**最后更新：** 2026-02-20
-**文档版本：** v1.0.0
+**最后更新：** 2026-03-04
+**文档版本：** v1.0.1
+

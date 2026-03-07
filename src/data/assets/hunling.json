@@ -1,0 +1,82 @@
+[
+  {
+    "id": "100",
+    "library": "hunling",
+    "avatar": "/assets/HunLing/100.png",
+    "names": {
+      "zh": "镇墓兽",
+      "ja": "镇墓兽",
+      "en": "镇墓兽"
+    }
+  },
+  {
+    "id": "101",
+    "library": "hunling",
+    "avatar": "/assets/HunLing/101.png",
+    "names": {
+      "zh": "火灵",
+      "ja": "火灵",
+      "en": "火灵"
+    }
+  },
+  {
+    "id": "102",
+    "library": "hunling",
+    "avatar": "/assets/HunLing/102.png",
+    "names": {
+      "zh": "茨球",
+      "ja": "茨球",
+      "en": "茨球"
+    }
+  },
+  {
+    "id": "103",
+    "library": "hunling",
+    "avatar": "/assets/HunLing/103.png",
+    "names": {
+      "zh": "小黑",
+      "ja": "小黑",
+      "en": "小黑"
+    }
+  },
+  {
+    "id": "104",
+    "library": "hunling",
+    "avatar": "/assets/HunLing/104.png",
+    "names": {
+      "zh": "针女",
+      "ja": "针女",
+      "en": "针女"
+    }
+  },
+  {
+    "id": "105",
+    "library": "hunling",
+    "avatar": "/assets/HunLing/105.png",
+    "names": {
+      "zh": "薙魂",
+      "ja": "薙魂",
+      "en": "薙魂"
+    }
+  },
+  {
+    "id": "106",
+    "library": "hunling",
+    "avatar": "/assets/HunLing/106.png",
+    "names": {
+      "zh": "月魔兔",
+      "ja": "月魔兔",
+      "en": "月魔兔"
+    }
+  },
+  {
+    "id": "107",
+    "library": "hunling",
+    "avatar": "/assets/HunLing/107.png",
+    "names": {
+      "zh": "狐火",
+      "ja": "狐火",
+      "en": "狐火"
+    }
+  }
+]

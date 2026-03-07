@@ -3,8 +3,12 @@
   "version": "1.0.0",
   "description": "Scripts for YYS Editor",
   "scripts": {
-    "scrape": "node scrape-shikigami.js",
-    "scrape-puppeteer": "node scrape-shikigami-puppeteer.js"
+    "sync-assets": "node sync-assets.js --library all",
+    "sync-assets:shikigami": "node sync-assets.js --library shikigami",
+    "sync-assets:yuhun": "node sync-assets.js --library yuhun",
+    "sync-assets:onmyoji": "node sync-assets.js --library onmyoji",
+    "sync-assets:onmyojiSkill": "node sync-assets.js --library onmyojiSkill",
+    "verify-assets": "node verify-assets.js"
   },
   "dependencies": {
     "jsdom": "^23.0.0",

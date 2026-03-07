@@ -15,6 +15,7 @@
 #### 示例对比
 
 ❌ **不推荐：Mock 测试**
+
 ```typescript
 // 使用模拟类
 class MockLogicFlow {
@@ -30,22 +31,23 @@ class MockLogicFlow {
 ```
 
 ✅ **推荐：真实场景测试**
+
 ```typescript
-import LogicFlow from '@logicflow/core'
+import LogicFlow from "@logicflow/core";
 
 // 使用真实的 LogicFlow 实例
 const lf = new LogicFlow({
-  container: document.createElement('div'),
-  grid: { type: 'dot', size: 10 }
-})
+  container: document.createElement("div"),
+  grid: { type: "dot", size: 10 },
+});
 
 // 模拟真实用户操作
-const node = lf.addNode({ type: 'rect', x: 100, y: 100 })
-lf.setElementZIndex(node.id, 'top')
+const node = lf.addNode({ type: "rect", x: 100, y: 100 });
+lf.setElementZIndex(node.id, "top");
 
 // 验证真实的数据
-const graphData = lf.getGraphRawData()
-expect(graphData.nodes[0].zIndex).toBeDefined() // 这会发现真实问题！
+const graphData = lf.getGraphRawData();
+expect(graphData.nodes[0].zIndex).toBeDefined(); // 这会发现真实问题！
 ```
 
 ---
@@ -59,10 +61,7 @@ src/__tests__/
 ├── setup.ts                          # 测试环境配置
 ├── README-测试报告.md                 # 测试报告
 ├── layer-management/                 # 图层管理测试
-│   ├── real-scenario.spec.ts        # ✅ 真实场景测试（推荐）
-│   ├── mock-test.spec.ts.bak        # ❌ Mock 测试（已废弃）
-│   ├── integration-test.spec.ts.bak # ❌ 组件集成测试（已废弃）
-│   └── unit-test.spec.ts.bak        # ❌ 单元测试（已废弃）
+│   └── real-scenario.spec.ts         # ✅ 真实场景测试（推荐）
 ├── schema.test.ts                    # Schema 验证测试
 └── useStore.test.ts                  # Store 测试
 ```
@@ -70,7 +69,7 @@ src/__tests__/
 ### 文件命名规范
 
 - `*.spec.ts` - 活跃的测试文件
-- `*.spec.ts.bak` - 已废弃的测试文件（保留作为参考）
+- 历史废弃测试不在仓库存放 `.bak`，如需追溯请使用 Git 历史
 - `real-scenario.spec.ts` - 真实场景测试（推荐命名）
 
 ---
@@ -95,45 +94,45 @@ const mockPinia = { ... }
 ### 2. 模拟真实的用户操作流程
 
 ```typescript
-it('完整用户流程：创建节点 -> 图层操作 -> 验证数据', () => {
+it("完整用户流程：创建节点 -> 图层操作 -> 验证数据", () => {
   // 步骤 1: 用户从 ComponentsPanel 拖拽创建节点
-  const node1 = lf.addNode({ type: 'rect', x: 100, y: 100 })
+  const node1 = lf.addNode({ type: "rect", x: 100, y: 100 });
 
   // 步骤 2: 用户右键点击，选择"置于顶层"
-  lf.setElementZIndex(node1.id, 'top')
+  lf.setElementZIndex(node1.id, "top");
 
   // 步骤 3: 用户点击 Toolbar 的"数据预览"
-  const graphData = lf.getGraphRawData()
+  const graphData = lf.getGraphRawData();
 
   // 步骤 4: 验证数据
-  expect(graphData.nodes[0].zIndex).toBeDefined()
-})
+  expect(graphData.nodes[0].zIndex).toBeDefined();
+});
 ```
 
 ### 3. 提供清晰的调试信息
 
 ```typescript
-it('置顶操作', () => {
-  console.log('初始 zIndex:', { node1: model1.zIndex, node2: model2.zIndex })
+it("置顶操作", () => {
+  console.log("初始 zIndex:", { node1: model1.zIndex, node2: model2.zIndex });
 
-  lf.setElementZIndex(node1.id, 'top')
+  lf.setElementZIndex(node1.id, "top");
 
-  console.log('置顶后 zIndex:', { node1: model1.zIndex, node2: model2.zIndex })
+  console.log("置顶后 zIndex:", { node1: model1.zIndex, node2: model2.zIndex });
 
-  expect(model1.zIndex).toBeGreaterThan(model2.zIndex)
-})
+  expect(model1.zIndex).toBeGreaterThan(model2.zIndex);
+});
 ```
 
 ### 4. 测试边界情况
 
 ```typescript
-it('边界情况 - 最顶层节点继续置顶', () => {
+it("边界情况 - 最顶层节点继续置顶", () => {
   // 测试极端情况
-})
+});
 
-it('边界情况 - 最底层节点继续置底', () => {
+it("边界情况 - 最底层节点继续置底", () => {
   // 测试极端情况
-})
+});
 ```
 
 ---
@@ -150,7 +149,7 @@ global.ResizeObserver = class ResizeObserver {
   observe() {}
   unobserve() {}
   disconnect() {}
-}
+};
 
 // Mock IntersectionObserver
 global.IntersectionObserver = class IntersectionObserver {
@@ -158,7 +157,7 @@ global.IntersectionObserver = class IntersectionObserver {
   observe() {}
   unobserve() {}
   disconnect() {}
-}
+};
 ```
 
 ### vitest.config.js
@@ -168,12 +167,12 @@ export default mergeConfig(
   viteConfig,
   defineConfig({
     test: {
-      environment: 'jsdom',
+      environment: "jsdom",
       globals: true,
-      setupFiles: ['./src/__tests__/setup.ts'],
-    }
-  })
-)
+      setupFiles: ["./src/__tests__/setup.ts"],
+    },
+  }),
+);
 ```
 
 ---
@@ -214,27 +213,30 @@ npm test -- layer-management --reporter=verbose
 ### ✅ 适合使用 Mock 的场景
 
 1. **外部 API 调用**
+
    ```typescript
    // Mock HTTP 请求
-   vi.mock('axios')
+   vi.mock("axios");
    ```
 
 2. **时间相关的测试**
+
    ```typescript
    // Mock 定时器
-   vi.useFakeTimers()
+   vi.useFakeTimers();
    ```
 
 3. **文件系统操作**
+
    ```typescript
    // Mock fs 模块
-   vi.mock('fs')
+   vi.mock("fs");
    ```
 
 4. **难以复现的场景**
    ```typescript
    // Mock 网络错误
-   vi.mock('fetch', () => ({ default: vi.fn(() => Promise.reject()) }))
+   vi.mock("fetch", () => ({ default: vi.fn(() => Promise.reject()) }));
    ```
 
 ### ❌ 不适合使用 Mock 的场景
@@ -258,6 +260,7 @@ npm test -- layer-management --reporter=verbose
 参考 `src/__tests__/layer-management/real-scenario.spec.ts`
 
 这个测试文件展示了如何：
+
 - ✅ 使用真实的 LogicFlow 实例
 - ✅ 模拟真实的用户操作流程
 - ✅ 发现真实的代码问题（zIndex 不持久化、置底逻辑错误）
@@ -274,6 +277,7 @@ A: 可能是因为你使用了 Mock 测试。Mock 测试只能验证理想逻辑
 ### Q: 真实场景测试运行很慢怎么办？
 
 A:
+
 1. 只在关键路径使用真实场景测试
 2. 使用 `it.only()` 运行单个测试
 3. 考虑使用 E2E 测试工具（Playwright、Cypress）
@@ -281,6 +285,7 @@ A:
 ### Q: 如何测试需要浏览器环境的功能？
 
 A:
+
 1. 使用 jsdom 环境（已配置）
 2. 添加必要的 polyfill（见 setup.ts）
 3. 如果 jsdom 不够，考虑使用 Playwright

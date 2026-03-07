@@ -9,20 +9,10 @@
   - 模拟真实的用户操作流程
   - 能够发现真实的代码问题
 
-### 📦 已废弃的测试（仅供参考）
+### 📦 历史废弃测试说明
 
-- **`mock-test.spec.ts.bak`** - Mock 测试
-  - 使用模拟类（MockLogicFlow）
-  - 只能验证理想逻辑
-  - 无法发现真实代码的问题
-
-- **`integration-test.spec.ts.bak`** - 组件集成测试
-  - 尝试挂载 Vue 组件
-  - 因为缺少浏览器 API 而失败
-
-- **`unit-test.spec.ts.bak`** - 单元测试
-  - 测试单个函数
-  - 覆盖范围有限
+- 历史 `mock/integration/unit` 的 `.bak` 测试文件已在 2026-03 仓库卫生清理中移除。
+- 如需追溯旧实现，请使用 Git 历史（`git log -- src/__tests__/layer-management`）。
 
 ---
 

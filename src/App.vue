@@ -1,32 +1,50 @@
 <script setup lang="ts">
-import Toolbar from './components/Toolbar.vue';
-import ProjectExplorer from './components/ProjectExplorer.vue';
-import ComponentsPanel from './components/flow/ComponentsPanel.vue';
-import { onMounted, reactive, watch } from 'vue';
-import {useFilesStore} from "@/ts/useStore";
-import Vue3DraggableResizable from 'vue3-draggable-resizable';
-import {TabPaneName, TabsPaneContext} from "element-plus";
-import FlowEditor from './components/flow/FlowEditor.vue';
-import ShikigamiSelect from './components/flow/nodes/yys/ShikigamiSelect.vue';
-import YuhunSelect from './components/flow/nodes/yys/YuhunSelect.vue';
-import PropertySelect from './components/flow/nodes/yys/PropertySelect.vue';
-import DialogManager from './components/DialogManager.vue';
-import {getLogicFlowInstance} from "@/ts/useLogicFlow";
-import { migrateGraphData, needsMigration } from '@/utils/nodeMigration';
-import { useGlobalMessage } from '@/ts/useGlobalMessage';
+import Toolbar from "./components/Toolbar.vue";
+import ProjectExplorer from "./components/ProjectExplorer.vue";
+import ComponentsPanel from "./components/flow/ComponentsPanel.vue";
+import { computed, onMounted, watch } from "vue";
+import { useFilesStore } from "@/ts/useStore";
+import Vue3DraggableResizable from "vue3-draggable-resizable";
+import { TabPaneName, TabsPaneContext } from "element-plus";
+import FlowEditor from "./components/flow/FlowEditor.vue";
+import ShikigamiSelect from "./components/flow/nodes/yys/ShikigamiSelect.vue";
+import YuhunSelect from "./components/flow/nodes/yys/YuhunSelect.vue";
+import PropertySelect from "./components/flow/nodes/yys/PropertySelect.vue";
+import DialogManager from "./components/DialogManager.vue";
+import {
+  createLogicFlowScope,
+  getLogicFlowInstance,
+  provideLogicFlowScope,
+} from "@/ts/useLogicFlow";
+import { migrateGraphData, needsMigration } from "@/utils/nodeMigration";
+import { useGlobalMessage } from "@/ts/useGlobalMessage";
 
+const logicFlowScope = provideLogicFlowScope(createLogicFlowScope());
 const filesStore = useFilesStore();
+filesStore.bindLogicFlowScope(logicFlowScope);
 const { showMessage } = useGlobalMessage();
+const activeFileModel = computed({
+  get: () => filesStore.activeFileId,
+  set: (value: string) => filesStore.setActiveFile(value),
+});
 
 const normalizeGraphData = (data: any) => {
-  if (data && Array.isArray((data as any).nodes) && Array.isArray((data as any).edges)) {
+  if (
+    data &&
+    Array.isArray((data as any).nodes) &&
+    Array.isArray((data as any).edges)
+  ) {
     // 应用数据迁移
-    const { graphData: migratedData, migratedCount, migrations } = migrateGraphData(data);
+    const {
+      graphData: migratedData,
+      migratedCount,
+      migrations,
+    } = migrateGraphData(data);
 
     // 如果有迁移，显示提示信息
     if (migratedCount > 0) {
       console.log(`[数据迁移] 迁移了 ${migratedCount} 个节点:`, migrations);
-      showMessage('info', `已自动升级 ${migratedCount} 个节点到新版本`);
+      showMessage("info", `已自动升级 ${migratedCount} 个节点到新版本`);
     }
 
     // 清理节点数据，移除可能导致 Label 插件出错的空 _label 数组
@@ -34,11 +52,15 @@ const normalizeGraphData = (data: any) => {
       ...migratedData,
       nodes: migratedData.nodes.map((node: any) => {
         const cleanedNode = { ...node };
-        if (cleanedNode.properties && Array.isArray(cleanedNode.properties._label) && cleanedNode.properties._label.length === 0) {
+        if (
+          cleanedNode.properties &&
+          Array.isArray(cleanedNode.properties._label) &&
+          cleanedNode.properties._label.length === 0
+        ) {
           delete cleanedNode.properties._label;
         }
         return cleanedNode;
-      })
+      }),
     };
     return cleanedData;
   }
@@ -46,12 +68,12 @@ const normalizeGraphData = (data: any) => {
 };
 
 const handleTabsEdit = (
-    targetName: string | undefined,
-    action: 'remove' | 'add'
+  targetName: string | undefined,
+  action: "remove" | "add",
 ) => {
-  if (action === 'remove') {
+  if (action === "remove") {
     filesStore.removeTab(targetName);
-  } else if (action === 'add') {
+  } else if (action === "add") {
     filesStore.addTab();
   }
 };
@@ -62,16 +84,12 @@ onMounted(() => {
   filesStore.setupAutoSave();
 });
 
-// 1) 切换激活文件：仅当 id 变化时保存旧数据并渲染新数据
+// 1) 切换激活文件：仅渲染新数据；保存旧文件职责由 store.setActiveFile 统一处理
 watch(
   () => filesStore.activeFileId,
-  async (newId, oldId) => {
-    if (oldId && newId !== oldId) {
-      filesStore.updateTab(oldId);
-    }
-
+  (newId) => {
     if (newId) {
-      const logicFlowInstance = getLogicFlowInstance();
+      const logicFlowInstance = getLogicFlowInstance(logicFlowScope);
       const currentTab = filesStore.getTab(newId);
 
       if (logicFlowInstance && currentTab?.graphRawData) {
@@ -91,24 +109,24 @@ watch(
             });
           }
 
-          logicFlowInstance.zoom(
-            currentTab.transform?.SCALE_X ?? 1,
-            [currentTab.transform?.TRANSLATE_X ?? 0, currentTab.transform?.TRANSLATE_Y ?? 0]
-          );
+          logicFlowInstance.zoom(currentTab.transform?.SCALE_X ?? 1, [
+            currentTab.transform?.TRANSLATE_X ?? 0,
+            currentTab.transform?.TRANSLATE_Y ?? 0,
+          ]);
         } catch (error) {
-          console.warn('渲染画布数据失败:', error);
+          console.warn("渲染画布数据失败:", error);
         }
       }
     }
   },
-  { flush: 'post' }
+  { flush: "post" },
 );
 
 // 2) 导入等替换 fileList 引用时，主动按当前 activeFileId 渲染一次，不保存旧数据
 watch(
   () => filesStore.fileList,
   () => {
-    const logicFlowInstance = getLogicFlowInstance();
+    const logicFlowInstance = getLogicFlowInstance(logicFlowScope);
     const currentTab = filesStore.getTab(filesStore.activeFileId);
 
     if (logicFlowInstance && currentTab?.graphRawData) {
@@ -122,60 +140,58 @@ watch(
             if (nodeData.zIndex !== undefined) {
               const model = logicFlowInstance.getNodeModelById(nodeData.id);
               if (model) {
-                console.log(`[导入数据] 恢复节点 ${nodeData.id} 的 zIndex: ${nodeData.zIndex}`);
+                console.log(
+                  `[导入数据] 恢复节点 ${nodeData.id} 的 zIndex: ${nodeData.zIndex}`,
+                );
                 model.setZIndex(nodeData.zIndex);
               }
             }
           });
         }
 
-        logicFlowInstance.zoom(
-          currentTab.transform?.SCALE_X ?? 1,
-          [currentTab.transform?.TRANSLATE_X ?? 0, currentTab.transform?.TRANSLATE_Y ?? 0]
-        );
+        logicFlowInstance.zoom(currentTab.transform?.SCALE_X ?? 1, [
+          currentTab.transform?.TRANSLATE_X ?? 0,
+          currentTab.transform?.TRANSLATE_Y ?? 0,
+        ]);
       } catch (error) {
-        console.warn('渲染画布数据失败:', error);
+        console.warn("渲染画布数据失败:", error);
       }
     }
   },
-  { flush: 'post' }
+  { flush: "post" },
 );
-
 </script>
 
 <template>
   <div class="container">
     <!-- 工具栏 -->
-    <Toolbar title="onmyoji-flow" username="示例用户"/>
+    <Toolbar title="onmyoji-flow" username="示例用户" />
     <!-- 侧边栏和工作区 -->
     <div class="main-content">
       <!-- 侧边栏 -->
-      <ComponentsPanel/>
+      <ComponentsPanel />
       <!-- 工作区 -->
       <div class="workspace">
         <el-tabs
-            v-model="filesStore.activeFileId"
-            type="card"
-            class="demo-tabs"
-            editable
-            @edit="handleTabsEdit"
+          v-model="activeFileModel"
+          type="card"
+          class="demo-tabs"
+          editable
+          @edit="handleTabsEdit"
         >
           <el-tab-pane
-              v-for="(file, index) in filesStore.visibleFiles"
-              :key="`${file.id}-${filesStore.activeFileId}`"
-              :label="file.label"
-              :name="file.id"
+            v-for="(file, index) in filesStore.visibleFiles"
+            :key="`${file.id}-${filesStore.activeFileId}`"
+            :label="file.label"
+            :name="file.id"
           />
         </el-tabs>
         <div id="main-container">
-          <FlowEditor
-              height="100%"
-              :enable-label="false"
-          />
+          <FlowEditor height="100%" :enable-label="false" />
         </div>
       </div>
     </div>
-    <DialogManager/>
+    <DialogManager />
   </div>
 </template>
 
@@ -249,6 +265,3 @@ watch(
   overflow-y: auto;
 }
 </style>
-
-
-
