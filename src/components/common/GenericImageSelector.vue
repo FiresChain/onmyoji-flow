@@ -1,7 +1,9 @@
 <template>
   <el-dialog v-model="show" :title="config.title">
     <span v-if="config.currentItem">
-      当前选择：{{ config.currentItem[config.itemRender.labelField] }}
+      {{ t("selector.currentSelection") }}：{{
+        config.currentItem[config.itemRender.labelField]
+      }}
     </span>
 
     <div v-if="config.allowUserAssetUpload" class="user-asset-actions">
@@ -12,36 +14,41 @@
         class="hidden-input"
         @change="handleUploadAsset"
       />
-      <el-button size="small" type="primary" @click="triggerUpload">上传我的素材</el-button>
+      <el-button size="small" type="primary" @click="triggerUpload">
+        {{ t("selector.uploadMine") }}
+      </el-button>
     </div>
 
     <!-- 搜索框 -->
-    <div v-if="config.searchable !== false" style="display: flex; align-items: center;">
+    <div
+      v-if="config.searchable !== false"
+      style="display: flex; align-items: center"
+    >
       <el-input
         v-model="searchText"
-        placeholder="请输入内容"
-        style="width: 200px; margin-right: 10px;"
+        :placeholder="t('selector.searchPlaceholder')"
+        style="width: 200px; margin-right: 10px"
       />
     </div>
 
     <!-- Tab分组 -->
-    <el-tabs
-      v-model="activeTab"
-      type="card"
-      class="demo-tabs"
-    >
+    <el-tabs v-model="activeTab" type="card" class="demo-tabs">
       <el-tab-pane
         v-for="group in config.groups"
         :key="group.name"
         :label="group.label"
         :name="group.name"
       >
-        <div style="max-height: 600px; overflow-y: auto;">
+        <div style="max-height: 600px; overflow-y: auto">
           <el-space wrap size="large">
             <div
-              v-for="item in filteredItems(group)"
-              :key="item.id || item[config.itemRender.labelField]"
-              style="display: flex; flex-direction: column; justify-content: center"
+              v-for="(item, index) in filteredItems(group)"
+              :key="getItemKey(item, index)"
+              style="
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+              "
             >
               <el-button
                 class="selector-button"
@@ -53,7 +60,7 @@
                   :style="`width: ${imageSize - 1}px; height: ${imageSize - 1}px; background-image: url('${getItemImageUrl(item)}');`"
                 />
               </el-button>
-              <span style="text-align: center; display: block;">
+              <span style="text-align: center; display: block">
                 {{ item[config.itemRender.labelField] }}
               </span>
               <el-button
@@ -63,7 +70,7 @@
                 size="small"
                 @click.stop="removeUserAsset(item)"
               >
-                删除
+                {{ t("selector.delete") }}
               </el-button>
             </div>
           </el-space>
@@ -74,148 +81,169 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
-import type { SelectorConfig, GroupConfig } from '@/types/selector'
-import { resolveAssetUrl } from '@/utils/assetUrl'
-import { createCustomAssetFromFile, listCustomAssets, subscribeCustomAssetStore } from '@/utils/customAssets'
+import { ref, computed, watch, onMounted, onBeforeUnmount } from "vue";
+import type { SelectorConfig, GroupConfig } from "@/types/selector";
+import { resolveAssetUrl } from "@/utils/assetUrl";
+import { buildSelectorItemKey } from "@/utils/selectorItemKey";
+import { useSafeI18n } from "@/ts/useSafeI18n";
+import {
+  createCustomAssetFromFile,
+  listCustomAssets,
+  subscribeCustomAssetStore,
+} from "@/utils/customAssets";
 
 const props = defineProps<{
-  config: SelectorConfig
-  modelValue: boolean
-}>()
+  config: SelectorConfig;
+  modelValue: boolean;
+}>();
 
 const emit = defineEmits<{
-  'update:modelValue': [value: boolean]
-  'select': [item: any]
-}>()
+  "update:modelValue": [value: boolean];
+  select: [item: any];
+}>();
+const { t } = useSafeI18n();
 
 const show = computed({
   get: () => props.modelValue,
-  set: (value) => emit('update:modelValue', value)
-})
+  set: (value) => emit("update:modelValue", value),
+});
 
-const searchText = ref('')
-const activeTab = ref('ALL')
-const imageSize = computed(() => props.config.itemRender.imageSize || 100)
-const imageField = computed(() => props.config.itemRender.imageField)
-const uploadInputRef = ref<HTMLInputElement | null>(null)
-const dataSource = ref<any[]>([])
-let unsubscribeCustomAssets: (() => void) | null = null
+const searchText = ref("");
+const activeTab = ref("ALL");
+const imageSize = computed(() => props.config.itemRender.imageSize || 100);
+const imageField = computed(() => props.config.itemRender.imageField);
+const uploadInputRef = ref<HTMLInputElement | null>(null);
+const dataSource = ref<any[]>([]);
+let unsubscribeCustomAssets: (() => void) | null = null;
 
 const refreshDataSource = () => {
-  const source = Array.isArray(props.config.dataSource) ? props.config.dataSource : []
-  const staticAssets = source.filter((item) => !item?.__userAsset)
-  const library = props.config.assetLibrary
+  const source = Array.isArray(props.config.dataSource)
+    ? props.config.dataSource
+    : [];
+  const staticAssets = source.filter((item) => !item?.__userAsset);
+  const library = props.config.assetLibrary;
   if (!library) {
-    dataSource.value = [...source]
-    return
+    dataSource.value = [...source];
+    return;
   }
-  const customAssets = listCustomAssets(library)
-  dataSource.value = [...staticAssets, ...customAssets]
-}
+  const customAssets = listCustomAssets(library);
+  dataSource.value = [...staticAssets, ...customAssets];
+};
 
 watch(
   () => [props.config.dataSource, props.config.assetLibrary],
   () => {
-    refreshDataSource()
+    refreshDataSource();
   },
-  { immediate: true, deep: true }
-)
+  { immediate: true, deep: true },
+);
 
 watch(
   () => props.modelValue,
   (visible) => {
     if (visible) {
-      refreshDataSource()
+      refreshDataSource();
     }
-  }
-)
+  },
+);
 
 onMounted(() => {
   unsubscribeCustomAssets = subscribeCustomAssetStore(() => {
     if (props.modelValue) {
-      refreshDataSource()
+      refreshDataSource();
     }
-  })
-})
+  });
+});
 
 onBeforeUnmount(() => {
-  unsubscribeCustomAssets?.()
-  unsubscribeCustomAssets = null
-})
+  unsubscribeCustomAssets?.();
+  unsubscribeCustomAssets = null;
+});
 
 // 过滤逻辑
 const filteredItems = (group: GroupConfig) => {
-  let items = dataSource.value
+  let items = dataSource.value;
 
   // 分组过滤
-  if (group.name !== 'ALL') {
+  if (group.name !== "ALL") {
     if (group.filter) {
-      items = items.filter(group.filter)
+      items = items.filter(group.filter);
     } else if (!props.config.groupField) {
-      items = []
+      items = [];
     } else {
-      items = items.filter(item =>
-        item[props.config.groupField]?.toLowerCase() === group.name.toLowerCase()
-      )
+      items = items.filter(
+        (item) =>
+          item[props.config.groupField]?.toLowerCase() ===
+          group.name.toLowerCase(),
+      );
     }
   }
 
   // 搜索过滤
   if (searchText.value.trim()) {
-    const searchFields = props.config.searchFields || [props.config.itemRender.labelField]
-    items = items.filter(item =>
-      searchFields.some(field =>
-        item[field]?.toLowerCase().includes(searchText.value.toLowerCase())
-      )
-    )
+    const searchFields = props.config.searchFields || [
+      props.config.itemRender.labelField,
+    ];
+    items = items.filter((item) =>
+      searchFields.some((field) =>
+        item[field]?.toLowerCase().includes(searchText.value.toLowerCase()),
+      ),
+    );
   }
 
-  return items
-}
+  return items;
+};
 
 const handleSelect = (item: any) => {
-  const field = imageField.value
+  const field = imageField.value;
   const normalizedItem = {
     ...item,
-    [field]: resolveAssetUrl(item?.[field])
-  }
-  emit('select', normalizedItem)
-  searchText.value = ''
-  activeTab.value = 'ALL'
-}
+    [field]: resolveAssetUrl(item?.[field]),
+  };
+  emit("select", normalizedItem);
+  searchText.value = "";
+  activeTab.value = "ALL";
+};
 
-const getItemImageUrl = (item: any) => resolveAssetUrl(item?.[imageField.value]) as string
+const getItemImageUrl = (item: any) =>
+  resolveAssetUrl(item?.[imageField.value]) as string;
+
+const getItemKey = (item: any, index: number) => {
+  return buildSelectorItemKey(item, index, props.config);
+};
 
 const triggerUpload = () => {
-  uploadInputRef.value?.click()
-}
+  uploadInputRef.value?.click();
+};
 
 const handleUploadAsset = async (event: Event) => {
-  const target = event.target as HTMLInputElement | null
-  const file = target?.files?.[0]
+  const target = event.target as HTMLInputElement | null;
+  const file = target?.files?.[0];
   if (!file || !props.config.assetLibrary) {
     if (target) {
-      target.value = ''
+      target.value = "";
     }
-    return
+    return;
   }
 
   try {
-    const createdAsset = await createCustomAssetFromFile(props.config.assetLibrary, file)
-    props.config.onUserAssetUploaded?.(createdAsset)
-    refreshDataSource()
+    const createdAsset = await createCustomAssetFromFile(
+      props.config.assetLibrary,
+      file,
+    );
+    props.config.onUserAssetUploaded?.(createdAsset);
+    refreshDataSource();
   } finally {
     if (target) {
-      target.value = ''
+      target.value = "";
     }
   }
-}
+};
 
 const removeUserAsset = (item: any) => {
-  props.config.onDeleteUserAsset?.(item)
-  refreshDataSource()
-}
+  props.config.onDeleteUserAsset?.(item);
+  refreshDataSource();
+};
 </script>
 
 <style scoped>

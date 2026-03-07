@@ -1,0 +1,1138 @@
+[
+  {
+    "id": "300000",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300000.png",
+    "names": {
+      "zh": "散件",
+      "ja": "散件",
+      "en": "散件"
+    },
+    "shortNames": {
+      "zh": "散件",
+      "ja": "散件",
+      "en": "散件"
+    },
+    "type": "attack"
+  },
+  {
+    "id": "300086",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300086.png",
+    "names": {
+      "zh": "隐念",
+      "ja": "隐念",
+      "en": "隐念"
+    },
+    "shortNames": {
+      "zh": "隐",
+      "ja": "隐",
+      "en": "隐"
+    },
+    "type": "attack"
+  },
+  {
+    "id": "300082",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300082.png",
+    "names": {
+      "zh": "贝吹坊",
+      "ja": "贝吹坊",
+      "en": "贝吹坊"
+    },
+    "shortNames": {
+      "zh": "贝",
+      "ja": "贝",
+      "en": "贝"
+    },
+    "type": "attack"
+  },
+  {
+    "id": "300074",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300074.png",
+    "names": {
+      "zh": "兵主部",
+      "ja": "兵主部",
+      "en": "兵主部"
+    },
+    "shortNames": {
+      "zh": "兵",
+      "ja": "兵",
+      "en": "兵"
+    },
+    "type": "attack"
+  },
+  {
+    "id": "300048",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300048.png",
+    "names": {
+      "zh": "狂骨",
+      "ja": "狂骨",
+      "en": "狂骨"
+    },
+    "shortNames": {
+      "zh": "狂",
+      "ja": "狂",
+      "en": "狂"
+    },
+    "type": "attack"
+  },
+  {
+    "id": "300027",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300027.png",
+    "names": {
+      "zh": "阴摩罗",
+      "ja": "阴摩罗",
+      "en": "阴摩罗"
+    },
+    "shortNames": {
+      "zh": "阴",
+      "ja": "阴",
+      "en": "阴"
+    },
+    "type": "attack"
+  },
+  {
+    "id": "300022",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300022.png",
+    "names": {
+      "zh": "心眼",
+      "ja": "心眼",
+      "en": "心眼"
+    },
+    "shortNames": {
+      "zh": "心",
+      "ja": "心",
+      "en": "心"
+    },
+    "type": "attack"
+  },
+  {
+    "id": "300020",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300020.png",
+    "names": {
+      "zh": "鸣屋",
+      "ja": "鸣屋",
+      "en": "鸣屋"
+    },
+    "shortNames": {
+      "zh": "鸣",
+      "ja": "鸣",
+      "en": "鸣"
+    },
+    "type": "attack"
+  },
+  {
+    "id": "300018",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300018.png",
+    "names": {
+      "zh": "狰",
+      "ja": "狰",
+      "en": "狰"
+    },
+    "shortNames": {
+      "zh": "狰",
+      "ja": "狰",
+      "en": "狰"
+    },
+    "type": "attack"
+  },
+  {
+    "id": "300012",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300012.png",
+    "names": {
+      "zh": "轮入道",
+      "ja": "轮入道",
+      "en": "轮入道"
+    },
+    "shortNames": {
+      "zh": "轮",
+      "ja": "轮",
+      "en": "轮"
+    },
+    "type": "attack"
+  },
+  {
+    "id": "300004",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300004.png",
+    "names": {
+      "zh": "蝠翼",
+      "ja": "蝠翼",
+      "en": "蝠翼"
+    },
+    "shortNames": {
+      "zh": "蝠",
+      "ja": "蝠",
+      "en": "蝠"
+    },
+    "type": "attack"
+  },
+  {
+    "id": "300088",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300088.png",
+    "names": {
+      "zh": "应声虫",
+      "ja": "应声虫",
+      "en": "应声虫"
+    },
+    "shortNames": {
+      "zh": "应",
+      "ja": "应",
+      "en": "应"
+    },
+    "type": "Crit"
+  },
+  {
+    "id": "300083",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300083.png",
+    "names": {
+      "zh": "海月火玉",
+      "ja": "海月火玉",
+      "en": "海月火玉"
+    },
+    "shortNames": {
+      "zh": "海",
+      "ja": "海",
+      "en": "海"
+    },
+    "type": "Crit"
+  },
+  {
+    "id": "300075",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300075.png",
+    "names": {
+      "zh": "青女房",
+      "ja": "青女房",
+      "en": "青女房"
+    },
+    "shortNames": {
+      "zh": "房",
+      "ja": "房",
+      "en": "房"
+    },
+    "type": "Crit"
+  },
+  {
+    "id": "300036",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300036.png",
+    "names": {
+      "zh": "针女",
+      "ja": "针女",
+      "en": "针女"
+    },
+    "shortNames": {
+      "zh": "针",
+      "ja": "针",
+      "en": "针"
+    },
+    "type": "Crit"
+  },
+  {
+    "id": "300031",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300031.png",
+    "names": {
+      "zh": "镇墓兽",
+      "ja": "镇墓兽",
+      "en": "镇墓兽"
+    },
+    "shortNames": {
+      "zh": "镇",
+      "ja": "镇",
+      "en": "镇"
+    },
+    "type": "Crit"
+  },
+  {
+    "id": "300030",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300030.png",
+    "names": {
+      "zh": "破势",
+      "ja": "破势",
+      "en": "破势"
+    },
+    "shortNames": {
+      "zh": "破",
+      "ja": "破",
+      "en": "破"
+    },
+    "type": "Crit"
+  },
+  {
+    "id": "300029",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300029.png",
+    "names": {
+      "zh": "伤魂鸟",
+      "ja": "伤魂鸟",
+      "en": "伤魂鸟"
+    },
+    "shortNames": {
+      "zh": "伤",
+      "ja": "伤",
+      "en": "伤"
+    },
+    "type": "Crit"
+  },
+  {
+    "id": "300026",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300026.png",
+    "names": {
+      "zh": "网切",
+      "ja": "网切",
+      "en": "网切"
+    },
+    "shortNames": {
+      "zh": "网",
+      "ja": "网",
+      "en": "网"
+    },
+    "type": "Crit"
+  },
+  {
+    "id": "300007",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300007.png",
+    "names": {
+      "zh": "三味",
+      "ja": "三味",
+      "en": "三味"
+    },
+    "shortNames": {
+      "zh": "三",
+      "ja": "三",
+      "en": "三"
+    },
+    "type": "Crit"
+  },
+  {
+    "id": "300087",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300087.png",
+    "names": {
+      "zh": "叠叩",
+      "ja": "叠叩",
+      "en": "叠叩"
+    },
+    "shortNames": {
+      "zh": "叠",
+      "ja": "叠",
+      "en": "叠"
+    },
+    "type": "Health"
+  },
+  {
+    "id": "300081",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300081.png",
+    "names": {
+      "zh": "恶楼",
+      "ja": "恶楼",
+      "en": "恶楼"
+    },
+    "shortNames": {
+      "zh": "恶",
+      "ja": "恶",
+      "en": "恶"
+    },
+    "type": "Health"
+  },
+  {
+    "id": "300076",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300076.png",
+    "names": {
+      "zh": "涂佛",
+      "ja": "涂佛",
+      "en": "涂佛"
+    },
+    "shortNames": {
+      "zh": "涂",
+      "ja": "涂",
+      "en": "涂"
+    },
+    "type": "Health"
+  },
+  {
+    "id": "300024",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300024.png",
+    "names": {
+      "zh": "树妖",
+      "ja": "树妖",
+      "en": "树妖"
+    },
+    "shortNames": {
+      "zh": "树妖",
+      "ja": "树妖",
+      "en": "树妖"
+    },
+    "type": "Health"
+  },
+  {
+    "id": "300021",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300021.png",
+    "names": {
+      "zh": "薙魂",
+      "ja": "薙魂",
+      "en": "薙魂"
+    },
+    "shortNames": {
+      "zh": "薙魂",
+      "ja": "薙魂",
+      "en": "薙魂"
+    },
+    "type": "Health"
+  },
+  {
+    "id": "300015",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300015.png",
+    "names": {
+      "zh": "钟灵",
+      "ja": "钟灵",
+      "en": "钟灵"
+    },
+    "shortNames": {
+      "zh": "钟灵",
+      "ja": "钟灵",
+      "en": "钟灵"
+    },
+    "type": "Health"
+  },
+  {
+    "id": "300014",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300014.png",
+    "names": {
+      "zh": "镜姬",
+      "ja": "镜姬",
+      "en": "镜姬"
+    },
+    "shortNames": {
+      "zh": "镜姬",
+      "ja": "镜姬",
+      "en": "镜姬"
+    },
+    "type": "Health"
+  },
+  {
+    "id": "300009",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300009.png",
+    "names": {
+      "zh": "被服",
+      "ja": "被服",
+      "en": "被服"
+    },
+    "shortNames": {
+      "zh": "被服",
+      "ja": "被服",
+      "en": "被服"
+    },
+    "type": "Health"
+  },
+  {
+    "id": "300006",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300006.png",
+    "names": {
+      "zh": "涅槃火",
+      "ja": "涅槃火",
+      "en": "涅槃火"
+    },
+    "shortNames": {
+      "zh": "涅槃火",
+      "ja": "涅槃火",
+      "en": "涅槃火"
+    },
+    "type": "Health"
+  },
+  {
+    "id": "300003",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300003.png",
+    "names": {
+      "zh": "地藏像",
+      "ja": "地藏像",
+      "en": "地藏像"
+    },
+    "shortNames": {
+      "zh": "地藏",
+      "ja": "地藏",
+      "en": "地藏"
+    },
+    "type": "Health"
+  },
+  {
+    "id": "300085",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300085.png",
+    "names": {
+      "zh": "火之车",
+      "ja": "火之车",
+      "en": "火之车"
+    },
+    "shortNames": {
+      "zh": "火之车",
+      "ja": "火之车",
+      "en": "火之车"
+    },
+    "type": "Defense"
+  },
+  {
+    "id": "300084",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300084.png",
+    "names": {
+      "zh": "出世螺",
+      "ja": "出世螺",
+      "en": "出世螺"
+    },
+    "shortNames": {
+      "zh": "出世螺",
+      "ja": "出世螺",
+      "en": "出世螺"
+    },
+    "type": "Defense"
+  },
+  {
+    "id": "300035",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300035.png",
+    "names": {
+      "zh": "魅妖",
+      "ja": "魅妖",
+      "en": "魅妖"
+    },
+    "shortNames": {
+      "zh": "魅妖",
+      "ja": "魅妖",
+      "en": "魅妖"
+    },
+    "type": "Defense"
+  },
+  {
+    "id": "300032",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300032.png",
+    "names": {
+      "zh": "珍珠",
+      "ja": "珍珠",
+      "en": "珍珠"
+    },
+    "shortNames": {
+      "zh": "珍珠",
+      "ja": "珍珠",
+      "en": "珍珠"
+    },
+    "type": "Defense"
+  },
+  {
+    "id": "300023",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300023.png",
+    "names": {
+      "zh": "木魅",
+      "ja": "木魅",
+      "en": "木魅"
+    },
+    "shortNames": {
+      "zh": "木魅",
+      "ja": "木魅",
+      "en": "木魅"
+    },
+    "type": "Defense"
+  },
+  {
+    "id": "300013",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300013.png",
+    "names": {
+      "zh": "日女巳时",
+      "ja": "日女巳时",
+      "en": "日女巳时"
+    },
+    "shortNames": {
+      "zh": "日女",
+      "ja": "日女",
+      "en": "日女"
+    },
+    "type": "Defense"
+  },
+  {
+    "id": "300011",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300011.png",
+    "names": {
+      "zh": "反枕",
+      "ja": "反枕",
+      "en": "反枕"
+    },
+    "shortNames": {
+      "zh": "反枕",
+      "ja": "反枕",
+      "en": "反枕"
+    },
+    "type": "Defense"
+  },
+  {
+    "id": "300010",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300010.png",
+    "names": {
+      "zh": "招财猫",
+      "ja": "招财猫",
+      "en": "招财猫"
+    },
+    "shortNames": {
+      "zh": "招财",
+      "ja": "招财",
+      "en": "招财"
+    },
+    "type": "Defense"
+  },
+  {
+    "id": "300002",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300002.png",
+    "names": {
+      "zh": "雪幽魂",
+      "ja": "雪幽魂",
+      "en": "雪幽魂"
+    },
+    "shortNames": {
+      "zh": "雪幽魂",
+      "ja": "雪幽魂",
+      "en": "雪幽魂"
+    },
+    "type": "Defense"
+  },
+  {
+    "id": "300089",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300089.png",
+    "names": {
+      "zh": "元兴寺",
+      "ja": "元兴寺",
+      "en": "元兴寺"
+    },
+    "shortNames": {
+      "zh": "元兴寺",
+      "ja": "元兴寺",
+      "en": "元兴寺"
+    },
+    "type": "ControlHit"
+  },
+  {
+    "id": "300079",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300079.png",
+    "names": {
+      "zh": "遗念火",
+      "ja": "遗念火",
+      "en": "遗念火"
+    },
+    "shortNames": {
+      "zh": "遗念火",
+      "ja": "遗念火",
+      "en": "遗念火"
+    },
+    "type": "ControlHit"
+  },
+  {
+    "id": "300073",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300073.png",
+    "names": {
+      "zh": "飞缘魔",
+      "ja": "飞缘魔",
+      "en": "飞缘魔"
+    },
+    "shortNames": {
+      "zh": "飞缘魔",
+      "ja": "飞缘魔",
+      "en": "飞缘魔"
+    },
+    "type": "ControlHit"
+  },
+  {
+    "id": "300034",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300034.png",
+    "names": {
+      "zh": "蚌精",
+      "ja": "蚌精",
+      "en": "蚌精"
+    },
+    "shortNames": {
+      "zh": "蚌精",
+      "ja": "蚌精",
+      "en": "蚌精"
+    },
+    "type": "ControlHit"
+  },
+  {
+    "id": "300019",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300019.png",
+    "names": {
+      "zh": "火灵",
+      "ja": "火灵",
+      "en": "火灵"
+    },
+    "shortNames": {
+      "zh": "火灵",
+      "ja": "火灵",
+      "en": "火灵"
+    },
+    "type": "ControlHit"
+  },
+  {
+    "id": "300090",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300090.png",
+    "names": {
+      "zh": "钓瓶火",
+      "ja": "钓瓶火",
+      "en": "钓瓶火"
+    },
+    "shortNames": {
+      "zh": "钓瓶火",
+      "ja": "钓瓶火",
+      "en": "钓瓶火"
+    },
+    "type": "ControlMiss"
+  },
+  {
+    "id": "300080",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300080.png",
+    "names": {
+      "zh": "共潜",
+      "ja": "共潜",
+      "en": "共潜"
+    },
+    "shortNames": {
+      "zh": "共潜",
+      "ja": "共潜",
+      "en": "共潜"
+    },
+    "type": "ControlMiss"
+  },
+  {
+    "id": "300049",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300049.png",
+    "names": {
+      "zh": "幽谷响",
+      "ja": "幽谷响",
+      "en": "幽谷响"
+    },
+    "shortNames": {
+      "zh": "幽谷响",
+      "ja": "幽谷响",
+      "en": "幽谷响"
+    },
+    "type": "ControlMiss"
+  },
+  {
+    "id": "300039",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300039.png",
+    "names": {
+      "zh": "返魂香",
+      "ja": "返魂香",
+      "en": "返魂香"
+    },
+    "shortNames": {
+      "zh": "返魂香",
+      "ja": "返魂香",
+      "en": "返魂香"
+    },
+    "type": "ControlMiss"
+  },
+  {
+    "id": "300033",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300033.png",
+    "names": {
+      "zh": "骰子鬼",
+      "ja": "骰子鬼",
+      "en": "骰子鬼"
+    },
+    "shortNames": {
+      "zh": "骰子鬼",
+      "ja": "骰子鬼",
+      "en": "骰子鬼"
+    },
+    "type": "ControlMiss"
+  },
+  {
+    "id": "300008",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300008.png",
+    "names": {
+      "zh": "魍魉之匣",
+      "ja": "魍魉之匣",
+      "en": "魍魉之匣"
+    },
+    "shortNames": {
+      "zh": "魍魉",
+      "ja": "魍魉",
+      "en": "魍魉"
+    },
+    "type": "ControlMiss"
+  },
+  {
+    "id": "300077",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300077.png",
+    "names": {
+      "zh": "鬼灵歌伎",
+      "ja": "鬼灵歌伎",
+      "en": "鬼灵歌伎"
+    },
+    "shortNames": {
+      "zh": "歌伎",
+      "ja": "歌伎",
+      "en": "歌伎"
+    },
+    "type": "PVE"
+  },
+  {
+    "id": "300054",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300054.png",
+    "names": {
+      "zh": "蜃气楼",
+      "ja": "蜃气楼",
+      "en": "蜃气楼"
+    },
+    "shortNames": {
+      "zh": "蜃",
+      "ja": "蜃",
+      "en": "蜃"
+    },
+    "type": "PVE"
+  },
+  {
+    "id": "300053",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300053.png",
+    "names": {
+      "zh": "地震鲶",
+      "ja": "地震鲶",
+      "en": "地震鲶"
+    },
+    "shortNames": {
+      "zh": "地震鲶",
+      "ja": "地震鲶",
+      "en": "地震鲶"
+    },
+    "type": "PVE"
+  },
+  {
+    "id": "300052",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300052.png",
+    "names": {
+      "zh": "荒骷髅",
+      "ja": "荒骷髅",
+      "en": "荒骷髅"
+    },
+    "shortNames": {
+      "zh": "荒",
+      "ja": "荒",
+      "en": "荒"
+    },
+    "type": "PVE"
+  },
+  {
+    "id": "300051",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300051.png",
+    "names": {
+      "zh": "胧车",
+      "ja": "胧车",
+      "en": "胧车"
+    },
+    "shortNames": {
+      "zh": "胧",
+      "ja": "胧",
+      "en": "胧"
+    },
+    "type": "PVE"
+  },
+  {
+    "id": "300050",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300050.png",
+    "names": {
+      "zh": "土蜘蛛",
+      "ja": "土蜘蛛",
+      "en": "土蜘蛛"
+    },
+    "shortNames": {
+      "zh": "土",
+      "ja": "土",
+      "en": "土"
+    },
+    "type": "PVE"
+  },
+  {
+    "id": "300091",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300091.png",
+    "names": {
+      "zh": "夜荒魂",
+      "ja": "夜荒魂",
+      "en": "夜荒魂"
+    },
+    "shortNames": {
+      "zh": "夜荒魂",
+      "ja": "夜荒魂",
+      "en": "夜荒魂"
+    },
+    "type": "PVE"
+  },
+  {
+    "id": "300093",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300093.png",
+    "names": {
+      "zh": "奉海图",
+      "ja": "奉海图",
+      "en": "奉海图"
+    },
+    "shortNames": {
+      "zh": "奉海图",
+      "ja": "奉海图",
+      "en": "奉海图"
+    },
+    "type": "Defense"
+  },
+  {
+    "id": "300092",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300092.png",
+    "names": {
+      "zh": "无刀取",
+      "ja": "无刀取",
+      "en": "无刀取"
+    },
+    "shortNames": {
+      "zh": "无刀取",
+      "ja": "无刀取",
+      "en": "无刀取"
+    },
+    "type": "CritDamage"
+  },
+  {
+    "id": "300099",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300099.png",
+    "names": {
+      "zh": "稻荷穗箭",
+      "ja": "稻荷穗箭",
+      "en": "稻荷穗箭"
+    },
+    "shortNames": {
+      "zh": "稻",
+      "ja": "稻",
+      "en": "稻"
+    },
+    "type": "PVE"
+  },
+  {
+    "id": "300098",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300098.png",
+    "names": {
+      "zh": "纺缘锤",
+      "ja": "纺缘锤",
+      "en": "纺缘锤"
+    },
+    "shortNames": {
+      "zh": "缘",
+      "ja": "缘",
+      "en": "缘"
+    },
+    "type": "PVE"
+  },
+  {
+    "id": "300097",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300097.png",
+    "names": {
+      "zh": "月之石",
+      "ja": "月之石",
+      "en": "月之石"
+    },
+    "shortNames": {
+      "zh": "月石",
+      "ja": "月石",
+      "en": "月石"
+    },
+    "type": "PVE"
+  },
+  {
+    "id": "300096",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300096.png",
+    "names": {
+      "zh": "预言星盘",
+      "ja": "预言星盘",
+      "en": "预言星盘"
+    },
+    "shortNames": {
+      "zh": "星盘",
+      "ja": "星盘",
+      "en": "星盘"
+    },
+    "type": "PVE"
+  },
+  {
+    "id": "300099",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300099.png",
+    "names": {
+      "zh": "天羽羽斩",
+      "ja": "天羽羽斩",
+      "en": "天羽羽斩"
+    },
+    "shortNames": {
+      "zh": "羽",
+      "ja": "羽",
+      "en": "羽"
+    },
+    "type": "PVE"
+  },
+  {
+    "id": "300094",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300094.png",
+    "names": {
+      "zh": "八咫镜",
+      "ja": "八咫镜",
+      "en": "八咫镜"
+    },
+    "shortNames": {
+      "zh": "八咫镜",
+      "ja": "八咫镜",
+      "en": "八咫镜"
+    },
+    "type": "attack"
+  },
+  {
+    "id": "300055",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300055.png",
+    "names": {
+      "zh": "片叶之苇",
+      "ja": "片叶之苇",
+      "en": "片叶之苇"
+    },
+    "shortNames": {
+      "zh": "片叶之苇",
+      "ja": "片叶之苇",
+      "en": "片叶之苇"
+    },
+    "type": "Crit"
+  },
+  {
+    "id": "300056",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300056.png",
+    "names": {
+      "zh": "尘冢",
+      "ja": "尘冢",
+      "en": "尘冢"
+    },
+    "shortNames": {
+      "zh": "尘冢",
+      "ja": "尘冢",
+      "en": "尘冢"
+    },
+    "type": "attack"
+  },
+  {
+    "id": "300057",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300057.png",
+    "names": {
+      "zh": "油赤子",
+      "ja": "油赤子",
+      "en": "油赤子"
+    },
+    "shortNames": {
+      "zh": "油赤子",
+      "ja": "油赤子",
+      "en": "油赤子"
+    },
+    "type": "ControlHit"
+  },
+  {
+    "id": "300058",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300058.png",
+    "names": {
+      "zh": "夜啼石",
+      "ja": "夜啼石",
+      "en": "夜啼石"
+    },
+    "shortNames": {
+      "zh": "夜啼石",
+      "ja": "夜啼石",
+      "en": "夜啼石"
+    },
+    "type": "Health"
+  },
+  {
+    "id": "300059",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300059.png",
+    "names": {
+      "zh": "夜送犬",
+      "ja": "夜送犬",
+      "en": "夜送犬"
+    },
+    "shortNames": {
+      "zh": "夜送犬",
+      "ja": "夜送犬",
+      "en": "夜送犬"
+    },
+    "type": "ControlMiss"
+  },
+  {
+    "id": "300060",
+    "library": "yuhun",
+    "avatar": "/assets/Yuhun/300060.png",
+    "names": {
+      "zh": "雨降",
+      "ja": "雨降",
+      "en": "雨降"
+    },
+    "shortNames": {
+      "zh": "雨降",
+      "ja": "雨降",
+      "en": "雨降"
+    },
+    "type": "Defense"
+  }
+]

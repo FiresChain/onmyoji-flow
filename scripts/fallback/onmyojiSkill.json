@@ -1,0 +1,578 @@
+[
+  {
+    "id": "10:1003",
+    "library": "onmyojiSkill",
+    "avatar": "/assets/downloaded_images/hero_10_skill_1003.png",
+    "names": {
+      "zh": "言灵·守",
+      "ja": "言灵·守",
+      "en": "言灵·守"
+    },
+    "onmyojiId": "10",
+    "skillId": "1003"
+  },
+  {
+    "id": "10:1004",
+    "library": "onmyojiSkill",
+    "avatar": "/assets/downloaded_images/hero_10_skill_1004.png",
+    "names": {
+      "zh": "言灵·盾",
+      "ja": "言灵·盾",
+      "en": "言灵·盾"
+    },
+    "onmyojiId": "10",
+    "skillId": "1004"
+  },
+  {
+    "id": "10:1005",
+    "library": "onmyojiSkill",
+    "avatar": "/assets/downloaded_images/hero_10_skill_1005.png",
+    "names": {
+      "zh": "言灵·星",
+      "ja": "言灵·星",
+      "en": "言灵·星"
+    },
+    "onmyojiId": "10",
+    "skillId": "1005"
+  },
+  {
+    "id": "10:1007",
+    "library": "onmyojiSkill",
+    "avatar": "/assets/downloaded_images/hero_10_skill_1007.png",
+    "names": {
+      "zh": "言灵·缚",
+      "ja": "言灵·缚",
+      "en": "言灵·缚"
+    },
+    "onmyojiId": "10",
+    "skillId": "1007"
+  },
+  {
+    "id": "10:1008",
+    "library": "onmyojiSkill",
+    "avatar": "/assets/downloaded_images/hero_10_skill_1008.png",
+    "names": {
+      "zh": "言灵·风",
+      "ja": "言灵·风",
+      "en": "言灵·风"
+    },
+    "onmyojiId": "10",
+    "skillId": "1008"
+  },
+  {
+    "id": "10:1009",
+    "library": "onmyojiSkill",
+    "avatar": "/assets/downloaded_images/hero_10_skill_1009.png",
+    "names": {
+      "zh": "言灵·火",
+      "ja": "言灵·火",
+      "en": "言灵·火"
+    },
+    "onmyojiId": "10",
+    "skillId": "1009"
+  },
+  {
+    "id": "10:1011",
+    "library": "onmyojiSkill",
+    "avatar": "/assets/downloaded_images/hero_10_skill_1011.png",
+    "names": {
+      "zh": "言灵·水",
+      "ja": "言灵·水",
+      "en": "言灵·水"
+    },
+    "onmyojiId": "10",
+    "skillId": "1011"
+  },
+  {
+    "id": "10:9001",
+    "library": "onmyojiSkill",
+    "avatar": "/assets/downloaded_images/hero_10_skill_9001.png",
+    "names": {
+      "zh": "通用技能",
+      "ja": "通用技能",
+      "en": "通用技能"
+    },
+    "onmyojiId": "10",
+    "skillId": "9001"
+  },
+  {
+    "id": "11:1101",
+    "library": "onmyojiSkill",
+    "avatar": "/assets/downloaded_images/hero_11_skill_1101.png",
+    "names": {
+      "zh": "神乐铃·治愈",
+      "ja": "神乐铃·治愈",
+      "en": "神乐铃·治愈"
+    },
+    "onmyojiId": "11",
+    "skillId": "1101"
+  },
+  {
+    "id": "11:1102",
+    "library": "onmyojiSkill",
+    "avatar": "/assets/downloaded_images/hero_11_skill_1102.png",
+    "names": {
+      "zh": "神乐铃·盾御",
+      "ja": "神乐铃·盾御",
+      "en": "神乐铃·盾御"
+    },
+    "onmyojiId": "11",
+    "skillId": "1102"
+  },
+  {
+    "id": "11:1103",
+    "library": "onmyojiSkill",
+    "avatar": "/assets/downloaded_images/hero_11_skill_1103.png",
+    "names": {
+      "zh": "神乐铃·反弹",
+      "ja": "神乐铃·反弹",
+      "en": "神乐铃·反弹"
+    },
+    "onmyojiId": "11",
+    "skillId": "1103"
+  },
+  {
+    "id": "11:1104",
+    "library": "onmyojiSkill",
+    "avatar": "/assets/downloaded_images/hero_11_skill_1104.png",
+    "names": {
+      "zh": "神乐铃·净化",
+      "ja": "神乐铃·净化",
+      "en": "神乐铃·净化"
+    },
+    "onmyojiId": "11",
+    "skillId": "1104"
+  },
+  {
+    "id": "11:1105",
+    "library": "onmyojiSkill",
+    "avatar": "/assets/downloaded_images/hero_11_skill_1105.png",
+    "names": {
+      "zh": "神乐铃·复苏",
+      "ja": "神乐铃·复苏",
+      "en": "神乐铃·复苏"
+    },
+    "onmyojiId": "11",
+    "skillId": "1105"
+  },
+  {
+    "id": "11:1107",
+    "library": "onmyojiSkill",
+    "avatar": "/assets/downloaded_images/hero_11_skill_1107.png",
+    "names": {
+      "zh": "神乐铃·庇护",
+      "ja": "神乐铃·庇护",
+      "en": "神乐铃·庇护"
+    },
+    "onmyojiId": "11",
+    "skillId": "1107"
+  },
+  {
+    "id": "11:1111",
+    "library": "onmyojiSkill",
+    "avatar": "/assets/downloaded_images/hero_11_skill_1111.png",
+    "names": {
+      "zh": "神乐铃·祈愿",
+      "ja": "神乐铃·祈愿",
+      "en": "神乐铃·祈愿"
+    },
+    "onmyojiId": "11",
+    "skillId": "1111"
+  },
+  {
+    "id": "11:9011",
+    "library": "onmyojiSkill",
+    "avatar": "/assets/downloaded_images/hero_11_skill_9011.png",
+    "names": {
+      "zh": "通用技能",
+      "ja": "通用技能",
+      "en": "通用技能"
+    },
+    "onmyojiId": "11",
+    "skillId": "9011"
+  },
+  {
+    "id": "12:1201",
+    "library": "onmyojiSkill",
+    "avatar": "/assets/downloaded_images/hero_12_skill_1201.png",
+    "names": {
+      "zh": "技能1",
+      "ja": "技能1",
+      "en": "技能1"
+    },
+    "onmyojiId": "12",
+    "skillId": "1201"
+  },
+  {
+    "id": "12:1202",
+    "library": "onmyojiSkill",
+    "avatar": "/assets/downloaded_images/hero_12_skill_1202.png",
+    "names": {
+      "zh": "技能2",
+      "ja": "技能2",
+      "en": "技能2"
+    },
+    "onmyojiId": "12",
+    "skillId": "1202"
+  },
+  {
+    "id": "12:1203",
+    "library": "onmyojiSkill",
+    "avatar": "/assets/downloaded_images/hero_12_skill_1203.png",
+    "names": {
+      "zh": "技能3",
+      "ja": "技能3",
+      "en": "技能3"
+    },
+    "onmyojiId": "12",
+    "skillId": "1203"
+  },
+  {
+    "id": "12:1204",
+    "library": "onmyojiSkill",
+    "avatar": "/assets/downloaded_images/hero_12_skill_1204.png",
+    "names": {
+      "zh": "技能4",
+      "ja": "技能4",
+      "en": "技能4"
+    },
+    "onmyojiId": "12",
+    "skillId": "1204"
+  },
+  {
+    "id": "12:1205",
+    "library": "onmyojiSkill",
+    "avatar": "/assets/downloaded_images/hero_12_skill_1205.png",
+    "names": {
+      "zh": "技能5",
+      "ja": "技能5",
+      "en": "技能5"
+    },
+    "onmyojiId": "12",
+    "skillId": "1205"
+  },
+  {
+    "id": "12:1206",
+    "library": "onmyojiSkill",
+    "avatar": "/assets/downloaded_images/hero_12_skill_1206.png",
+    "names": {
+      "zh": "技能6",
+      "ja": "技能6",
+      "en": "技能6"
+    },
+    "onmyojiId": "12",
+    "skillId": "1206"
+  },
+  {
+    "id": "12:1207",
+    "library": "onmyojiSkill",
+    "avatar": "/assets/downloaded_images/hero_12_skill_1207.png",
+    "names": {
+      "zh": "技能7",
+      "ja": "技能7",
+      "en": "技能7"
+    },
+    "onmyojiId": "12",
+    "skillId": "1207"
+  },
+  {
+    "id": "12:9021",
+    "library": "onmyojiSkill",
+    "avatar": "/assets/downloaded_images/hero_12_skill_9021.png",
+    "names": {
+      "zh": "通用技能",
+      "ja": "通用技能",
+      "en": "通用技能"
+    },
+    "onmyojiId": "12",
+    "skillId": "9021"
+  },
+  {
+    "id": "13:1301",
+    "library": "onmyojiSkill",
+    "avatar": "/assets/downloaded_images/hero_13_skill_1301.png",
+    "names": {
+      "zh": "技能1",
+      "ja": "技能1",
+      "en": "技能1"
+    },
+    "onmyojiId": "13",
+    "skillId": "1301"
+  },
+  {
+    "id": "13:1302",
+    "library": "onmyojiSkill",
+    "avatar": "/assets/downloaded_images/hero_13_skill_1302.png",
+    "names": {
+      "zh": "技能2",
+      "ja": "技能2",
+      "en": "技能2"
+    },
+    "onmyojiId": "13",
+    "skillId": "1302"
+  },
+  {
+    "id": "13:1303",
+    "library": "onmyojiSkill",
+    "avatar": "/assets/downloaded_images/hero_13_skill_1303.png",
+    "names": {
+      "zh": "技能3",
+      "ja": "技能3",
+      "en": "技能3"
+    },
+    "onmyojiId": "13",
+    "skillId": "1303"
+  },
+  {
+    "id": "13:1304",
+    "library": "onmyojiSkill",
+    "avatar": "/assets/downloaded_images/hero_13_skill_1304.png",
+    "names": {
+      "zh": "技能4",
+      "ja": "技能4",
+      "en": "技能4"
+    },
+    "onmyojiId": "13",
+    "skillId": "1304"
+  },
+  {
+    "id": "13:1305",
+    "library": "onmyojiSkill",
+    "avatar": "/assets/downloaded_images/hero_13_skill_1305.png",
+    "names": {
+      "zh": "技能5",
+      "ja": "技能5",
+      "en": "技能5"
+    },
+    "onmyojiId": "13",
+    "skillId": "1305"
+  },
+  {
+    "id": "13:9031",
+    "library": "onmyojiSkill",
+    "avatar": "/assets/downloaded_images/hero_13_skill_9031.png",
+    "names": {
+      "zh": "通用技能1",
+      "ja": "通用技能1",
+      "en": "通用技能1"
+    },
+    "onmyojiId": "13",
+    "skillId": "9031"
+  },
+  {
+    "id": "13:9032",
+    "library": "onmyojiSkill",
+    "avatar": "/assets/downloaded_images/hero_13_skill_9032.png",
+    "names": {
+      "zh": "通用技能2",
+      "ja": "通用技能2",
+      "en": "通用技能2"
+    },
+    "onmyojiId": "13",
+    "skillId": "9032"
+  },
+  {
+    "id": "13:9033",
+    "library": "onmyojiSkill",
+    "avatar": "/assets/downloaded_images/hero_13_skill_9033.png",
+    "names": {
+      "zh": "通用技能3",
+      "ja": "通用技能3",
+      "en": "通用技能3"
+    },
+    "onmyojiId": "13",
+    "skillId": "9033"
+  },
+  {
+    "id": "15:1501",
+    "library": "onmyojiSkill",
+    "avatar": "/assets/downloaded_images/hero_15_skill_1501.png",
+    "names": {
+      "zh": "技能1",
+      "ja": "技能1",
+      "en": "技能1"
+    },
+    "onmyojiId": "15",
+    "skillId": "1501"
+  },
+  {
+    "id": "15:1502",
+    "library": "onmyojiSkill",
+    "avatar": "/assets/downloaded_images/hero_15_skill_1502.png",
+    "names": {
+      "zh": "技能2",
+      "ja": "技能2",
+      "en": "技能2"
+    },
+    "onmyojiId": "15",
+    "skillId": "1502"
+  },
+  {
+    "id": "15:1503",
+    "library": "onmyojiSkill",
+    "avatar": "/assets/downloaded_images/hero_15_skill_1503.png",
+    "names": {
+      "zh": "技能3",
+      "ja": "技能3",
+      "en": "技能3"
+    },
+    "onmyojiId": "15",
+    "skillId": "1503"
+  },
+  {
+    "id": "15:1504",
+    "library": "onmyojiSkill",
+    "avatar": "/assets/downloaded_images/hero_15_skill_1504.png",
+    "names": {
+      "zh": "技能4",
+      "ja": "技能4",
+      "en": "技能4"
+    },
+    "onmyojiId": "15",
+    "skillId": "1504"
+  },
+  {
+    "id": "15:1505",
+    "library": "onmyojiSkill",
+    "avatar": "/assets/downloaded_images/hero_15_skill_1505.png",
+    "names": {
+      "zh": "技能5",
+      "ja": "技能5",
+      "en": "技能5"
+    },
+    "onmyojiId": "15",
+    "skillId": "1505"
+  },
+  {
+    "id": "15:1506",
+    "library": "onmyojiSkill",
+    "avatar": "/assets/downloaded_images/hero_15_skill_1506.png",
+    "names": {
+      "zh": "技能6",
+      "ja": "技能6",
+      "en": "技能6"
+    },
+    "onmyojiId": "15",
+    "skillId": "1506"
+  },
+  {
+    "id": "15:1507",
+    "library": "onmyojiSkill",
+    "avatar": "/assets/downloaded_images/hero_15_skill_1507.png",
+    "names": {
+      "zh": "技能7",
+      "ja": "技能7",
+      "en": "技能7"
+    },
+    "onmyojiId": "15",
+    "skillId": "1507"
+  },
+  {
+    "id": "15:1508",
+    "library": "onmyojiSkill",
+    "avatar": "/assets/downloaded_images/hero_15_skill_1508.png",
+    "names": {
+      "zh": "技能8",
+      "ja": "技能8",
+      "en": "技能8"
+    },
+    "onmyojiId": "15",
+    "skillId": "1508"
+  },
+  {
+    "id": "16:1601",
+    "library": "onmyojiSkill",
+    "avatar": "/assets/downloaded_images/hero_16_skill_1601.png",
+    "names": {
+      "zh": "技能1",
+      "ja": "技能1",
+      "en": "技能1"
+    },
+    "onmyojiId": "16",
+    "skillId": "1601"
+  },
+  {
+    "id": "16:1602",
+    "library": "onmyojiSkill",
+    "avatar": "/assets/downloaded_images/hero_16_skill_1602.png",
+    "names": {
+      "zh": "技能2",
+      "ja": "技能2",
+      "en": "技能2"
+    },
+    "onmyojiId": "16",
+    "skillId": "1602"
+  },
+  {
+    "id": "16:1603",
+    "library": "onmyojiSkill",
+    "avatar": "/assets/downloaded_images/hero_16_skill_1603.png",
+    "names": {
+      "zh": "技能3",
+      "ja": "技能3",
+      "en": "技能3"
+    },
+    "onmyojiId": "16",
+    "skillId": "1603"
+  },
+  {
+    "id": "16:1604",
+    "library": "onmyojiSkill",
+    "avatar": "/assets/downloaded_images/hero_16_skill_1604.png",
+    "names": {
+      "zh": "技能4",
+      "ja": "技能4",
+      "en": "技能4"
+    },
+    "onmyojiId": "16",
+    "skillId": "1604"
+  },
+  {
+    "id": "16:1605",
+    "library": "onmyojiSkill",
+    "avatar": "/assets/downloaded_images/hero_16_skill_1605.png",
+    "names": {
+      "zh": "技能5",
+      "ja": "技能5",
+      "en": "技能5"
+    },
+    "onmyojiId": "16",
+    "skillId": "1605"
+  },
+  {
+    "id": "16:1606",
+    "library": "onmyojiSkill",
+    "avatar": "/assets/downloaded_images/hero_16_skill_1606.png",
+    "names": {
+      "zh": "技能6",
+      "ja": "技能6",
+      "en": "技能6"
+    },
+    "onmyojiId": "16",
+    "skillId": "1606"
+  },
+  {
+    "id": "16:1607",
+    "library": "onmyojiSkill",
+    "avatar": "/assets/downloaded_images/hero_16_skill_1607.png",
+    "names": {
+      "zh": "技能7",
+      "ja": "技能7",
+      "en": "技能7"
+    },
+    "onmyojiId": "16",
+    "skillId": "1607"
+  },
+  {
+    "id": "16:1608",
+    "library": "onmyojiSkill",
+    "avatar": "/assets/downloaded_images/hero_16_skill_1608.png",
+    "names": {
+      "zh": "技能8",
+      "ja": "技能8",
+      "en": "技能8"
+    },
+    "onmyojiId": "16",
+    "skillId": "1608"
+  }
+]

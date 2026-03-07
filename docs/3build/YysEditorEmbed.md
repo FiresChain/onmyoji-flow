@@ -2,7 +2,7 @@
 
 ## 简介
 
-YysEditorEmbed 是 yys-editor 的可嵌入式组件版本，可以作为 Vue 组件集成到其他项目中。
+YysEditorEmbed 是 onmyoji-flow 的可嵌入式组件版本，可以作为 Vue 组件集成到其他项目中。
 
 ## 安装
 
@@ -13,7 +13,7 @@ YysEditorEmbed 是 yys-editor 的可嵌入式组件版本，可以作为 Vue 组
 ```json
 {
   "dependencies": {
-    "yys-editor": "file:../yys-editor"
+    "@rookie4show/onmyoji-flow": "file:../onmyoji-flow"
   }
 }
 ```
@@ -27,7 +27,7 @@ npm install
 ### 方式 2：npm 包（发布后）
 
 ```bash
-npm install yys-editor
+npm install @rookie4show/onmyoji-flow
 ```
 
 ## 基础使用
@@ -37,8 +37,8 @@ npm install yys-editor
 ```vue
 <script setup>
 import { ref } from 'vue'
-import { YysEditorEmbed } from 'yys-editor'
-import 'yys-editor/style.css'
+import { YysEditorEmbed } from '@rookie4show/onmyoji-flow'
+import '@rookie4show/onmyoji-flow/style.css'
 
 const flowData = ref({
   nodes: [],
@@ -103,9 +103,9 @@ const handleCancel = () => {
 | `width` | `string \| number` | `'100%'` | 宽度 |
 | `height` | `string \| number` | `'600px'` | 高度 |
 | `showToolbar` | `boolean` | `true` | 是否显示工具栏（仅编辑模式） |
-| `showPropertyPanel` | `boolean` | `true` | 是否显示属性面板（仅编辑模式） |
+| `showPropertyPanel` | `boolean` | `true` | 编辑模式下是否显示右侧属性面板 |
 | `showComponentPanel` | `boolean` | `true` | 是否显示组件库（仅编辑模式） |
-| `config` | `EditorConfig` | `{}` | 编辑器配置 |
+| `config` | `EditorConfig` | `{}` | 最小实现已生效：`grid/snapline/keyboard` |
 
 ### Events
 
@@ -115,6 +115,8 @@ const handleCancel = () => {
 | `save` | `(data: GraphData)` | 保存（用户点击保存按钮） |
 | `cancel` | `()` | 取消（用户点击取消按钮） |
 | `error` | `(error: Error)` | 错误 |
+
+> 契约说明（2026-03）：`showPropertyPanel` 已在 `mode='edit'` 下生效；`config` 当前已生效 `grid/snapline/keyboard`，其余字段（如 `theme/locale`）仍为兼容保留。
 
 ### 方法（通过 ref 调用）
 
@@ -157,6 +159,8 @@ interface EditorConfig {
 }
 ```
 
+> `EditorConfig` 目前为兼容类型定义，运行时尚未消费其字段。
+
 ## 使用场景
 
 ### 场景 1：在 Wiki 中作为块插件
@@ -189,8 +193,8 @@ interface EditorConfig {
 
 <script setup>
 import { ref } from 'vue'
-import { YysEditorEmbed } from 'yys-editor'
-import 'yys-editor/style.css'
+import { YysEditorEmbed } from '@rookie4show/onmyoji-flow'
+import '@rookie4show/onmyoji-flow/style.css'
 
 const isEditing = ref(false)
 const flowData = ref({
@@ -256,8 +260,8 @@ const saveToDocument = async (data) => {
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { YysEditorEmbed } from 'yys-editor'
-import 'yys-editor/style.css'
+import { YysEditorEmbed } from '@rookie4show/onmyoji-flow'
+import '@rookie4show/onmyoji-flow/style.css'
 
 const editorRef = ref()
 const flowData = ref(null)
@@ -301,8 +305,8 @@ const getData = () => {
 
 <script setup>
 import { ref } from 'vue'
-import { YysEditorEmbed } from 'yys-editor'
-import 'yys-editor/style.css'
+import { YysEditorEmbed } from '@rookie4show/onmyoji-flow'
+import '@rookie4show/onmyoji-flow/style.css'
 
 const flowData = ref({
   nodes: [
@@ -321,23 +325,20 @@ const flowData = ref({
 
 ## 高级用法
 
-### 自定义配置
+### 属性说明（showPropertyPanel 已生效，config 部分生效）
 
 ```vue
 <template>
   <YysEditorEmbed
     :data="flowData"
     mode="edit"
-    :config="{
-      grid: true,
-      snapline: true,
-      keyboard: true,
-      theme: 'light',
-      locale: 'zh'
-    }"
+    :config="{ grid: true, snapline: true }"
+    :showPropertyPanel="false"
   />
 </template>
 ```
+
+以上写法中，`showPropertyPanel` 会在编辑模式下控制右侧属性面板显示；`config` 的 `grid/snapline/keyboard` 会在编辑模式生效。
 
 ### 监听数据变化
 
@@ -501,3 +502,4 @@ MIT
 ## 支持
 
 如有问题，请提交 Issue 或联系开发团队。
+

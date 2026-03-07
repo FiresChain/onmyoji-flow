@@ -1,12 +1,19 @@
-import { computed, inject, onBeforeUnmount, onMounted, ref } from 'vue';
-import { EventType } from '@logicflow/core';
-import { normalizeNodeStyle, toContainerStyle, toTextStyle, type NodeStyle } from './nodeStyle';
+import { computed, inject, onBeforeUnmount, onMounted, ref } from "vue";
+import { EventType } from "@logicflow/core";
+import {
+  normalizeNodeStyle,
+  toContainerStyle,
+  toTextStyle,
+  type NodeStyle,
+} from "./nodeStyle";
 
 type PropsChangeHandler = (props: any, node: any) => void;
 
-export function useNodeAppearance(options?: { onPropsChange?: PropsChangeHandler }) {
-  const getNode = inject('getNode') as (() => any) | undefined;
-  const getGraph = inject('getGraph') as (() => any) | undefined;
+export function useNodeAppearance(options?: {
+  onPropsChange?: PropsChangeHandler;
+}) {
+  const getNode = inject("getNode") as (() => any) | undefined;
+  const getGraph = inject("getGraph") as (() => any) | undefined;
 
   const style = ref<NodeStyle>(normalizeNodeStyle());
 
@@ -18,7 +25,7 @@ export function useNodeAppearance(options?: { onPropsChange?: PropsChangeHandler
 
     style.value = normalizeNodeStyle(target.style, {
       width: currentWidth,
-      height: currentHeight
+      height: currentHeight,
     });
     options?.onPropsChange?.(target, node);
   };
@@ -37,7 +44,8 @@ export function useNodeAppearance(options?: { onPropsChange?: PropsChangeHandler
       }
     };
     graph?.eventCenter.on(EventType.NODE_PROPERTIES_CHANGE, handler);
-    offChange = () => graph?.eventCenter.off(EventType.NODE_PROPERTIES_CHANGE, handler);
+    offChange = () =>
+      graph?.eventCenter.off(EventType.NODE_PROPERTIES_CHANGE, handler);
   });
 
   onBeforeUnmount(() => {
@@ -51,6 +59,6 @@ export function useNodeAppearance(options?: { onPropsChange?: PropsChangeHandler
     style,
     containerStyle,
     textStyle,
-    syncFromProps
+    syncFromProps,
   };
 }

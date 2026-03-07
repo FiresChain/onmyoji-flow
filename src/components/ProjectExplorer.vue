@@ -1,27 +1,27 @@
 <template>
   <div class="project-explorer">
     <el-tree
-        :data="allFiles"
-        :props="defaultProps"
-        @node-click="handleNodeClick"
-        node-key="name"
-        default-expand-all
-        :expand-on-click-node="false"
+      :data="allFiles"
+      :props="defaultProps"
+      @node-click="handleNodeClick"
+      node-key="name"
+      default-expand-all
+      :expand-on-click-node="false"
     >
       <template #default="{ node, data }">
         <div class="custom-tree-node">
           <span>{{ node.label }}</span>
           <div>
             <el-dropdown>
-              <el-button
-                  style="margin-left: 4px"
-                  icon="MoreFilled"
-                  link
-              />
+              <el-button style="margin-left: 4px" icon="MoreFilled" link />
               <template #dropdown>
                 <el-dropdown-menu>
-                  <el-dropdown-item @click="() => renameFile(data)">Rename</el-dropdown-item>
-                  <el-dropdown-item @click="() => deleteFile(data)">Delete</el-dropdown-item>
+                  <el-dropdown-item @click="() => renameFile(data)"
+                    >Rename</el-dropdown-item
+                  >
+                  <el-dropdown-item @click="() => deleteFile(data)"
+                    >Delete</el-dropdown-item
+                  >
                 </el-dropdown-menu>
               </template>
             </el-dropdown>
@@ -33,9 +33,9 @@
 </template>
 
 <script setup lang="ts">
-import {defineProps, defineEmits, ref} from 'vue';
-import {useFilesStore} from "@/ts/useStore";
-import {ElTree, ElButton, ElDropdownMenu, ElDropdownItem} from 'element-plus';
+import { onMounted, onUnmounted, ref } from "vue";
+import { useFilesStore } from "@/ts/useStore";
+import { ElTree, ElButton, ElDropdownMenu, ElDropdownItem } from "element-plus";
 
 const filesStore = useFilesStore();
 
@@ -47,8 +47,8 @@ const props = defineProps({
 });
 
 const defaultProps = {
-  children: 'children',
-  label: 'label',
+  children: "children",
+  label: "label",
 };
 
 const visibleDropdown = ref(false);
@@ -72,7 +72,13 @@ const hideDropdown = () => {
   visibleDropdown.value = false;
 };
 
-document.addEventListener('click', hideDropdown);
+onMounted(() => {
+  document.addEventListener("click", hideDropdown);
+});
+
+onUnmounted(() => {
+  document.removeEventListener("click", hideDropdown);
+});
 
 const deleteFile = (data) => {
   filesStore.deleteFile(data.name);
