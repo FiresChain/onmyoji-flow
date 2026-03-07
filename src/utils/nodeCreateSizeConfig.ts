@@ -70,16 +70,19 @@ const cloneAssetTheme = (value: AssetThemeConfig): AssetThemeConfig => ({
   },
 });
 
-const buildDefaultAssetTheme = (): AssetThemeConfig => ({
+const buildAssetThemePreset = (
+  nodeStyle: Partial<AssetThemeNodeStyleConfig> = {},
+): AssetThemeConfig => ({
   nodeStyle: {
     fill: "#ffffff",
     stroke: "#dcdfe6",
     strokeWidth: 1,
     radius: 4,
     opacity: 1,
+    ...nodeStyle,
   },
   name: {
-    show: true,
+    show: false,
     offsetX: 0,
     offsetY: 78,
     width: 160,
@@ -94,13 +97,57 @@ const buildDefaultAssetTheme = (): AssetThemeConfig => ({
   },
 });
 
+const DEFAULT_ASSET_SELECTOR_SIZE_BY_LIBRARY: Record<AssetLibraryId, NodeCreateSize> = {
+  shikigami: { width: 180, height: 180 },
+  yuhun: { width: 75, height: 75 },
+  onmyoji: { width: 147, height: 147 },
+  onmyojiSkill: { width: 68, height: 67 },
+  hunling: { width: 120, height: 120 },
+};
+
+const DEFAULT_ASSET_THEME_BY_LIBRARY: Record<AssetLibraryId, AssetThemeConfig> = {
+  shikigami: buildAssetThemePreset({
+    fill: "#ffffff",
+    stroke: "#dcdfe6",
+    strokeWidth: 0,
+    radius: 200,
+  }),
+  yuhun: buildAssetThemePreset({
+    fill: "transparent",
+    stroke: "#dcdfe6",
+    strokeWidth: 0,
+    radius: 4,
+  }),
+  onmyoji: buildAssetThemePreset({
+    fill: "#ffffff",
+    stroke: "#dcdfe6",
+    strokeWidth: 1,
+    radius: 4,
+  }),
+  onmyojiSkill: buildAssetThemePreset({
+    fill: "transparent",
+    stroke: "#dcdfe6",
+    strokeWidth: 1,
+    radius: 100,
+  }),
+  hunling: buildAssetThemePreset({
+    fill: "transparent",
+    stroke: "#dcdfe6",
+    strokeWidth: 1,
+    radius: 100,
+  }),
+};
+
+const buildDefaultAssetTheme = (): AssetThemeConfig =>
+  cloneAssetTheme(DEFAULT_ASSET_THEME_BY_LIBRARY.shikigami);
+
 const buildDefaultAssetThemeByLibrary = (): Record<
   AssetLibraryId,
   AssetThemeConfig
 > =>
   ASSET_LIBRARY_IDS.reduce(
     (acc, library) => {
-      acc[library] = buildDefaultAssetTheme();
+      acc[library] = cloneAssetTheme(DEFAULT_ASSET_THEME_BY_LIBRARY[library]);
       return acc;
     },
     {} as Record<AssetLibraryId, AssetThemeConfig>,
@@ -112,7 +159,7 @@ const buildDefaultAssetSelectorSizeByLibrary = (): Record<
 > =>
   ASSET_LIBRARY_IDS.reduce(
     (acc, library) => {
-      acc[library] = { width: 180, height: 120 };
+      acc[library] = cloneSize(DEFAULT_ASSET_SELECTOR_SIZE_BY_LIBRARY[library]);
       return acc;
     },
     {} as Record<AssetLibraryId, NodeCreateSize>,

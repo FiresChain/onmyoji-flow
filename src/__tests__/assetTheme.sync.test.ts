@@ -97,6 +97,7 @@ describe("assetTheme sync", () => {
     const appliedConfig = cloneNodeCreateSizeConfig(
       DEFAULT_NODE_CREATE_SIZE_CONFIG,
     );
+    appliedConfig.assetThemeByLibrary.shikigami.name.show = true;
     appliedConfig.assetThemeByLibrary.shikigami.name.textStyle.color = "#ff0000";
     appliedConfig.assetThemeByLibrary.shikigami.name.textStyle.fontSize = 28;
     const defaultConfig = cloneNodeCreateSizeConfig(
