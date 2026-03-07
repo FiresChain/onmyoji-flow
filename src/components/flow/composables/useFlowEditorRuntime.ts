@@ -450,7 +450,9 @@ export function useFlowEditorRuntime() {
       const model = lfInstance.getNodeModelById(nodeId) as any;
       if (!model || model.type !== "assetSelector") return;
       const props =
-        (model.getProperties?.() as Record<string, any>) || model.properties || {};
+        (model.getProperties?.() as Record<string, any>) ||
+        model.properties ||
+        {};
       const labelNodeId = props.assetName?.labelNodeId;
       if (!labelNodeId || typeof labelNodeId !== "string") return;
       if (!Number.isFinite(deltaX) || !Number.isFinite(deltaY)) return;
@@ -471,8 +473,7 @@ export function useFlowEditorRuntime() {
     });
     lfInstance.on(EventType.NODE_DELETE, (payload: any) => {
       const nodeData = payload?.data || payload || {};
-      const deletedNodeId =
-        typeof nodeData.id === "string" ? nodeData.id : "";
+      const deletedNodeId = typeof nodeData.id === "string" ? nodeData.id : "";
       if (deletedNodeId) {
         if (nodeData.type === "assetSelector") {
           const labelId = nodeData?.properties?.assetName?.labelNodeId;

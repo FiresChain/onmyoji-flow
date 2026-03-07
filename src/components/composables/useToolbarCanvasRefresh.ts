@@ -59,13 +59,10 @@ export function useToolbarCanvasRefresh(
     const scale = Number(transform.SCALE_X);
     const translateX = Number(transform.TRANSLATE_X);
     const translateY = Number(transform.TRANSLATE_Y);
-    logicFlowInstance.zoom(
-      Number.isFinite(scale) ? scale : 1,
-      [
-        Number.isFinite(translateX) ? translateX : 0,
-        Number.isFinite(translateY) ? translateY : 0,
-      ],
-    );
+    logicFlowInstance.zoom(Number.isFinite(scale) ? scale : 1, [
+      Number.isFinite(translateX) ? translateX : 0,
+      Number.isFinite(translateY) ? translateY : 0,
+    ]);
   };
 
   const refreshLogicFlowCanvas = (message?: string) => {

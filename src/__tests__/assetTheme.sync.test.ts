@@ -17,7 +17,9 @@ type NodeModel = {
   moveTo: (x: number, y: number) => void;
 };
 
-const createModel = (input: Partial<NodeModel> & { id: string; type: string }) => {
+const createModel = (
+  input: Partial<NodeModel> & { id: string; type: string },
+) => {
   const model: NodeModel = {
     id: input.id,
     type: input.type,
@@ -98,7 +100,8 @@ describe("assetTheme sync", () => {
       DEFAULT_NODE_CREATE_SIZE_CONFIG,
     );
     appliedConfig.assetThemeByLibrary.shikigami.name.show = true;
-    appliedConfig.assetThemeByLibrary.shikigami.name.textStyle.color = "#ff0000";
+    appliedConfig.assetThemeByLibrary.shikigami.name.textStyle.color =
+      "#ff0000";
     appliedConfig.assetThemeByLibrary.shikigami.name.textStyle.fontSize = 28;
     const defaultConfig = cloneNodeCreateSizeConfig(
       DEFAULT_NODE_CREATE_SIZE_CONFIG,

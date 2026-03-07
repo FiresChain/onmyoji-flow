@@ -47,7 +47,11 @@ const resolveLocale = () => {
       : "";
   const locale = queryLocale || storedLocale || "zh";
 
-  if (typeof localStorage !== "undefined" && queryLocale && queryLocale !== storedLocale) {
+  if (
+    typeof localStorage !== "undefined" &&
+    queryLocale &&
+    queryLocale !== storedLocale
+  ) {
     localStorage.setItem("yys-editor.locale", queryLocale);
   }
 

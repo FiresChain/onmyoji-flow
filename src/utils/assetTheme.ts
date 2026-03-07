@@ -85,7 +85,8 @@ const normalizeAssetNameNodeConfig = (
   theme: AssetThemeConfig,
 ): AssetNameNodeConfig => {
   const source = raw && typeof raw === "object" ? raw : {};
-  const visible = source.visible == null ? theme.name.show : source.visible !== false;
+  const visible =
+    source.visible == null ? theme.name.show : source.visible !== false;
   return {
     visible,
     labelNodeId:
@@ -141,7 +142,10 @@ const buildLabelTextProperty = (name: string) => ({
   rich: false,
 });
 
-const buildLabelPosition = (assetModel: any, nameConfig: AssetNameNodeConfig) => {
+const buildLabelPosition = (
+  assetModel: any,
+  nameConfig: AssetNameNodeConfig,
+) => {
   const x = Number(assetModel?.x ?? 0) + nameConfig.offsetX;
   const y =
     Number(assetModel?.y ?? 0) +
@@ -153,7 +157,8 @@ const buildLabelPosition = (assetModel: any, nameConfig: AssetNameNodeConfig) =>
 const findLabelNodeByOwner = (lf: LogicFlow, assetNodeId: string) => {
   const nodes = (lf as any).graphModel?.nodes || [];
   return (
-    nodes.find((node: any) => getAssetLabelOwnerId(node) === assetNodeId) || null
+    nodes.find((node: any) => getAssetLabelOwnerId(node) === assetNodeId) ||
+    null
   );
 };
 
@@ -209,9 +214,12 @@ const syncLabelNodeContentAndStyle = (
     labelNode.moveTo?.(nextPosition.x, nextPosition.y);
   }
 
-  const labelProps = (labelNode.getProperties?.() as any) || labelNode.properties || {};
+  const labelProps =
+    (labelNode.getProperties?.() as any) || labelNode.properties || {};
   const nextText =
-    shouldOverrideText || !labelProps.text ? buildLabelTextProperty(labelText) : labelProps.text;
+    shouldOverrideText || !labelProps.text
+      ? buildLabelTextProperty(labelText)
+      : labelProps.text;
   const nextMeta = {
     ...(labelProps.meta || {}),
     assetNameOwnerId: assetModel.id,
@@ -418,7 +426,8 @@ export const clearAssetNodeReferenceByLabelOwner = (
 ) => {
   const model = lf.getNodeModelById(assetNodeId) as any;
   if (!model || !isAssetSelectorNode(model)) return;
-  const props = (model.getProperties?.() as Record<string, any>) || model.properties || {};
+  const props =
+    (model.getProperties?.() as Record<string, any>) || model.properties || {};
   const nextAssetName = {
     ...(props.assetName || {}),
     labelNodeId: null,

@@ -41,7 +41,9 @@
             </button>
           </div>
           <div class="control-row">
-            <div class="control-label">{{ t("flowEditor.controls.align") }}</div>
+            <div class="control-label">
+              {{ t("flowEditor.controls.align") }}
+            </div>
             <div class="control-buttons">
               <button
                 v-for="btn in alignmentButtons"
@@ -56,7 +58,9 @@
             </div>
           </div>
           <div class="control-row">
-            <div class="control-label">{{ t("flowEditor.controls.distribute") }}</div>
+            <div class="control-label">
+              {{ t("flowEditor.controls.distribute") }}
+            </div>
             <div class="control-buttons">
               <button
                 v-for="btn in distributeButtons"
@@ -95,7 +99,9 @@
           <div class="problems-header">
             <span>{{ t("flowEditor.problems.header") }}</span>
             <span>{{
-              t("flowEditor.problems.count", { count: groupRuleWarnings.length })
+              t("flowEditor.problems.count", {
+                count: groupRuleWarnings.length,
+              })
             }}</span>
           </div>
           <div v-if="!groupRuleWarnings.length" class="problems-empty">
@@ -137,7 +143,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, onBeforeUnmount, nextTick, computed } from "vue";
+import {
+  ref,
+  watch,
+  onMounted,
+  onBeforeUnmount,
+  nextTick,
+  computed,
+} from "vue";
 import type LogicFlow from "@logicflow/core";
 import type {
   NodeData,
@@ -620,7 +633,10 @@ function showAllNodes() {
     }
   });
   if (changed > 0) {
-    showMessage("success", t("flowEditor.message.showAllSuccess", { count: changed }));
+    showMessage(
+      "success",
+      t("flowEditor.message.showAllSuccess", { count: changed }),
+    );
   } else {
     showMessage("info", t("flowEditor.message.noHiddenNodes"));
   }
