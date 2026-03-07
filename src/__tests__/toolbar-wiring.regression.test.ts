@@ -71,6 +71,7 @@ vi.mock("@/components/composables/useToolbarImportExportCommands", () => ({
     (options: {
       importSource: { value: "json" | "teamCode" };
       teamCodeInput: { value: string };
+      teamCodeValidationEnabled?: { value: boolean };
       state: { showImportDialog: boolean };
     }) => ({
       handleExport: wiringSpies.handleExport,
@@ -80,6 +81,9 @@ vi.mock("@/components/composables/useToolbarImportExportCommands", () => ({
         wiringSpies.openImportDialog();
         options.importSource.value = "json";
         options.teamCodeInput.value = "";
+        if (options.teamCodeValidationEnabled) {
+          options.teamCodeValidationEnabled.value = false;
+        }
         options.state.showImportDialog = true;
       },
       triggerJsonFileImport: wiringSpies.triggerJsonFileImport,
@@ -2186,6 +2190,7 @@ const assertImportSourceBoundVisibility = (
 type ToolbarVm = {
   importSource: "json" | "teamCode";
   teamCodeInput: string;
+  teamCodeValidationEnabled: boolean;
   state: {
     showImportDialog: boolean;
   };
@@ -2199,6 +2204,7 @@ const expectImportDialogOpenedWithResetState = (
   expect(wiringSpies.openImportDialog).toHaveBeenCalledTimes(expectedOpenCount);
   expect(vm.importSource).toBe("json");
   expect(vm.teamCodeInput).toBe("");
+  expect(vm.teamCodeValidationEnabled).toBe(false);
   expect(vm.state.showImportDialog).toBe(true);
 };
 
@@ -2211,6 +2217,7 @@ const closeImportDialogWithDirtyState = async (
   expect(vm.state.showImportDialog).toBe(false);
   vm.importSource = "teamCode";
   vm.teamCodeInput = dirtyTeamCode;
+  vm.teamCodeValidationEnabled = true;
   await vm.$nextTick();
 };
 

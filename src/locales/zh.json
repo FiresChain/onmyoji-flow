@@ -163,6 +163,8 @@
   "importDialog.qrChoose": "选择二维码图片",
   "importDialog.qrTip": "支持从截图或相册图片识别官方阵容码二维码",
   "importDialog.alert": "支持粘贴阵容码字符串，或上传二维码图片自动识别。",
+  "importDialog.validation": "选项",
+  "importDialog.formationValidation": "阵容校验",
   "importDialog.chooseJson": "选择 JSON 文件",
   "importDialog.importTeamCode": "导入阵容码",
   "ruleManager.addRule": "新增规则",

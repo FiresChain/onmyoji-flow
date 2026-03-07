@@ -1,12 +1,16 @@
 import jsQR from "jsqr";
 
-const DEFAULT_TEAM_CODE_SERVICE_URL = "/api/team-code/convert";
+const DEFAULT_TEAM_CODE_SERVICE_URL = "http://127.0.0.1:8787/onmyoji/v1/team-code/decode";
 
 export const TEAM_CODE_SERVICE_URL =
   (import.meta.env.VITE_TEAM_CODE_SERVICE_URL as string | undefined)?.trim() ||
   DEFAULT_TEAM_CODE_SERVICE_URL;
 
 type UnknownRecord = Record<string, unknown>;
+type TeamCodeConvertOptions = {
+  serviceUrl?: string;
+  formationValidation?: boolean;
+};
 
 const normalizeText = (value: unknown): string =>
   typeof value === "string" ? value.trim() : "";
@@ -88,11 +92,17 @@ export const decodeTeamCodeFromQrImage = async (
 // 阵容码字符串 -> RootDocument 由后端服务完成
 export const convertTeamCodeToRootDocument = async (
   teamCode: string,
-  serviceUrl = TEAM_CODE_SERVICE_URL,
+  options?: TeamCodeConvertOptions,
 ): Promise<UnknownRecord> => {
   const normalizedTeamCode = normalizeText(teamCode);
   if (!normalizedTeamCode) {
     throw new Error("请输入阵容码");
+  }
+
+  const serviceUrl = normalizeText(options?.serviceUrl) || TEAM_CODE_SERVICE_URL;
+  const requestBody: Record<string, unknown> = { teamCode: normalizedTeamCode };
+  if (options?.formationValidation === true) {
+    requestBody.formationValidation = true;
   }
 
   const response = await fetch(serviceUrl, {
@@ -100,7 +110,7 @@ export const convertTeamCodeToRootDocument = async (
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ teamCode: normalizedTeamCode }),
+    body: JSON.stringify(requestBody),
   });
 
   let payload: unknown = null;

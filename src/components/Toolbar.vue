@@ -558,6 +558,14 @@
             :placeholder="t('importDialog.teamCodePlaceholder')"
           />
         </el-form-item>
+        <el-form-item
+          v-if="importSource === 'teamCode'"
+          :label="t('importDialog.validation')"
+        >
+          <el-checkbox v-model="teamCodeValidationEnabled">
+            {{ t("importDialog.formationValidation") }}
+          </el-checkbox>
+        </el-form-item>
         <el-form-item v-if="importSource === 'teamCode'" :label="t('importDialog.qr')">
           <div class="team-code-qr-actions">
             <input
@@ -1023,6 +1031,7 @@ const state = reactive({
 });
 const importSource = ref<"json" | "teamCode">("json");
 const teamCodeInput = ref("");
+const teamCodeValidationEnabled = ref(false);
 const teamCodeQrInputRef = ref<HTMLInputElement | null>(null);
 const {
   watermark,
@@ -1235,6 +1244,7 @@ const {
   logicFlowScope,
   importSource,
   teamCodeInput,
+  teamCodeValidationEnabled,
   teamCodeQrInputRef,
   watermark,
   showMessage,

@@ -48,6 +48,7 @@ interface UseToolbarImportExportCommandsOptions {
   logicFlowScope: LogicFlowScope;
   importSource: Ref<"json" | "teamCode">;
   teamCodeInput: Ref<string>;
+  teamCodeValidationEnabled?: Ref<boolean>;
   teamCodeQrInputRef: Ref<HTMLInputElement | null>;
   watermark: WatermarkSettings;
   showMessage: ShowMessage;
@@ -156,6 +157,7 @@ export function useToolbarImportExportCommands(
     logicFlowScope,
     importSource,
     teamCodeInput,
+    teamCodeValidationEnabled,
     teamCodeQrInputRef,
     watermark,
     showMessage,
@@ -267,6 +269,9 @@ export function useToolbarImportExportCommands(
   const openImportDialog = () => {
     importSource.value = "json";
     teamCodeInput.value = "";
+    if (teamCodeValidationEnabled) {
+      teamCodeValidationEnabled.value = false;
+    }
     state.showImportDialog = true;
   };
 
@@ -315,7 +320,12 @@ export function useToolbarImportExportCommands(
 
     state.importingTeamCode = true;
     try {
-      const rootDocument = await convertTeamCodeToRootDocument(rawTeamCode);
+      const requestOptions = teamCodeValidationEnabled?.value
+        ? { formationValidation: true }
+        : undefined;
+      const rootDocument = requestOptions
+        ? await convertTeamCodeToRootDocument(rawTeamCode, requestOptions)
+        : await convertTeamCodeToRootDocument(rawTeamCode);
       filesStore.importData(rootDocument);
       refreshLogicFlowCanvas("LogicFlow 画布已重新渲染（阵容码导入）");
       state.showImportDialog = false;

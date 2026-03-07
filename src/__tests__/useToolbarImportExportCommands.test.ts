@@ -46,6 +46,7 @@ interface ToolbarTestContext {
   };
   importSource: ReturnType<typeof ref<"json" | "teamCode">>;
   teamCodeInput: ReturnType<typeof ref<string>>;
+  teamCodeValidationEnabled: ReturnType<typeof ref<boolean>>;
   teamCodeQrInputRef: ReturnType<typeof ref<HTMLInputElement | null>>;
   showMessage: ReturnType<typeof vi.fn>;
   refreshLogicFlowCanvas: ReturnType<typeof vi.fn>;
@@ -76,6 +77,7 @@ const createContext = (): ToolbarTestContext => {
 
   const importSource = ref<"json" | "teamCode">("teamCode");
   const teamCodeInput = ref("");
+  const teamCodeValidationEnabled = ref(false);
   const teamCodeQrInputRef = ref<HTMLInputElement | null>(null);
   const showMessage = vi.fn();
   const refreshLogicFlowCanvas = vi.fn();
@@ -86,6 +88,7 @@ const createContext = (): ToolbarTestContext => {
     logicFlowScope: Symbol("test-scope"),
     importSource,
     teamCodeInput,
+    teamCodeValidationEnabled,
     teamCodeQrInputRef,
     watermark: {
       text: "wm",
@@ -104,6 +107,7 @@ const createContext = (): ToolbarTestContext => {
     filesStore,
     importSource,
     teamCodeInput,
+    teamCodeValidationEnabled,
     teamCodeQrInputRef,
     showMessage,
     refreshLogicFlowCanvas,
@@ -778,12 +782,14 @@ describe("useToolbarImportExportCommands", () => {
 
     context.importSource.value = "teamCode";
     context.teamCodeInput.value = "some code";
+    context.teamCodeValidationEnabled.value = true;
     context.state.showImportDialog = false;
 
     context.commands.openImportDialog();
 
     expect(context.importSource.value).toBe("json");
     expect(context.teamCodeInput.value).toBe("");
+    expect(context.teamCodeValidationEnabled.value).toBe(false);
     expect(context.state.showImportDialog).toBe(true);
   });
 
@@ -792,22 +798,26 @@ describe("useToolbarImportExportCommands", () => {
 
     context.importSource.value = "teamCode";
     context.teamCodeInput.value = "#TA#DIRTY-A";
+    context.teamCodeValidationEnabled.value = true;
     context.state.showImportDialog = false;
 
     context.commands.openImportDialog();
 
     expect(context.importSource.value).toBe("json");
     expect(context.teamCodeInput.value).toBe("");
+    expect(context.teamCodeValidationEnabled.value).toBe(false);
     expect(context.state.showImportDialog).toBe(true);
 
     context.importSource.value = "teamCode";
     context.teamCodeInput.value = "#TA#DIRTY-B";
+    context.teamCodeValidationEnabled.value = true;
     context.state.showImportDialog = true;
 
     context.commands.openImportDialog();
 
     expect(context.importSource.value).toBe("json");
     expect(context.teamCodeInput.value).toBe("");
+    expect(context.teamCodeValidationEnabled.value).toBe(false);
     expect(context.state.showImportDialog).toBe(true);
   });
 
@@ -958,6 +968,26 @@ describe("useToolbarImportExportCommands", () => {
       "success",
       "阵容码导入成功",
     );
+  });
+
+  it("handleTeamCodeImport passes formationValidation option when enabled", async () => {
+    const context = createContext();
+    const rootDocument = { fileList: [], activeFileId: "" };
+
+    vi.mocked(convertTeamCodeToRootDocument).mockResolvedValue(
+      rootDocument as never,
+    );
+    context.teamCodeInput.value = "#TA#WITH_VALIDATION";
+    context.teamCodeValidationEnabled.value = true;
+
+    await context.commands.handleTeamCodeImport();
+
+    expect(convertTeamCodeToRootDocument).toHaveBeenCalledWith(
+      "#TA#WITH_VALIDATION",
+      { formationValidation: true },
+    );
+    expect(context.filesStore.importData).toHaveBeenCalledWith(rootDocument);
+    expect(context.state.importingTeamCode).toBe(false);
   });
 
   it("handleTeamCodeImport keeps conversion-failure error behavior", async () => {

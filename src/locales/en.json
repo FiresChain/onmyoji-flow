@@ -163,6 +163,8 @@
   "importDialog.qrChoose": "Choose QR Image",
   "importDialog.qrTip": "Supports decoding official team-code QR from screenshots/albums",
   "importDialog.alert": "Paste a team code string, or upload a QR image for auto recognition.",
+  "importDialog.validation": "Options",
+  "importDialog.formationValidation": "Formation Validation",
   "importDialog.chooseJson": "Choose JSON File",
   "importDialog.importTeamCode": "Import Team Code",
   "ruleManager.addRule": "Add Rule",
