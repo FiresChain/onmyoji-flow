@@ -301,13 +301,23 @@ const ensureElementPlusInstalled = () => {
   const app = instance?.appContext?.app as any;
   if (!app) return;
 
+  if (app.config?.globalProperties?.$ELEMENT) {
+    return;
+  }
+
+  if (app.__ONMYOJI_FLOW_ELEMENT_PLUS_INSTALLED__) {
+    return;
+  }
+
   const installedPlugins = app._context?.plugins;
   if (installedPlugins?.has?.(ElementPlus)) {
+    app.__ONMYOJI_FLOW_ELEMENT_PLUS_INSTALLED__ = true;
     return;
   }
 
   try {
     app.use(ElementPlus);
+    app.__ONMYOJI_FLOW_ELEMENT_PLUS_INSTALLED__ = true;
   } catch {
     // 忽略重复安装或宿主限制导致的异常
   }
@@ -498,10 +508,63 @@ const setGraphData = (data: GraphData) => {
   }
 };
 
+const resolveActiveLogicFlow = (): any => {
+  if (props.mode === "preview") {
+    return previewLf.value;
+  }
+  return getLogicFlowInstance(logicFlowScope);
+};
+
+const fitView = (verticalOffset?: number, horizontalOffset?: number): boolean => {
+  const lfInstance = resolveActiveLogicFlow();
+  if (!lfInstance || typeof lfInstance.fitView !== "function") {
+    return false;
+  }
+  if (
+    typeof verticalOffset === "number" ||
+    typeof horizontalOffset === "number"
+  ) {
+    lfInstance.fitView(verticalOffset, horizontalOffset);
+  } else {
+    lfInstance.fitView();
+  }
+  return true;
+};
+
+const zoom = (zoomSize?: number | boolean, point?: [number, number]): boolean => {
+  const lfInstance = resolveActiveLogicFlow();
+  if (!lfInstance || typeof lfInstance.zoom !== "function") {
+    return false;
+  }
+  lfInstance.zoom(zoomSize, point);
+  return true;
+};
+
+const resetZoom = (): boolean => {
+  const lfInstance = resolveActiveLogicFlow();
+  if (!lfInstance || typeof lfInstance.resetZoom !== "function") {
+    return false;
+  }
+  lfInstance.resetZoom();
+  return true;
+};
+
+const getTransform = (): Record<string, number> | null => {
+  const lfInstance = resolveActiveLogicFlow();
+  if (!lfInstance || typeof lfInstance.getTransform !== "function") {
+    return null;
+  }
+  return lfInstance.getTransform();
+};
+
 defineExpose({
   getGraphData,
   setGraphData,
   resizeCanvas: triggerEditorResize,
+  fitView,
+  zoom,
+  resetZoom,
+  getTransform,
 });
 
 // 监听 data 变化
