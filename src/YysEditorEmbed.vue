@@ -515,9 +515,22 @@ const resolveActiveLogicFlow = (): any => {
   return getLogicFlowInstance(logicFlowScope);
 };
 
+const hasRenderableGraphNodes = (lfInstance: any): boolean => {
+  const graphData = collectGraphDataWithLayer(lfInstance);
+  const nodes = Array.isArray(graphData?.nodes) ? graphData.nodes : [];
+  return nodes.length > 0;
+};
+
 const fitView = (verticalOffset?: number, horizontalOffset?: number): boolean => {
   const lfInstance = resolveActiveLogicFlow();
   if (!lfInstance || typeof lfInstance.fitView !== "function") {
+    return false;
+  }
+  if (!hasRenderableGraphNodes(lfInstance)) {
+    return false;
+  }
+  const host = embedRootRef.value;
+  if (!host || host.clientWidth <= 0 || host.clientHeight <= 0) {
     return false;
   }
   if (
@@ -549,6 +562,31 @@ const resetZoom = (): boolean => {
   return true;
 };
 
+const resetTranslate = (): boolean => {
+  const lfInstance = resolveActiveLogicFlow();
+  if (!lfInstance || typeof lfInstance.resetTranslate !== "function") {
+    return false;
+  }
+  lfInstance.resetTranslate();
+  return true;
+};
+
+const translateCenter = (): boolean => {
+  const lfInstance = resolveActiveLogicFlow();
+  if (!lfInstance || typeof lfInstance.translateCenter !== "function") {
+    return false;
+  }
+  if (!hasRenderableGraphNodes(lfInstance)) {
+    return false;
+  }
+  const host = embedRootRef.value;
+  if (!host || host.clientWidth <= 0 || host.clientHeight <= 0) {
+    return false;
+  }
+  lfInstance.translateCenter();
+  return true;
+};
+
 const getTransform = (): Record<string, number> | null => {
   const lfInstance = resolveActiveLogicFlow();
   if (!lfInstance || typeof lfInstance.getTransform !== "function") {
@@ -564,6 +602,8 @@ defineExpose({
   fitView,
   zoom,
   resetZoom,
+  resetTranslate,
+  translateCenter,
   getTransform,
 });
 
