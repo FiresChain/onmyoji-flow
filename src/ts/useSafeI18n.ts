@@ -68,7 +68,9 @@ const resolveInitialFallbackLocale = (): SupportedLocale => {
   return "zh";
 };
 
-const fallbackLocaleState = ref<SupportedLocale>(resolveInitialFallbackLocale());
+const fallbackLocaleState = ref<SupportedLocale>(
+  resolveInitialFallbackLocale(),
+);
 const explicitLocaleOverride = ref<SupportedLocale | null>(null);
 
 const resolveFallbackMessage = (
