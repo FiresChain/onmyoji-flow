@@ -72,6 +72,7 @@ import Toolbar from "./components/Toolbar.vue";
 import ComponentsPanel from "./components/flow/ComponentsPanel.vue";
 import DialogManager from "./components/DialogManager.vue";
 import { useFilesStore } from "@/ts/useStore";
+import { useSafeI18n } from "@/ts/useSafeI18n";
 import {
   createLogicFlowScope,
   destroyLogicFlowInstance,
@@ -301,13 +302,23 @@ const ensureElementPlusInstalled = () => {
   const app = instance?.appContext?.app as any;
   if (!app) return;
 
+  if (app.config?.globalProperties?.$ELEMENT) {
+    return;
+  }
+
+  if (app.__ONMYOJI_FLOW_ELEMENT_PLUS_INSTALLED__) {
+    return;
+  }
+
   const installedPlugins = app._context?.plugins;
   if (installedPlugins?.has?.(ElementPlus)) {
+    app.__ONMYOJI_FLOW_ELEMENT_PLUS_INSTALLED__ = true;
     return;
   }
 
   try {
     app.use(ElementPlus);
+    app.__ONMYOJI_FLOW_ELEMENT_PLUS_INSTALLED__ = true;
   } catch {
     // 忽略重复安装或宿主限制导致的异常
   }
@@ -349,6 +360,28 @@ const resolvedEmbedConfig = computed(() => ({
   snapline: props.config?.snapline ?? true,
   keyboard: props.config?.keyboard ?? true,
 }));
+
+const { setLocale: setSafeLocale } = useSafeI18n();
+const normalizeEmbedLocale = (
+  input: unknown,
+): EditorConfig["locale"] | null => {
+  if (typeof input !== "string") {
+    return null;
+  }
+  const normalized = input.trim().toLowerCase().split("-")[0];
+  if (normalized === "ja") return "ja";
+  if (normalized === "en") return "en";
+  if (normalized === "zh") return "zh";
+  return null;
+};
+const syncEmbedLocale = (localeInput: unknown) => {
+  const normalized = normalizeEmbedLocale(localeInput);
+  if (!normalized) {
+    return;
+  }
+  setSafeLocale(normalized);
+};
+syncEmbedLocale(props.config?.locale);
 
 const recalcEditContentHeight = () => {
   if (props.mode !== "edit") {
@@ -498,10 +531,103 @@ const setGraphData = (data: GraphData) => {
   }
 };
 
+const resolveActiveLogicFlow = (): any => {
+  if (props.mode === "preview") {
+    return previewLf.value;
+  }
+  return getLogicFlowInstance(logicFlowScope);
+};
+
+const hasRenderableGraphNodes = (lfInstance: any): boolean => {
+  const graphData = collectGraphDataWithLayer(lfInstance);
+  const nodes = Array.isArray(graphData?.nodes) ? graphData.nodes : [];
+  return nodes.length > 0;
+};
+
+const fitView = (verticalOffset?: number, horizontalOffset?: number): boolean => {
+  const lfInstance = resolveActiveLogicFlow();
+  if (!lfInstance || typeof lfInstance.fitView !== "function") {
+    return false;
+  }
+  if (!hasRenderableGraphNodes(lfInstance)) {
+    return false;
+  }
+  const host = embedRootRef.value;
+  if (!host || host.clientWidth <= 0 || host.clientHeight <= 0) {
+    return false;
+  }
+  if (
+    typeof verticalOffset === "number" ||
+    typeof horizontalOffset === "number"
+  ) {
+    lfInstance.fitView(verticalOffset, horizontalOffset);
+  } else {
+    lfInstance.fitView();
+  }
+  return true;
+};
+
+const zoom = (zoomSize?: number | boolean, point?: [number, number]): boolean => {
+  const lfInstance = resolveActiveLogicFlow();
+  if (!lfInstance || typeof lfInstance.zoom !== "function") {
+    return false;
+  }
+  lfInstance.zoom(zoomSize, point);
+  return true;
+};
+
+const resetZoom = (): boolean => {
+  const lfInstance = resolveActiveLogicFlow();
+  if (!lfInstance || typeof lfInstance.resetZoom !== "function") {
+    return false;
+  }
+  lfInstance.resetZoom();
+  return true;
+};
+
+const resetTranslate = (): boolean => {
+  const lfInstance = resolveActiveLogicFlow();
+  if (!lfInstance || typeof lfInstance.resetTranslate !== "function") {
+    return false;
+  }
+  lfInstance.resetTranslate();
+  return true;
+};
+
+const translateCenter = (): boolean => {
+  const lfInstance = resolveActiveLogicFlow();
+  if (!lfInstance || typeof lfInstance.translateCenter !== "function") {
+    return false;
+  }
+  if (!hasRenderableGraphNodes(lfInstance)) {
+    return false;
+  }
+  const host = embedRootRef.value;
+  if (!host || host.clientWidth <= 0 || host.clientHeight <= 0) {
+    return false;
+  }
+  lfInstance.translateCenter();
+  return true;
+};
+
+const getTransform = (): Record<string, number> | null => {
+  const lfInstance = resolveActiveLogicFlow();
+  if (!lfInstance || typeof lfInstance.getTransform !== "function") {
+    return null;
+  }
+  return lfInstance.getTransform();
+};
+
 defineExpose({
   getGraphData,
   setGraphData,
   resizeCanvas: triggerEditorResize,
+  fitView,
+  zoom,
+  resetZoom,
+  resetTranslate,
+  translateCenter,
+  getTransform,
 });
 
 // 监听 data 变化
@@ -513,6 +639,14 @@ watch(
     }
   },
   { deep: true },
+);
+
+watch(
+  () => props.config?.locale,
+  (nextLocale) => {
+    syncEmbedLocale(nextLocale);
+  },
+  { immediate: true },
 );
 
 watch(
