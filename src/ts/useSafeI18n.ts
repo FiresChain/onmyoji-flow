@@ -1,4 +1,5 @@
 import { useI18n } from "vue-i18n";
+import { ref } from "vue";
 import zh from "@/locales/zh.json";
 import ja from "@/locales/ja.json";
 import en from "@/locales/en.json";
@@ -67,7 +68,8 @@ const resolveInitialFallbackLocale = (): SupportedLocale => {
   return "zh";
 };
 
-let fallbackLocaleState: SupportedLocale = resolveInitialFallbackLocale();
+const fallbackLocaleState = ref<SupportedLocale>(resolveInitialFallbackLocale());
+const explicitLocaleOverride = ref<SupportedLocale | null>(null);
 
 const resolveFallbackMessage = (
   locale: SupportedLocale,
@@ -94,8 +96,14 @@ const persistFallbackLocale = (locale: SupportedLocale) => {
 };
 
 const resolveRuntimeLocale = (localeInput: unknown): SupportedLocale => {
+  if (explicitLocaleOverride.value) {
+    return explicitLocaleOverride.value;
+  }
+
   if (typeof localeInput === "string") {
-    return normalizeLocale(localeInput);
+    // Some host apps expose a non-reactive string locale; in that case prefer
+    // our managed fallback locale so embed-level overrides can still take effect.
+    return fallbackLocaleState.value;
   }
 
   if (
@@ -107,16 +115,17 @@ const resolveRuntimeLocale = (localeInput: unknown): SupportedLocale => {
     return normalizeLocale((localeInput as { value: string }).value);
   }
 
-  return fallbackLocaleState;
+  return fallbackLocaleState.value;
 };
 
 export function useSafeI18n() {
   let safeT: TranslateFn = (key) =>
-    resolveFallbackMessage(fallbackLocaleState, key);
-  let resolveLocale = () => fallbackLocaleState;
+    resolveFallbackMessage(fallbackLocaleState.value, key);
+  let resolveLocale = () => fallbackLocaleState.value;
   let updateLocale = (nextLocale: string) => {
     const normalized = normalizeLocale(nextLocale);
-    fallbackLocaleState = normalized;
+    fallbackLocaleState.value = normalized;
+    explicitLocaleOverride.value = normalized;
     persistFallbackLocale(normalized);
   };
 
@@ -143,7 +152,8 @@ export function useSafeI18n() {
     resolveLocale = () => resolveRuntimeLocale(locale);
     updateLocale = (nextLocale: string) => {
       const normalized = normalizeLocale(nextLocale);
-      fallbackLocaleState = normalized;
+      fallbackLocaleState.value = normalized;
+      explicitLocaleOverride.value = normalized;
       persistFallbackLocale(normalized);
       if (typeof locale === "string") return;
       locale.value = normalized;

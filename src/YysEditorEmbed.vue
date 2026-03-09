@@ -72,6 +72,7 @@ import Toolbar from "./components/Toolbar.vue";
 import ComponentsPanel from "./components/flow/ComponentsPanel.vue";
 import DialogManager from "./components/DialogManager.vue";
 import { useFilesStore } from "@/ts/useStore";
+import { useSafeI18n } from "@/ts/useSafeI18n";
 import {
   createLogicFlowScope,
   destroyLogicFlowInstance,
@@ -360,6 +361,28 @@ const resolvedEmbedConfig = computed(() => ({
   keyboard: props.config?.keyboard ?? true,
 }));
 
+const { setLocale: setSafeLocale } = useSafeI18n();
+const normalizeEmbedLocale = (
+  input: unknown,
+): EditorConfig["locale"] | null => {
+  if (typeof input !== "string") {
+    return null;
+  }
+  const normalized = input.trim().toLowerCase().split("-")[0];
+  if (normalized === "ja") return "ja";
+  if (normalized === "en") return "en";
+  if (normalized === "zh") return "zh";
+  return null;
+};
+const syncEmbedLocale = (localeInput: unknown) => {
+  const normalized = normalizeEmbedLocale(localeInput);
+  if (!normalized) {
+    return;
+  }
+  setSafeLocale(normalized);
+};
+syncEmbedLocale(props.config?.locale);
+
 const recalcEditContentHeight = () => {
   if (props.mode !== "edit") {
     return;
@@ -616,6 +639,14 @@ watch(
     }
   },
   { deep: true },
+);
+
+watch(
+  () => props.config?.locale,
+  (nextLocale) => {
+    syncEmbedLocale(nextLocale);
+  },
+  { immediate: true },
 );
 
 watch(
