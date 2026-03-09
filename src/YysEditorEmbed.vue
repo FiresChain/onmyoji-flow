@@ -544,7 +544,10 @@ const hasRenderableGraphNodes = (lfInstance: any): boolean => {
   return nodes.length > 0;
 };
 
-const fitView = (verticalOffset?: number, horizontalOffset?: number): boolean => {
+const fitView = (
+  verticalOffset?: number,
+  horizontalOffset?: number,
+): boolean => {
   const lfInstance = resolveActiveLogicFlow();
   if (!lfInstance || typeof lfInstance.fitView !== "function") {
     return false;
@@ -567,7 +570,10 @@ const fitView = (verticalOffset?: number, horizontalOffset?: number): boolean =>
   return true;
 };
 
-const zoom = (zoomSize?: number | boolean, point?: [number, number]): boolean => {
+const zoom = (
+  zoomSize?: number | boolean,
+  point?: [number, number],
+): boolean => {
   const lfInstance = resolveActiveLogicFlow();
   if (!lfInstance || typeof lfInstance.zoom !== "function") {
     return false;
