@@ -2,6 +2,17 @@
   {
     "id": "598",
     "library": "shikigami",
+    "avatar": "/assets/Shikigami/sp/599.png",
+    "names": {
+      "zh": "蚀月吸血姬",
+      "ja": "蚀月吸血姬",
+      "en": "蚀月吸血姬"
+    },
+    "rarity": "SP"
+  },
+  {
+    "id": "598",
+    "library": "shikigami",
     "avatar": "/assets/Shikigami/sp/598.png",
     "names": {
       "zh": "灼华桃花妖",

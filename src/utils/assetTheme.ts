@@ -8,6 +8,7 @@ import type {
 import {
   resolveAssetThemeConfig,
   resolveAssetThemeEnabled,
+  resolveCreateNodeSize,
 } from "@/utils/nodeCreateSizeConfig";
 
 export const ASSET_NAME_FALLBACK = "未选择资产";
@@ -290,7 +291,11 @@ export const applyAssetThemeToAssetNodeProperties = (
   },
 ) => {
   const currentStyle = buildAssetNodeThemeStyle(
-    nodeProperties.style,
+    {
+      ...(nodeProperties.style || {}),
+      ...(sizeFallback?.width != null ? { width: sizeFallback.width } : {}),
+      ...(sizeFallback?.height != null ? { height: sizeFallback.height } : {}),
+    },
     theme,
     sizeFallback,
   );
@@ -300,6 +305,8 @@ export const applyAssetThemeToAssetNodeProperties = (
   );
   return {
     ...nodeProperties,
+    width: currentStyle.width,
+    height: currentStyle.height,
     style: currentStyle,
     assetName: {
       ...currentAssetName,
@@ -335,10 +342,28 @@ export const syncAssetNameLabelForNode = (
     config: options?.config,
     assetLibrary,
   });
-  const sizeFallback = { width: assetModel.width, height: assetModel.height };
+  const configuredNodeSize =
+    options?.applyThemeStyle === true
+      ? resolveCreateNodeSize("assetSelector", {
+          config: options?.config,
+          assetLibrary,
+        })
+      : null;
+  const sizeFallback = configuredNodeSize || {
+    width: assetModel.width,
+    height: assetModel.height,
+  };
   const nextProps = options?.applyThemeStyle
     ? applyAssetThemeToAssetNodeProperties(props, theme, sizeFallback)
     : { ...props };
+  if (options?.applyThemeStyle === true) {
+    if (Number.isFinite(nextProps.width)) {
+      assetModel.width = Number(nextProps.width);
+    }
+    if (Number.isFinite(nextProps.height)) {
+      assetModel.height = Number(nextProps.height);
+    }
+  }
   const nameConfig = normalizeAssetNameNodeConfig(nextProps.assetName, theme);
   const nextName = getAssetDisplayName(nextProps.selectedAsset);
   const shouldOverrideText =

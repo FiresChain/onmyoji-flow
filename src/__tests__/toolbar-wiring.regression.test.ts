@@ -24,22 +24,28 @@ const wiringSpies = vi.hoisted(() => ({
   disposeAssetManagement: vi.fn(),
 }));
 
+const toolbarStoreMock = vi.hoisted(() => ({
+  bindLogicFlowScope: vi.fn(),
+  getTab: vi.fn(),
+  updateTab: vi.fn(),
+  exportData: vi.fn(),
+  importData: vi.fn(),
+  resetWorkspace: vi.fn(),
+  fileList: [],
+  activeFileId: "file-1",
+}));
+
+const logicFlowMock = vi.hoisted(() => ({
+  current: null as any,
+}));
+
 vi.mock("@/ts/useStore", () => ({
-  useFilesStore: vi.fn(() => ({
-    bindLogicFlowScope: vi.fn(),
-    getTab: vi.fn(),
-    updateTab: vi.fn(),
-    exportData: vi.fn(),
-    importData: vi.fn(),
-    resetWorkspace: vi.fn(),
-    fileList: [],
-    activeFileId: "file-1",
-  })),
+  useFilesStore: vi.fn(() => toolbarStoreMock),
 }));
 
 vi.mock("@/ts/useLogicFlow", () => ({
   useLogicFlowScope: vi.fn(() => Symbol("toolbar-wiring-scope")),
-  getLogicFlowInstance: vi.fn(() => null),
+  getLogicFlowInstance: vi.fn(() => logicFlowMock.current),
 }));
 
 vi.mock("@/ts/useCanvasSettings", () => ({
@@ -2242,6 +2248,14 @@ const expectImportCommandCounts = (
 describe("toolbar wiring regression", () => {
   beforeEach(() => {
     Object.values(wiringSpies).forEach((spy) => spy.mockReset());
+    toolbarStoreMock.bindLogicFlowScope.mockReset();
+    toolbarStoreMock.getTab.mockReset();
+    toolbarStoreMock.updateTab.mockReset();
+    toolbarStoreMock.exportData.mockReset();
+    toolbarStoreMock.importData.mockReset();
+    toolbarStoreMock.resetWorkspace.mockReset();
+    toolbarStoreMock.activeFileId = "file-1";
+    logicFlowMock.current = null;
   });
 
   it("keeps lifecycle mount/dispose wiring for asset and dialog composables", () => {
@@ -2291,6 +2305,80 @@ describe("toolbar wiring regression", () => {
 
     await clickButtonByText("清空画布");
     expect(wiringSpies.handleClearCanvas).toHaveBeenCalledTimes(1);
+  });
+
+  it("applies theme to current canvas and syncs refreshed graph data", async () => {
+    vi.useFakeTimers();
+    try {
+      const assetNode = {
+        id: "asset-1",
+        type: "assetSelector",
+        x: 120,
+        y: 80,
+        width: 180,
+        height: 180,
+        properties: {
+          assetLibrary: "shikigami",
+          selectedAsset: {
+            name: "茨木童子",
+            library: "shikigami",
+          },
+        } as Record<string, any>,
+        getProperties() {
+          return this.properties;
+        },
+      };
+      const logicFlowInstance = {
+        graphModel: {
+          nodes: [assetNode],
+        },
+        getNodeModelById: vi.fn((nodeId: string) =>
+          nodeId === assetNode.id ? assetNode : null,
+        ),
+        addNode: vi.fn(),
+        setProperties: vi.fn(
+          (nodeId: string, nextProps: Record<string, any>) => {
+            if (nodeId === assetNode.id) {
+              assetNode.properties = nextProps;
+            }
+          },
+        ),
+        deleteNode: vi.fn(),
+        clearData: vi.fn(),
+        render: vi.fn(),
+        zoom: vi.fn(),
+      };
+      logicFlowMock.current = logicFlowInstance;
+      toolbarStoreMock.getTab.mockReturnValue({
+        graphRawData: {
+          nodes: [{ id: assetNode.id, type: assetNode.type, zIndex: 1 }],
+          edges: [],
+        },
+        transform: {
+          SCALE_X: 1,
+          TRANSLATE_X: 0,
+          TRANSLATE_Y: 0,
+        },
+      });
+
+      const wrapper = createWrapper();
+      const vm = wrapper.vm as unknown as ToolbarVm & {
+        applyThemeToCurrentCanvas: () => void;
+      };
+
+      vm.applyThemeToCurrentCanvas();
+
+      expect(logicFlowInstance.setProperties).toHaveBeenCalled();
+      expect(toolbarStoreMock.updateTab).toHaveBeenCalledWith("file-1");
+      expect(logicFlowInstance.clearData).not.toHaveBeenCalled();
+
+      vi.advanceTimersByTime(100);
+
+      expect(logicFlowInstance.clearData).toHaveBeenCalledTimes(1);
+      expect(logicFlowInstance.render).toHaveBeenCalledTimes(1);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("keeps import dialog wiring stable across repeated open-switch-close cycles", async () => {

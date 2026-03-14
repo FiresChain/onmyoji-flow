@@ -1263,6 +1263,8 @@ const applyThemeToCurrentCanvas = () => {
     applyAssetThemeToCurrentFile(logicFlowInstance as any, {
       config: nodeSizeDraft.value,
     });
+    filesStore.updateTab(filesStore.activeFileId);
+    refreshLogicFlowCanvas();
     showMessage("success", t("nodeSize.message.applyCurrentSuccess"));
   } finally {
     state.applyingThemeToCurrent = false;
