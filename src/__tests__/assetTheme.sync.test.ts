@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { syncAssetNameLabelForNode } from "@/utils/assetTheme";
+import {
+  applyAssetThemeToCurrentFile,
+  syncAssetNameLabelForNode,
+} from "@/utils/assetTheme";
 import {
   DEFAULT_NODE_CREATE_SIZE_CONFIG,
   cloneNodeCreateSizeConfig,
@@ -126,5 +129,45 @@ describe("assetTheme sync", () => {
     const labelNodeAfter = lf.getNodeModelById(labelNodeId);
     expect(labelNodeAfter.properties.style.textStyle.color).toBe("#ff0000");
     expect(labelNodeAfter.properties.style.textStyle.fontSize).toBe(28);
+  });
+
+  it("applies configured asset size to existing asset nodes when applying to current file", () => {
+    const assetNode = createModel({
+      id: "asset-2",
+      type: "assetSelector",
+      x: 80,
+      y: 120,
+      width: 180,
+      height: 120,
+      properties: {
+        assetLibrary: "onmyoji",
+        selectedAsset: {
+          name: "神乐",
+          library: "onmyoji",
+        },
+        style: {
+          width: 180,
+          height: 120,
+        },
+      },
+    });
+    const lf = createLfMock(assetNode) as any;
+    const appliedConfig = cloneNodeCreateSizeConfig(
+      DEFAULT_NODE_CREATE_SIZE_CONFIG,
+    );
+    appliedConfig.assetThemeByLibrary.onmyoji.name.show = true;
+    appliedConfig.assetSelectorByLibrary.onmyoji.width = 340;
+    appliedConfig.assetSelectorByLibrary.onmyoji.height = 210;
+
+    applyAssetThemeToCurrentFile(lf, {
+      config: appliedConfig,
+    });
+
+    expect(assetNode.width).toBe(340);
+    expect(assetNode.height).toBe(210);
+    expect(assetNode.properties.width).toBe(340);
+    expect(assetNode.properties.height).toBe(210);
+    expect(assetNode.properties.style.width).toBe(340);
+    expect(assetNode.properties.style.height).toBe(210);
   });
 });

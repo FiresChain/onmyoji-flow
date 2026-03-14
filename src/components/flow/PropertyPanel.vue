@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, onBeforeUnmount, ref } from "vue";
 import PropertyRulePanel from "./panels/PropertyRulePanel.vue";
 import ImagePanel from "./panels/ImagePanel.vue";
 import TextPanel from "./panels/TextPanel.vue";
@@ -13,6 +13,9 @@ import { useSafeI18n } from "@/ts/useSafeI18n";
 
 const logicFlowScope = useLogicFlowScope();
 const { t } = useSafeI18n();
+const MIN_PANEL_WIDTH = 240;
+const MAX_PANEL_WIDTH = 460;
+const DEFAULT_PANEL_WIDTH = 280;
 
 const props = defineProps({
   height: {
@@ -27,6 +30,16 @@ const props = defineProps({
 
 const selectedNode = computed(() => props.node);
 const hasNodeSelected = computed(() => !!selectedNode.value);
+const panelWidth = ref(DEFAULT_PANEL_WIDTH);
+const isResizing = ref(false);
+const panelStyle = computed(() => ({
+  height: props.height,
+  width: `${panelWidth.value}px`,
+}));
+let resizeStartX = 0;
+let resizeStartWidth = DEFAULT_PANEL_WIDTH;
+let prevBodyCursor = "";
+let prevBodyUserSelect = "";
 
 const nodeType = computed(() => {
   if (!selectedNode.value) return "";
@@ -66,10 +79,59 @@ const currentAssetLibrary = computed({
 
 const getAssetLibraryLabel = (libraryId: string) =>
   t(`assetLibrary.${libraryId}`);
+
+const clampPanelWidth = (nextWidth: number) =>
+  Math.max(MIN_PANEL_WIDTH, Math.min(MAX_PANEL_WIDTH, nextWidth));
+
+const stopResize = () => {
+  if (!isResizing.value) return;
+  isResizing.value = false;
+  window.removeEventListener("mousemove", handleResizeMouseMove);
+  window.removeEventListener("mouseup", stopResize);
+  document.body.style.cursor = prevBodyCursor;
+  document.body.style.userSelect = prevBodyUserSelect;
+};
+
+const handleResizeMouseMove = (event: MouseEvent) => {
+  if (!isResizing.value) return;
+  const deltaX = event.clientX - resizeStartX;
+  panelWidth.value = clampPanelWidth(resizeStartWidth - deltaX);
+};
+
+const handleResizeMouseDown = (event: MouseEvent) => {
+  if (event.button !== 0) return;
+  event.preventDefault();
+  isResizing.value = true;
+  resizeStartX = event.clientX;
+  resizeStartWidth = panelWidth.value;
+  prevBodyCursor = document.body.style.cursor;
+  prevBodyUserSelect = document.body.style.userSelect;
+  document.body.style.cursor = "col-resize";
+  document.body.style.userSelect = "none";
+  window.addEventListener("mousemove", handleResizeMouseMove);
+  window.addEventListener("mouseup", stopResize);
+};
+
+onBeforeUnmount(() => {
+  stopResize();
+});
 </script>
 
 <template>
-  <div class="property-panel" :style="{ height }">
+  <div
+    class="property-panel"
+    :class="{ 'is-resizing': isResizing }"
+    :style="panelStyle"
+  >
+    <div
+      class="resize-handle"
+      role="separator"
+      aria-orientation="vertical"
+      :aria-valuemin="MIN_PANEL_WIDTH"
+      :aria-valuemax="MAX_PANEL_WIDTH"
+      :aria-valuenow="panelWidth"
+      @mousedown="handleResizeMouseDown"
+    ></div>
     <div class="panel-header">
       <h3>{{ t("flow.property.title") }}</h3>
     </div>
@@ -161,12 +223,12 @@ const getAssetLibraryLabel = (libraryId: string) =>
 .property-panel {
   background-color: #f5f7fa;
   border-left: 1px solid #e4e7ed;
-  width: 280px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
   min-height: 0;
   overflow: hidden;
+  position: relative;
 }
 
 .panel-header {
@@ -263,5 +325,32 @@ const getAssetLibraryLabel = (libraryId: string) =>
 .property-value {
   font-size: 14px;
   word-break: break-all;
+}
+
+.resize-handle {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 8px;
+  height: 100%;
+  cursor: col-resize;
+  z-index: 20;
+}
+
+.resize-handle::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 2px;
+  transform: translateX(-50%);
+  background: transparent;
+  transition: background-color 0.2s ease;
+}
+
+.property-panel:hover .resize-handle::before,
+.property-panel.is-resizing .resize-handle::before {
+  background-color: #c6e2ff;
 }
 </style>

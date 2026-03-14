@@ -63,7 +63,6 @@ const normalizedAvatar = computed(
 
 <template>
   <div class="node-content" :style="mergedContainerStyle">
-    <div class="zindex-badge">{{ zIndex }}</div>
     <img
       v-if="currentAsset.avatar"
       :src="normalizedAvatar"
@@ -83,19 +82,7 @@ const normalizedAvatar = computed(
   justify-content: center;
   position: relative;
 }
-.zindex-badge {
-  position: absolute;
-  top: 4px;
-  right: 4px;
-  background: rgba(64, 158, 255, 0.9);
-  color: white;
-  font-size: 12px;
-  font-weight: bold;
-  padding: 2px 6px;
-  border-radius: 10px;
-  z-index: 10;
-  pointer-events: none;
-}
+
 .asset-image {
   width: 85%;
   height: 85%;
