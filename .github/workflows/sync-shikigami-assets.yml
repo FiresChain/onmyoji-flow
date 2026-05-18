@@ -1,0 +1,74 @@
+name: Sync Shikigami Assets
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Thu/Fri 11:30 CST, GitHub cron uses UTC.
+    - cron: "30 3 * * 4,5"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: sync-shikigami-assets
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout onmyoji-flow
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Sync shikigami assets
+        run: node scripts/sync-assets.js --library shikigami
+
+      - name: Remove local backup files
+        run: rm -f src/data/assets/*.bak
+
+      - name: Verify shikigami assets
+        run: |
+          node - <<'NODE'
+          const path = require("path");
+          const {
+            validateLibraryItems,
+            validateAvatarFiles,
+          } = require("./scripts/lib/schemaValidate");
+
+          const items = require("./src/data/assets/shikigami.json");
+          const validation = validateLibraryItems("shikigami", items);
+          const avatarErrors = validateAvatarFiles(
+            path.join(process.cwd(), "public"),
+            items,
+          );
+          const errors = [...validation.errors, ...avatarErrors];
+
+          if (errors.length > 0) {
+            console.error(errors.join("\n"));
+            process.exit(1);
+          }
+
+          console.log(`shikigami asset verification passed: ${items.length}`);
+          NODE
+
+      - name: Create pull request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          branch: chore/sync-shikigami-assets
+          delete-branch: true
+          commit-message: 同步式神资源
+          title: 同步式神资源
+          body: |
+            自动同步官方式神资源。
+
+            - 触发时间：每周四、周五 11:30（北京时间）
+            - 同步范围：`shikigami`
+            - 校验：式神数据结构与头像文件存在性
+          author: rookie4show <rookie4show@gmail.com>
+          committer: rookie4show <rookie4show@gmail.com>
