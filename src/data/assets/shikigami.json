@@ -1,6 +1,28 @@
 [
   {
-    "id": "598",
+    "id": "601",
+    "library": "shikigami",
+    "avatar": "/assets/Shikigami/ssr/601.png",
+    "names": {
+      "zh": "思金神",
+      "ja": "思金神",
+      "en": "思金神"
+    },
+    "rarity": "SSR"
+  },
+  {
+    "id": "600",
+    "library": "shikigami",
+    "avatar": "/assets/Shikigami/ssr/600.png",
+    "names": {
+      "zh": "市加美",
+      "ja": "市加美",
+      "en": "市加美"
+    },
+    "rarity": "SSR"
+  },
+  {
+    "id": "599",
     "library": "shikigami",
     "avatar": "/assets/Shikigami/sp/599.png",
     "names": {
@@ -537,6 +559,17 @@
       "en": "神乐&定春"
     },
     "rarity": "L"
+  },
+  {
+    "id": "433",
+    "library": "shikigami",
+    "avatar": "/assets/Shikigami/n/433.png",
+    "names": {
+      "zh": "生剥鬼",
+      "ja": "生剥鬼",
+      "en": "生剥鬼"
+    },
+    "rarity": "N"
   },
   {
     "id": "430",
