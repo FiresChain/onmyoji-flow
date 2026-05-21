@@ -7,6 +7,15 @@ const ensureDir = (dirPath) => {
   fs.mkdirSync(dirPath, { recursive: true });
 };
 
+class DownloadHttpError extends Error {
+  constructor(url, status) {
+    super(`HTTP ${status} for ${url}`);
+    this.name = "DownloadHttpError";
+    this.url = url;
+    this.status = status;
+  }
+}
+
 const downloadFile = (url, filePath, redirectDepth = 0) =>
   new Promise((resolve, reject) => {
     if (redirectDepth > 5) {
@@ -21,6 +30,7 @@ const downloadFile = (url, filePath, redirectDepth = 0) =>
     const request = protocol.get(url, (response) => {
       const status = response.statusCode || 0;
       if ([301, 302, 303, 307, 308].includes(status) && response.headers.location) {
+        response.resume();
         file.close();
         fs.unlink(filePath, () => {});
         const nextUrl = new URL(response.headers.location, url).toString();
@@ -29,9 +39,10 @@ const downloadFile = (url, filePath, redirectDepth = 0) =>
       }
 
       if (status < 200 || status >= 300) {
+        response.resume();
         file.close();
         fs.unlink(filePath, () => {});
-        reject(new Error(`HTTP ${status} for ${url}`));
+        reject(new DownloadHttpError(url, status));
         return;
       }
 
@@ -52,6 +63,7 @@ const downloadAssets = async (assets, options = {}) => {
   const { rootDir, skipExisting = true, logger = console } = options;
   const downloaded = [];
   const skipped = [];
+  const missing = [];
 
   for (const item of assets) {
     const targetPath = path.join(rootDir, item.relativePath.replace(/^\/+/, ""));
@@ -59,15 +71,25 @@ const downloadAssets = async (assets, options = {}) => {
       skipped.push(item.relativePath);
       continue;
     }
-    await downloadFile(item.url, targetPath);
+    try {
+      await downloadFile(item.url, targetPath);
+    } catch (error) {
+      if (item.optional && error instanceof DownloadHttpError && error.status === 404) {
+        missing.push(item.relativePath);
+        logger.warn(`missing optional asset ${item.relativePath}: ${item.url}`);
+        continue;
+      }
+      throw error;
+    }
     downloaded.push(item.relativePath);
     logger.log(`downloaded ${item.relativePath}`);
   }
 
-  return { downloaded, skipped };
+  return { downloaded, skipped, missing };
 };
 
 module.exports = {
+  DownloadHttpError,
   ensureDir,
   downloadFile,
   downloadAssets,
