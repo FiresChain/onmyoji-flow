@@ -180,7 +180,7 @@ const syncJsonLibrary = async (library, entry, options) => {
   }
   warnings.push(...validation.warnings);
 
-  let downloadResult = { downloaded: [], skipped: [] };
+  let downloadResult = { downloaded: [], skipped: [], missing: [] };
   if (!options.noDownload && !options.dryRun && images.length > 0) {
     downloadResult = await downloadAssets(images, {
       rootDir: PUBLIC_DIR,
@@ -190,6 +190,24 @@ const syncJsonLibrary = async (library, entry, options) => {
     warnings.push(
       `${library} downloaded=${downloadResult.downloaded.length}, skipped=${downloadResult.skipped.length}`,
     );
+  }
+
+  if (downloadResult.missing.length > 0) {
+    const currentAssets = readLibraryAssets(library);
+    warnings.push(
+      `${library} pending missing images=${downloadResult.missing.join(",")}`,
+      `${library} json write skipped until official images are available`,
+    );
+    return {
+      mode: entry.mode,
+      source,
+      count: currentAssets.length,
+      warnings,
+      downloaded: downloadResult.downloaded.length,
+      skipped: downloadResult.skipped.length,
+      assets: currentAssets,
+      pending: true,
+    };
   }
 
   if (options.prune && entry.pruneRoots.length > 0) {
@@ -236,7 +254,7 @@ const syncImageOnlyLibrary = async (library, entry, options) => {
     : "official-image-only";
   const foundIds = Array.isArray(result?.foundIds) ? result.foundIds : [];
 
-  let downloadResult = { downloaded: [], skipped: [] };
+  let downloadResult = { downloaded: [], skipped: [], missing: [] };
   if (!options.noDownload && !options.dryRun) {
     downloadResult = await downloadAssets(images, {
       rootDir: PUBLIC_DIR,
@@ -339,6 +357,9 @@ const main = async () => {
     if (Array.isArray(result.foundIds) && result.foundIds.length > 0) {
       reportEntry.foundIds = result.foundIds;
     }
+    if (result.pending === true) {
+      reportEntry.pending = true;
+    }
     runReport.libraries[library] = reportEntry;
   }
 
@@ -356,7 +377,11 @@ const main = async () => {
     currentAssetsByLibrary,
   );
 
-  if (!options.dryRun) {
+  const hasPendingLibrary = Object.values(runReport.libraries).some(
+    (library) => library.pending === true,
+  );
+
+  if (!options.dryRun && !hasPendingLibrary) {
     writeJsonWithBackup(path.join(SRC_ASSET_DIR, "manifest.json"), manifest);
   }
 

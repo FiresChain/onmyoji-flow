@@ -4,6 +4,8 @@ const { ensureLocalizedText, toText } = require("../lib/normalize");
 const API_HOST = "https://g37simulator.webapp.163.com/get_heroid_list";
 const IMAGE_BASE_URL = "https://yys.res.netease.com/pc/zt/20161108171335/data/shishen";
 const MIN_EXPECTED_COUNT = 200;
+const PAGE_SIZE = 25;
+const MAX_PAGES = 30;
 
 const RARITY_META = {
   "1": { rarity: "N", dir: "n" },
@@ -29,9 +31,8 @@ const parseJsonp = (payload) => {
   return JSON.parse(text.slice(start + 1, end));
 };
 
-const fetchAllHeroes = async () => {
-  // rarity=0 + per_page=500 可一次拿到完整式神集（含 N/R/SR/SSR/SP/UR/L/G）。
-  const query = { rarity: 0, page: 1, per_page: 500 };
+const fetchHeroPage = async (page) => {
+  const query = { rarity: 0, page, per_page: PAGE_SIZE };
   const url = `${API_HOST}?${toQueryString({ ...query, callback: "cb" })}`;
   const payload = await fetchText(url);
   const parsed = parseJsonp(payload);
@@ -41,10 +42,36 @@ const fetchAllHeroes = async () => {
   return parsed.data;
 };
 
+const fetchAllHeroes = async () => {
+  const heroes = {};
+  const pageCounts = [];
+  for (let page = 1; page <= MAX_PAGES; page += 1) {
+    const pageHeroes = await fetchHeroPage(page);
+    const entries = Object.entries(pageHeroes);
+    pageCounts.push(entries.length);
+    if (entries.length === 0) {
+      break;
+    }
+
+    entries.forEach(([id, hero]) => {
+      heroes[id] = hero;
+    });
+
+    if (entries.length < PAGE_SIZE) {
+      break;
+    }
+  }
+
+  return {
+    heroes,
+    pageCounts,
+  };
+};
+
 const collectShikigamiAssets = async () => {
   const allItems = [];
   const seen = new Set();
-  const heroes = await fetchAllHeroes();
+  const { heroes, pageCounts } = await fetchAllHeroes();
 
   Object.entries(heroes).forEach(([id, hero]) => {
     const cleanId = toText(id);
@@ -93,13 +120,14 @@ const collectShikigamiAssets = async () => {
   const images = allItems.map((item) => ({
     url: item.imageUrl,
     relativePath: `/assets/Shikigami/${item.dir}/${item.id}.png`,
+    optional: true,
   }));
 
   return {
     source: "official",
     assets,
     images,
-    warnings: [],
+    warnings: [`official hero pages=${pageCounts.join(",")}`],
   };
 };
 
