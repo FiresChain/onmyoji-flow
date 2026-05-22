@@ -1,5 +1,16 @@
 [
   {
+    "id": "602",
+    "library": "shikigami",
+    "avatar": "/assets/Shikigami/sp/602.png",
+    "names": {
+      "zh": "天火命铃彦姬",
+      "ja": "天火命铃彦姬",
+      "en": "天火命铃彦姬"
+    },
+    "rarity": "SP"
+  },
+  {
     "id": "601",
     "library": "shikigami",
     "avatar": "/assets/Shikigami/ssr/601.png",
