@@ -44,6 +44,9 @@
   "publishConfig": {
     "access": "public"
   },
+  "overrides": {
+    "@nyariv/sandboxjs": "0.9.6"
+  },
   "peerDependencies": {
     "vue": "^3.3.0",
     "element-plus": "^2.9.0",
