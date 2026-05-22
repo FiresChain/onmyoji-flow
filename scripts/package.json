@@ -12,6 +12,6 @@
   },
   "dependencies": {
     "jsdom": "^23.0.0",
-    "puppeteer": "^21.0.0"
+    "puppeteer": "^25.0.4"
   }
 }
