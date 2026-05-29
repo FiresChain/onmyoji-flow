@@ -314,6 +314,20 @@ const mergeManifest = (runLibraries, manifestSnapshot, currentAssetsByLibrary) =
   ),
 });
 
+const stripManifestGeneratedAt = (manifest) => {
+  if (!manifest || typeof manifest !== "object") {
+    return manifest;
+  }
+  const { generatedAt, ...rest } = manifest;
+  return rest;
+};
+
+const shouldWriteManifest = (manifest, manifestSnapshot) => {
+  const currentComparable = stripManifestGeneratedAt(manifestSnapshot);
+  const nextComparable = stripManifestGeneratedAt(manifest);
+  return JSON.stringify(currentComparable) !== JSON.stringify(nextComparable);
+};
+
 const main = async () => {
   const options = parseArgs(process.argv.slice(2));
   const selectedLibraries = selectLibraries(options.library);
@@ -381,7 +395,7 @@ const main = async () => {
     (library) => library.pending === true,
   );
 
-  if (!options.dryRun && !hasPendingLibrary) {
+  if (!options.dryRun && !hasPendingLibrary && shouldWriteManifest(manifest, manifestSnapshot)) {
     writeJsonWithBackup(path.join(SRC_ASSET_DIR, "manifest.json"), manifest);
   }
 
