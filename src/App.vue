@@ -7,8 +7,6 @@ import { useFilesStore } from "@/ts/useStore";
 import Vue3DraggableResizable from "vue3-draggable-resizable";
 import { TabPaneName, TabsPaneContext } from "element-plus";
 import FlowEditor from "./components/flow/FlowEditor.vue";
-import ShikigamiSelect from "./components/flow/nodes/yys/ShikigamiSelect.vue";
-import YuhunSelect from "./components/flow/nodes/yys/YuhunSelect.vue";
 import PropertySelect from "./components/flow/nodes/yys/PropertySelect.vue";
 import DialogManager from "./components/DialogManager.vue";
 import {

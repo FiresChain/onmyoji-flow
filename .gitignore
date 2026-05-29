@@ -9,3 +9,8 @@
 /scripts/node_modules
 .DS_Store
 *.bak
+
+# Playwright
+/test-results/
+/playwright-report/
+/playwright/.cache/
