@@ -231,6 +231,11 @@ import * as ElementPlusIconsVue from "@element-plus/icons-vue";
 import _ from "lodash";
 import { Action, ElMessage, ElMessageBox } from "element-plus";
 import { useGlobalMessage } from "../ts/useGlobalMessage"; // 引入全局消息通知工具
+
+type QuillAttributor = {
+  whitelist: string[];
+};
+
 const props = defineProps<{
   groups: any[];
 }>();
@@ -268,7 +273,7 @@ const paste = (groupIndex, type) => {
 
 // 自定义字体注册
 const registerFonts = () => {
-  const Font = Quill.import("attributors/style/font");
+  const Font = Quill.import("attributors/style/font") as QuillAttributor;
   Font.whitelist = [
     "SimSun",
     "SimHei",
@@ -277,12 +282,12 @@ const registerFonts = () => {
     "Microsoft YaHei",
     "PingFang SC",
   ];
-  Quill.register(Font, true);
+  Quill.register({ "attributors/style/font": Font }, true);
 };
 
 // 自定义字号注册
 const registerSizes = () => {
-  const Size = Quill.import("attributors/style/size");
+  const Size = Quill.import("attributors/style/size") as QuillAttributor;
   Size.whitelist = [
     "12px",
     "14px",
@@ -293,7 +298,7 @@ const registerSizes = () => {
     "32px",
     "34px",
   ];
-  Quill.register(Size, true);
+  Quill.register({ "attributors/style/size": Size }, true);
 };
 
 // 执行注册
