@@ -6,6 +6,8 @@ const IMAGE_BASE_URL = "https://yys.res.netease.com/pc/zt/20161108171335/data/sh
 const MIN_EXPECTED_COUNT = 200;
 const PAGE_SIZE = 25;
 const MAX_PAGES = 30;
+const FETCH_RETRY_LIMIT = 3;
+const FETCH_RETRY_DELAY_MS = 1500;
 
 const RARITY_META = {
   "1": { rarity: "N", dir: "n" },
@@ -31,15 +33,46 @@ const parseJsonp = (payload) => {
   return JSON.parse(text.slice(start + 1, end));
 };
 
+const sleep = (ms) => new Promise((resolve) => {
+  setTimeout(resolve, ms);
+});
+
+const isObjectRecord = (value) => value !== null && typeof value === "object";
+
 const fetchHeroPage = async (page) => {
   const query = { rarity: 0, page, per_page: PAGE_SIZE };
   const url = `${API_HOST}?${toQueryString({ ...query, callback: "cb" })}`;
-  const payload = await fetchText(url);
-  const parsed = parseJsonp(payload);
-  if (!parsed || parsed.success !== true || typeof parsed.data !== "object") {
-    throw new Error("Official hero API returned invalid payload");
+  let lastError = null;
+
+  for (let attempt = 1; attempt <= FETCH_RETRY_LIMIT; attempt += 1) {
+    try {
+      const payload = await fetchText(url);
+      const parsed = parseJsonp(payload);
+      if (!parsed || parsed.success !== true) {
+        throw new Error(`Official hero API returned invalid payload on page ${page}`);
+      }
+
+      if (isObjectRecord(parsed.data)) {
+        return parsed.data;
+      }
+
+      const totalPage = Number(parsed.total_page) || 0;
+      if (parsed.data === null && totalPage > 0 && page > totalPage) {
+        return {};
+      }
+
+      throw new Error(
+        `Official hero API returned empty data on page ${page}: total_num=${parsed.total_num ?? "unknown"}, total_page=${parsed.total_page ?? "unknown"}`,
+      );
+    } catch (error) {
+      lastError = error;
+      if (attempt < FETCH_RETRY_LIMIT) {
+        await sleep(FETCH_RETRY_DELAY_MS);
+      }
+    }
   }
-  return parsed.data;
+
+  throw lastError;
 };
 
 const fetchAllHeroes = async () => {
