@@ -1,5 +1,16 @@
 [
   {
+    "id": "603",
+    "library": "shikigami",
+    "avatar": "/assets/Shikigami/ssr/603.png",
+    "names": {
+      "zh": "毗沙门天",
+      "ja": "毗沙门天",
+      "en": "毗沙门天"
+    },
+    "rarity": "SSR"
+  },
+  {
     "id": "602",
     "library": "shikigami",
     "avatar": "/assets/Shikigami/sp/602.png",
