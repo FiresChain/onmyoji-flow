@@ -1,5 +1,16 @@
 [
   {
+    "id": "603",
+    "library": "shikigami",
+    "avatar": "/assets/Shikigami/ssr/603.png",
+    "names": {
+      "zh": "毗沙门天",
+      "ja": "毗沙门天",
+      "en": "毗沙门天"
+    },
+    "rarity": "SSR"
+  },
+  {
     "id": "602",
     "library": "shikigami",
     "avatar": "/assets/Shikigami/sp/602.png",
@@ -143,28 +154,6 @@
     "rarity": "SP"
   },
   {
-    "id": "588",
-    "library": "shikigami",
-    "avatar": "/assets/Shikigami/l/588.png",
-    "names": {
-      "zh": "李小狼",
-      "ja": "李小狼",
-      "en": "李小狼"
-    },
-    "rarity": "L"
-  },
-  {
-    "id": "587",
-    "library": "shikigami",
-    "avatar": "/assets/Shikigami/l/587.png",
-    "names": {
-      "zh": "木之本樱",
-      "ja": "木之本樱",
-      "en": "木之本樱"
-    },
-    "rarity": "L"
-  },
-  {
     "id": "586",
     "library": "shikigami",
     "avatar": "/assets/Shikigami/sp/586.png",
@@ -207,17 +196,6 @@
       "en": "卑弥呼"
     },
     "rarity": "SSR"
-  },
-  {
-    "id": "582",
-    "library": "shikigami",
-    "avatar": "/assets/Shikigami/l/582.png",
-    "names": {
-      "zh": "巡音流歌",
-      "ja": "巡音流歌",
-      "en": "巡音流歌"
-    },
-    "rarity": "L"
   },
   {
     "id": "581",
@@ -273,17 +251,6 @@
       "en": "鬼金羊"
     },
     "rarity": "SSR"
-  },
-  {
-    "id": "576",
-    "library": "shikigami",
-    "avatar": "/assets/Shikigami/l/576.png",
-    "names": {
-      "zh": "夏目&猫老师",
-      "ja": "夏目&猫老师",
-      "en": "夏目&猫老师"
-    },
-    "rarity": "L"
   },
   {
     "id": "575",
@@ -374,17 +341,6 @@
     "rarity": "SP"
   },
   {
-    "id": "567",
-    "library": "shikigami",
-    "avatar": "/assets/Shikigami/l/567.png",
-    "names": {
-      "zh": "申屠子夜",
-      "ja": "申屠子夜",
-      "en": "申屠子夜"
-    },
-    "rarity": "L"
-  },
-  {
     "id": "566",
     "library": "shikigami",
     "avatar": "/assets/Shikigami/sp/566.png",
@@ -405,28 +361,6 @@
       "en": "福悦座敷童子"
     },
     "rarity": "SP"
-  },
-  {
-    "id": "564",
-    "library": "shikigami",
-    "avatar": "/assets/Shikigami/l/564.png",
-    "names": {
-      "zh": "镜音铃·连",
-      "ja": "镜音铃·连",
-      "en": "镜音铃·连"
-    },
-    "rarity": "L"
-  },
-  {
-    "id": "563",
-    "library": "shikigami",
-    "avatar": "/assets/Shikigami/l/563.png",
-    "names": {
-      "zh": "初音未来",
-      "ja": "初音未来",
-      "en": "初音未来"
-    },
-    "rarity": "L"
   },
   {
     "id": "562",
@@ -517,17 +451,6 @@
     "rarity": "SP"
   },
   {
-    "id": "553",
-    "library": "shikigami",
-    "avatar": "/assets/Shikigami/l/553.png",
-    "names": {
-      "zh": "闻人翊悬",
-      "ja": "闻人翊悬",
-      "en": "闻人翊悬"
-    },
-    "rarity": "L"
-  },
-  {
     "id": "552",
     "library": "shikigami",
     "avatar": "/assets/Shikigami/sr/552.png",
@@ -561,17 +484,6 @@
     "rarity": "SSR"
   },
   {
-    "id": "500",
-    "library": "shikigami",
-    "avatar": "/assets/Shikigami/l/500.png",
-    "names": {
-      "zh": "神乐&定春",
-      "ja": "神乐&定春",
-      "en": "神乐&定春"
-    },
-    "rarity": "L"
-  },
-  {
     "id": "433",
     "library": "shikigami",
     "avatar": "/assets/Shikigami/n/433.png",
@@ -581,193 +493,6 @@
       "en": "生剥鬼"
     },
     "rarity": "N"
-  },
-  {
-    "id": "430",
-    "library": "shikigami",
-    "avatar": "/assets/Shikigami/g/430.png",
-    "names": {
-      "zh": "御馔津呱",
-      "ja": "御馔津呱",
-      "en": "御馔津呱"
-    },
-    "rarity": "G"
-  },
-  {
-    "id": "429",
-    "library": "shikigami",
-    "avatar": "/assets/Shikigami/g/429.png",
-    "names": {
-      "zh": "玉藻前呱",
-      "ja": "玉藻前呱",
-      "en": "玉藻前呱"
-    },
-    "rarity": "G"
-  },
-  {
-    "id": "428",
-    "library": "shikigami",
-    "avatar": "/assets/Shikigami/g/428.png",
-    "names": {
-      "zh": "雪童子呱",
-      "ja": "雪童子呱",
-      "en": "雪童子呱"
-    },
-    "rarity": "G"
-  },
-  {
-    "id": "427",
-    "library": "shikigami",
-    "avatar": "/assets/Shikigami/g/427.png",
-    "names": {
-      "zh": "彼岸花呱",
-      "ja": "彼岸花呱",
-      "en": "彼岸花呱"
-    },
-    "rarity": "G"
-  },
-  {
-    "id": "426",
-    "library": "shikigami",
-    "avatar": "/assets/Shikigami/g/426.png",
-    "names": {
-      "zh": "荒呱",
-      "ja": "荒呱",
-      "en": "荒呱"
-    },
-    "rarity": "G"
-  },
-  {
-    "id": "425",
-    "library": "shikigami",
-    "avatar": "/assets/Shikigami/g/425.png",
-    "names": {
-      "zh": "辉夜姬呱",
-      "ja": "辉夜姬呱",
-      "en": "辉夜姬呱"
-    },
-    "rarity": "G"
-  },
-  {
-    "id": "424",
-    "library": "shikigami",
-    "avatar": "/assets/Shikigami/g/424.png",
-    "names": {
-      "zh": "花鸟卷呱",
-      "ja": "花鸟卷呱",
-      "en": "花鸟卷呱"
-    },
-    "rarity": "G"
-  },
-  {
-    "id": "423",
-    "library": "shikigami",
-    "avatar": "/assets/Shikigami/g/423.png",
-    "names": {
-      "zh": "一目连呱",
-      "ja": "一目连呱",
-      "en": "一目连呱"
-    },
-    "rarity": "G"
-  },
-  {
-    "id": "422",
-    "library": "shikigami",
-    "avatar": "/assets/Shikigami/g/422.png",
-    "names": {
-      "zh": "妖刀姬呱",
-      "ja": "妖刀姬呱",
-      "en": "妖刀姬呱"
-    },
-    "rarity": "G"
-  },
-  {
-    "id": "421",
-    "library": "shikigami",
-    "avatar": "/assets/Shikigami/g/421.png",
-    "names": {
-      "zh": "青行灯呱",
-      "ja": "青行灯呱",
-      "en": "青行灯呱"
-    },
-    "rarity": "G"
-  },
-  {
-    "id": "420",
-    "library": "shikigami",
-    "avatar": "/assets/Shikigami/g/420.png",
-    "names": {
-      "zh": "茨木呱",
-      "ja": "茨木呱",
-      "en": "茨木呱"
-    },
-    "rarity": "G"
-  },
-  {
-    "id": "419",
-    "library": "shikigami",
-    "avatar": "/assets/Shikigami/g/419.png",
-    "names": {
-      "zh": "小鹿男呱",
-      "ja": "小鹿男呱",
-      "en": "小鹿男呱"
-    },
-    "rarity": "G"
-  },
-  {
-    "id": "418",
-    "library": "shikigami",
-    "avatar": "/assets/Shikigami/g/418.png",
-    "names": {
-      "zh": "两面佛呱",
-      "ja": "两面佛呱",
-      "en": "两面佛呱"
-    },
-    "rarity": "G"
-  },
-  {
-    "id": "417",
-    "library": "shikigami",
-    "avatar": "/assets/Shikigami/g/417.png",
-    "names": {
-      "zh": "阎魔呱",
-      "ja": "阎魔呱",
-      "en": "阎魔呱"
-    },
-    "rarity": "G"
-  },
-  {
-    "id": "416",
-    "library": "shikigami",
-    "avatar": "/assets/Shikigami/g/416.png",
-    "names": {
-      "zh": "荒川呱",
-      "ja": "荒川呱",
-      "en": "荒川呱"
-    },
-    "rarity": "G"
-  },
-  {
-    "id": "415",
-    "library": "shikigami",
-    "avatar": "/assets/Shikigami/g/415.png",
-    "names": {
-      "zh": "酒吞呱",
-      "ja": "酒吞呱",
-      "en": "酒吞呱"
-    },
-    "rarity": "G"
-  },
-  {
-    "id": "414",
-    "library": "shikigami",
-    "avatar": "/assets/Shikigami/g/414.png",
-    "names": {
-      "zh": "大天狗呱",
-      "ja": "大天狗呱",
-      "en": "大天狗呱"
-    },
-    "rarity": "G"
   },
   {
     "id": "409",
@@ -891,17 +616,6 @@
     "rarity": "SR"
   },
   {
-    "id": "397",
-    "library": "shikigami",
-    "avatar": "/assets/Shikigami/l/397.png",
-    "names": {
-      "zh": "坂田银时",
-      "ja": "坂田银时",
-      "en": "坂田银时"
-    },
-    "rarity": "L"
-  },
-  {
     "id": "396",
     "library": "shikigami",
     "avatar": "/assets/Shikigami/sp/396.png",
@@ -1001,28 +715,6 @@
     "rarity": "SP"
   },
   {
-    "id": "387",
-    "library": "shikigami",
-    "avatar": "/assets/Shikigami/l/387.png",
-    "names": {
-      "zh": "嘴平伊之助",
-      "ja": "嘴平伊之助",
-      "en": "嘴平伊之助"
-    },
-    "rarity": "L"
-  },
-  {
-    "id": "386",
-    "library": "shikigami",
-    "avatar": "/assets/Shikigami/l/386.png",
-    "names": {
-      "zh": "我妻善逸",
-      "ja": "我妻善逸",
-      "en": "我妻善逸"
-    },
-    "rarity": "L"
-  },
-  {
     "id": "385",
     "library": "shikigami",
     "avatar": "/assets/Shikigami/sp/385.png",
@@ -1120,17 +812,6 @@
       "en": "影鳄"
     },
     "rarity": "R"
-  },
-  {
-    "id": "373",
-    "library": "shikigami",
-    "avatar": "/assets/Shikigami/l/373.png",
-    "names": {
-      "zh": "夜刀神",
-      "ja": "夜刀神",
-      "en": "夜刀神"
-    },
-    "rarity": "L"
   },
   {
     "id": "372",
@@ -1263,28 +944,6 @@
       "en": "垢尝"
     },
     "rarity": "R"
-  },
-  {
-    "id": "360",
-    "library": "shikigami",
-    "avatar": "/assets/Shikigami/l/360.png",
-    "names": {
-      "zh": "灶门祢豆子",
-      "ja": "灶门祢豆子",
-      "en": "灶门祢豆子"
-    },
-    "rarity": "L"
-  },
-  {
-    "id": "359",
-    "library": "shikigami",
-    "avatar": "/assets/Shikigami/l/359.png",
-    "names": {
-      "zh": "灶门炭治郎",
-      "ja": "灶门炭治郎",
-      "en": "灶门炭治郎"
-    },
-    "rarity": "L"
   },
   {
     "id": "358",
@@ -1518,28 +1177,6 @@
     "rarity": "SSR"
   },
   {
-    "id": "337",
-    "library": "shikigami",
-    "avatar": "/assets/Shikigami/l/337.png",
-    "names": {
-      "zh": "黑崎一护",
-      "ja": "黑崎一护",
-      "en": "黑崎一护"
-    },
-    "rarity": "L"
-  },
-  {
-    "id": "336",
-    "library": "shikigami",
-    "avatar": "/assets/Shikigami/l/336.png",
-    "names": {
-      "zh": "朽木露琪亚",
-      "ja": "朽木露琪亚",
-      "en": "朽木露琪亚"
-    },
-    "rarity": "L"
-  },
-  {
     "id": "335",
     "library": "shikigami",
     "avatar": "/assets/Shikigami/sr/335.png",
@@ -1716,17 +1353,6 @@
     "rarity": "SR"
   },
   {
-    "id": "319",
-    "library": "shikigami",
-    "avatar": "/assets/Shikigami/l/319.png",
-    "names": {
-      "zh": "桔梗",
-      "ja": "桔梗",
-      "en": "桔梗"
-    },
-    "rarity": "L"
-  },
-  {
     "id": "318",
     "library": "shikigami",
     "avatar": "/assets/Shikigami/sr/318.png",
@@ -1771,28 +1397,6 @@
     "rarity": "SP"
   },
   {
-    "id": "314",
-    "library": "shikigami",
-    "avatar": "/assets/Shikigami/l/314.png",
-    "names": {
-      "zh": "杀生丸",
-      "ja": "杀生丸",
-      "en": "杀生丸"
-    },
-    "rarity": "L"
-  },
-  {
-    "id": "313",
-    "library": "shikigami",
-    "avatar": "/assets/Shikigami/l/313.png",
-    "names": {
-      "zh": "犬夜叉",
-      "ja": "犬夜叉",
-      "en": "犬夜叉"
-    },
-    "rarity": "L"
-  },
-  {
     "id": "312",
     "library": "shikigami",
     "avatar": "/assets/Shikigami/ssr/312.png",
@@ -1815,39 +1419,6 @@
     "rarity": "SSR"
   },
   {
-    "id": "310",
-    "library": "shikigami",
-    "avatar": "/assets/Shikigami/l/310.png",
-    "names": {
-      "zh": "蜜桃&芥子",
-      "ja": "蜜桃&芥子",
-      "en": "蜜桃&芥子"
-    },
-    "rarity": "L"
-  },
-  {
-    "id": "309",
-    "library": "shikigami",
-    "avatar": "/assets/Shikigami/l/309.png",
-    "names": {
-      "zh": "阿香",
-      "ja": "阿香",
-      "en": "阿香"
-    },
-    "rarity": "L"
-  },
-  {
-    "id": "308",
-    "library": "shikigami",
-    "avatar": "/assets/Shikigami/l/308.png",
-    "names": {
-      "zh": "鬼灯",
-      "ja": "鬼灯",
-      "en": "鬼灯"
-    },
-    "rarity": "L"
-  },
-  {
     "id": "307",
     "library": "shikigami",
     "avatar": "/assets/Shikigami/sr/307.png",
@@ -1868,17 +1439,6 @@
       "en": "虫师"
     },
     "rarity": "R"
-  },
-  {
-    "id": "305",
-    "library": "shikigami",
-    "avatar": "/assets/Shikigami/l/305.png",
-    "names": {
-      "zh": "卖药郎",
-      "ja": "卖药郎",
-      "en": "卖药郎"
-    },
-    "rarity": "L"
   },
   {
     "id": "304",
@@ -1978,17 +1538,6 @@
       "en": "追月神"
     },
     "rarity": "SR"
-  },
-  {
-    "id": "294",
-    "library": "shikigami",
-    "avatar": "/assets/Shikigami/l/294.png",
-    "names": {
-      "zh": "奴良陆生",
-      "ja": "奴良陆生",
-      "en": "奴良陆生"
-    },
-    "rarity": "L"
   },
   {
     "id": "293",
