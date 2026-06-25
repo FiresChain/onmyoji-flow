@@ -40,7 +40,7 @@ const sleep = (ms) => new Promise((resolve) => {
 const isObjectRecord = (value) => value !== null && typeof value === "object";
 
 const fetchHeroPage = async (page) => {
-  const query = { rarity: 0, interactive: 0, material_type: 0, page, per_page: PAGE_SIZE };
+  const query = { rarity: 0, page, per_page: PAGE_SIZE };
   const url = `${API_HOST}?${toQueryString({ ...query, callback: "cb" })}`;
   let lastError = null;
 
