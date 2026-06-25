@@ -163,18 +163,48 @@ const selectLibraries = (libraryArg) => {
   return [libraryArg];
 };
 
+const mergeAssets = (existingAssets, newAssets) => {
+  const existingById = new Map(
+    existingAssets.map((item) => [item.id, item]),
+  );
+
+  const mergedById = new Map();
+
+  newAssets.forEach((newItem) => {
+    const existing = existingById.get(newItem.id);
+    if (existing) {
+      mergedById.set(newItem.id, {
+        ...existing,
+        library: newItem.library,
+        avatar: newItem.avatar,
+        rarity: newItem.rarity,
+      });
+    } else {
+      mergedById.set(newItem.id, newItem);
+    }
+  });
+
+  existingAssets.forEach((existing) => {
+    if (!mergedById.has(existing.id)) {
+      mergedById.set(existing.id, existing);
+    }
+  });
+
+  return Array.from(mergedById.values());
+};
+
 const syncJsonLibrary = async (library, entry, options) => {
   const result = await entry.provider();
   if (!result || !Array.isArray(result.assets) || result.assets.length === 0) {
     throw new Error(`Official provider returned empty result: ${library}`);
   }
 
-  const assets = result.assets;
+  const officialAssets = result.assets;
   const source = result.source || "official";
   const images = Array.isArray(result.images) ? result.images : [];
   const warnings = Array.isArray(result.warnings) ? [...result.warnings] : [];
 
-  const validation = validateLibraryItems(library, assets);
+  const validation = validateLibraryItems(library, officialAssets);
   if (validation.errors.length > 0) {
     throw new Error(`${library} validation failed: ${validation.errors.join("; ")}`);
   }
@@ -210,8 +240,23 @@ const syncJsonLibrary = async (library, entry, options) => {
     };
   }
 
+  const existingAssets = readLibraryAssets(library);
+  const mergedAssets = mergeAssets(existingAssets, officialAssets);
+
+  if (existingAssets.length > 0) {
+    const addedCount = officialAssets.filter(
+      (item) => !existingAssets.some((e) => e.id === item.id),
+    ).length;
+    const updatedCount = officialAssets.filter(
+      (item) => existingAssets.some((e) => e.id === item.id),
+    ).length;
+    warnings.push(
+      `${library} merge: added=${addedCount}, updated=${updatedCount}, preserved=${existingAssets.length}`,
+    );
+  }
+
   if (options.prune && entry.pruneRoots.length > 0) {
-    const expectedSet = toAssetPathSet(assets);
+    const expectedSet = toAssetPathSet(mergedAssets);
     const removed = [];
     entry.pruneRoots.forEach((relativeRoot) => {
       const removedInRoot = pruneFiles(
@@ -227,17 +272,17 @@ const syncJsonLibrary = async (library, entry, options) => {
   }
 
   if (!options.dryRun) {
-    writeJsonWithBackup(path.join(SRC_ASSET_DIR, entry.fileName), assets);
+    writeJsonWithBackup(path.join(SRC_ASSET_DIR, entry.fileName), mergedAssets);
   }
 
   return {
     mode: entry.mode,
     source,
-    count: assets.length,
+    count: mergedAssets.length,
     warnings,
     downloaded: downloadResult.downloaded.length,
     skipped: downloadResult.skipped.length,
-    assets,
+    assets: mergedAssets,
   };
 };
 
