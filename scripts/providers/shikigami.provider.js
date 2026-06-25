@@ -4,8 +4,8 @@ const { ensureLocalizedText, toText } = require("../lib/normalize");
 const API_HOST = "https://g37simulator.webapp.163.com/get_heroid_list";
 const IMAGE_BASE_URL = "https://yys.res.netease.com/pc/zt/20161108171335/data/shishen";
 const MIN_EXPECTED_COUNT = 200;
-const PAGE_SIZE = 25;
-const MAX_PAGES = 30;
+const PAGE_SIZE = 300;
+const MAX_PAGES = 10;
 const FETCH_RETRY_LIMIT = 3;
 const FETCH_RETRY_DELAY_MS = 1500;
 
@@ -40,7 +40,7 @@ const sleep = (ms) => new Promise((resolve) => {
 const isObjectRecord = (value) => value !== null && typeof value === "object";
 
 const fetchHeroPage = async (page) => {
-  const query = { rarity: 0, page, per_page: PAGE_SIZE };
+  const query = { rarity: 0, interactive: 0, material_type: 0, page, per_page: PAGE_SIZE };
   const url = `${API_HOST}?${toQueryString({ ...query, callback: "cb" })}`;
   let lastError = null;
 
