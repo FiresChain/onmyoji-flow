@@ -105,7 +105,7 @@ const handleCancel = () => {
 | `showToolbar` | `boolean` | `true` | 是否显示工具栏（仅编辑模式） |
 | `showPropertyPanel` | `boolean` | `true` | 编辑模式下是否显示右侧属性面板 |
 | `showComponentPanel` | `boolean` | `true` | 是否显示组件库（仅编辑模式） |
-| `config` | `EditorConfig` | `{}` | 最小实现已生效：`grid/snapline/keyboard` |
+| `config` | `EditorConfig` | `{}` | 已生效：`grid/snapline/keyboard/locale/teamCodeCopy` |
 
 ### Events
 
@@ -116,7 +116,7 @@ const handleCancel = () => {
 | `cancel` | `()` | 取消（用户点击取消按钮） |
 | `error` | `(error: Error)` | 错误 |
 
-> 契约说明（2026-03）：`showPropertyPanel` 已在 `mode='edit'` 下生效；`config` 当前已生效 `grid/snapline/keyboard`，其余字段（如 `theme/locale`）仍为兼容保留。
+> 契约说明（2026-06）：`showPropertyPanel` 已在 `mode='edit'` 下生效；`config` 当前已生效 `grid/snapline/keyboard/locale/teamCodeCopy`，`theme` 仍为兼容保留。
 
 ### 方法（通过 ref 调用）
 
@@ -156,10 +156,17 @@ interface EditorConfig {
   keyboard?: boolean
   theme?: 'light' | 'dark'
   locale?: 'zh' | 'ja' | 'en'
+  teamCodeCopy?: boolean | TeamCodeCopyConfig
+}
+
+interface TeamCodeCopyConfig {
+  enabled?: boolean
+  visibility?: 'auto' | 'hover' | 'always' | 'hidden'
+  exportHidden?: boolean
 }
 ```
 
-> `EditorConfig` 目前为兼容类型定义，运行时尚未消费其字段。
+`teamCodeCopy` 仅影响预览模式；复制按钮是 DOM overlay，不写入 GraphData，也不属于导出图片内容。`visibility='auto'` 时，桌面端 hover/focus 显示，触屏端常驻显示。
 
 ## 使用场景
 
@@ -174,6 +181,7 @@ interface EditorConfig {
         mode="preview"
         :data="flowData"
         :height="400"
+        :config="{ teamCodeCopy: { enabled: true } }"
       />
       <button class="edit-btn">✏️ 编辑流程图</button>
     </div>
@@ -340,6 +348,25 @@ const flowData = ref({
 
 以上写法中，`showPropertyPanel` 会在编辑模式下控制右侧属性面板显示；`config` 的 `grid/snapline/keyboard` 会在编辑模式生效。
 
+### 阵容码复制
+
+攻略预览页可启用队伍组阵容码复制：
+
+```vue
+<YysEditorEmbed
+  mode="preview"
+  :data="flowData"
+  :config="{
+    teamCodeCopy: {
+      enabled: true,
+      visibility: 'auto'
+    }
+  }"
+/>
+```
+
+阵容码配置保存在 `dynamic-group` 的 `properties.groupMeta.teamCode`，仅 `groupKind='team'` 生效。默认优先复制长码；短码可作为作者手动配置的短期传播选项。
+
 ### 监听数据变化
 
 ```vue
@@ -502,4 +529,3 @@ MIT
 ## 支持
 
 如有问题，请提交 Issue 或联系开发团队。
-
