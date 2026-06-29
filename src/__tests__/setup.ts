@@ -29,3 +29,10 @@ Object.defineProperty(window, "matchMedia", {
     dispatchEvent: vi.fn(),
   })),
 });
+
+Object.defineProperty(navigator, "clipboard", {
+  configurable: true,
+  value: {
+    writeText: vi.fn().mockResolvedValue(undefined),
+  },
+});

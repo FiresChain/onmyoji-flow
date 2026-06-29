@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { reactive, watch } from "vue";
+import { computed, reactive, watch } from "vue";
 import { getLogicFlowInstance, useLogicFlowScope } from "@/ts/useLogicFlow";
 import {
+  createDefaultTeamCodeConfig,
   GROUP_META_VERSION,
   normalizeDynamicGroupMeta,
+  type TeamCodePreferred,
 } from "@/utils/graphSchema";
 
 const props = defineProps<{
@@ -14,11 +16,19 @@ const logicFlowScope = useLogicFlowScope();
 type DynamicGroupMeta = {
   groupKind: "team" | "shikigami";
   ruleEnabled: boolean;
+  teamCode: {
+    enabled: boolean;
+    shortCode: string;
+    longCode: string;
+    preferred: TeamCodePreferred;
+    label: string;
+  };
 };
 
 const form = reactive<DynamicGroupMeta>({
   groupKind: "team",
   ruleEnabled: true,
+  teamCode: createDefaultTeamCodeConfig(),
 });
 
 const syncFromNode = (node?: any) => {
@@ -26,7 +36,13 @@ const syncFromNode = (node?: any) => {
   const groupMeta = normalizeDynamicGroupMeta(node.properties?.groupMeta);
   form.groupKind = groupMeta.groupKind;
   form.ruleEnabled = groupMeta.ruleEnabled;
+  Object.assign(
+    form.teamCode,
+    groupMeta.teamCode || createDefaultTeamCodeConfig(),
+  );
 };
+
+const isTeamGroup = computed(() => form.groupKind === "team");
 
 watch(
   () => props.node,
@@ -42,14 +58,31 @@ const applyGroupMeta = () => {
   const lf = getLogicFlowInstance(logicFlowScope);
   const node = props.node;
   if (!lf || !node) return;
+  const currentGroupMeta = normalizeDynamicGroupMeta(
+    node.properties?.groupMeta,
+  );
+  const nextGroupMeta: Record<string, any> = {
+    ...currentGroupMeta,
+    version: GROUP_META_VERSION,
+    groupKind: form.groupKind,
+    ruleEnabled: form.ruleEnabled,
+  };
+
+  if (form.groupKind === "team") {
+    nextGroupMeta.teamCode = {
+      enabled: form.teamCode.enabled,
+      shortCode: form.teamCode.shortCode.trim(),
+      longCode: form.teamCode.longCode.trim(),
+      preferred: form.teamCode.preferred,
+      label: form.teamCode.label.trim(),
+    };
+  } else {
+    delete nextGroupMeta.teamCode;
+  }
 
   lf.setProperties(node.id, {
     ...(node.properties || {}),
-    groupMeta: {
-      version: GROUP_META_VERSION,
-      groupKind: form.groupKind,
-      ruleEnabled: form.ruleEnabled,
-    },
+    groupMeta: nextGroupMeta,
   });
 };
 </script>
@@ -74,6 +107,55 @@ const applyGroupMeta = () => {
       <div class="property-label">启用规则检查</div>
       <el-switch v-model="form.ruleEnabled" @change="applyGroupMeta" />
     </div>
+
+    <template v-if="isTeamGroup">
+      <div class="section-header">阵容码复制</div>
+
+      <div class="property-item">
+        <div class="property-label">启用复制</div>
+        <el-switch v-model="form.teamCode.enabled" @change="applyGroupMeta" />
+      </div>
+
+      <div class="property-item">
+        <div class="property-label">优先复制</div>
+        <el-radio-group
+          v-model="form.teamCode.preferred"
+          @change="applyGroupMeta"
+        >
+          <el-radio-button label="long">长码</el-radio-button>
+          <el-radio-button label="short">短码</el-radio-button>
+        </el-radio-group>
+      </div>
+
+      <div class="property-item">
+        <div class="property-label">长码</div>
+        <el-input
+          v-model="form.teamCode.longCode"
+          type="textarea"
+          :rows="3"
+          placeholder="长期可用的完整阵容码"
+          @blur="applyGroupMeta"
+        />
+      </div>
+
+      <div class="property-item">
+        <div class="property-label">短码</div>
+        <el-input
+          v-model="form.teamCode.shortCode"
+          placeholder="短期有效的官方短码"
+          @blur="applyGroupMeta"
+        />
+      </div>
+
+      <div class="property-item">
+        <div class="property-label">按钮文案</div>
+        <el-input
+          v-model="form.teamCode.label"
+          placeholder="默认：复制阵容码"
+          @blur="applyGroupMeta"
+        />
+      </div>
+    </template>
   </div>
 </template>
 
