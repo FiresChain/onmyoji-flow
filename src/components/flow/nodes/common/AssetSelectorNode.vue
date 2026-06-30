@@ -56,6 +56,10 @@ const mergedContainerStyle = computed<CSSProperties>(() => ({
   ...containerStyle.value,
   boxSizing: "border-box",
 }));
+const placeholderTextStyle = computed<CSSProperties>(() => {
+  const { color, ...rest } = textStyle.value;
+  return rest;
+});
 const normalizedAvatar = computed(
   () => resolveAssetUrl(currentAsset.value.avatar) as string,
 );
@@ -70,7 +74,9 @@ const normalizedAvatar = computed(
       class="asset-image"
       draggable="false"
     />
-    <div v-else class="placeholder-text" :style="textStyle">点击选择资产</div>
+    <div v-else class="placeholder-text" :style="placeholderTextStyle">
+      点击选择资产
+    </div>
   </div>
 </template>
 
