@@ -166,12 +166,19 @@ export function toContainerStyle(style: NodeStyle): CSSProperties {
 
 export function toTextStyle(style: NodeStyle): CSSProperties {
   const text = style.textStyle ?? {};
+  const defaults = DefaultNodeStyle.textStyle ?? {};
   return {
-    color: text.color,
-    fontFamily: text.fontFamily,
-    fontSize: text.fontSize != null ? `${text.fontSize}px` : undefined,
-    fontWeight: text.fontWeight,
-    lineHeight: text.lineHeight as CSSProperties["lineHeight"],
+    color: text.color ?? defaults.color,
+    fontFamily: text.fontFamily ?? defaults.fontFamily,
+    fontSize:
+      text.fontSize != null
+        ? `${text.fontSize}px`
+        : defaults.fontSize != null
+          ? `${defaults.fontSize}px`
+          : undefined,
+    fontWeight: text.fontWeight ?? defaults.fontWeight,
+    lineHeight: (text.lineHeight ??
+      defaults.lineHeight) as CSSProperties["lineHeight"],
     textAlign: text.align,
   };
 }

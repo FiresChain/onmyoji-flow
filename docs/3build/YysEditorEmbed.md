@@ -36,22 +36,18 @@ npm install @rookie4show/onmyoji-flow
 
 ```vue
 <script setup>
-import { ref } from 'vue'
-import { YysEditorEmbed } from '@rookie4show/onmyoji-flow'
-import '@rookie4show/onmyoji-flow/style.css'
+import { ref } from "vue";
+import { YysEditorEmbed } from "@rookie4show/onmyoji-flow";
+import "@rookie4show/onmyoji-flow/style.css";
 
 const flowData = ref({
   nodes: [],
-  edges: []
-})
+  edges: [],
+});
 </script>
 
 <template>
-  <YysEditorEmbed
-    :data="flowData"
-    mode="edit"
-    :height="600"
-  />
+  <YysEditorEmbed :data="flowData" mode="edit" :height="600" />
 </template>
 ```
 
@@ -59,11 +55,7 @@ const flowData = ref({
 
 ```vue
 <template>
-  <YysEditorEmbed
-    :data="flowData"
-    mode="preview"
-    :height="400"
-  />
+  <YysEditorEmbed :data="flowData" mode="preview" :height="400" />
 </template>
 ```
 
@@ -82,13 +74,13 @@ const flowData = ref({
 
 <script setup>
 const handleSave = (data) => {
-  console.log('保存数据:', data)
+  console.log("保存数据:", data);
   // 保存到后端或本地
-}
+};
 
 const handleCancel = () => {
-  console.log('取消编辑')
-}
+  console.log("取消编辑");
+};
 </script>
 ```
 
@@ -96,73 +88,76 @@ const handleCancel = () => {
 
 ### Props
 
-| 属性 | 类型 | 默认值 | 说明 |
-|------|------|--------|------|
-| `data` | `GraphData` | `undefined` | 初始数据（LogicFlow GraphData 格式） |
-| `mode` | `'preview' \| 'edit'` | `'edit'` | 模式：预览或编辑 |
-| `width` | `string \| number` | `'100%'` | 宽度 |
-| `height` | `string \| number` | `'600px'` | 高度 |
-| `showToolbar` | `boolean` | `true` | 是否显示工具栏（仅编辑模式） |
-| `showPropertyPanel` | `boolean` | `true` | 编辑模式下是否显示右侧属性面板 |
-| `showComponentPanel` | `boolean` | `true` | 是否显示组件库（仅编辑模式） |
-| `config` | `EditorConfig` | `{}` | 已生效：`grid/snapline/keyboard/locale/teamCodeCopy` |
+| 属性                 | 类型                  | 默认值      | 说明                                                 |
+| -------------------- | --------------------- | ----------- | ---------------------------------------------------- |
+| `data`               | `GraphData`           | `undefined` | 初始数据（LogicFlow GraphData 格式）                 |
+| `mode`               | `'preview' \| 'edit'` | `'edit'`    | 模式：预览或编辑                                     |
+| `width`              | `string \| number`    | `'100%'`    | 宽度                                                 |
+| `height`             | `string \| number`    | `'600px'`   | 高度                                                 |
+| `showToolbar`        | `boolean`             | `true`      | 是否显示工具栏（仅编辑模式）                         |
+| `showPropertyPanel`  | `boolean`             | `true`      | 编辑模式下是否显示右侧属性面板                       |
+| `showComponentPanel` | `boolean`             | `true`      | 是否显示组件库（仅编辑模式）                         |
+| `config`             | `EditorConfig`        | `{}`        | 已生效：`grid/snapline/keyboard/locale/teamCodeCopy` |
 
 ### Events
 
-| 事件 | 参数 | 说明 |
-|------|------|------|
-| `update:data` | `(data: GraphData)` | 数据变更（实时） |
-| `save` | `(data: GraphData)` | 保存（用户点击保存按钮） |
-| `cancel` | `()` | 取消（用户点击取消按钮） |
-| `error` | `(error: Error)` | 错误 |
+| 事件          | 参数                | 说明                     |
+| ------------- | ------------------- | ------------------------ |
+| `update:data` | `(data: GraphData)` | 数据变更（实时）         |
+| `save`        | `(data: GraphData)` | 保存（用户点击保存按钮） |
+| `cancel`      | `()`                | 取消（用户点击取消按钮） |
+| `error`       | `(error: Error)`    | 错误                     |
 
 > 契约说明（2026-06）：`showPropertyPanel` 已在 `mode='edit'` 下生效；`config` 当前已生效 `grid/snapline/keyboard/locale/teamCodeCopy`，`theme` 仍为兼容保留。
 
 ### 方法（通过 ref 调用）
 
-| 方法 | 参数 | 返回值 | 说明 |
-|------|------|--------|------|
-| `getGraphData()` | - | `GraphData \| null` | 获取当前画布数据 |
-| `setGraphData(data)` | `GraphData` | `void` | 设置画布数据 |
+| 方法                 | 参数                                   | 返回值                           | 说明                   |
+| -------------------- | -------------------------------------- | -------------------------------- | ---------------------- |
+| `getGraphData()`     | -                                      | `GraphData \| null`              | 获取当前画布数据       |
+| `setGraphData(data)` | `GraphData`                            | `void`                           | 设置画布数据           |
+| `fitView()`          | `(verticalOffset?, horizontalOffset?)` | `boolean`                        | 适配当前画布内容       |
+| `translate(x, y)`    | `number, number`                       | `boolean`                        | 平移当前画布           |
+| `getTransform()`     | -                                      | `Record<string, number> \| null` | 获取当前缩放和平移状态 |
 
 ### 类型定义
 
 ```typescript
 interface GraphData {
-  nodes: NodeData[]
-  edges: EdgeData[]
+  nodes: NodeData[];
+  edges: EdgeData[];
 }
 
 interface NodeData {
-  id: string
-  type: string
-  x: number
-  y: number
-  properties?: Record<string, any>
-  text?: { value: string }
+  id: string;
+  type: string;
+  x: number;
+  y: number;
+  properties?: Record<string, any>;
+  text?: { value: string };
 }
 
 interface EdgeData {
-  id: string
-  type: string
-  sourceNodeId: string
-  targetNodeId: string
-  properties?: Record<string, any>
+  id: string;
+  type: string;
+  sourceNodeId: string;
+  targetNodeId: string;
+  properties?: Record<string, any>;
 }
 
 interface EditorConfig {
-  grid?: boolean
-  snapline?: boolean
-  keyboard?: boolean
-  theme?: 'light' | 'dark'
-  locale?: 'zh' | 'ja' | 'en'
-  teamCodeCopy?: boolean | TeamCodeCopyConfig
+  grid?: boolean;
+  snapline?: boolean;
+  keyboard?: boolean;
+  theme?: "light" | "dark";
+  locale?: "zh" | "ja" | "en";
+  teamCodeCopy?: boolean | TeamCodeCopyConfig;
 }
 
 interface TeamCodeCopyConfig {
-  enabled?: boolean
-  visibility?: 'auto' | 'hover' | 'always' | 'hidden'
-  exportHidden?: boolean
+  enabled?: boolean;
+  visibility?: "auto" | "hover" | "always" | "hidden";
+  exportHidden?: boolean;
 }
 ```
 
@@ -200,38 +195,38 @@ interface TeamCodeCopyConfig {
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { YysEditorEmbed } from '@rookie4show/onmyoji-flow'
-import '@rookie4show/onmyoji-flow/style.css'
+import { ref } from "vue";
+import { YysEditorEmbed } from "@rookie4show/onmyoji-flow";
+import "@rookie4show/onmyoji-flow/style.css";
 
-const isEditing = ref(false)
+const isEditing = ref(false);
 const flowData = ref({
   nodes: [],
-  edges: []
-})
+  edges: [],
+});
 
 const startEdit = () => {
-  isEditing.value = true
-}
+  isEditing.value = true;
+};
 
 const handleSave = (data) => {
-  flowData.value = data
-  isEditing.value = false
+  flowData.value = data;
+  isEditing.value = false;
   // 保存到文档
-  saveToDocument(data)
-}
+  saveToDocument(data);
+};
 
 const handleCancel = () => {
-  isEditing.value = false
-}
+  isEditing.value = false;
+};
 
 const saveToDocument = async (data) => {
   // 调用 API 保存到后端
-  await fetch('/api/documents/update', {
-    method: 'POST',
-    body: JSON.stringify({ flowData: data })
-  })
-}
+  await fetch("/api/documents/update", {
+    method: "POST",
+    body: JSON.stringify({ flowData: data }),
+  });
+};
 </script>
 
 <style scoped>
@@ -267,33 +262,33 @@ const saveToDocument = async (data) => {
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { YysEditorEmbed } from '@rookie4show/onmyoji-flow'
-import '@rookie4show/onmyoji-flow/style.css'
+import { ref, onMounted } from "vue";
+import { YysEditorEmbed } from "@rookie4show/onmyoji-flow";
+import "@rookie4show/onmyoji-flow/style.css";
 
-const editorRef = ref()
-const flowData = ref(null)
+const editorRef = ref();
+const flowData = ref(null);
 
 // 从后端加载数据
 onMounted(async () => {
-  const response = await fetch('/api/flow/123')
-  flowData.value = await response.json()
-})
+  const response = await fetch("/api/flow/123");
+  flowData.value = await response.json();
+});
 
 const handleSave = async (data) => {
   // 保存到后端
-  await fetch('/api/flow/123', {
-    method: 'PUT',
-    body: JSON.stringify(data)
-  })
-  alert('保存成功')
-}
+  await fetch("/api/flow/123", {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+  alert("保存成功");
+};
 
 // 手动获取数据
 const getData = () => {
-  const data = editorRef.value?.getGraphData()
-  console.log('当前数据:', data)
-}
+  const data = editorRef.value?.getGraphData();
+  console.log("当前数据:", data);
+};
 </script>
 ```
 
@@ -303,31 +298,27 @@ const getData = () => {
 <template>
   <div class="flow-display">
     <h2>流程图展示</h2>
-    <YysEditorEmbed
-      mode="preview"
-      :data="flowData"
-      :height="500"
-    />
+    <YysEditorEmbed mode="preview" :data="flowData" :height="500" />
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { YysEditorEmbed } from '@rookie4show/onmyoji-flow'
-import '@rookie4show/onmyoji-flow/style.css'
+import { ref } from "vue";
+import { YysEditorEmbed } from "@rookie4show/onmyoji-flow";
+import "@rookie4show/onmyoji-flow/style.css";
 
 const flowData = ref({
   nodes: [
     {
-      id: 'node1',
-      type: 'rect',
+      id: "node1",
+      type: "rect",
       x: 100,
       y: 100,
-      text: { value: '开始' }
-    }
+      text: { value: "开始" },
+    },
   ],
-  edges: []
-})
+  edges: [],
+});
 </script>
 ```
 
@@ -359,13 +350,25 @@ const flowData = ref({
   :config="{
     teamCodeCopy: {
       enabled: true,
-      visibility: 'auto'
-    }
+      visibility: 'auto',
+    },
   }"
 />
 ```
 
 阵容码配置保存在 `dynamic-group` 的 `properties.groupMeta.teamCode`，仅 `groupKind='team'` 生效。默认优先复制长码；短码可作为作者手动配置的短期传播选项。
+
+宿主若需要自行渲染文档层工具栏，可关闭内置 overlay，并复用库导出的能力提取函数：
+
+```ts
+import { getTeamCodeCopyItems } from "@rookie4show/onmyoji-flow";
+
+const [primaryTeamCode] = getTeamCodeCopyItems(flowData);
+```
+
+`getTeamCodeCopyItems(graphData)` 返回 `{ id, label, code, groupName }[]`，只提取 `groupKind='team'`
+且 `teamCode.enabled=true` 的 dynamic-group；默认优先长码，`preferred='short'` 且短码存在时优先短码。
+返回值不包含 UI 坐标，适合由 wiki、文档编辑器等宿主自行决定按钮位置和交互。
 
 ### 监听数据变化
 
@@ -380,10 +383,10 @@ const flowData = ref({
 
 <script setup>
 const handleDataChange = (data) => {
-  console.log('数据变化:', data)
+  console.log("数据变化:", data);
   // 实时保存到本地存储
-  localStorage.setItem('flowData', JSON.stringify(data))
-}
+  localStorage.setItem("flowData", JSON.stringify(data));
+};
 </script>
 ```
 
@@ -391,18 +394,14 @@ const handleDataChange = (data) => {
 
 ```vue
 <template>
-  <YysEditorEmbed
-    :data="flowData"
-    mode="edit"
-    @error="handleError"
-  />
+  <YysEditorEmbed :data="flowData" mode="edit" @error="handleError" />
 </template>
 
 <script setup>
 const handleError = (error) => {
-  console.error('编辑器错误:', error)
-  alert(`发生错误: ${error.message}`)
-}
+  console.error("编辑器错误:", error);
+  alert(`发生错误: ${error.message}`);
+};
 </script>
 ```
 
@@ -439,22 +438,22 @@ const handleError = (error) => {
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted } from "vue";
 
-const editorHeight = ref(600)
+const editorHeight = ref(600);
 
 const updateHeight = () => {
-  editorHeight.value = window.innerHeight - 200
-}
+  editorHeight.value = window.innerHeight - 200;
+};
 
 onMounted(() => {
-  updateHeight()
-  window.addEventListener('resize', updateHeight)
-})
+  updateHeight();
+  window.addEventListener("resize", updateHeight);
+});
 
 onUnmounted(() => {
-  window.removeEventListener('resize', updateHeight)
-})
+  window.removeEventListener("resize", updateHeight);
+});
 </script>
 ```
 
@@ -467,10 +466,7 @@ A: 在 Nuxt 3 中，需要将组件设置为客户端渲染：
 ```vue
 <template>
   <ClientOnly>
-    <YysEditorEmbed
-      :data="flowData"
-      mode="edit"
-    />
+    <YysEditorEmbed :data="flowData" mode="edit" />
   </ClientOnly>
 </template>
 ```
@@ -481,19 +477,19 @@ A: 使用 `getGraphData()` 和 `setGraphData()` 方法：
 
 ```vue
 <script setup>
-const editorRef = ref()
+const editorRef = ref();
 
 // 保存
 const save = () => {
-  const data = editorRef.value?.getGraphData()
-  localStorage.setItem('flowData', JSON.stringify(data))
-}
+  const data = editorRef.value?.getGraphData();
+  localStorage.setItem("flowData", JSON.stringify(data));
+};
 
 // 加载
 const load = () => {
-  const data = JSON.parse(localStorage.getItem('flowData'))
-  editorRef.value?.setGraphData(data)
-}
+  const data = JSON.parse(localStorage.getItem("flowData"));
+  editorRef.value?.setGraphData(data);
+};
 </script>
 ```
 

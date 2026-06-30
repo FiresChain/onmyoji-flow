@@ -112,10 +112,7 @@ import {
   type FlowPlugin,
 } from "./flowRuntime";
 import { rewriteAssetUrlsDeep, setAssetBaseUrl } from "@/utils/assetUrl";
-import {
-  normalizeDynamicGroupMeta,
-  type TeamCodeConfig,
-} from "@/utils/graphSchema";
+import { getTeamCodeCopyItems } from "@/utils/teamCodeCopy";
 
 // 类型定义
 export interface GraphData {
@@ -476,18 +473,6 @@ const normalizeNumber = (value: unknown, fallback: number): number => {
   return Number.isFinite(parsed) ? parsed : fallback;
 };
 
-const resolveTeamCodeToCopy = (teamCode?: TeamCodeConfig): string => {
-  if (!teamCode?.enabled) {
-    return "";
-  }
-  const shortCode = teamCode.shortCode.trim();
-  const longCode = teamCode.longCode.trim();
-  if (teamCode.preferred === "short" && shortCode) {
-    return shortCode;
-  }
-  return longCode || shortCode;
-};
-
 const readPreviewTransform = () => {
   previewTransformVersion.value;
   const transform = getTransform();
@@ -507,18 +492,14 @@ const teamCodeCopyOverlayItems = computed<TeamCodeOverlayItem[]>(() => {
   const nodes = Array.isArray(graphData?.nodes) ? graphData.nodes : [];
   const transform = readPreviewTransform();
 
-  return nodes
-    .filter((node) => node?.type === "dynamic-group")
-    .map((node) => {
-      const groupMeta = normalizeDynamicGroupMeta(node.properties?.groupMeta);
-      if (groupMeta.groupKind !== "team") {
+  return getTeamCodeCopyItems(graphData)
+    .map((copyItem) => {
+      const node = nodes.find(
+        (candidate) => String(candidate?.id) === copyItem.id,
+      );
+      if (!node) {
         return null;
       }
-      const code = resolveTeamCodeToCopy(groupMeta.teamCode);
-      if (!code) {
-        return null;
-      }
-
       const width = normalizeNumber(node.properties?.width ?? node.width, 420);
       const height = normalizeNumber(
         node.properties?.height ?? node.height,
@@ -526,14 +507,12 @@ const teamCodeCopyOverlayItems = computed<TeamCodeOverlayItem[]>(() => {
       );
       const left = (normalizeNumber(node.x, 0) - width / 2) * transform.scaleX;
       const top = (normalizeNumber(node.y, 0) - height / 2) * transform.scaleY;
-      const label = groupMeta.teamCode?.label || "复制阵容码";
-      const groupName = groupMeta.groupName || label;
 
       return {
-        id: String(node.id),
-        label,
-        ariaLabel: `复制${groupName}阵容码`,
-        code,
+        id: copyItem.id,
+        label: copyItem.label,
+        ariaLabel: `复制${copyItem.groupName}阵容码`,
+        code: copyItem.code,
         style: {
           left: `${left + transform.translateX}px`,
           top: `${top + transform.translateY}px`,
@@ -809,6 +788,18 @@ const resetTranslate = (): boolean => {
   return true;
 };
 
+const translate = (x: number, y: number): boolean => {
+  const lfInstance = resolveActiveLogicFlow();
+  if (!lfInstance || typeof lfInstance.translate !== "function") {
+    return false;
+  }
+  if (!Number.isFinite(x) || !Number.isFinite(y)) {
+    return false;
+  }
+  lfInstance.translate(x, y);
+  return true;
+};
+
 const translateCenter = (): boolean => {
   const lfInstance = resolveActiveLogicFlow();
   if (!lfInstance || typeof lfInstance.translateCenter !== "function") {
@@ -841,6 +832,7 @@ defineExpose({
   zoom,
   resetZoom,
   resetTranslate,
+  translate,
   translateCenter,
   getTransform,
 });
@@ -985,6 +977,16 @@ onBeforeUnmount(() => {
   width: 100%;
   height: 100%;
   position: relative;
+  color: #303133;
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    "Microsoft YaHei",
+    sans-serif;
+  font-size: 14px;
+  line-height: 1.4;
 }
 
 .preview-container .container {

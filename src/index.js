@@ -16,6 +16,7 @@ export {
   clearSharedGroupRulesConfig,
 } from "./utils/groupRulesConfigSource";
 export { CUSTOM_ASSET_STORAGE_KEY } from "./utils/customAssets";
+export { getTeamCodeCopyItems } from "./utils/teamCodeCopy";
 
 // 导出组件
 export { YysEditorEmbed };
