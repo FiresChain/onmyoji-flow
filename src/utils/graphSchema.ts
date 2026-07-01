@@ -7,6 +7,15 @@ export const DEFAULT_GROUP_RULE_SCOPE = [
 ];
 
 export type GroupKind = "team" | "shikigami";
+export type TeamCodePreferred = "long" | "short";
+
+export type TeamCodeConfig = {
+  enabled: boolean;
+  shortCode: string;
+  longCode: string;
+  preferred: TeamCodePreferred;
+  label: string;
+};
 
 export type DynamicGroupMeta = {
   version: number;
@@ -14,6 +23,7 @@ export type DynamicGroupMeta = {
   groupName: string;
   ruleEnabled: boolean;
   ruleScope: string[];
+  teamCode?: TeamCodeConfig;
 };
 
 const normalizeText = (value: unknown): string =>
@@ -55,6 +65,31 @@ const normalizeZIndex = (value: unknown): number | undefined => {
   return Math.trunc(parsed);
 };
 
+export const createDefaultTeamCodeConfig = (): TeamCodeConfig => ({
+  enabled: false,
+  shortCode: "",
+  longCode: "",
+  preferred: "long",
+  label: "",
+});
+
+export const normalizeTeamCodeConfig = (input: unknown): TeamCodeConfig => {
+  const raw =
+    input && typeof input === "object"
+      ? (input as Record<string, unknown>)
+      : {};
+  const preferred: TeamCodePreferred =
+    raw.preferred === "short" ? "short" : "long";
+
+  return {
+    enabled: raw.enabled === true,
+    shortCode: normalizeText(raw.shortCode),
+    longCode: normalizeText(raw.longCode),
+    preferred,
+    label: normalizeText(raw.label),
+  };
+};
+
 export const normalizeDynamicGroupMeta = (
   input: unknown,
   fallbackKind: GroupKind = "team",
@@ -76,14 +111,22 @@ export const normalizeDynamicGroupMeta = (
     raw.ruleScope,
     DEFAULT_GROUP_RULE_SCOPE,
   );
+  const teamCode =
+    groupKind === "team" && raw.teamCode
+      ? normalizeTeamCodeConfig(raw.teamCode)
+      : undefined;
 
-  return {
+  const normalized: DynamicGroupMeta = {
     version,
     groupKind,
     groupName,
     ruleEnabled,
     ruleScope,
   };
+  if (teamCode) {
+    normalized.teamCode = teamCode;
+  }
+  return normalized;
 };
 
 const normalizeChildren = (value: unknown): string[] => {
