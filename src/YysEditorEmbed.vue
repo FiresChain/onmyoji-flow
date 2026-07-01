@@ -592,6 +592,32 @@ const triggerEditorResize = () => {
   });
 };
 
+const resizePreviewCanvas = (): boolean => {
+  if (
+    props.mode !== "preview" ||
+    !previewLf.value ||
+    !previewContainerRef.value
+  ) {
+    return false;
+  }
+  const width = previewContainerRef.value.offsetWidth;
+  const height = previewContainerRef.value.offsetHeight;
+  if (width <= 0 || height <= 0) {
+    return false;
+  }
+  previewLf.value.resize(width, height);
+  refreshPreviewOverlayPosition();
+  return true;
+};
+
+const resizeCanvas = (): boolean => {
+  if (props.mode === "preview") {
+    return resizePreviewCanvas();
+  }
+  triggerEditorResize();
+  return true;
+};
+
 const handleEmbedResize = () => {
   if (props.mode === "edit") {
     recalcEditContentHeight();
@@ -599,15 +625,8 @@ const handleEmbedResize = () => {
     return;
   }
 
-  if (
-    props.mode === "preview" &&
-    previewLf.value &&
-    previewContainerRef.value
-  ) {
-    const width = previewContainerRef.value.offsetWidth;
-    const height = previewContainerRef.value.offsetHeight;
-    previewLf.value.resize(width, height);
-    refreshPreviewOverlayPosition();
+  if (props.mode === "preview") {
+    resizePreviewCanvas();
   }
 };
 
@@ -827,7 +846,7 @@ const getTransform = (): Record<string, number> | null => {
 defineExpose({
   getGraphData,
   setGraphData,
-  resizeCanvas: triggerEditorResize,
+  resizeCanvas,
   fitView,
   zoom,
   resetZoom,

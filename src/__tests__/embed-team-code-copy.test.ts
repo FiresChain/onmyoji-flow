@@ -5,6 +5,7 @@ import YysEditorEmbed, { type GraphData } from "@/YysEditorEmbed.vue";
 const render = vi.fn();
 const on = vi.fn();
 const destroy = vi.fn();
+const resize = vi.fn();
 const getTransform = vi.fn(() => ({
   SCALE_X: 1,
   SCALE_Y: 1,
@@ -23,7 +24,7 @@ vi.mock("@logicflow/core", async () => {
         render,
         on,
         destroy,
-        resize: vi.fn(),
+        resize,
         getTransform,
         getGraphRawData,
       };
@@ -90,6 +91,7 @@ describe("YysEditorEmbed team code copy overlay", () => {
     render.mockClear();
     on.mockClear();
     destroy.mockClear();
+    resize.mockClear();
     getTransform.mockClear();
     getGraphRawData.mockClear();
     vi.spyOn(navigator.clipboard, "writeText").mockResolvedValue(undefined);
@@ -148,6 +150,39 @@ describe("YysEditorEmbed team code copy overlay", () => {
 
     await wrapper.vm.$nextTick();
     expect(wrapper.find(".team-code-copy-button").exists()).toBe(false);
+
+    wrapper.unmount();
+  });
+
+  it("exposes preview resizeCanvas for host fitView scheduling", async () => {
+    const wrapper = mount(YysEditorEmbed, {
+      props: {
+        mode: "preview",
+        data: graphData,
+      },
+      attachTo: document.body,
+      global: {
+        stubs: {
+          Toolbar: true,
+          ComponentsPanel: true,
+          FlowEditor: true,
+          DialogManager: true,
+        },
+      },
+    });
+
+    const container = wrapper.find(".preview-container .container").element;
+    Object.defineProperty(container, "offsetWidth", {
+      configurable: true,
+      value: 640,
+    });
+    Object.defineProperty(container, "offsetHeight", {
+      configurable: true,
+      value: 360,
+    });
+
+    expect((wrapper.vm as any).resizeCanvas()).toBe(true);
+    expect(resize).toHaveBeenCalledWith(640, 360);
 
     wrapper.unmount();
   });
