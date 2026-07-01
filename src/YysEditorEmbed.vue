@@ -44,8 +44,33 @@
 
     <!-- 预览模式：只有画布（只读） -->
     <template v-else>
-      <div class="preview-container" :style="{ height: containerHeight }">
+      <div
+        class="preview-container"
+        :class="{ 'team-code-copy-touch': isTouchPreviewSurface }"
+        :style="{ height: containerHeight }"
+      >
         <div class="container" ref="previewContainerRef"></div>
+        <div
+          v-if="shouldRenderTeamCodeCopyOverlay"
+          class="team-code-copy-layer"
+          aria-hidden="false"
+        >
+          <div
+            v-for="item in teamCodeCopyOverlayItems"
+            :key="item.id"
+            class="team-code-copy-target"
+            :style="item.style"
+          >
+            <button
+              class="team-code-copy-button"
+              type="button"
+              :aria-label="item.ariaLabel"
+              @click.stop="copyTeamCode(item)"
+            >
+              {{ item.label }}
+            </button>
+          </div>
+        </div>
       </div>
     </template>
   </div>
@@ -87,6 +112,7 @@ import {
   type FlowPlugin,
 } from "./flowRuntime";
 import { rewriteAssetUrlsDeep, setAssetBaseUrl } from "@/utils/assetUrl";
+import { getTeamCodeCopyItems } from "@/utils/teamCodeCopy";
 
 // 类型定义
 export interface GraphData {
@@ -99,6 +125,8 @@ export interface NodeData {
   type: string;
   x: number;
   y: number;
+  width?: number;
+  height?: number;
   zIndex?: number;
   properties?: Record<string, any>;
   text?: { value: string };
@@ -247,6 +275,13 @@ export interface EditorConfig {
   keyboard?: boolean;
   theme?: "light" | "dark";
   locale?: "zh" | "ja" | "en";
+  teamCodeCopy?: boolean | TeamCodeCopyConfig;
+}
+
+export interface TeamCodeCopyConfig {
+  enabled?: boolean;
+  visibility?: "auto" | "hover" | "always" | "hidden";
+  exportHidden?: boolean;
 }
 
 // Props
@@ -331,6 +366,8 @@ const previewContainerRef = ref<HTMLElement | null>(null);
 const previewLf = ref<LogicFlow | null>(null);
 const embedRootRef = ref<HTMLElement | null>(null);
 const toolbarHostRef = ref<HTMLElement | null>(null);
+const previewTransformVersion = ref(0);
+const isTouchPreviewSurface = ref(false);
 let embedResizeObserver: ResizeObserver | null = null;
 const editorContentHeight = ref("100%");
 
@@ -361,6 +398,41 @@ const resolvedEmbedConfig = computed(() => ({
   keyboard: props.config?.keyboard ?? true,
 }));
 
+const resolvedTeamCodeCopyConfig = computed<Required<TeamCodeCopyConfig>>(
+  () => {
+    const raw = props.config?.teamCodeCopy;
+    if (raw === true) {
+      return {
+        enabled: true,
+        visibility: "auto",
+        exportHidden: true,
+      };
+    }
+    if (!raw) {
+      return {
+        enabled: false,
+        visibility: "auto",
+        exportHidden: true,
+      };
+    }
+    return {
+      enabled: raw.enabled === true,
+      visibility: raw.visibility || "auto",
+      exportHidden: raw.exportHidden !== false,
+    };
+  },
+);
+
+const shouldRenderTeamCodeCopyOverlay = computed(() => {
+  const config = resolvedTeamCodeCopyConfig.value;
+  return (
+    props.mode === "preview" &&
+    config.enabled &&
+    config.visibility !== "hidden" &&
+    teamCodeCopyOverlayItems.value.length > 0
+  );
+});
+
 const { setLocale: setSafeLocale } = useSafeI18n();
 const normalizeEmbedLocale = (
   input: unknown,
@@ -382,6 +454,115 @@ const syncEmbedLocale = (localeInput: unknown) => {
   setSafeLocale(normalized);
 };
 syncEmbedLocale(props.config?.locale);
+
+type TeamCodeOverlayItem = {
+  id: string;
+  label: string;
+  ariaLabel: string;
+  code: string;
+  style: {
+    left: string;
+    top: string;
+    width: string;
+    height: string;
+  };
+};
+
+const normalizeNumber = (value: unknown, fallback: number): number => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+};
+
+const readPreviewTransform = () => {
+  previewTransformVersion.value;
+  const transform = getTransform();
+  return {
+    scaleX: normalizeNumber(transform?.SCALE_X, 1),
+    scaleY: normalizeNumber(transform?.SCALE_Y, 1),
+    translateX: normalizeNumber(transform?.TRANSLATE_X, 0),
+    translateY: normalizeNumber(transform?.TRANSLATE_Y, 0),
+  };
+};
+
+const teamCodeCopyOverlayItems = computed<TeamCodeOverlayItem[]>(() => {
+  if (props.mode !== "preview" || !resolvedTeamCodeCopyConfig.value.enabled) {
+    return [];
+  }
+  const graphData = props.data;
+  const nodes = Array.isArray(graphData?.nodes) ? graphData.nodes : [];
+  const transform = readPreviewTransform();
+
+  return getTeamCodeCopyItems(graphData)
+    .map((copyItem) => {
+      const node = nodes.find(
+        (candidate) => String(candidate?.id) === copyItem.id,
+      );
+      if (!node) {
+        return null;
+      }
+      const width = normalizeNumber(node.properties?.width ?? node.width, 420);
+      const height = normalizeNumber(
+        node.properties?.height ?? node.height,
+        250,
+      );
+      const left = (normalizeNumber(node.x, 0) - width / 2) * transform.scaleX;
+      const top = (normalizeNumber(node.y, 0) - height / 2) * transform.scaleY;
+
+      return {
+        id: copyItem.id,
+        label: copyItem.label,
+        ariaLabel: `复制${copyItem.groupName}阵容码`,
+        code: copyItem.code,
+        style: {
+          left: `${left + transform.translateX}px`,
+          top: `${top + transform.translateY}px`,
+          width: `${width * transform.scaleX}px`,
+          height: `${height * transform.scaleY}px`,
+        },
+      };
+    })
+    .filter((item): item is TeamCodeOverlayItem => !!item);
+});
+
+const updatePreviewSurfaceKind = () => {
+  if (
+    typeof window === "undefined" ||
+    typeof window.matchMedia !== "function"
+  ) {
+    isTouchPreviewSurface.value = false;
+    return;
+  }
+  isTouchPreviewSurface.value = window.matchMedia("(hover: none)").matches;
+};
+
+const refreshPreviewOverlayPosition = () => {
+  previewTransformVersion.value += 1;
+};
+
+const writeTextToClipboard = async (text: string) => {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(text);
+    return;
+  }
+  const textarea = document.createElement("textarea");
+  textarea.value = text;
+  textarea.setAttribute("readonly", "true");
+  textarea.style.position = "fixed";
+  textarea.style.top = "-1000px";
+  textarea.style.opacity = "0";
+  document.body.appendChild(textarea);
+  textarea.select();
+  document.execCommand("copy");
+  document.body.removeChild(textarea);
+};
+
+const copyTeamCode = async (item: TeamCodeOverlayItem) => {
+  try {
+    await writeTextToClipboard(item.code);
+  } catch (error) {
+    emit("error", error as Error);
+  }
+};
 
 const recalcEditContentHeight = () => {
   if (props.mode !== "edit") {
@@ -411,6 +592,32 @@ const triggerEditorResize = () => {
   });
 };
 
+const resizePreviewCanvas = (): boolean => {
+  if (
+    props.mode !== "preview" ||
+    !previewLf.value ||
+    !previewContainerRef.value
+  ) {
+    return false;
+  }
+  const width = previewContainerRef.value.offsetWidth;
+  const height = previewContainerRef.value.offsetHeight;
+  if (width <= 0 || height <= 0) {
+    return false;
+  }
+  previewLf.value.resize(width, height);
+  refreshPreviewOverlayPosition();
+  return true;
+};
+
+const resizeCanvas = (): boolean => {
+  if (props.mode === "preview") {
+    return resizePreviewCanvas();
+  }
+  triggerEditorResize();
+  return true;
+};
+
 const handleEmbedResize = () => {
   if (props.mode === "edit") {
     recalcEditContentHeight();
@@ -418,14 +625,8 @@ const handleEmbedResize = () => {
     return;
   }
 
-  if (
-    props.mode === "preview" &&
-    previewLf.value &&
-    previewContainerRef.value
-  ) {
-    const width = previewContainerRef.value.offsetWidth;
-    const height = previewContainerRef.value.offsetHeight;
-    previewLf.value.resize(width, height);
+  if (props.mode === "preview") {
+    resizePreviewCanvas();
   }
 };
 
@@ -446,6 +647,7 @@ const destroyPreviewMode = () => {
     previewLf.value.destroy();
     previewLf.value = null;
   }
+  refreshPreviewOverlayPosition();
 };
 
 // 初始化预览模式的 LogicFlow
@@ -475,12 +677,16 @@ const initPreviewMode = () => {
 
   // 注册节点（支持外部注入）
   registerFlowNodes(previewLf.value, props.nodeRegistrations);
+  previewLf.value.on?.("graph:rendered", refreshPreviewOverlayPosition);
+  previewLf.value.on?.("graph:transform", refreshPreviewOverlayPosition);
+  previewLf.value.on?.("blank:mousewheel", refreshPreviewOverlayPosition);
 
   // 渲染数据
   if (props.data) {
     const safeData = sanitizeGraphData(props.data, { hideDynamicGroups: true });
     renderGraphDataWithLayer(previewLf.value, safeData);
   }
+  nextTick(refreshPreviewOverlayPosition);
 };
 
 // Methods
@@ -528,6 +734,7 @@ const setGraphData = (data: GraphData) => {
     }
   } else if (props.mode === "preview" && previewLf.value) {
     renderGraphDataWithLayer(previewLf.value, safeData);
+    nextTick(refreshPreviewOverlayPosition);
   }
 };
 
@@ -600,6 +807,18 @@ const resetTranslate = (): boolean => {
   return true;
 };
 
+const translate = (x: number, y: number): boolean => {
+  const lfInstance = resolveActiveLogicFlow();
+  if (!lfInstance || typeof lfInstance.translate !== "function") {
+    return false;
+  }
+  if (!Number.isFinite(x) || !Number.isFinite(y)) {
+    return false;
+  }
+  lfInstance.translate(x, y);
+  return true;
+};
+
 const translateCenter = (): boolean => {
   const lfInstance = resolveActiveLogicFlow();
   if (!lfInstance || typeof lfInstance.translateCenter !== "function") {
@@ -627,11 +846,12 @@ const getTransform = (): Record<string, number> | null => {
 defineExpose({
   getGraphData,
   setGraphData,
-  resizeCanvas: triggerEditorResize,
+  resizeCanvas,
   fitView,
   zoom,
   resetZoom,
   resetTranslate,
+  translate,
   translateCenter,
   getTransform,
 });
@@ -710,6 +930,7 @@ watch(
 
 // 初始化
 onMounted(() => {
+  updatePreviewSurfaceKind();
   setupEmbedResizeObserver();
   if (props.mode === "preview") {
     initPreviewMode();
@@ -775,6 +996,16 @@ onBeforeUnmount(() => {
   width: 100%;
   height: 100%;
   position: relative;
+  color: #303133;
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    "Microsoft YaHei",
+    sans-serif;
+  font-size: 14px;
+  line-height: 1.4;
 }
 
 .preview-container .container {
@@ -792,5 +1023,52 @@ onBeforeUnmount(() => {
 /* 预览模式下禁用鼠标交互 */
 .preview-mode :deep(.lf-canvas-overlay) {
   pointer-events: none;
+}
+
+.team-code-copy-layer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.team-code-copy-target {
+  position: absolute;
+  pointer-events: auto;
+}
+
+.team-code-copy-button {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  border: 1px solid rgba(48, 49, 51, 0.18);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.94);
+  color: #303133;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  cursor: pointer;
+  font-size: 12px;
+  line-height: 1;
+  opacity: 0;
+  padding: 7px 9px;
+  pointer-events: auto;
+  transition:
+    opacity 0.16s ease,
+    background-color 0.16s ease,
+    border-color 0.16s ease;
+  white-space: nowrap;
+}
+
+.team-code-copy-button:hover,
+.team-code-copy-button:focus-visible {
+  background: #ffffff;
+  border-color: rgba(64, 158, 255, 0.55);
+  outline: none;
+}
+
+.team-code-copy-target:hover .team-code-copy-button,
+.team-code-copy-target:focus-within .team-code-copy-button,
+.team-code-copy-touch .team-code-copy-button {
+  opacity: 1;
 }
 </style>

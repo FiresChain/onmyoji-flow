@@ -67,6 +67,7 @@ interface GraphEdge {
 interface NodeProperties {
   style: NodeStyle; // 通用样式
   meta?: NodeMeta; // 通用元信息（锁定/可见/分组等）
+  groupMeta?: DynamicGroupMeta; // dynamic-group 队伍/式神组元信息
   // 具体节点类型的扩展字段（如下）
   assetName?: AssetNameProps; // 资产节点名称文本（独立 textNode）控制
   image?: ImageProps;
@@ -186,6 +187,29 @@ interface PropertyRuleProps {
   [k: string]: any;
 }
 ```
+
+- Dynamic Group（dynamic-group）
+
+```ts
+interface DynamicGroupMeta {
+  version: number;
+  groupKind: "team" | "shikigami";
+  groupName: string;
+  ruleEnabled: boolean;
+  ruleScope: string[];
+  teamCode?: TeamCodeConfig; // 仅 groupKind="team" 时有效
+}
+
+interface TeamCodeConfig {
+  enabled: boolean;
+  shortCode: string; // 官方短码，可能有时效
+  longCode: string; // 完整阵容码，默认推荐复制
+  preferred: "long" | "short";
+  label: string; // 预览复制按钮文案，空值使用默认文案
+}
+```
+
+`teamCode` 属于队伍组的结构化元数据，不作为画布节点渲染；预览复制按钮由嵌入组件 overlay 渲染，导出图片时应隐藏。
 
 ## 同步与渲染约定
 
