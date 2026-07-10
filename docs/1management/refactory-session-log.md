@@ -44,6 +44,41 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-07-10] Session 125 - Define Feature Module Architecture
+
+- Refactory Scope:
+  - Phase: Feature-module Phase 1
+  - Task: 从最新 `origin/develop` 建立独立重构分支，并定义 feature-module 目标架构与迁移边界
+- In Scope Files:
+  - `docs/2design/ModuleArchitecture.md`（新增）
+  - `docs/2design/ComponentArchitecture.md`
+  - `docs/2design/FlowEditorArchitecture.md`
+  - `docs/2design/ToolbarArchitecture.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `feature/team-code-copy-preview` 工作区及其未跟踪 archive/playwright/test-results
+  - `docs/1management/plan.md` 进度字段
+  - 运行时代码、UI、游戏数据和构建产物
+- Decisions:
+  - `refactor/feature-modules` 在独立 worktree 中从 `origin/develop@4ca9133` 创建，不合入当前 team-code 功能分支。
+  - 新文档明确区分“目标态”和“已实现状态”，以依赖表、所有权、内部接口和兼容清单约束后续迁移。
+  - Component/FlowEditor/Toolbar 文档保留现有实现记录，同时指向 feature-module 目标职责，避免迁移期契约漂移。
+  - 本轮不创建空的 `features/team-code`，也不移动 `teamCodeService.ts`。
+- Checks:
+  - `npm ci`: pass（473 packages；审计报告 25 个存量漏洞）
+  - `test -f docs/2design/{ModuleArchitecture,ComponentArchitecture,FlowEditorArchitecture,ToolbarArchitecture}.md`: pass
+  - `npx prettier --check docs/2design/ModuleArchitecture.md docs/2design/ComponentArchitecture.md docs/2design/FlowEditorArchitecture.md docs/2design/ToolbarArchitecture.md`: pass
+  - `git diff --check`: pass
+  - `npm test`: not-run（文档原子单元）
+  - `npm run lint`: not-run（文档原子单元）
+  - `npm run typecheck`: not-run（文档原子单元）
+  - `npm run build:lib`: not-run（文档原子单元）
+- Risks / Follow-up:
+  - 目录结构仍是迁移目标；在对应代码阶段完成前，不应依赖目标 deep-import 路径。
+  - `npm ci` 暴露的依赖漏洞属于现有基线，本轮不运行破坏性 `npm audit fix --force`。
+- Next Recommended Unit:
+  - Feature-module Phase 2：基于生产入口引用证据删除不可达旧模块与无引用依赖，并运行完整定向回归。
+
 ## [2026-03-04] Session 124 - RFX-010 RootDocument Schema Strong-Constraint Loop
 
 - Refactory Scope:
@@ -388,4 +423,3 @@ Copy this block and append at the top for each new refactor session.
   - `format:check` 阻断仍在，下一原子任务应执行一次“仅格式化收敛”解除 gate 阻断。
 - Next Recommended Unit:
   - `RFX-002（P0）执行一次仅格式化收敛单元`
-

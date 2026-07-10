@@ -1,15 +1,21 @@
 # 组件化改造设计文档
 
+> 当前状态：本文保留已发布 Embed API 与历史实现背景。Feature-module
+> 重构的目标目录、依赖方向和实例边界以
+> [ModuleArchitecture.md](./ModuleArchitecture.md) 为准；迁移期间不得将目标目录描述误作已完成实现。
+
 ## 背景与目标
 
 ### 为什么需要组件化改造
 
 **当前状态**：
+
 - onmyoji-flow 是一个独立的单页应用（SPA）
 - 只能作为独立应用运行
 - 无法嵌入到其他项目中
 
 **目标**：
+
 - 将 onmyoji-flow 改造为可嵌入的 Vue 组件
 - 支持在 onmyoji-wiki 中作为块插件使用
 - 保持独立应用功能不变（双重角色）
@@ -17,11 +23,13 @@
 ### 预期效果
 
 **角色 1：独立编辑器**（保持不变）
+
 - 完整的流程图编辑应用
 - 支持本地运行和使用
 - 完整的 UI（工具栏、组件库、属性面板）
 
 **角色 2：可嵌入组件**（新增）
+
 - 作为 onmyoji-wiki 的块插件
 - 支持预览/编辑模式
 - 轻量级，只包含核心编辑功能
@@ -33,7 +41,15 @@
 
 ### 核心思路
 
-**不修改现有代码，创建独立的嵌入式组件**
+历史方案通过共享组件新增嵌入式入口。当前重构在保持公开契约不变的前提下，
+将两种运行形态改为薄 facade + shell 组装：
+
+- `App.vue` 仅启动 `StandaloneEditorShell`。
+- `YysEditorEmbed.vue` 仅保留公开 props/emits/expose，并组装 `EmbedEditorShell`。
+- 只读画布由 `PreviewCanvas` 承担；数据同步、尺寸观察和 viewport 恢复分别进入实例级 composable。
+- shell 只协调 `EditorPort`，不直接保存领域状态或调用 LogicFlow API。
+
+下列目录图记录迁移前的共享组件方案，不代表重构目标目录：
 
 ```
 onmyoji-flow/
@@ -124,59 +140,59 @@ onmyoji-flow/
 ```typescript
 interface YysEditorEmbedProps {
   // 初始数据（LogicFlow GraphData 格式）
-  data?: GraphData
+  data?: GraphData;
 
   // 模式：preview（预览）/ edit（编辑）
-  mode?: 'preview' | 'edit'
+  mode?: "preview" | "edit";
 
   // 尺寸
-  width?: string | number
-  height?: string | number
+  width?: string | number;
+  height?: string | number;
 
   // UI 控制（仅在 edit 模式有效）
-  showToolbar?: boolean
-  showPropertyPanel?: boolean // 编辑模式下控制属性面板显示
-  showComponentPanel?: boolean
+  showToolbar?: boolean;
+  showPropertyPanel?: boolean; // 编辑模式下控制属性面板显示
+  showComponentPanel?: boolean;
 
   // 配置选项（最小实现已生效：grid/snapline/keyboard）
-  config?: EditorConfig
+  config?: EditorConfig;
 }
 
 // LogicFlow 标准数据格式
 interface GraphData {
-  nodes: NodeData[]
-  edges: EdgeData[]
+  nodes: NodeData[];
+  edges: EdgeData[];
 }
 
 interface NodeData {
-  id: string
-  type: string
-  x: number
-  y: number
-  properties?: Record<string, any>
-  text?: { value: string }
+  id: string;
+  type: string;
+  x: number;
+  y: number;
+  properties?: Record<string, any>;
+  text?: { value: string };
 }
 
 interface EdgeData {
-  id: string
-  type: string
-  sourceNodeId: string
-  targetNodeId: string
-  properties?: Record<string, any>
+  id: string;
+  type: string;
+  sourceNodeId: string;
+  targetNodeId: string;
+  properties?: Record<string, any>;
 }
 
 // 编辑器配置（当前最小实现：grid/snapline/keyboard）
 interface EditorConfig {
   // 画布配置
-  grid?: boolean
-  snapline?: boolean
-  keyboard?: boolean
+  grid?: boolean;
+  snapline?: boolean;
+  keyboard?: boolean;
 
   // 主题
-  theme?: 'light' | 'dark'
+  theme?: "light" | "dark";
 
   // 语言
-  locale?: 'zh' | 'ja' | 'en'
+  locale?: "zh" | "ja" | "en";
 }
 ```
 
@@ -185,16 +201,16 @@ interface EditorConfig {
 ```typescript
 interface YysEditorEmbedEmits {
   // 数据变更（实时）
-  'update:data': (data: GraphData) => void
+  "update:data": (data: GraphData) => void;
 
   // 保存（用户点击保存按钮）
-  'save': (data: GraphData) => void
+  save: (data: GraphData) => void;
 
   // 取消（用户点击取消按钮）
-  'cancel': () => void
+  cancel: () => void;
 
   // 错误
-  'error': (error: Error) => void
+  error: (error: Error) => void;
 }
 ```
 
@@ -202,20 +218,21 @@ interface YysEditorEmbedEmits {
 
 ```typescript
 const defaultProps = {
-  mode: 'edit',
-  width: '100%',
-  height: '600px',
+  mode: "edit",
+  width: "100%",
+  height: "600px",
   showToolbar: true,
   showPropertyPanel: true, // 编辑模式默认显示属性面板
   showComponentPanel: true,
-  config: { // 当前最小实现已生效（grid/snapline/keyboard）
+  config: {
+    // 当前最小实现已生效（grid/snapline/keyboard）
     grid: true,
     snapline: true,
     keyboard: true,
-    theme: 'light',
-    locale: 'zh'
-  }
-}
+    theme: "light",
+    locale: "zh",
+  },
+};
 ```
 
 ### 契约状态（2026-03）
@@ -227,6 +244,19 @@ const defaultProps = {
 ---
 
 ## 实现细节
+
+### 0. Feature-module 迁移约束
+
+1. `YysEditorEmbed` 的 props、emits、exposed methods、默认/命名导出和
+   `YysEditorPreview` 别名保持兼容。
+2. edit 与 preview 每次挂载创建独立 `EditorContext`；runtime、settings、dialogs、
+   locale、asset resolver、timer 和 observer 不跨实例共享。
+3. preview 的自定义 `plugins` / `nodeRegistrations` 保持当前替换语义；不借此次
+   重构扩展 edit-mode 行为。
+4. `setAssetBaseUrl` 仍是兼容默认值 API，但组件创建时将默认值复制进实例 resolver。
+5. Embed workspace 使用内存 adapter，不读取或写入 standalone 的 `filesStore` key。
+6. facade 与 shell 通过 `EditorPort` 完成 render/capture/viewport 操作，不直接获取
+   LogicFlow 实例。
 
 ### 1. YysEditorEmbed.vue 组件结构
 
@@ -240,11 +270,7 @@ const defaultProps = {
     <!-- 编辑模式：完整 UI -->
     <template v-if="mode === 'edit'">
       <!-- 工具栏 -->
-      <Toolbar
-        v-if="showToolbar"
-        @save="handleSave"
-        @cancel="handleCancel"
-      />
+      <Toolbar v-if="showToolbar" @save="handleSave" @cancel="handleCancel" />
 
       <!-- 主内容区 -->
       <div class="editor-content">
@@ -262,105 +288,108 @@ const defaultProps = {
 
     <!-- 预览模式：只有画布 -->
     <template v-else>
-      <FlowEditor
-        ref="flowEditorRef"
-        :initial-data="data"
-        :readonly="true"
-      />
+      <FlowEditor ref="flowEditorRef" :initial-data="data" :readonly="true" />
     </template>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
-import FlowEditor from './components/flow/FlowEditor.vue'
-import Toolbar from './components/Toolbar.vue'
-import ComponentsPanel from './components/flow/ComponentsPanel.vue'
-import type { GraphData, EditorConfig } from './ts/schema'
+import { ref, computed, watch, onMounted } from "vue";
+import FlowEditor from "./components/flow/FlowEditor.vue";
+import Toolbar from "./components/Toolbar.vue";
+import ComponentsPanel from "./components/flow/ComponentsPanel.vue";
+import type { GraphData, EditorConfig } from "./ts/schema";
 
 // Props
-const props = withDefaults(defineProps<{
-  data?: GraphData
-  mode?: 'preview' | 'edit'
-  width?: string | number
-  height?: string | number
-  showToolbar?: boolean
-  showPropertyPanel?: boolean // 编辑模式下控制属性面板显示
-  showComponentPanel?: boolean
-  config?: EditorConfig // 最小实现已生效（grid/snapline/keyboard）
-}>(), {
-  mode: 'edit',
-  width: '100%',
-  height: '600px',
-  showToolbar: true,
-  showPropertyPanel: true, // 编辑模式默认显示属性面板
-  showComponentPanel: true
-})
+const props = withDefaults(
+  defineProps<{
+    data?: GraphData;
+    mode?: "preview" | "edit";
+    width?: string | number;
+    height?: string | number;
+    showToolbar?: boolean;
+    showPropertyPanel?: boolean; // 编辑模式下控制属性面板显示
+    showComponentPanel?: boolean;
+    config?: EditorConfig; // 最小实现已生效（grid/snapline/keyboard）
+  }>(),
+  {
+    mode: "edit",
+    width: "100%",
+    height: "600px",
+    showToolbar: true,
+    showPropertyPanel: true, // 编辑模式默认显示属性面板
+    showComponentPanel: true,
+  },
+);
 
 // Emits
 const emit = defineEmits<{
-  'update:data': [data: GraphData]
-  'save': [data: GraphData]
-  'cancel': []
-  'error': [error: Error]
-}>()
+  "update:data": [data: GraphData];
+  save: [data: GraphData];
+  cancel: [];
+  error: [error: Error];
+}>();
 
 // Refs
-const flowEditorRef = ref<InstanceType<typeof FlowEditor>>()
+const flowEditorRef = ref<InstanceType<typeof FlowEditor>>();
 
 // Computed
 const containerStyle = computed(() => ({
-  width: typeof props.width === 'number' ? `${props.width}px` : props.width,
-  height: typeof props.height === 'number' ? `${props.height}px` : props.height
-}))
+  width: typeof props.width === "number" ? `${props.width}px` : props.width,
+  height: typeof props.height === "number" ? `${props.height}px` : props.height,
+}));
 
 // Methods
 const handleDataChange = (data: GraphData) => {
-  emit('update:data', data)
-}
+  emit("update:data", data);
+};
 
 const handleSave = () => {
   try {
-    const data = flowEditorRef.value?.getGraphData()
+    const data = flowEditorRef.value?.getGraphData();
     if (data) {
-      emit('save', data)
+      emit("save", data);
     }
   } catch (error) {
-    emit('error', error as Error)
+    emit("error", error as Error);
   }
-}
+};
 
 const handleCancel = () => {
-  emit('cancel')
-}
+  emit("cancel");
+};
 
 // 公开方法（供父组件调用）
 const getGraphData = () => {
-  return flowEditorRef.value?.getGraphData()
-}
+  return flowEditorRef.value?.getGraphData();
+};
 
 const setGraphData = (data: GraphData) => {
-  flowEditorRef.value?.setGraphData(data)
-}
+  flowEditorRef.value?.setGraphData(data);
+};
 
 defineExpose({
   getGraphData,
-  setGraphData
-})
+  setGraphData,
+});
 
 // 监听 data 变化
-watch(() => props.data, (newData) => {
-  if (newData && flowEditorRef.value) {
-    flowEditorRef.value.setGraphData(newData)
-  }
-}, { deep: true })
+watch(
+  () => props.data,
+  (newData) => {
+    if (newData && flowEditorRef.value) {
+      flowEditorRef.value.setGraphData(newData);
+    }
+  },
+  { deep: true },
+);
 
 // 初始化
 onMounted(() => {
   if (props.data && flowEditorRef.value) {
-    flowEditorRef.value.setGraphData(props.data)
+    flowEditorRef.value.setGraphData(props.data);
   }
-})
+});
 </script>
 
 <style scoped>
@@ -391,32 +420,34 @@ onMounted(() => {
 
 ```typescript
 // YysEditorEmbed.vue
-import { createPinia } from 'pinia'
-import { useFilesStore } from '@/ts/useStore'
-import { createLogicFlowScope, provideLogicFlowScope } from '@/ts/useLogicFlow'
+import { createPinia } from "pinia";
+import { useFilesStore } from "@/ts/useStore";
+import { createLogicFlowScope, provideLogicFlowScope } from "@/ts/useLogicFlow";
 
 // 1) 每个嵌入实例创建独立 Pinia
-const localPinia = createPinia()
+const localPinia = createPinia();
 
 // 2) 每个嵌入实例创建并 provide 独立 LogicFlowScope
-const logicFlowScope = provideLogicFlowScope(createLogicFlowScope())
+const logicFlowScope = provideLogicFlowScope(createLogicFlowScope());
 
 // 3) store 显式绑定当前 scope，确保 updateTab/switch/save 读写本实例画布
-const filesStore = useFilesStore(localPinia)
-filesStore.bindLogicFlowScope(logicFlowScope)
+const filesStore = useFilesStore(localPinia);
+filesStore.bindLogicFlowScope(logicFlowScope);
 ```
 
 ```typescript
 // FlowEditor.vue / useCanvasSettings.ts
-import { useLogicFlowScope, setLogicFlowInstance } from '@/ts/useLogicFlow'
-import { useCanvasSettings } from '@/ts/useCanvasSettings'
+import { useLogicFlowScope, setLogicFlowInstance } from "@/ts/useLogicFlow";
+import { useCanvasSettings } from "@/ts/useCanvasSettings";
 
-const scope = useLogicFlowScope()
-setLogicFlowInstance(lfInstance, scope)
-const { selectionEnabled, snapGridEnabled, snaplineEnabled } = useCanvasSettings(scope)
+const scope = useLogicFlowScope();
+setLogicFlowInstance(lfInstance, scope);
+const { selectionEnabled, snapGridEnabled, snaplineEnabled } =
+  useCanvasSettings(scope);
 ```
 
 实现要点：
+
 1. `useLogicFlow` 使用 `Map<LogicFlowScope, LogicFlow>` 管理实例，组件卸载时按 scope 销毁。
 2. `useCanvasSettings` 使用 `Map<LogicFlowScope, CanvasSettingsState>` 管理画布设置，跨实例不共享开关状态。
 3. `useStore` 通过 `bindLogicFlowScope(scope)` 显式绑定画布来源，避免切换文件时误写其他实例数据。
@@ -426,6 +457,7 @@ const { selectionEnabled, snapGridEnabled, snaplineEnabled } = useCanvasSettings
 **问题**：避免样式冲突
 
 **方案**：
+
 1. 使用 scoped styles
 2. 添加命名空间前缀 `.yys-editor-embed`
 3. 使用 CSS Modules（可选）
@@ -443,9 +475,9 @@ const { selectionEnabled, snapGridEnabled, snaplineEnabled } = useCanvasSettings
 #### vite.config.ts（库模式）
 
 ```typescript
-import { defineConfig } from 'vite'
-import vue from '@vitejs/plugin-vue'
-import { resolve } from 'path'
+import { defineConfig } from "vite";
+import vue from "@vitejs/plugin-vue";
+import { resolve } from "path";
 
 export default defineConfig({
   plugins: [vue()],
@@ -453,24 +485,24 @@ export default defineConfig({
   build: {
     lib: {
       // 入口文件
-      entry: resolve(__dirname, 'src/YysEditorEmbed.vue'),
-      name: 'YysEditor',
+      entry: resolve(__dirname, "src/YysEditorEmbed.vue"),
+      name: "YysEditor",
       // 输出文件名
-      fileName: (format) => `onmyoji-flow.${format}.js`
+      fileName: (format) => `onmyoji-flow.${format}.js`,
     },
     rollupOptions: {
       // 外部化依赖（不打包进库）
-      external: ['vue', 'element-plus'],
+      external: ["vue", "element-plus"],
       output: {
         // 全局变量名
         globals: {
-          vue: 'Vue',
-          'element-plus': 'ElementPlus'
-        }
-      }
-    }
-  }
-})
+          vue: "Vue",
+          "element-plus": "ElementPlus",
+        },
+      },
+    },
+  },
+});
 ```
 
 #### package.json
@@ -523,11 +555,7 @@ export default defineConfig({
   <div class="yys-editor-block">
     <!-- 预览模式 -->
     <div v-if="!isEditing" @click="startEdit">
-      <YysEditorEmbed
-        mode="preview"
-        :data="flowData"
-        :height="400"
-      />
+      <YysEditorEmbed mode="preview" :data="flowData" :height="400" />
       <button class="edit-btn">✏️ 编辑流程图</button>
     </div>
 
@@ -546,34 +574,34 @@ export default defineConfig({
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { YysEditorEmbed } from '@rookie4show/onmyoji-flow'
-import '@rookie4show/onmyoji-flow/style.css'
+import { ref } from "vue";
+import { YysEditorEmbed } from "@rookie4show/onmyoji-flow";
+import "@rookie4show/onmyoji-flow/style.css";
 
-const isEditing = ref(false)
+const isEditing = ref(false);
 const flowData = ref({
   nodes: [],
-  edges: []
-})
+  edges: [],
+});
 
 const startEdit = () => {
-  isEditing.value = true
-}
+  isEditing.value = true;
+};
 
 const handleSave = (data) => {
-  flowData.value = data
-  isEditing.value = false
+  flowData.value = data;
+  isEditing.value = false;
   // 保存到文档
-  saveToDocument(data)
-}
+  saveToDocument(data);
+};
 
 const handleCancel = () => {
-  isEditing.value = false
-}
+  isEditing.value = false;
+};
 
 const handleError = (error) => {
-  console.error('编辑器错误:', error)
-}
+  console.error("编辑器错误:", error);
+};
 </script>
 ```
 
@@ -594,12 +622,14 @@ npm install @rookie4show/onmyoji-flow
 ### 功能测试
 
 #### 预览模式
+
 - [ ] 正确渲染流程图
 - [ ] 只读，无法编辑
 - [ ] 不显示工具栏、组件库、属性面板
 - [ ] 响应式尺寸
 
 #### 编辑模式
+
 - [ ] 完整编辑功能
 - [ ] 工具栏正常工作
 - [ ] 组件库可拖拽
@@ -607,6 +637,7 @@ npm install @rookie4show/onmyoji-flow
 - [ ] 保存/取消按钮触发正确事件
 
 #### 数据接口
+
 - [ ] Props 传入数据正确渲染
 - [ ] 数据变更触发 update:data 事件
 - [ ] 保存触发 save 事件
@@ -614,6 +645,7 @@ npm install @rookie4show/onmyoji-flow
 - [ ] 错误触发 error 事件
 
 #### 状态隔离
+
 - [ ] 多个实例互不影响
 - [ ] 不污染全局状态
 - [ ] 样式不冲突
@@ -621,6 +653,7 @@ npm install @rookie4show/onmyoji-flow
 ### 集成测试
 
 #### 在 wiki 中集成
+
 - [ ] 可以正常引入
 - [ ] 预览模式正常显示
 - [ ] 编辑模式正常工作
@@ -638,17 +671,20 @@ npm install @rookie4show/onmyoji-flow
 ## 验收标准
 
 ### 功能完整性
+
 - ✅ 支持预览和编辑模式
 - ✅ 数据接口清晰（Props + Emits）
 - ✅ 可以作为 npm 包引用
 - ✅ 状态和样式隔离
 
 ### 兼容性
+
 - ✅ 不影响独立应用功能
 - ✅ 支持 Vue 3.3+
 - ✅ 支持现代浏览器
 
 ### 文档完善
+
 - ✅ API 文档
 - ✅ 使用示例
 - ✅ 集成指南
@@ -658,6 +694,7 @@ npm install @rookie4show/onmyoji-flow
 ## 实现记录
 
 ### 2026-02-20
+
 - 📝 创建组件化改造设计文档
 - 📝 定义 Props 和 Emits 接口
 - 📝 设计双模式架构
@@ -667,4 +704,3 @@ npm install @rookie4show/onmyoji-flow
 
 **最后更新：** 2026-03-04
 **文档版本：** v1.0.1
-

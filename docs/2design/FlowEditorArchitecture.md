@@ -1,5 +1,8 @@
 # FlowEditor Architecture（Phase 2 - Step 4）
 
+> 本文前半部分记录现有 composable 拆分。Feature-module 重构完成后，最终职责与
+> 依赖边界以 [ModuleArchitecture.md](./ModuleArchitecture.md) 为准。
+
 ## 1. 目标
 
 在不改变 UI 与业务语义的前提下，逐步把 `FlowEditor.vue` 过重职责拆出到 composable，降低单文件复杂度。当前已完成：
@@ -88,3 +91,23 @@
 ## 4. 后续建议（不在本次范围）
 
 1. 对 `FlowEditor` 新增 composables 的接口边界补充结构守卫测试，防止后续回归把职责重新耦合回组件主体。
+
+## 5. Feature-module 目标职责
+
+`editor/components/FlowEditor.vue` 最终只保留画布模板、实例生命周期和对外组件契约。
+现有 composable 按职责迁移，不继续作为通用业务容器：
+
+| 现有职责                                        | 目标归属                                       |
+| ----------------------------------------------- | ---------------------------------------------- |
+| LogicFlow 创建、插件与 graph IO                 | `core/logicflow`                               |
+| 事件注册与解绑                                  | `editor/runtime/bindEditorEvents.ts`           |
+| 选择、排列、图层、分组命令                      | `editor/commands/*`                            |
+| 节点 View/Model/Inspector/defaults/registration | `editor/node-types/<type>/`                    |
+| palette 与默认节点目录                          | `editor/node-types/palette.ts` / `registry.ts` |
+| 规则表达式与验证                                | `features/group-rules`                         |
+| 画布截图                                        | `features/capture`                             |
+| 运行时、settings、dialogs、asset resolver       | 实例级 `EditorContext`                         |
+
+`FlowEditor` 不负责 localStorage、RootDocument 持久化或 feature UI。所有 listener、
+timer、observer 和 subscription 的 mount 都必须返回 disposer，并由组件卸载路径调用。
+默认节点只在 `editor/node-types/registry.ts` 声明；edit/preview 共用该事实源。

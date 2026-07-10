@@ -1,5 +1,8 @@
 # Toolbar Architecture (Phase 2)
 
+> 本文记录现有 Toolbar composable 拆分。Feature-module 重构的最终命令栏与业务
+> 弹窗归属以 [ModuleArchitecture.md](./ModuleArchitecture.md) 为准。
+
 ## 目标
 
 在不改变行为语义的前提下，将 `Toolbar.vue` 按“命令编排层 / 数据管理层 / 视图层”拆分，降低单文件复杂度并保持 `YysEditorEmbed` 与 `FlowEditor` 兼容。
@@ -10,6 +13,27 @@
 - 不改业务语义。
 - 不新增对外 API。
 - 拆分后 `Toolbar.vue` 仅做模板绑定和编排接线。
+
+## Feature-module 目标
+
+现有 `Toolbar.vue` 最终由 `shells/common/EditorCommandBar.vue` 替代。命令栏只显示
+命令并向当前 shell 发出动作，不直接执行导入导出、素材、规则、截图、持久化或
+LogicFlow 算法。
+
+| 现有 Toolbar 职责         | 目标归属                                                |
+| ------------------------- | ------------------------------------------------------- |
+| JSON 导入、导出、数据预览 | `features/workspace/documentTransfer.ts` + workspace UI |
+| 文件切换、清空工作区      | `features/workspace/useWorkspaceSession.ts`             |
+| 素材管理与选择            | `features/assets` UI/services                           |
+| 规则管理与规则编辑        | `features/group-rules` UI/services                      |
+| 截图预览、水印配置        | `features/capture` UI/services                          |
+| locale 解析与消息         | `features/locale`                                       |
+| 更新日志与反馈            | `shells/standalone/AboutDialogs.vue`                    |
+| 阵容码导入                | 现有服务适配（本轮不迁移实现）                          |
+
+App、Embed、命令栏与 store 不得直接调用 LogicFlow 的 render/raw-data/zIndex/zoom/
+transform API。业务弹窗由对应 feature 或 standalone shell 持有，命令栏不保存其
+draft 或持久化状态。
 
 ## Phase 2 原子拆分计划
 
