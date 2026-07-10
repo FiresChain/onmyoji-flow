@@ -11,6 +11,7 @@ export {
   LOCALE_STORAGE_KEY,
   SUPPORTED_EDITOR_LOCALES,
   normalizeEditorLocale,
+  parseEditorLocale,
   resolveInitialEditorLocale,
   type EditorLocale,
   type ResolveInitialEditorLocaleOptions,

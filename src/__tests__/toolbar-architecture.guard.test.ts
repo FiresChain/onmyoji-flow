@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import toolbarSource from "@/components/Toolbar.vue?raw";
+import appSource from "@/App.vue?raw";
 import assetsHostSource from "@/features/assets/ui/AssetsDialogHost.vue?raw";
 import commandBarSource from "@/shells/common/EditorCommandBar.vue?raw";
+import editorToolbarSource from "@/shells/common/EditorToolbar.vue?raw";
 import aboutDialogsSource from "@/shells/standalone/AboutDialogs.vue?raw";
+import standaloneShellSource from "@/shells/standalone/StandaloneEditorShell.vue?raw";
 import captureHostSource from "@/features/capture/ui/CaptureDialogHost.vue?raw";
 import groupRuleHostSource from "@/features/group-rules/ui/GroupRuleDialogHost.vue?raw";
 import importDialogSource from "@/features/workspace/ui/ImportDialog.vue?raw";
@@ -47,20 +49,33 @@ describe("editor command surface architecture", () => {
     expect(assetsHostSource).toContain("defineExpose");
   });
 
-  it("keeps Toolbar as a zero-inline-dialog composition facade", () => {
+  it("keeps EditorToolbar as a zero-inline-dialog feature composition", () => {
     for (const component of [
       "EditorCommandBar",
       "WorkspaceDialogHost",
       "CaptureDialogHost",
       "AssetsDialogHost",
       "GroupRuleDialogHost",
-      "AboutDialogs",
     ]) {
-      expect(toolbarSource).toContain(`<${component}`);
+      expect(editorToolbarSource).toContain(`<${component}`);
     }
-    expect(toolbarSource).not.toContain("<el-dialog");
-    expect(toolbarSource).not.toMatch(
+    expect(editorToolbarSource).not.toContain("AboutDialogs");
+    expect(editorToolbarSource).not.toContain("<el-dialog");
+    expect(editorToolbarSource).not.toMatch(
       /useToolbar|localStorage|document\.createElement|FileReader|navigator\.clipboard|getGraphRawData|\.render\(|\.zoom\(/,
+    );
+  });
+
+  it("keeps standalone-only composition in its shell and App thin", () => {
+    expect(standaloneShellSource).toContain("<EditorToolbar");
+    expect(standaloneShellSource).toContain("<AboutDialogs");
+    expect(standaloneShellSource).toContain("createWorkspaceSession");
+    expect(standaloneShellSource).toContain(
+      "createLocalStorageFilesPersistence",
+    );
+    expect(appSource).toContain("<StandaloneEditorShell");
+    expect(appSource).not.toMatch(
+      /createEditorContext|createWorkspaceSession|useFilesStore|FlowEditor|NodePalette/,
     );
   });
 

@@ -27,6 +27,7 @@ import {
 import type { FlowNodeRegistration } from "@/core/logicflow/types";
 import {
   centerViewport,
+  fitView,
   getViewport,
   resetViewportTranslate,
   resetViewportZoom,
@@ -268,5 +269,16 @@ describe("LogicFlow viewport adapter", () => {
     expect(resetViewportZoom(unavailable)).toBe(false);
     expect(resetViewportTranslate(unavailable)).toBe(false);
     expect(centerViewport(unavailable)).toBe(false);
+  });
+
+  it("preserves default fitView behavior while forwarding optional offsets", () => {
+    const fit = vi.fn();
+    const instance = asLogicFlow({ fitView: fit });
+
+    fitView(instance);
+    fitView(instance, 30, 40);
+    fitView(instance, undefined, 50);
+
+    expect(fit.mock.calls).toEqual([[], [30, 40], [undefined, 50]]);
   });
 });

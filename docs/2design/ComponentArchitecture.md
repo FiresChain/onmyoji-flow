@@ -1,8 +1,8 @@
 # 组件化改造设计文档
 
-> 当前状态（2026-07-10）：已发布 Embed API、实例隔离、editor 模块和 Phase 6
-> business features/dialog hosts 已落地。standalone/embed shells、独立
-> `PreviewCanvas` 与根组件薄 facade 仍属于 Phase 7。目标依赖方向以
+> 当前状态（2026-07-10）：Phase 7 已落地。standalone/embed shells、独立
+> `PreviewCanvas`、Embed composables 与根组件薄 facade 均已进入生产路径；Phase 8
+> 质量闸门仍待实施。依赖方向以
 > [ModuleArchitecture.md](./ModuleArchitecture.md) 为准。
 
 ## 背景与目标
@@ -42,12 +42,12 @@
 
 ### 核心思路
 
-历史方案通过共享组件新增嵌入式入口。当前重构在保持公开契约不变的前提下，
-分阶段迁移到薄 facade + shell 组装。以下为 Phase 7 目标，并非当前根组件状态：
+历史方案通过共享组件新增嵌入式入口。当前实现已在保持公开契约不变的前提下，
+完成薄 facade + shell 组装：
 
 - `App.vue` 仅启动 `StandaloneEditorShell`。
 - `YysEditorEmbed.vue` 仅保留公开 props/emits/expose，并组装 `EmbedEditorShell`。
-- 只读画布由 `PreviewCanvas` 承担；数据同步、尺寸观察和 viewport 恢复分别进入实例级 composable。
+- 只读画布由 `PreviewCanvas` 承担；数据同步、尺寸观察和 viewport 操作分别进入实例级 composable。
 - shell 只协调 `EditorPort`，不直接保存领域状态或调用 LogicFlow API。
 
 下列目录图记录迁移前的共享组件方案，不代表重构目标目录：
@@ -62,7 +62,7 @@ onmyoji-flow/
 │   │   │   ├── FlowEditor.vue     # 画布核心（共享）
 │   │   │   ├── PropertyPanel.vue  # 属性面板（共享）
 │   │   │   └── ComponentsPanel.vue # 组件库（共享）
-│   │   └── Toolbar.vue            # 工具栏（共享）
+│   │   └── [历史共享工具栏，现已删除]
 │   └── ts/
 │       ├── useStore.ts            # 状态管理（共享）
 │       └── useLogicFlow.ts        # LogicFlow 封装（共享）
@@ -257,10 +257,10 @@ const defaultProps = {
    重构扩展 edit-mode 行为。
 4. `setAssetBaseUrl` 仍是兼容默认值 API，但组件创建时将默认值复制进实例 resolver。
 5. Embed workspace 使用内存 adapter，不读取或写入 standalone 的 `filesStore` key。
-6. facade 与 shell 通过 `EditorPort` 完成 render/capture/viewport 操作，不直接获取
-   LogicFlow 实例。
+6. 根 facade 与 Embed 的 data-sync/resize/viewport 路径通过 `EditorPort` 协调，不直接
+   获取 LogicFlow 实例；`EditorToolbar` 仅为截图和主题应用保留既有窄 editor bridge。
 
-### 0.1 Phase 4 已落地状态（2026-07-10）
+### 0.1 Phase 4 阶段快照（历史）
 
 1. `App.vue` 与每个 `YysEditorEmbed` 挂载分别创建 `EditorContext`。runtime、
    `EditorPort`、画布 settings、dialog、locale 与 asset resolver 均由该实例拥有；
@@ -276,22 +276,21 @@ const defaultProps = {
    始终使用实例级 memory persistence，并在 Pinia action 后恢复宿主 active Pinia。
 6. `WorkspaceSession` 的 autosave interval、`FilesPersistence` 的 debounce timer、Embed
    timer/ResizeObserver 和 Context runtime 都在卸载路径清理，dispose 为幂等操作。
-7. standalone/embed shell 与 preview composable 拆分仍属于 Phase 7；当前根组件尚未宣称
-   达到薄 facade 目标态。
+7. 该阶段 standalone/embed shell 与 preview composable 尚未拆分，后续已由 Phase 7
+   完成。
 
-### 0.2 Phase 5 已落地状态（2026-07-10）
+### 0.2 Phase 5 阶段快照（历史）
 
-1. `App.vue` 与 `YysEditorEmbed.vue` 当前直接组装 `NodePalette`、`FlowEditor` 和
+1. Phase 5 时 `App.vue` 与 `YysEditorEmbed.vue` 直接组装 `NodePalette`、`FlowEditor` 和
    `EditorDialogHost`；`FlowEditor` 再组装 `CanvasControls`、`ProblemsDock` 与
    `Inspector`。
 2. runtime、commands 与 node-types 已迁入 `src/editor`。节点 View、Model、Inspector、
    默认值与 registration 按类型共置，edit/preview 共用默认 registry。
 3. LogicFlow event、keyboard、DOM listener、timer、RAF、ResizeObserver 与规则订阅均由
    实例 disposer 清理；mount 失败执行逆序回滚，stale disposer 不清理替代实例。
-4. standalone/embed shell 和独立 PreviewCanvas 仍属于 Phase 7。当前 preview 仍由
-   `YysEditorEmbed.vue` 直接创建只读 runtime。
+4. 该阶段 shell 和独立 PreviewCanvas 尚未落地；后续已由 Phase 7 完成。
 
-### 0.3 Phase 6 已落地状态（2026-07-10）
+### 0.3 Phase 6 阶段快照（历史）
 
 1. workspace、assets、group-rules、capture 与 locale 已迁入 `features/*`；跨模块调用
    通过各 feature 的 `public.ts`。
@@ -301,15 +300,37 @@ const defaultProps = {
    runtime 清理。locale 由实例 `EditorContext` 和 `features/locale` 服务驱动。
 3. `shells/common/EditorCommandBar.vue` 是受控、emit-only UI，只发 command、settings
    和 locale 更新事件，不访问 LogicFlow、storage 或 feature repository。
-4. `components/Toolbar.vue` 已缩减为过渡 facade：组装 feature hosts、调用 workspace
-   services、保存 standalone locale 偏好，并提供截图/主题应用所需的窄 editor bridge。
-   Phase 7 再把该组装责任移入 shell。
+4. 当时的 toolbar 过渡 facade 负责组装 feature hosts、调用 workspace services、保存
+   standalone locale 偏好，并提供截图/主题应用所需的窄 editor bridge；该文件已在
+   Phase 7 删除，职责由 `shells/common/EditorToolbar.vue` 与 shell 承接。
 5. `filesStore`、`yys-editor.custom-assets.v1`、
    `yys-editor.node-create-size.v1`、`yys-editor.group-rules.v1`、
    `yys-editor.locale` 与 watermark keys 保持不变；`setAssetBaseUrl` 及现有 package
    exports 保持兼容。
 6. 阵容码继续通过 workspace adapter 调用旧服务；本阶段未移动
    `teamCodeService.ts`，也未创建 `features/team-code`。
+
+### 0.4 Phase 7 当前实现（2026-07-10）
+
+1. `App.vue` 只挂载 `StandaloneEditorShell`；`YysEditorEmbed.vue` 只声明并转发公开
+   props、emits、type exports 与 exposed methods。
+2. `StandaloneEditorShell` 创建实例 `EditorContext`，继续使用 `filesStore` key 的
+   localStorage persistence、autosave、文件 tabs 与 app-only `AboutDialogs`。
+3. `EmbedEditorShell` 为每个实例创建独立 Pinia、memory persistence 和
+   `WorkspaceSession`；所有 store action 后恢复宿主 active Pinia，不读取或写入
+   standalone workspace key。
+4. `PreviewCanvas` 只负责 preview runtime 的创建、替换与释放。非空自定义
+   `plugins` / `nodeRegistrations` 完整替换预设，空数组回退默认；edit runtime 不消费
+   这些 preview-only props。
+5. `useEmbedDataSync` 负责 GraphData normalize、preview dynamic-group 隐藏与实例 asset
+   resolver；`useEmbedResize` 通过 `EditorPort` resize 并观察、释放根容器
+   ResizeObserver；`useEmbedViewport` 通过 `EditorPort` 实现 fit、zoom、reset、center
+   与 transform 读取。
+6. `setAssetBaseUrl` 仍是兼容默认值 API；Embed 创建时快照该默认值，后续全局更新不
+   影响已挂载实例。`config.locale` 与显式 `assetBaseUrl` 更新仅影响当前实例。
+7. `shells/common/EditorToolbar.vue` 组装 emit-only `EditorCommandBar` 与 feature hosts；
+   standalone shell 额外接入更新日志/反馈，Embed 不持久化 locale。
+8. Phase 8 的目录依赖 lint、dead-code 与完整 CI gates 仍待实施。
 
 ### 1. YysEditorEmbed.vue 迁移前组件结构（历史记录）
 
@@ -353,7 +374,7 @@ const defaultProps = {
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from "vue";
 import FlowEditor from "./components/flow/FlowEditor.vue";
-import Toolbar from "./components/Toolbar.vue";
+// 当时的共享 Toolbar 已在 Phase 7 删除。
 import ComponentsPanel from "./components/flow/ComponentsPanel.vue";
 import type { GraphData, EditorConfig } from "./ts/schema";
 
@@ -509,11 +530,12 @@ const { selectionEnabled, snapGridEnabled, snaplineEnabled } =
 2. `useCanvasSettings` 使用 `Map<LogicFlowScope, CanvasSettingsState>` 管理画布设置，跨实例不共享开关状态。
 3. `useStore` 通过 `bindLogicFlowScope(scope)` 显式绑定画布来源，避免切换文件时误写其他实例数据。
 
-当前实现以每个 App/Embed 自己创建的 `EditorContext` 为唯一实例边界。`useLogicFlow`、
-`useCanvasSettings`、`useDialogs` 与 `useSafeI18n` 只是 Context 注入兼容 facade，不维护
-模块级可变 Map/ref/reactive。Embed 同时拥有独立 Pinia、memory persistence 与
-WorkspaceSession；standalone 使用 `filesStore` key 的 localStorage persistence。组件
-卸载统一 dispose runtime、workspace、timer、observer 与 subscription。
+当前实现以每个 standalone/embed shell 创建的 `EditorContext` 为唯一实例边界。
+`useLogicFlow`、`useCanvasSettings`、`useDialogs` 与 `useEditorI18n` 只是 Context 注入兼容
+facade，不维护模块级可变 Map/ref/reactive。Embed 同时拥有独立 Pinia、memory
+persistence 与 WorkspaceSession；standalone 使用 `filesStore` key 的 localStorage
+persistence。组件卸载统一 dispose runtime、workspace、timer、observer 与
+subscription。
 
 ### 3. 样式隔离策略
 

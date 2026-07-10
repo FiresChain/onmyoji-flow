@@ -11,7 +11,15 @@ import type {
   EditorPort,
   LogicFlowRuntime,
 } from "./types";
-import { fitView, getViewport, setViewport } from "./viewport";
+import {
+  centerViewport,
+  fitView,
+  getViewport,
+  resetViewportTranslate,
+  resetViewportZoom,
+  setViewport,
+  zoomViewport,
+} from "./viewport";
 
 const getCapabilityOptions = (
   capability: CreateLogicFlowRuntimeOptions["capability"],
@@ -39,9 +47,15 @@ export function createEditorPort(
     render: (data) => renderGraphData(instance, data),
     capture: () => captureGraphData(instance),
     clear: () => clearGraphData(instance),
+    resize: (width, height) => instance.resize(width, height),
     getViewport: () => getViewport(instance),
     setViewport: (transform) => setViewport(instance, transform),
-    fitView: () => fitView(instance),
+    zoom: (zoomSize, point) => zoomViewport(instance, zoomSize, point),
+    resetZoom: () => resetViewportZoom(instance),
+    resetTranslate: () => resetViewportTranslate(instance),
+    translateCenter: () => centerViewport(instance),
+    fitView: (verticalOffset, horizontalOffset) =>
+      fitView(instance, verticalOffset, horizontalOffset),
     dispose,
   };
 }

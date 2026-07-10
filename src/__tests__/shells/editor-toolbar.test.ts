@@ -1,8 +1,8 @@
-import { defineComponent, h, ref } from "vue";
+import { defineComponent, h, nextTick, ref } from "vue";
 import { mount } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import Toolbar from "@/components/Toolbar.vue";
+import EditorToolbar from "@/shells/common/EditorToolbar.vue";
 
 const facadeSpies = vi.hoisted(() => ({
   openImportDialog: vi.fn(),
@@ -13,8 +13,6 @@ const facadeSpies = vi.hoisted(() => ({
   openAssetManager: vi.fn(),
   openNodeTheme: vi.fn(),
   openRuleManager: vi.fn(),
-  showUpdateLog: vi.fn(),
-  showFeedbackForm: vi.fn(),
   loadExample: vi.fn(),
   resetWorkspace: vi.fn(),
   clearCanvas: vi.fn(),
@@ -91,7 +89,20 @@ const commands = [
 
 const CommandBarStub = defineComponent({
   name: "EditorCommandBar",
-  emits: ["command"],
+  props: {
+    isEmbed: Boolean,
+    selectionEnabled: Boolean,
+    snapGridEnabled: Boolean,
+    snaplineEnabled: Boolean,
+    locale: String,
+  },
+  emits: [
+    "command",
+    "update:selectionEnabled",
+    "update:snapGridEnabled",
+    "update:snaplineEnabled",
+    "update:locale",
+  ],
   setup(_, { emit }) {
     return () =>
       h(
@@ -153,19 +164,8 @@ const GroupRulesHostStub = defineComponent({
   },
 });
 
-const AboutHostStub = defineComponent({
-  name: "AboutDialogs",
-  setup(_, { expose }) {
-    expose({
-      showUpdateLog: facadeSpies.showUpdateLog,
-      showFeedbackForm: facadeSpies.showFeedbackForm,
-    });
-    return () => h("div", { "data-host": "about" });
-  },
-});
-
 const createWrapper = (isEmbed = false) =>
-  mount(Toolbar, {
+  mount(EditorToolbar, {
     props: { isEmbed },
     global: {
       stubs: {
@@ -174,17 +174,17 @@ const createWrapper = (isEmbed = false) =>
         CaptureDialogHost: CaptureHostStub,
         AssetsDialogHost: AssetsHostStub,
         GroupRuleDialogHost: GroupRulesHostStub,
-        AboutDialogs: AboutHostStub,
       },
     },
   });
 
-describe("Toolbar composition facade", () => {
+describe("EditorToolbar composition", () => {
   beforeEach(() => {
+    localStorage.clear();
     Object.values(facadeSpies).forEach((spy) => spy.mockReset());
   });
 
-  it("routes command ids to the owning feature host or workspace command", async () => {
+  it("routes feature commands and delegates app-only help commands", async () => {
     const wrapper = createWrapper();
 
     for (const command of commands) {
@@ -200,8 +200,8 @@ describe("Toolbar composition facade", () => {
     expect(facadeSpies.openNodeTheme).toHaveBeenCalledTimes(1);
     expect(facadeSpies.openWatermark).toHaveBeenCalledTimes(1);
     expect(facadeSpies.openAssetManager).toHaveBeenCalledTimes(1);
-    expect(facadeSpies.showUpdateLog).toHaveBeenCalledTimes(1);
-    expect(facadeSpies.showFeedbackForm).toHaveBeenCalledTimes(1);
+    expect(wrapper.emitted("show-update-log")).toEqual([[]]);
+    expect(wrapper.emitted("show-feedback")).toEqual([[]]);
     expect(facadeSpies.resetWorkspace).toHaveBeenCalledTimes(1);
     expect(facadeSpies.clearCanvas).toHaveBeenCalledTimes(1);
 
@@ -209,13 +209,31 @@ describe("Toolbar composition facade", () => {
     expect(facadeSpies.disposeCanvasRefresh).toHaveBeenCalledTimes(1);
   });
 
-  it("does not mount standalone about dialogs in embed mode", () => {
-    const wrapper = createWrapper(true);
+  it("updates instance settings and persists locale only outside embed mode", async () => {
+    const standalone = createWrapper();
+    const standaloneBar = standalone.getComponent(CommandBarStub);
 
-    expect(wrapper.find('[data-host="about"]').exists()).toBe(false);
-    expect(wrapper.find('[data-host="workspace"]').exists()).toBe(true);
-    expect(wrapper.find('[data-host="capture"]').exists()).toBe(true);
-    expect(wrapper.find('[data-host="assets"]').exists()).toBe(true);
-    expect(wrapper.find('[data-host="group-rules"]').exists()).toBe(true);
+    standaloneBar.vm.$emit("update:selectionEnabled", false);
+    standaloneBar.vm.$emit("update:snapGridEnabled", false);
+    standaloneBar.vm.$emit("update:snaplineEnabled", false);
+    standaloneBar.vm.$emit("update:locale", "ja");
+    await nextTick();
+
+    expect(standaloneBar.props()).toMatchObject({
+      selectionEnabled: false,
+      snapGridEnabled: false,
+      snaplineEnabled: false,
+    });
+    expect(facadeSpies.setLocale).toHaveBeenCalledWith("ja");
+    expect(localStorage.getItem("yys-editor.locale")).toBe("ja");
+    standalone.unmount();
+
+    localStorage.clear();
+    const embed = createWrapper(true);
+    embed.getComponent(CommandBarStub).vm.$emit("update:locale", "en");
+    await nextTick();
+
+    expect(facadeSpies.setLocale).toHaveBeenLastCalledWith("en");
+    expect(localStorage.getItem("yys-editor.locale")).toBeNull();
   });
 });

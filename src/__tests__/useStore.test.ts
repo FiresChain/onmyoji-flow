@@ -129,6 +129,7 @@ const createEditorPortFake = (events: string[]) => {
   const clear = vi.fn(() => {
     events.push("clear");
   });
+  const resize = vi.fn();
   const getViewport = vi.fn(() => {
     events.push("getViewport");
     return clone(CAPTURED_VIEWPORT);
@@ -144,8 +145,13 @@ const createEditorPortFake = (events: string[]) => {
     render,
     capture,
     clear,
+    resize,
     getViewport,
     setViewport,
+    zoom: vi.fn(() => true),
+    resetZoom: vi.fn(() => true),
+    resetTranslate: vi.fn(() => true),
+    translateCenter: vi.fn(() => true),
     fitView,
     dispose,
   };

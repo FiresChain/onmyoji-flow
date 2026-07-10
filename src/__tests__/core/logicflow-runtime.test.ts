@@ -12,9 +12,11 @@ const mocks = vi.hoisted(() => {
     destroy = vi.fn();
     render = vi.fn();
     clearData = vi.fn();
+    resize = vi.fn();
     fitView = vi.fn();
     resetZoom = vi.fn();
     resetTranslate = vi.fn();
+    translateCenter = vi.fn();
     zoom = vi.fn();
     translate = vi.fn();
     getGraphRawData = vi.fn(() => ({ nodes: [], edges: [] }));
@@ -145,6 +147,30 @@ describe("createLogicFlowRuntime", () => {
       expect.objectContaining({ type: "custom" }),
       runtime.instance,
     );
+    runtime.dispose();
+  });
+
+  it("routes resize and viewport commands through the editor port", () => {
+    const runtime = createLogicFlowRuntime({
+      container: document.createElement("div"),
+    });
+    const instance = mocks.instances[0];
+
+    runtime.port.resize(640, 480);
+    expect(runtime.port.zoom(1.5, [10, 20])).toBe(true);
+    expect(runtime.port.resetZoom()).toBe(true);
+    expect(runtime.port.resetTranslate()).toBe(true);
+    expect(runtime.port.translateCenter()).toBe(true);
+    runtime.port.fitView();
+    runtime.port.fitView(30, 40);
+
+    expect(instance.resize).toHaveBeenCalledWith(640, 480);
+    expect(instance.zoom).toHaveBeenCalledWith(1.5, [10, 20]);
+    expect(instance.resetZoom).toHaveBeenCalledOnce();
+    expect(instance.resetTranslate).toHaveBeenCalledOnce();
+    expect(instance.translateCenter).toHaveBeenCalledOnce();
+    expect(instance.fitView.mock.calls).toEqual([[], [30, 40]]);
+
     runtime.dispose();
   });
 

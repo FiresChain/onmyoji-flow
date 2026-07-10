@@ -15,9 +15,14 @@ export interface EditorPort {
   render(data: GraphData): void;
   capture(): GraphData;
   clear(): void;
+  resize(width?: number, height?: number): void;
   getViewport(): Transform;
   setViewport(transform: Transform): void;
-  fitView(): void;
+  zoom(zoomSize?: number | boolean, point?: [number, number]): boolean;
+  resetZoom(): boolean;
+  resetTranslate(): boolean;
+  translateCenter(): boolean;
+  fitView(verticalOffset?: number, horizontalOffset?: number): void;
   dispose(): void;
 }
 

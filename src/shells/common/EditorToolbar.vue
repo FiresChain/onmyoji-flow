@@ -39,12 +39,6 @@
       :translate="t"
       :show-message="showMessage"
     />
-    <AboutDialogs
-      v-if="!props.isEmbed"
-      ref="aboutDialogsRef"
-      :contact-image-url="contactImageUrl"
-      :translate="t"
-    />
   </div>
 </template>
 
@@ -82,16 +76,10 @@ import {
   useWorkspaceSession,
 } from "@/features/workspace/public";
 import { createSafeStorage } from "@/shared/platform/storage";
-import AboutDialogs from "@/shells/standalone/AboutDialogs.vue";
-import EditorCommandBar from "@/shells/common/EditorCommandBar.vue";
-import type { EditorCommand } from "@/shells/common/editorCommands";
+import EditorCommandBar from "./EditorCommandBar.vue";
+import type { EditorCommand } from "./editorCommands";
 
 type MessageType = "success" | "warning" | "info" | "error";
-
-interface AboutDialogsExpose {
-  showUpdateLog(): void;
-  showFeedbackForm(): void;
-}
 
 const props = withDefaults(
   defineProps<{
@@ -102,6 +90,11 @@ const props = withDefaults(
   },
 );
 
+const emit = defineEmits<{
+  "show-update-log": [];
+  "show-feedback": [];
+}>();
+
 const editorContext = useEditorContext();
 const settings = editorContext.settings;
 const workspaceSession = useWorkspaceSession();
@@ -109,15 +102,11 @@ const { t, getLocale, setLocale } = useEditorI18n();
 const localeStorage = createSafeStorage(LOCALE_STORAGE_KEY);
 const resolveAssetUrl = (value: unknown): unknown =>
   typeof value === "string" ? editorContext.resolveAssetUrl(value) : value;
-const contactImageUrl = editorContext.resolveAssetUrl(
-  "/assets/Other/Contact.png",
-);
 
 const workspaceDialogHostRef = ref<WorkspaceDialogHostExpose | null>(null);
 const captureDialogHostRef = ref<CaptureDialogHostExpose | null>(null);
 const assetsDialogHostRef = ref<AssetsDialogHostExpose | null>(null);
 const groupRuleDialogHostRef = ref<GroupRuleDialogHostExpose | null>(null);
-const aboutDialogsRef = ref<AboutDialogsExpose | null>(null);
 
 const showMessage = (type: MessageType, message: string) => {
   ElMessage({ type, message });
@@ -208,10 +197,10 @@ const handleCommand = (command: EditorCommand) => {
       assetsDialogHostRef.value?.openAssetManager();
       break;
     case "show-update-log":
-      aboutDialogsRef.value?.showUpdateLog();
+      emit("show-update-log");
       break;
     case "show-feedback":
-      aboutDialogsRef.value?.showFeedbackForm();
+      emit("show-feedback");
       break;
     case "reset-workspace":
       handleResetWorkspace();

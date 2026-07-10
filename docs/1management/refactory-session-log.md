@@ -44,6 +44,45 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-07-10] Session 131 - Introduce Standalone And Embed Shells
+
+- Refactory Scope:
+  - Phase: Feature-module Phase 7
+  - Task: 引入 standalone/embed shells，拆分 PreviewCanvas、data sync、resize 与 viewport composables，并将 App/YysEditorEmbed 收敛为公开 facade
+- In Scope Files:
+  - `src/App.vue`、`src/YysEditorEmbed.vue`
+  - `src/shells/{standalone,embed,common}/**`
+  - `src/components/Toolbar.vue` 及其旧 facade 测试清理
+  - `src/core/logicflow/{types,createRuntime}.ts`、`src/features/locale/{locale,public}.ts`
+  - standalone/embed/preview/viewport/runtime/public-contract 回归测试
+  - `docs/2design/{ModuleArchitecture,ComponentArchitecture,FlowEditorArchitecture,ToolbarArchitecture}.md`
+- Out of Scope:
+  - `teamCodeService.ts` 实现、未来 `features/team-code` 与 `feature/team-code-copy-preview`
+  - Phase 8 ESLint/knip/CI gates、遗留 `ts/`/`utils/` compatibility facade 收敛
+  - `docs/1management/plan.md`、业务功能、视觉与游戏数据
+- Decisions:
+  - `App.vue` 只挂载 `StandaloneEditorShell`；`YysEditorEmbed.vue` 只声明并转发既有 props、emits、type exports 与 exposed methods，不改变 package default/named exports。
+  - standalone shell 继续使用既有 `filesStore` key 的 localStorage persistence、autosave、文件 tabs 与 app-only dialogs；Embed shell 为每个实例创建独立 Pinia、memory persistence、Context 与 disposer。
+  - `PreviewCanvas` 独占 preview runtime 的创建、替换与释放；非空自定义 plugins/node registrations 保持替换默认项的语义，空数组继续回退默认 registry，edit mode 不扩展该能力。
+  - preview `ready` 同步渲染初始数据，保证宿主 parent `onMounted` 读取图数据的既有时序；port watcher 按实例去重，避免随后重复 render。
+  - Embed 数据、resize 与 viewport 操作仅通过扩展后的 `EditorPort` 协调；dynamic-group 隐藏、asset URL 实例 resolver、locale 与 asset-base 实例隔离语义保持不变。
+  - 旧 Toolbar 过渡 facade 删除；`EditorToolbar` 只组装 command bar 与 feature hosts，standalone shell 单独持有更新日志和反馈 dialog。
+- Checks:
+  - Phase 7 focused shell/embed/public suites: pass（11 files / 40 tests）
+  - `npm test`: pass（68 files / 313 tests）
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `npm run format:check`: pass
+  - `npm run build:app`: pass（JS 2,710.94 kB / gzip 813.72 kB）
+  - `npm run build:lib`: pass（ESM 2,341.40 kB / UMD 1,536.27 kB）
+  - `git diff --check`: pass
+- Risks / Follow-up:
+  - `save` / `cancel` 继续作为公开 emits 转发，但现有 command bar 没有对应可见命令；这是 Phase 7 前已存在的行为，本阶段未新增 UI 行为。
+  - app/lib 保留既有 large-chunk 与 mixed default/named export warnings。相对 Phase 6，app JS 增加 0.74 kB、gzip 减少 0.29 kB，ESM 减少 0.50 kB，UMD 减少 0.19 kB。
+  - 目录依赖约束、全部 TS/Vue lint、dead-code 检查和完整 CI gates 留到 Phase 8。
+- Next Recommended Unit:
+  - Feature-module Phase 8：覆盖全部 TS/Vue ESLint，增加目录依赖边界与 knip dead-code gate，迁移剩余业务 compatibility facade，并补齐 CI 的 test/lint/typecheck/format/dead-code/app/lib build。
+
 ## [2026-07-10] Session 130 - Split Toolbar Into Feature Modules
 
 - Refactory Scope:

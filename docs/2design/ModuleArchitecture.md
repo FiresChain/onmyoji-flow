@@ -2,16 +2,17 @@
 
 ## 1. Status And Goals
 
-This document defines the target architecture for the `refactor/feature-modules`
-work. The directory tree below is a migration target, not a statement that every
-module already exists.
+This document defines the architecture for the `refactor/feature-modules` work.
+The directory tree below records the implemented structure through Phase 7 and a
+few reserved logical groupings, such as shared UI and test categories, that are
+created only when needed. Phase 8 quality-gate additions are not represented yet.
 
-Migration status (2026-07-10): Phases 1-6 are implemented. This includes
+Migration status (2026-07-10): Phases 1-7 are implemented. This includes
 `core/document`, `core/logicflow`, instance `EditorContext`, editor
 runtime/commands/node-types, the workspace/assets/group-rules/capture/locale
-features, four feature dialog hosts, and the emit-only common command bar. Phase 7
-still needs standalone/embed shells and thin root facades; Phase 8 still needs the
-final architecture gates.
+features, four feature dialog hosts, the common toolbar composition,
+standalone/embed shells, `PreviewCanvas`, Embed composables, and thin root facades.
+Phase 8 still needs the final architecture gates.
 
 The refactor must:
 
@@ -45,12 +46,15 @@ src/
 │   ├── embed/
 │   │   ├── EmbedEditorShell.vue
 │   │   ├── PreviewCanvas.vue
+│   │   ├── types.ts
 │   │   └── composables/
 │   │       ├── useEmbedDataSync.ts
 │   │       ├── useEmbedResize.ts
 │   │       └── useEmbedViewport.ts
 │   └── common/
-│       └── EditorCommandBar.vue
+│       ├── EditorCommandBar.vue
+│       ├── EditorToolbar.vue
+│       └── editorCommands.ts
 ├── core/
 │   ├── document/
 │   │   ├── types.ts
@@ -218,9 +222,14 @@ interface EditorPort {
   render(data: GraphData): void;
   capture(): GraphData;
   clear(): void;
+  resize(width?: number, height?: number): void;
   getViewport(): Transform;
   setViewport(transform: Transform): void;
-  fitView(): void;
+  zoom(zoomSize?: number | boolean, point?: [number, number]): boolean;
+  resetZoom(): boolean;
+  resetTranslate(): boolean;
+  translateCenter(): boolean;
+  fitView(verticalOffset?: number, horizontalOffset?: number): void;
   dispose(): void;
 }
 ```
@@ -228,7 +237,9 @@ interface EditorPort {
 Plugin presets distinguish interactive and render-only runtimes. Both modes consume
 the same default node registry. Preview keeps the existing behavior of hiding
 dynamic-group nodes. Custom preview `plugins` and `nodeRegistrations` retain their
-current replacement semantics; this does not extend edit-mode customization.
+current replacement semantics: a non-empty custom list replaces the preset or
+default registry, while an empty list falls back to it. This does not extend
+edit-mode customization.
 
 ### 4.3 Editor Context
 
@@ -287,17 +298,36 @@ behind their owning feature boundaries:
 settings, locale, and a translation callback, then emits commands or setting
 updates. It does not import feature repositories, save drafts, or access LogicFlow.
 
-`components/Toolbar.vue` is a transitional composition facade. It maps command-bar
-events to feature-host exposed methods and workspace command services, persists
-standalone locale selection through the locale feature key, and supplies narrow
-editor bridge callbacks for capture and applying an asset theme. Feature algorithms
-and feature-owned dialog state do not live in the facade. Phase 7 will move this
-composition into standalone/embed shells.
+`shells/common/EditorToolbar.vue` maps command-bar events to feature-host exposed
+methods and workspace command services, persists locale only when used by the
+standalone shell, and supplies narrow editor bridge callbacks for capture and
+applying an asset theme. `StandaloneEditorShell` combines it with `AboutDialogs`;
+`EmbedEditorShell` uses the same composition with embed-only behavior. Feature
+algorithms and feature-owned dialog state do not live in the toolbar composition.
 
 Each listener or subscription is disposed by the module that mounts it. For
 example, the asset host owns its repository subscription, while
 `editor/runtime/groupRuleOrchestrator.ts` owns the group-rule validation
 subscription.
+
+### 4.6 Shells And Root Facades
+
+`App.vue` only mounts `StandaloneEditorShell`. The standalone shell creates its
+instance `EditorContext`, uses the existing local-storage workspace persistence,
+starts autosave, and owns tabs and app-only dialogs.
+
+`YysEditorEmbed.vue` only declares and forwards the published props, emits, type
+exports, and exposed methods to `EmbedEditorShell`. Each Embed shell creates an
+independent Pinia store and in-memory `FilesPersistence`, restores the host's active
+Pinia after store actions, and snapshots the compatibility asset-base default when
+the instance is created.
+
+`PreviewCanvas` owns only preview runtime creation/replacement/disposal. It forwards
+custom plugin and node-registration lists to the runtime adapter without changing
+their replacement semantics. `useEmbedDataSync`, `useEmbedResize`, and
+`useEmbedViewport` normalize and synchronize graph data, dispose the instance
+`ResizeObserver`, and implement the public viewport methods through `EditorPort`.
+Neither root facade obtains a LogicFlow instance.
 
 ## 5. Public Compatibility
 
@@ -325,8 +355,9 @@ module is migrated.
 6. Move assets, group rules, capture, locale, and dialog UI to feature modules.
    **Implemented.**
 7. Introduce standalone/embed shells and reduce root components to facades.
-   **Pending.**
+   **Implemented.**
 8. Enforce dependency boundaries and the complete quality gate in CI.
+   **Pending.**
 
 Each step must preserve behavior, add risk-proportional tests, update the refactor
 session log, and pass its focused checks before the next step starts.

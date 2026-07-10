@@ -1,7 +1,7 @@
 # FlowEditor Architecture
 
-> 截至 2026-07-10，本页描述已落地的 Phase 5 editor 边界及 Phase 6 feature
-> 接入。仓库总依赖方向以
+> 截至 2026-07-10，本页描述已落地的 Phase 5 editor 边界、Phase 6 feature
+> 接入及 Phase 7 shell 组装。仓库总依赖方向以
 > [ModuleArchitecture.md](./ModuleArchitecture.md) 为准。
 
 ## 1. 职责边界
@@ -107,6 +107,7 @@ UI 行为。生产调试日志已移除，旧 `src/components/flow/composables/u
 Phase 6 已将 assets、group-rules、capture、locale 和 workspace 服务迁入对应
 `features/*`，并由各 feature dialog host 持有相应 dialog、draft 与 repository 状态。
 listener/subscription disposer 仍由实际 mount 方持有，例如 group-rule 校验订阅由
-`groupRuleOrchestrator.ts` 清理。`EditorCommandBar` 只发命令事件，过渡 `Toolbar.vue`
-负责 host 编排和窄 editor bridge。standalone/embed shell、独立 `PreviewCanvas` 与根
-facade 缩减仍归属 Phase 7。
+`groupRuleOrchestrator.ts` 清理。Phase 7 已由 `EditorToolbar` 负责 host 编排和窄
+editor bridge，由 `StandaloneEditorShell` / `EmbedEditorShell` 组装 `FlowEditor`；
+`App.vue` 与 `YysEditorEmbed.vue` 仅保留根 facade。preview runtime 由独立
+`PreviewCanvas` 持有，不改变 FlowEditor 的 interactive runtime 职责。

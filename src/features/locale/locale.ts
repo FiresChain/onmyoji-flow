@@ -14,7 +14,7 @@ export interface ResolveInitialEditorLocaleOptions {
   unsupportedCandidate?: "fallback" | "ignore";
 }
 
-const parseEditorLocale = (input: unknown): EditorLocale | null => {
+export const parseEditorLocale = (input: unknown): EditorLocale | null => {
   if (typeof input !== "string") return null;
   const short = input.trim().toLowerCase().split("-")[0];
   return short === "zh" || short === "ja" || short === "en" ? short : null;

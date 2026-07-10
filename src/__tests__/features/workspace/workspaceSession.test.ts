@@ -99,6 +99,7 @@ const createPort = () => ({
     edges: [],
   })),
   clear: vi.fn(),
+  resize: vi.fn(),
   getViewport: vi.fn(() => ({
     SCALE_X: 2,
     SCALE_Y: 2,
@@ -106,6 +107,10 @@ const createPort = () => ({
     TRANSLATE_Y: 9,
   })),
   setViewport: vi.fn(),
+  zoom: vi.fn(() => true),
+  resetZoom: vi.fn(() => true),
+  resetTranslate: vi.fn(() => true),
+  translateCenter: vi.fn(() => true),
   fitView: vi.fn(),
   dispose: vi.fn(),
 });
