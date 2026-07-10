@@ -7,12 +7,12 @@ import PropertyRuleInspector from "@/editor/node-types/property-rule/Inspector.v
 import TextInspector from "@/editor/node-types/text/Inspector.vue";
 import VectorInspector from "@/editor/node-types/vector/Inspector.vue";
 import StyleInspector from "./StyleInspector.vue";
-import { ASSET_LIBRARIES } from "@/types/nodeTypes";
+import { ASSET_LIBRARIES } from "@/features/assets/public";
 import { getLogicFlowInstance, useLogicFlowScope } from "@/ts/useLogicFlow";
-import { useSafeI18n } from "@/ts/useSafeI18n";
+import { useEditorI18n } from "@/editor/context/useEditorI18n";
 
 const logicFlowScope = useLogicFlowScope();
-const { t } = useSafeI18n();
+const { t } = useEditorI18n();
 const MIN_PANEL_WIDTH = 240;
 const MAX_PANEL_WIDTH = 460;
 const DEFAULT_PANEL_WIDTH = 280;

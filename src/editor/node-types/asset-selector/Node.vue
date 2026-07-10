@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import type { CSSProperties } from "vue";
-import { toTextStyle } from "@/ts/nodeStyle";
+import { toTextStyle } from "@/editor/nodeStyle";
 import { useNodeAppearance } from "@/ts/useNodeAppearance";
 import { useEditorAssetUrlResolver } from "@/editor/context/useEditorContext";
 

@@ -7,7 +7,7 @@ import {
   resolveAssetThemeConfig,
   resolveCreateNodeSize,
   writeNodeCreateSizeConfig,
-} from "@/utils/nodeCreateSizeConfig";
+} from "@/features/assets/public";
 
 describe("nodeCreateSizeConfig", () => {
   beforeEach(() => {

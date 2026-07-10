@@ -2,7 +2,7 @@
 import {
   normalizeAssetLibraryId,
   normalizeAssetLibraryIdWithFallback,
-} from "@/utils/assetLibrary";
+} from "@/features/assets/public";
 
 describe("assetLibrary normalization", () => {
   it("normalizes onmyoji skill aliases", () => {

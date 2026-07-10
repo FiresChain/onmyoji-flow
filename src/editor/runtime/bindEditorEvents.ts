@@ -7,7 +7,7 @@ import {
   getAssetLabelOwnerFromNode,
   isAssetNameLabelTextNode,
   syncAssetNameLabelForNode,
-} from "@/utils/assetTheme";
+} from "@/editor/commands/assetTheme";
 
 type LogicFlowEventHandler = (...args: any[]) => void;
 

@@ -2,11 +2,11 @@ import { describe, expect, it } from "vitest";
 import {
   applyAssetThemeToCurrentFile,
   syncAssetNameLabelForNode,
-} from "@/utils/assetTheme";
+} from "@/editor/commands/assetTheme";
 import {
   DEFAULT_NODE_CREATE_SIZE_CONFIG,
   cloneNodeCreateSizeConfig,
-} from "@/utils/nodeCreateSizeConfig";
+} from "@/features/assets/public";
 
 type NodeModel = {
   id: string;

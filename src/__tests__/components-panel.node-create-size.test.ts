@@ -4,7 +4,7 @@ import NodePalette from "@/editor/components/NodePalette.vue";
 import {
   resetNodeCreateSizeConfig,
   writeNodeCreateSizeConfig,
-} from "@/utils/nodeCreateSizeConfig";
+} from "@/features/assets/public";
 
 const startDragMock = vi.fn();
 
@@ -17,17 +17,17 @@ vi.mock("@/ts/useLogicFlow", () => ({
   })),
 }));
 
-vi.mock("@/ts/useSafeI18n", () => ({
-  useSafeI18n: vi.fn(() => ({
+vi.mock("@/editor/context/useEditorI18n", () => ({
+  useEditorI18n: vi.fn(() => ({
     t: (key: string) => key,
   })),
 }));
 
-vi.mock("@/configs/assetCatalog", () => ({
+vi.mock("@/features/assets/catalog/assetCatalog", () => ({
   getAssetDataSource: vi.fn(() => [{ avatar: "/assets/mock.png" }]),
 }));
 
-vi.mock("@/utils/assetUrl", () => ({
+vi.mock("@/features/assets/assetUrlResolver", () => ({
   resolveAssetUrl: vi.fn((value: string) => value),
 }));
 

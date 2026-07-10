@@ -1,6 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { validateGraphGroupRules } from "@/utils/groupRules";
-import { DEFAULT_GROUP_RULES_CONFIG } from "@/configs/groupRules";
+import {
+  DEFAULT_GROUP_RULES_CONFIG,
+  validateGraphGroupRules,
+} from "@/features/group-rules/public";
 
 const baseGraph = {
   nodes: [

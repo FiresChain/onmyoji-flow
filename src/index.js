@@ -6,16 +6,16 @@ export {
   setAssetBaseUrl,
   getAssetBaseUrl,
   resolveAssetUrl,
-} from "./utils/assetUrl";
-export { DEFAULT_GROUP_RULES_CONFIG } from "./configs/groupRules";
-export { validateGraphGroupRules } from "./utils/groupRules";
+  CUSTOM_ASSET_STORAGE_KEY,
+} from "./features/assets/public";
 export {
+  DEFAULT_GROUP_RULES_CONFIG,
   GROUP_RULES_STORAGE_KEY,
+  validateGraphGroupRules,
   readSharedGroupRulesConfig,
   writeSharedGroupRulesConfig,
   clearSharedGroupRulesConfig,
-} from "./utils/groupRulesConfigSource";
-export { CUSTOM_ASSET_STORAGE_KEY } from "./utils/customAssets";
+} from "./features/group-rules/public";
 
 // 导出组件
 export { YysEditorEmbed };

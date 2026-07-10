@@ -10,11 +10,10 @@ import Vue3DraggableResizable from "vue3-draggable-resizable";
 import "vue3-draggable-resizable/dist/Vue3DraggableResizable.css";
 
 import { createI18n } from "vue-i18n";
-
-// 引入语言文件
-import zh from "./locales/zh.json";
-import ja from "./locales/ja.json";
-import en from "./locales/en.json";
+import {
+  EDITOR_LOCALE_MESSAGES,
+  resolveInitialEditorLocale,
+} from "./features/locale/public";
 
 import { createPinia } from "pinia"; // 导入 Pinia
 
@@ -24,49 +23,16 @@ for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
   app.component(key, component);
 }
 
-// 定义支持的语言列表
-const supportedLanguages = ["zh", "ja", "en"];
-
-const normalizeLocale = (input) => {
-  if (typeof input !== "string") return "";
-  const value = input.trim().toLowerCase();
-  if (!value) return "";
-  const short = value.split("-")[0];
-  return supportedLanguages.includes(short) ? short : "";
-};
-
-const resolveLocale = () => {
-  const queryLocale =
-    typeof window !== "undefined"
-      ? normalizeLocale(new URLSearchParams(window.location.search).get("lang"))
-      : "";
-  const storedLocale =
-    typeof localStorage !== "undefined"
-      ? normalizeLocale(localStorage.getItem("yys-editor.locale"))
-      : "";
-  const locale = queryLocale || storedLocale || "zh";
-
-  if (
-    typeof localStorage !== "undefined" &&
-    queryLocale &&
-    queryLocale !== storedLocale
-  ) {
-    localStorage.setItem("yys-editor.locale", queryLocale);
-  }
-
-  return locale;
-};
-
-const locale = resolveLocale();
+const locale = resolveInitialEditorLocale({
+  navigatorLanguage: null,
+  persistQuery: true,
+  unsupportedCandidate: "ignore",
+});
 
 const i18n = createI18n({
   locale: locale, // 设置默认语言
   fallbackLocale: "zh", // 设置备用语言
-  messages: {
-    zh,
-    ja,
-    en,
-  },
+  messages: EDITOR_LOCALE_MESSAGES,
 });
 
 const messageBoxLocaleMap = {

@@ -4,7 +4,7 @@ import iconImage from "@/assets/component-icons/image.svg";
 import iconRect from "@/assets/component-icons/rect.svg";
 import iconText from "@/assets/component-icons/text.svg";
 import iconVector from "@/assets/component-icons/vector.svg";
-import type { AssetLibraryId } from "@/types/assets";
+import type { AssetLibraryId } from "@/features/assets/public";
 
 import {
   ASSET_SELECTOR_NODE_TYPE,

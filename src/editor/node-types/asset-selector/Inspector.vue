@@ -2,18 +2,19 @@
 import { computed } from "vue";
 import { useDialogs } from "@/ts/useDialogs";
 import { getLogicFlowInstance, useLogicFlowScope } from "@/ts/useLogicFlow";
-import { getSelectorPreset } from "@/configs/selectorPresets";
-import type { SelectorConfig } from "@/types/selector";
-import { resolveAssetUrlsInDataSourceWithResolver } from "@/utils/assetUrl";
-import { useEditorAssetUrlResolver } from "@/editor/context/useEditorContext";
-import { deleteCustomAsset, listCustomAssets } from "@/utils/customAssets";
-import { normalizeSelectedAssetRecord } from "@/utils/graphSchema";
-import { useSafeI18n } from "@/ts/useSafeI18n";
 import {
+  deleteCustomAsset,
+  getSelectorPreset,
+  listCustomAssets,
+  normalizeSelectedAssetRecord,
   readNodeCreateSizeConfig,
   resolveAssetThemeConfig,
   resolveAssetThemeEnabled,
-} from "@/utils/nodeCreateSizeConfig";
+  resolveAssetUrlsInDataSourceWithResolver,
+  type SelectorConfig,
+} from "@/features/assets/public";
+import { useEditorAssetUrlResolver } from "@/editor/context/useEditorContext";
+import { useEditorI18n } from "@/editor/context/useEditorI18n";
 
 const props = defineProps<{
   node: any;
@@ -21,7 +22,7 @@ const props = defineProps<{
 
 const { openGenericSelector } = useDialogs();
 const logicFlowScope = useLogicFlowScope();
-const { t, getLocale } = useSafeI18n();
+const { t, getLocale } = useEditorI18n();
 const resolveAssetUrl = useEditorAssetUrlResolver();
 
 const currentLibrary = computed(

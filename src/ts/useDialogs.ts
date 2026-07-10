@@ -1,4 +1,4 @@
-import type { SelectorConfig } from "@/types/selector";
+import type { SelectorConfig } from "@/features/assets/public";
 import { useEditorContext } from "@/editor/context/useEditorContext";
 import type { EditorDialogType } from "@/editor/context/EditorContext";
 

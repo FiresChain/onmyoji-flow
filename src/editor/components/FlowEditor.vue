@@ -87,9 +87,12 @@ import { useGlobalMessage } from "@/ts/useGlobalMessage";
 import type { GraphData } from "@/core/document/types";
 import { captureGraphData } from "@/core/logicflow/graphIO";
 import { useLogicFlowScope } from "@/ts/useLogicFlow";
-import { normalizePropertiesWithStyle, styleEquals } from "@/ts/nodeStyle";
+import {
+  normalizePropertiesWithStyle,
+  styleEquals,
+} from "@/core/document/nodeStyle";
 import { useCanvasSettings } from "@/ts/useCanvasSettings";
-import { useSafeI18n } from "@/ts/useSafeI18n";
+import { useEditorI18n } from "@/editor/context/useEditorI18n";
 
 const props = withDefaults(
   defineProps<{
@@ -120,7 +123,7 @@ const selectedCount = ref(0);
 const { selectionEnabled, snapGridEnabled, snaplineEnabled } =
   useCanvasSettings();
 const { showMessage } = useGlobalMessage();
-const { t } = useSafeI18n();
+const { t } = useEditorI18n();
 
 // 当前选中节点
 const selectedNode = ref<any>(null);

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { AlignType, DistributeType } from "@/editor/commands/arrange";
-import { useSafeI18n } from "@/ts/useSafeI18n";
+import { useEditorI18n } from "@/editor/context/useEditorI18n";
 
 defineProps<{
   collapsed: boolean;
@@ -26,7 +26,7 @@ const emit = defineEmits<{
   distribute: [direction: DistributeType];
 }>();
 
-const { t } = useSafeI18n();
+const { t } = useEditorI18n();
 </script>
 
 <template>

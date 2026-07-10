@@ -1,9 +1,13 @@
 <script setup lang="ts">
-import GenericImageSelector from "@/components/common/GenericImageSelector.vue";
+import { AssetPickerDialog } from "@/features/assets/public";
 import PropertySelectDialog from "@/editor/node-types/property-rule/PropertySelectDialog.vue";
+import { useEditorAssetUrlResolver } from "@/editor/context/useEditorContext";
 import { useDialogs } from "@/ts/useDialogs";
+import { useEditorI18n } from "@/editor/context/useEditorI18n";
 
 const { dialogs, closeDialog, closeGenericSelector } = useDialogs();
+const { t } = useEditorI18n();
+const resolveAssetUrl = useEditorAssetUrlResolver();
 </script>
 
 <template>
@@ -19,10 +23,12 @@ const { dialogs, closeDialog, closeGenericSelector } = useDialogs();
       }
     "
   />
-  <GenericImageSelector
+  <AssetPickerDialog
     v-if="dialogs.generic.show && dialogs.generic.config"
     v-model="dialogs.generic.show"
     :config="dialogs.generic.config"
+    :translate="t"
+    :resolve-asset-url="resolveAssetUrl"
     @select="
       (data) => {
         dialogs.generic.callback?.(data);

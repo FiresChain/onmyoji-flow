@@ -1,14 +1,15 @@
 # 组件化改造设计文档
 
-> 当前状态：本文保留已发布 Embed API 与历史实现背景。Feature-module
-> 重构的目标目录、依赖方向和实例边界以
-> [ModuleArchitecture.md](./ModuleArchitecture.md) 为准；迁移期间不得将目标目录描述误作已完成实现。
+> 当前状态（2026-07-10）：已发布 Embed API、实例隔离、editor 模块和 Phase 6
+> business features/dialog hosts 已落地。standalone/embed shells、独立
+> `PreviewCanvas` 与根组件薄 facade 仍属于 Phase 7。目标依赖方向以
+> [ModuleArchitecture.md](./ModuleArchitecture.md) 为准。
 
 ## 背景与目标
 
 ### 为什么需要组件化改造
 
-**当前状态**：
+**历史问题（组件化前）**：
 
 - onmyoji-flow 是一个独立的单页应用（SPA）
 - 只能作为独立应用运行
@@ -42,7 +43,7 @@
 ### 核心思路
 
 历史方案通过共享组件新增嵌入式入口。当前重构在保持公开契约不变的前提下，
-将两种运行形态改为薄 facade + shell 组装：
+分阶段迁移到薄 facade + shell 组装。以下为 Phase 7 目标，并非当前根组件状态：
 
 - `App.vue` 仅启动 `StandaloneEditorShell`。
 - `YysEditorEmbed.vue` 仅保留公开 props/emits/expose，并组装 `EmbedEditorShell`。
@@ -287,8 +288,28 @@ const defaultProps = {
    默认值与 registration 按类型共置，edit/preview 共用默认 registry。
 3. LogicFlow event、keyboard、DOM listener、timer、RAF、ResizeObserver 与规则订阅均由
    实例 disposer 清理；mount 失败执行逆序回滚，stale disposer 不清理替代实例。
-4. Toolbar feature 拆分仍属于 Phase 6；standalone/embed shell 和独立 PreviewCanvas
-   仍属于 Phase 7。当前 preview 仍由 `YysEditorEmbed.vue` 直接创建只读 runtime。
+4. standalone/embed shell 和独立 PreviewCanvas 仍属于 Phase 7。当前 preview 仍由
+   `YysEditorEmbed.vue` 直接创建只读 runtime。
+
+### 0.3 Phase 6 已落地状态（2026-07-10）
+
+1. workspace、assets、group-rules、capture 与 locale 已迁入 `features/*`；跨模块调用
+   通过各 feature 的 `public.ts`。
+2. `WorkspaceDialogHost`、`AssetsDialogHost`、`GroupRuleDialogHost` 与
+   `CaptureDialogHost` 按职责持有业务 dialog、draft 和 repository 状态；disposer 由
+   实际 mount listener/subscription 的模块持有，group-rule 校验订阅仍由 editor
+   runtime 清理。locale 由实例 `EditorContext` 和 `features/locale` 服务驱动。
+3. `shells/common/EditorCommandBar.vue` 是受控、emit-only UI，只发 command、settings
+   和 locale 更新事件，不访问 LogicFlow、storage 或 feature repository。
+4. `components/Toolbar.vue` 已缩减为过渡 facade：组装 feature hosts、调用 workspace
+   services、保存 standalone locale 偏好，并提供截图/主题应用所需的窄 editor bridge。
+   Phase 7 再把该组装责任移入 shell。
+5. `filesStore`、`yys-editor.custom-assets.v1`、
+   `yys-editor.node-create-size.v1`、`yys-editor.group-rules.v1`、
+   `yys-editor.locale` 与 watermark keys 保持不变；`setAssetBaseUrl` 及现有 package
+   exports 保持兼容。
+6. 阵容码继续通过 workspace adapter 调用旧服务；本阶段未移动
+   `teamCodeService.ts`，也未创建 `features/team-code`。
 
 ### 1. YysEditorEmbed.vue 迁移前组件结构（历史记录）
 

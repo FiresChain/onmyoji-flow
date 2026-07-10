@@ -1,5 +1,5 @@
 import type { FlowNodeRegistration } from "@/core/logicflow/types";
-import type { AssetLibraryId } from "@/types/assets";
+import type { AssetLibraryId } from "@/features/assets/public";
 
 import AssetSelectorNode from "./Node.vue";
 

@@ -10,7 +10,7 @@ import type {
   UnknownRecord,
 } from "@/core/document/types";
 import { normalizeViewport } from "@/core/logicflow/viewport";
-import { normalizeGraphRawDataSchema } from "@/utils/graphSchema";
+import { normalizeWorkspaceGraph } from "./normalizeWorkspaceGraph";
 
 export const FILES_STORE_ID = "files";
 
@@ -71,7 +71,7 @@ const normalizeFile = (file: FlowFile, index: number): FlowFile => {
     name,
     visible: file.visible ?? true,
     type: file.type || "FLOW",
-    graphRawData: normalizeGraphRawDataSchema(file.graphRawData),
+    graphRawData: normalizeWorkspaceGraph(file.graphRawData),
     transform: normalizeViewport(file.transform),
     createdAt: file.createdAt ?? now,
     updatedAt: file.updatedAt ?? file.createdAt ?? now,
@@ -201,7 +201,7 @@ export const useFilesStore = defineStore(FILES_STORE_ID, () => {
     if (!file) {
       return false;
     }
-    file.graphRawData = normalizeGraphRawDataSchema(graphRawData);
+    file.graphRawData = normalizeWorkspaceGraph(graphRawData);
     file.transform = normalizeViewport(transform);
     file.updatedAt = now;
     return true;

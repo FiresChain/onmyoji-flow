@@ -1,20 +1,19 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ref } from "vue";
 import { useFlowGroupRuleOrchestrator } from "@/editor/runtime/groupRuleOrchestrator";
-import type { GroupRuleWarning } from "@/utils/groupRules";
-import { validateGraphGroupRules } from "@/utils/groupRules";
-import { subscribeSharedGroupRulesConfig } from "@/utils/groupRulesConfigSource";
-import { getProblemTargetCandidateIds } from "@/utils/problemTarget";
+import { getProblemTargetCandidateIds } from "@/editor/commands/problemNavigation";
+import {
+  subscribeSharedGroupRulesConfig,
+  validateGraphGroupRules,
+  type GroupRuleWarning,
+} from "@/features/group-rules/public";
 
-vi.mock("@/utils/groupRules", () => ({
+vi.mock("@/features/group-rules/public", () => ({
   validateGraphGroupRules: vi.fn(),
-}));
-
-vi.mock("@/utils/groupRulesConfigSource", () => ({
   subscribeSharedGroupRulesConfig: vi.fn(),
 }));
 
-vi.mock("@/utils/problemTarget", () => ({
+vi.mock("@/editor/commands/problemNavigation", () => ({
   getProblemTargetCandidateIds: vi.fn(),
 }));
 

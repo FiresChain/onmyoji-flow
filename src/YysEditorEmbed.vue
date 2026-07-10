@@ -101,7 +101,7 @@ import { getDefaultNodeRegistrations } from "@/editor/node-types/registry";
 import {
   getAssetBaseUrl,
   rewriteAssetUrlsDeepWithResolver,
-} from "@/utils/assetUrl";
+} from "@/features/assets/public";
 
 export type {
   GraphData,

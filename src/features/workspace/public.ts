@@ -44,6 +44,19 @@ export {
   provideWorkspaceSession,
   useWorkspaceSession,
 } from "./useWorkspaceSession";
+export {
+  legacyTeamCodeImportAdapter,
+  type TeamCodeImportPort,
+} from "./teamCodeImportAdapter";
+export { useDocumentCommands } from "./useDocumentCommands";
+export { useWorkspaceCanvasRefresh } from "./useWorkspaceCanvasRefresh";
+export { useWorkspaceCommands } from "./useWorkspaceCommands";
+export { normalizeWorkspaceGraph } from "./normalizeWorkspaceGraph";
+export { default as WorkspaceDialogHost } from "./ui/WorkspaceDialogHost.vue";
+export type {
+  WorkspaceDialogHostExpose,
+  WorkspaceDialogTranslate,
+} from "./ui/types";
 export type {
   WorkspaceImportResult,
   WorkspaceLoadResult,

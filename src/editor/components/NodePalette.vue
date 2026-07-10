@@ -1,22 +1,22 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref } from "vue";
-import { getAssetDataSource } from "@/configs/assetCatalog";
-import type { AssetLibraryId } from "@/types/assets";
+import {
+  buildAssetNodeCreateProperties,
+  getAssetDataSource,
+  readNodeCreateSizeConfig,
+  resolveCreateNodeSize,
+  type AssetLibraryId,
+} from "@/features/assets/public";
 import { getLogicFlowInstance, useLogicFlowScope } from "@/ts/useLogicFlow";
-import { useSafeI18n } from "@/ts/useSafeI18n";
+import { useEditorI18n } from "@/editor/context/useEditorI18n";
 import { useEditorAssetUrlResolver } from "@/editor/context/useEditorContext";
 import {
   createNodePalette,
   type NodePaletteItem,
 } from "@/editor/node-types/palette";
-import {
-  readNodeCreateSizeConfig,
-  resolveCreateNodeSize,
-} from "@/utils/nodeCreateSizeConfig";
-import { buildAssetNodeCreateProperties } from "@/utils/assetTheme";
 
 const logicFlowScope = useLogicFlowScope();
-const { t } = useSafeI18n();
+const { t } = useEditorI18n();
 const resolveAssetUrl = useEditorAssetUrlResolver();
 const MIN_PANEL_WIDTH = 220;
 const MAX_PANEL_WIDTH = 420;

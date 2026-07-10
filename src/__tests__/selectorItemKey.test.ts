@@ -1,6 +1,8 @@
 ﻿import { describe, expect, it } from "vitest";
-import { buildSelectorItemKey } from "@/utils/selectorItemKey";
-import type { SelectorConfig } from "@/types/selector";
+import {
+  buildSelectorItemKey,
+  type SelectorConfig,
+} from "@/features/assets/public";
 
 const config: SelectorConfig = {
   title: "test",

@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { reactive, ref, watch } from "vue";
 import { getLogicFlowInstance, useLogicFlowScope } from "@/ts/useLogicFlow";
-import { normalizeNodeStyle, type NodeStyle } from "@/ts/nodeStyle";
-import { useSafeI18n } from "@/ts/useSafeI18n";
+import { normalizeNodeStyle, type NodeStyle } from "@/core/document/nodeStyle";
+import { useEditorI18n } from "@/editor/context/useEditorI18n";
 
 const props = defineProps<{
   node: any;
 }>();
 const logicFlowScope = useLogicFlowScope();
-const { t } = useSafeI18n();
+const { t } = useEditorI18n();
 
 type StyleForm = {
   fill: string;

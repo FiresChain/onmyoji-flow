@@ -44,6 +44,46 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-07-10] Session 130 - Split Toolbar Into Feature Modules
+
+- Refactory Scope:
+  - Phase: Feature-module Phase 6
+  - Task: 迁移 assets、group-rules、capture 与 locale，拆出 feature dialog hosts，并将 Toolbar 收敛为 command-bar composition facade
+- In Scope Files:
+  - `src/features/{assets,group-rules,capture,locale,workspace}/**`
+  - `src/shells/common/EditorCommandBar.vue`、`src/shells/standalone/AboutDialogs.vue`
+  - `src/components/Toolbar.vue` 与旧 Toolbar composables 清理
+  - `src/editor/commands/{assetTheme,captureSnapshot,problemNavigation}.ts`、实例 locale adapter 与相关 editor 消费端
+  - `src/core/document/nodeStyle.ts`、`src/shared/platform/{storage,clipboard,download}.ts`
+  - Phase 6 feature、Toolbar、public API、storage 与边界回归测试
+  - `docs/2design/{ModuleArchitecture,ToolbarArchitecture,FlowEditorArchitecture,ComponentArchitecture}.md`
+- Out of Scope:
+  - standalone/embed shell 与 `PreviewCanvas` 拆分（Phase 7）
+  - `teamCodeService.ts` 实现、未来 `features/team-code`、`docs/1management/plan.md`
+  - Phase 8 ESLint/knip/CI gates 与其他 worktree
+- Decisions:
+  - `EditorCommandBar` 保持 controlled/emit-only；workspace、assets、group-rules、capture 与 app-only About dialog 分别持有自身 UI/draft/repository 状态，过渡 `Toolbar.vue` 只路由 13 个命令并提供窄 editor bridge。
+  - 素材纯属性逻辑与 LogicFlow mutation 分离；节点样式纯归一化进入 `core/document`，asset theme/capture/problem navigation 的实例 mutation 留在 editor commands。
+  - locale 解析、消息与 storage key 统一进入 `features/locale`，editor 通过实例 Context adapter 翻译；feature UI 只接收显式 `translate` port，不反向依赖 editor。
+  - 旧 `graphSchema` 按所有权拆为 asset record、dynamic-group meta 与 workspace composition normalizer；生产 `utils/` 依赖只保留明确冻结的 team-code adapter。
+  - repository/storage 保留全部既有 key，并通过惰性 safe-storage adapter 避免 SSR/受限环境导入时永久捕获不可用 storage；clipboard 访问进入 shared platform adapter。
+  - 默认 registry、preview 隐藏 dynamic-group、team-code 旧服务适配和 package exports 语义均保持不变。
+- Checks:
+  - Phase 6 focused suites: pass（assets/editor 15 files / 48 tests；ownership/features 17 files / 102 tests；Toolbar/group-rule 13 files / 45 tests）
+  - `npm test`: pass（62 files / 294 tests）
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `npm run format:check`: pass
+  - `npm run build:app`: pass（JS 2,710.20 kB / gzip 814.01 kB）
+  - `npm run build:lib`: pass（ESM 2,341.90 kB / UMD 1,536.46 kB）
+  - `git diff --check`: pass
+- Risks / Follow-up:
+  - `Toolbar.vue` 仍是 Phase 7 前的过渡 facade，standalone locale persistence 与 host composition 尚未进入 shell；`App.vue`/`YysEditorEmbed.vue` 仍直接组装 editor/preview runtime。
+  - `ts/` 中仍有 editor compatibility wrappers，最终目录边界与 dead-code gate 留到 Phase 8 收敛。
+  - app/lib 保留既有 large-chunk 与 mixed default/named export warnings。相对 Phase 5，app JS 增加 10.58 kB（gzip 5.01 kB），ESM 增加 18.05 kB，UMD 增加 10.73 kB。
+- Next Recommended Unit:
+  - Feature-module Phase 7：引入 standalone/embed shells，拆出 PreviewCanvas、data-sync/resize/viewport composables，并将 App/YysEditorEmbed 缩减为公开 facade。
+
 ## [2026-07-10] Session 129 - Modularize Editor And Node Types
 
 - Refactory Scope:

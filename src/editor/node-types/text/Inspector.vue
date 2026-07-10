@@ -3,11 +3,11 @@ import { ref, watch } from "vue";
 import { QuillEditor } from "@vueup/vue-quill";
 import "@vueup/vue-quill/dist/vue-quill.snow.css";
 import { getLogicFlowInstance, useLogicFlowScope } from "@/ts/useLogicFlow";
-import { useSafeI18n } from "@/ts/useSafeI18n";
+import { useEditorI18n } from "@/editor/context/useEditorI18n";
 
 const props = defineProps<{ node: any }>();
 const logicFlowScope = useLogicFlowScope();
-const { t } = useSafeI18n();
+const { t } = useEditorI18n();
 
 const DEFAULT_HTML = t("flow.text.defaultHtml");
 

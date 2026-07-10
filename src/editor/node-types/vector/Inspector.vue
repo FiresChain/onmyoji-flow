@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed, reactive, watch } from "vue";
 import { getLogicFlowInstance, useLogicFlowScope } from "@/ts/useLogicFlow";
-import { useSafeI18n } from "@/ts/useSafeI18n";
+import { useEditorI18n } from "@/editor/context/useEditorI18n";
 
 const props = defineProps<{ node: any }>();
 const logicFlowScope = useLogicFlowScope();
-const { t } = useSafeI18n();
+const { t } = useEditorI18n();
 
 const form = reactive({
   kind: "rect",

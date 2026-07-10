@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { reactive, watch } from "vue";
 import { getLogicFlowInstance, useLogicFlowScope } from "@/ts/useLogicFlow";
-import { normalizeNodeStyle } from "@/ts/nodeStyle";
-import { useSafeI18n } from "@/ts/useSafeI18n";
+import { normalizeNodeStyle } from "@/core/document/nodeStyle";
+import { useEditorI18n } from "@/editor/context/useEditorI18n";
 
 type FitMode = "contain" | "cover" | "fill";
 
@@ -10,7 +10,7 @@ const props = defineProps<{
   node: any;
 }>();
 const logicFlowScope = useLogicFlowScope();
-const { t } = useSafeI18n();
+const { t } = useEditorI18n();
 
 type ImageForm = {
   url: string;

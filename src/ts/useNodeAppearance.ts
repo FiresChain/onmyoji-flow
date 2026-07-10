@@ -1,11 +1,7 @@
 import { computed, inject, onBeforeUnmount, onMounted, ref } from "vue";
 import { EventType } from "@logicflow/core";
-import {
-  normalizeNodeStyle,
-  toContainerStyle,
-  toTextStyle,
-  type NodeStyle,
-} from "./nodeStyle";
+import { normalizeNodeStyle, type NodeStyle } from "@/core/document/nodeStyle";
+import { toContainerStyle, toTextStyle } from "@/editor/nodeStyle";
 
 type PropsChangeHandler = (props: any, node: any) => void;
 

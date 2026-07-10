@@ -4,7 +4,7 @@ import {
   getEditorContextFromGraphModel,
   type EditorContext,
 } from "./EditorContext";
-import { resolveAssetUrl as resolveCompatibilityAssetUrl } from "@/utils/assetUrl";
+import { resolveAssetUrl as resolveCompatibilityAssetUrl } from "@/features/assets/public";
 
 export const EDITOR_CONTEXT_KEY: InjectionKey<EditorContext> = Symbol(
   "onmyoji-flow:editor-context-key",

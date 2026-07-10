@@ -1,7 +1,7 @@
-# FlowEditor Architecture（Feature-module Phase 5）
+# FlowEditor Architecture
 
-> 截至 2026-07-10，本页描述已落地的 editor runtime、commands、components 与
-> node-types 边界。仓库总依赖方向以
+> 截至 2026-07-10，本页描述已落地的 Phase 5 editor 边界及 Phase 6 feature
+> 接入。仓库总依赖方向以
 > [ModuleArchitecture.md](./ModuleArchitecture.md) 为准。
 
 ## 1. 职责边界
@@ -29,7 +29,10 @@ FlowEditor.vue
     ├── nodeState.ts
     ├── arrange.ts
     ├── layers.ts
-    └── grouping.ts
+    ├── grouping.ts
+    ├── assetTheme.ts
+    ├── captureSnapshot.ts
+    └── problemNavigation.ts
 ```
 
 `CanvasControls`、`ProblemsDock` 与 `Inspector` 只展示状态并发出动作，不保存画布
@@ -38,15 +41,15 @@ Inspector，通用样式由 `StyleInspector.vue` 编辑。
 
 ## 2. Runtime 生命周期
 
-| 模块                       | 责任                                                         |
-| -------------------------- | ------------------------------------------------------------ |
-| `lifecycle.ts`             | 顺序 mount、失败时逆序回滚、卸载时完整执行全部 disposer      |
-| `mountEditorRuntime.ts`    | 创建 LogicFlow、应用 registry、接入 EditorContext、失败回滚  |
-| `bindEditorEvents.ts`      | 注册 20 个 LogicFlow 事件，并以同一 event/handler 显式解绑   |
-| `keyboardShortcuts.ts`     | 注册并移除 9 组编辑快捷键                                    |
-| `contextMenu.ts`           | 配置节点、边、画布和多选菜单                                 |
-| `canvasInteraction.ts`     | 右键平移、contextmenu、resize、RAF、timeout、ResizeObserver   |
-| `groupRuleOrchestrator.ts` | 规则校验调度、共享规则订阅与告警定位                         |
+| 模块                       | 责任                                                        |
+| -------------------------- | ----------------------------------------------------------- |
+| `lifecycle.ts`             | 顺序 mount、失败时逆序回滚、卸载时完整执行全部 disposer     |
+| `mountEditorRuntime.ts`    | 创建 LogicFlow、应用 registry、接入 EditorContext、失败回滚 |
+| `bindEditorEvents.ts`      | 注册 20 个 LogicFlow 事件，并以同一 event/handler 显式解绑  |
+| `keyboardShortcuts.ts`     | 注册并移除 9 组编辑快捷键                                   |
+| `contextMenu.ts`           | 配置节点、边、画布和多选菜单                                |
+| `canvasInteraction.ts`     | 右键平移、contextmenu、resize、RAF、timeout、ResizeObserver |
+| `groupRuleOrchestrator.ts` | 规则校验调度、共享规则订阅与告警定位                        |
 
 每个 mount 都返回幂等 disposer。canvas 与 group-rule mount 使用 generation guard，旧
 disposer 不得清理新的 mount；runtime disposer 通过实例身份检查，不能清除替代 runtime。
@@ -60,9 +63,16 @@ disposer 不得清理新的 mount；runtime disposer 通过实例身份检查，
 - `nodeState.ts`：锁定、可见性、节点 meta 与边可见性同步；
 - `arrange.ts`：六种对齐和水平/垂直分布；
 - `layers.ts`：置顶、置底、上移、下移；
-- `grouping.ts`：组合、解组和分组节点集合展开。
+- `grouping.ts`：组合、解组和分组节点集合展开；
+- `assetTheme.ts`：执行需要 LogicFlow 的素材主题与名称标签同步；
+- `captureSnapshot.ts`：在 editor 边界执行截图所需的临时画布变更；
+- `problemNavigation.ts`：将规则告警定位到对应节点。
 
 隐藏或锁定节点的过滤语义、组合成员移动以及提示文案与迁移前保持一致。
+
+纯素材主题计算和节点外观 repository 位于 `features/assets`，规则表达式、配置与校验
+位于 `features/group-rules`，截图/水印位于 `features/capture`。这些 feature 不导入
+LogicFlow；需要修改画布的部分留在上述 editor commands。
 
 ## 4. 节点共置
 
@@ -94,5 +104,9 @@ UI 行为。生产调试日志已移除，旧 `src/components/flow/composables/u
 - `src/__tests__/editor/commands.test.ts`；
 - `src/__tests__/editor/node-types.test.ts`。
 
-assets、group-rules、capture、locale 与 Toolbar 业务弹窗仍在旧容器中，归属
-Feature-module Phase 6；standalone/embed shell 拆分归属 Phase 7。
+Phase 6 已将 assets、group-rules、capture、locale 和 workspace 服务迁入对应
+`features/*`，并由各 feature dialog host 持有相应 dialog、draft 与 repository 状态。
+listener/subscription disposer 仍由实际 mount 方持有，例如 group-rule 校验订阅由
+`groupRuleOrchestrator.ts` 清理。`EditorCommandBar` 只发命令事件，过渡 `Toolbar.vue`
+负责 host 编排和窄 editor bridge。standalone/embed shell、独立 `PreviewCanvas` 与根
+facade 缩减仍归属 Phase 7。

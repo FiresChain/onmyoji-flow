@@ -23,25 +23,29 @@ const getBrowserLocalStorage = (): StorageLike | null => {
 
 export const createSafeStorage = (
   key: string,
-  storage: StorageLike | null = getBrowserLocalStorage(),
+  storage?: StorageLike | null,
 ): SafeStorage => {
   if (!key) {
     throw new TypeError("Storage key must not be empty");
   }
 
+  const resolveStorage = () =>
+    storage === undefined ? getBrowserLocalStorage() : storage;
+
   return {
     key,
     read() {
       try {
-        return storage?.getItem(key) ?? null;
+        return resolveStorage()?.getItem(key) ?? null;
       } catch {
         return null;
       }
     },
     write(value) {
       try {
-        if (!storage) return false;
-        storage.setItem(key, value);
+        const target = resolveStorage();
+        if (!target) return false;
+        target.setItem(key, value);
         return true;
       } catch {
         return false;
@@ -49,8 +53,9 @@ export const createSafeStorage = (
     },
     remove() {
       try {
-        if (!storage) return false;
-        storage.removeItem(key);
+        const target = resolveStorage();
+        if (!target) return false;
+        target.removeItem(key);
         return true;
       } catch {
         return false;

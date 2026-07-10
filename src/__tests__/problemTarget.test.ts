@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import type { GroupRuleWarning } from "@/utils/groupRules";
-import { getProblemTargetCandidateIds } from "@/utils/problemTarget";
+import { getProblemTargetCandidateIds } from "@/editor/commands/problemNavigation";
+import type { GroupRuleWarning } from "@/features/group-rules/public";
 
 const createWarning = (
   overrides: Partial<GroupRuleWarning>,

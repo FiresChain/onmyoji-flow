@@ -1,5 +1,5 @@
 ﻿import { describe, expect, it } from "vitest";
-import { getSelectorPreset } from "@/configs/selectorPresets";
+import { getSelectorPreset } from "@/features/assets/public";
 
 const t = (key: string) => key;
 

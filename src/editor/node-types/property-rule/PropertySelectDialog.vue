@@ -401,10 +401,10 @@
 <script setup>
 import { ref, watch, computed } from "vue";
 import { CirclePlus } from "@element-plus/icons-vue";
-import { useSafeI18n } from "@/ts/useSafeI18n";
+import { useEditorI18n } from "@/editor/context/useEditorI18n";
 
 // 获取当前的 i18n 实例
-const { t } = useSafeI18n();
+const { t } = useEditorI18n();
 
 const props = defineProps({
   currentProperty: {

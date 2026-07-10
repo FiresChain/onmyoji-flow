@@ -6,10 +6,12 @@ This document defines the target architecture for the `refactor/feature-modules`
 work. The directory tree below is a migration target, not a statement that every
 module already exists.
 
-Migration status (2026-07-10): `core/document`, `core/logicflow`, instance
-`EditorContext`, `features/workspace`, and editor runtime/commands/node-types are
-implemented. Business features and standalone/embed shells remain Phase 6 and 7
-work.
+Migration status (2026-07-10): Phases 1-6 are implemented. This includes
+`core/document`, `core/logicflow`, instance `EditorContext`, editor
+runtime/commands/node-types, the workspace/assets/group-rules/capture/locale
+features, four feature dialog hosts, and the emit-only common command bar. Phase 7
+still needs standalone/embed shells and thin root facades; Phase 8 still needs the
+final architecture gates.
 
 The refactor must:
 
@@ -52,6 +54,7 @@ src/
 ├── core/
 │   ├── document/
 │   │   ├── types.ts
+│   │   ├── nodeStyle.ts
 │   │   ├── normalizeGraph.ts
 │   │   ├── migrations.ts
 │   │   ├── validation.ts
@@ -88,7 +91,10 @@ src/
 │   │   ├── nodeState.ts
 │   │   ├── arrange.ts
 │   │   ├── layers.ts
-│   │   └── grouping.ts
+│   │   ├── grouping.ts
+│   │   ├── assetTheme.ts
+│   │   ├── captureSnapshot.ts
+│   │   └── problemNavigation.ts
 │   └── node-types/
 │       ├── registry.ts
 │       ├── palette.ts
@@ -105,24 +111,26 @@ src/
 │   │   ├── filesPersistence.ts
 │   │   ├── useWorkspaceSession.ts
 │   │   ├── documentTransfer.ts
-│   │   └── ui/
+│   │   ├── teamCodeImportAdapter.ts
+│   │   └── ui/WorkspaceDialogHost.vue
 │   ├── assets/
 │   │   ├── model/
 │   │   ├── catalog/
 │   │   ├── customAssetsRepository.ts
 │   │   ├── assetTheme.ts
 │   │   ├── assetUrlResolver.ts
-│   │   └── ui/
+│   │   ├── nodeAppearanceRepository.ts
+│   │   └── ui/AssetsDialogHost.vue
 │   ├── group-rules/
 │   │   ├── model/
 │   │   ├── expression/
 │   │   ├── validateGroupRules.ts
 │   │   ├── rulesRepository.ts
-│   │   └── ui/
+│   │   └── ui/GroupRuleDialogHost.vue
 │   ├── capture/
 │   │   ├── captureCanvas.ts
 │   │   ├── watermarkRepository.ts
-│   │   └── ui/
+│   │   └── ui/CaptureDialogHost.vue
 │   └── locale/
 │       ├── locale.ts
 │       ├── createEditorI18n.ts
@@ -262,6 +270,35 @@ Standalone mode uses the existing `filesStore` storage key. Embed mode uses an
 in-memory adapter and must not persist or share workspace state across instances.
 Storage recovery removes only owned keys and never calls `localStorage.clear()`.
 
+### 4.5 Feature Hosts And Commands
+
+Phase 6 moves feature dialogs, drafts, repositories, file inputs, and commands
+behind their owning feature boundaries:
+
+| Capability        | Implemented owner                                     |
+| ----------------- | ----------------------------------------------------- |
+| Import/preview    | `features/workspace/ui/WorkspaceDialogHost.vue`       |
+| Assets/themes     | `features/assets/ui/AssetsDialogHost.vue`             |
+| Group rules       | `features/group-rules/ui/GroupRuleDialogHost.vue`     |
+| Capture/watermark | `features/capture/ui/CaptureDialogHost.vue`           |
+| Locale/messages   | `features/locale/locale.ts` and `createEditorI18n.ts` |
+
+`shells/common/EditorCommandBar.vue` is controlled and emit-only: it receives
+settings, locale, and a translation callback, then emits commands or setting
+updates. It does not import feature repositories, save drafts, or access LogicFlow.
+
+`components/Toolbar.vue` is a transitional composition facade. It maps command-bar
+events to feature-host exposed methods and workspace command services, persists
+standalone locale selection through the locale feature key, and supplies narrow
+editor bridge callbacks for capture and applying an asset theme. Feature algorithms
+and feature-owned dialog state do not live in the facade. Phase 7 will move this
+composition into standalone/embed shells.
+
+Each listener or subscription is disposed by the module that mounts it. For
+example, the asset host owns its repository subscription, while
+`editor/runtime/groupRuleOrchestrator.ts` owns the group-rule validation
+subscription.
+
 ## 5. Public Compatibility
 
 The refactor preserves:
@@ -286,7 +323,9 @@ module is migrated.
 4. Introduce instance `EditorContext`, persistence, session, and transfer modules.
 5. Split editor runtime/commands and colocate each node type.
 6. Move assets, group rules, capture, locale, and dialog UI to feature modules.
+   **Implemented.**
 7. Introduce standalone/embed shells and reduce root components to facades.
+   **Pending.**
 8. Enforce dependency boundaries and the complete quality gate in CI.
 
 Each step must preserve behavior, add risk-proportional tests, update the refactor

@@ -1,39 +1,70 @@
-# Toolbar Architecture (Phase 2)
+# Toolbar Architecture
 
-> 本文记录现有 Toolbar composable 拆分。Feature-module 重构的最终命令栏与业务
-> 弹窗归属以 [ModuleArchitecture.md](./ModuleArchitecture.md) 为准。
+> 当前实现已完成 Feature-module Phase 6。本文顶部描述现行边界；后半部分保留
+> Phase 2 composable 拆分记录，仅用于历史追溯。
 
-## 目标
+## Phase 6 当前实现
 
-在不改变行为语义的前提下，将 `Toolbar.vue` 按“命令编排层 / 数据管理层 / 视图层”拆分，降低单文件复杂度并保持 `YysEditorEmbed` 与 `FlowEditor` 兼容。
+`shells/common/EditorCommandBar.vue` 是受控、emit-only 命令栏。它只接收画布开关、
+locale 与翻译函数，并发出 `command` 或 `update:*` 事件；不导入 repository，不保存
+业务 draft，不访问 DOM 文件 API、localStorage 或 LogicFlow。
+
+`components/Toolbar.vue` 是 Phase 7 前的过渡 facade。它负责：
+
+- 将 command-bar 事件分发到 feature dialog host；
+- 将 load/reset/clear 等动作交给 workspace feature service；
+- 将实例级 settings/locale 接回 `EditorContext`；
+- 仅在 standalone 模式通过 locale key 保存语言偏好；
+- 提供截图、主题应用所需的窄 editor bridge；
+- 在 standalone 模式组装 `AboutDialogs`。
+
+Feature dialog 状态、repository、订阅和业务 UI 已不在 Toolbar 内：
+
+| 能力                  | 当前归属                                          |
+| --------------------- | ------------------------------------------------- |
+| JSON/阵容码导入与预览 | `features/workspace/ui/WorkspaceDialogHost.vue`   |
+| 素材与节点主题        | `features/assets/ui/AssetsDialogHost.vue`         |
+| 规则管理与编辑        | `features/group-rules/ui/GroupRuleDialogHost.vue` |
+| 截图预览与水印        | `features/capture/ui/CaptureDialogHost.vue`       |
+| locale 解析与消息     | `features/locale` + command-bar `update:locale`   |
+| 更新日志与反馈        | `shells/standalone/AboutDialogs.vue`              |
+
+阵容码实现仍保留在旧服务，通过
+`features/workspace/teamCodeImportAdapter.ts` 接入；本阶段未创建
+`features/team-code`。
 
 ## 边界约束
 
 - 不改 UI 表现。
 - 不改业务语义。
 - 不新增对外 API。
-- 拆分后 `Toolbar.vue` 仅做模板绑定和编排接线。
+- `EditorCommandBar` 只发事件；`Toolbar.vue` 只做实例桥接、workspace service 调用和
+  host 编排。
+- dialog host 持有自身 dialog/draft/repository 状态；listener 或 subscription 的
+  disposer 由实际 mount 它的模块持有，不把这些状态回流到 Toolbar。
+- App、Embed、command bar 与 store 不直接调用 LogicFlow API。
 
-## Feature-module 目标
+## 兼容性
 
-现有 `Toolbar.vue` 最终由 `shells/common/EditorCommandBar.vue` 替代。命令栏只显示
-命令并向当前 shell 发出动作，不直接执行导入导出、素材、规则、截图、持久化或
-LogicFlow 算法。
+Phase 6 保留现有交互、公开 Embed API、RootDocument 和 team-code 导入。以下 key 不变：
 
-| 现有 Toolbar 职责         | 目标归属                                                |
-| ------------------------- | ------------------------------------------------------- |
-| JSON 导入、导出、数据预览 | `features/workspace/documentTransfer.ts` + workspace UI |
-| 文件切换、清空工作区      | `features/workspace/useWorkspaceSession.ts`             |
-| 素材管理与选择            | `features/assets` UI/services                           |
-| 规则管理与规则编辑        | `features/group-rules` UI/services                      |
-| 截图预览、水印配置        | `features/capture` UI/services                          |
-| locale 解析与消息         | `features/locale`                                       |
-| 更新日志与反馈            | `shells/standalone/AboutDialogs.vue`                    |
-| 阵容码导入                | 现有服务适配（本轮不迁移实现）                          |
+- `filesStore`；
+- `yys-editor.custom-assets.v1`；
+- `yys-editor.node-create-size.v1`；
+- `yys-editor.group-rules.v1`；
+- `yys-editor.locale`；
+- `watermark.text/fontSize/color/angle/rows/cols`。
 
-App、Embed、命令栏与 store 不得直接调用 LogicFlow 的 render/raw-data/zIndex/zoom/
-transform API。业务弹窗由对应 feature 或 standalone shell 持有，命令栏不保存其
-draft 或持久化状态。
+`setAssetBaseUrl/getAssetBaseUrl/resolveAssetUrl`、group-rule package exports、
+`YysEditorPreview` 别名及 `flowRuntime.ts` exports 继续由 package entry 转发。
+
+Phase 7 尚未完成：`Toolbar.vue` 的组装责任仍需进入 standalone/embed shell，
+`App.vue` 与 `YysEditorEmbed.vue` 仍需缩减为薄 facade。
+
+## Phase 2 历史记录
+
+以下 task/path 描述的是 Phase 2 中间态，已被上述 feature hosts 和 command bar 取代，
+不再代表当前生产路径。
 
 ## Phase 2 原子拆分计划
 

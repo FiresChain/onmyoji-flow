@@ -14,7 +14,7 @@ vi.mock("@/editor/node-types/registry", () => ({
   getDefaultNodeRegistrations: vi.fn(() => []),
 }));
 
-vi.mock("@/utils/assetTheme", () => ({
+vi.mock("@/editor/commands/assetTheme", () => ({
   clearAssetNodeReferenceByLabelOwner: vi.fn(),
   getAssetLabelOwnerFromNode: vi.fn(),
   isAssetNameLabelTextNode: vi.fn(() => false),

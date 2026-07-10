@@ -3,11 +3,11 @@ import { ref, type Ref } from "vue";
 
 import { captureGraphData } from "@/core/logicflow/graphIO";
 import {
+  subscribeSharedGroupRulesConfig,
   validateGraphGroupRules,
   type GroupRuleWarning,
-} from "@/utils/groupRules";
-import { subscribeSharedGroupRulesConfig } from "@/utils/groupRulesConfigSource";
-import { getProblemTargetCandidateIds } from "@/utils/problemTarget";
+} from "@/features/group-rules/public";
+import { getProblemTargetCandidateIds } from "@/editor/commands/problemNavigation";
 
 type MessageType = "success" | "warning" | "info" | "error";
 

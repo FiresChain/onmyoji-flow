@@ -1,9 +1,16 @@
 import { reactive, ref, shallowRef, type Ref, type ShallowRef } from "vue";
 
 import type { EditorPort, LogicFlowRuntime } from "@/core/logicflow/types";
-import type { SelectorConfig } from "@/types/selector";
+import {
+  createAssetUrlResolver,
+  type SelectorConfig,
+} from "@/features/assets/public";
+import {
+  normalizeEditorLocale,
+  type EditorLocale as FeatureEditorLocale,
+} from "@/features/locale/public";
 
-export type EditorLocale = "zh" | "ja" | "en";
+export type EditorLocale = FeatureEditorLocale;
 export type EditorAssetUrlResolver = (path: string) => string;
 export type EditorContextDisposer = () => void;
 
@@ -73,42 +80,14 @@ export interface CreateEditorContextOptions {
 }
 
 const EDITOR_CONTEXT_GRAPH_KEY = Symbol("onmyoji-flow:editor-context");
-const ASSET_PATH_PREFIX = "/assets/";
-const URL_PROTOCOL_RE = /^[a-zA-Z][a-zA-Z\d+\-.]*:\/\//;
-
 type EditorContextGraphModel = object & {
   [EDITOR_CONTEXT_GRAPH_KEY]?: EditorContext;
-};
-
-const normalizeLocale = (locale: unknown): EditorLocale => {
-  if (typeof locale !== "string") return "zh";
-  const normalized = locale.trim().toLowerCase().split("-")[0];
-  if (normalized === "ja" || normalized === "en") return normalized;
-  return "zh";
-};
-
-const normalizeAssetBaseUrl = (baseUrl?: string | null): string => {
-  const trimmed = baseUrl?.trim() ?? "";
-  if (!trimmed || trimmed === "/") return "/";
-  if (URL_PROTOCOL_RE.test(trimmed)) {
-    return trimmed.endsWith("/") ? trimmed : `${trimmed}/`;
-  }
-  const withLeadingSlash = trimmed.startsWith("/") ? trimmed : `/${trimmed}`;
-  return withLeadingSlash.endsWith("/")
-    ? withLeadingSlash
-    : `${withLeadingSlash}/`;
 };
 
 export function createEditorAssetUrlResolver(
   baseUrl?: string | null,
 ): EditorAssetUrlResolver {
-  const normalizedBaseUrl = normalizeAssetBaseUrl(baseUrl);
-  return (path) => {
-    if (!path.startsWith(ASSET_PATH_PREFIX) || normalizedBaseUrl === "/") {
-      return path;
-    }
-    return `${normalizedBaseUrl}${path.slice(1)}`;
-  };
+  return createAssetUrlResolver(baseUrl);
 }
 
 const createDialogEntry = (): EditorDialogEntry => ({
@@ -197,7 +176,7 @@ export function createEditorContext(
     keyboardEnabled: ref(options.settings?.keyboardEnabled ?? true),
   };
   const dialogs = createEditorDialogs();
-  const locale = ref<EditorLocale>(normalizeLocale(options.locale));
+  const locale = ref<EditorLocale>(normalizeEditorLocale(options.locale));
   let assetResolver =
     options.assetResolver ?? createEditorAssetUrlResolver(options.assetBaseUrl);
   const resolveAssetUrl = (path: string): string => assetResolver(path);
@@ -295,7 +274,7 @@ export function createEditorContext(
       return true;
     },
     setLocale(nextLocale) {
-      locale.value = normalizeLocale(nextLocale);
+      locale.value = normalizeEditorLocale(nextLocale);
     },
     setAssetBaseUrl(nextBaseUrl) {
       assetResolver = createEditorAssetUrlResolver(nextBaseUrl);

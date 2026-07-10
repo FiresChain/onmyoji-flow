@@ -1,5 +1,5 @@
 ﻿import { describe, expect, it } from "vitest";
-import { getAssetDataSource } from "@/configs/assetCatalog";
+import { getAssetDataSource } from "@/features/assets/public";
 
 describe("assetCatalog", () => {
   it("returns localized shikigami records", () => {

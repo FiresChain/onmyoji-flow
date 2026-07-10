@@ -4,7 +4,7 @@ import { getLogicFlowInstance, useLogicFlowScope } from "@/ts/useLogicFlow";
 import {
   GROUP_META_VERSION,
   normalizeDynamicGroupMeta,
-} from "@/utils/graphSchema";
+} from "@/features/group-rules/public";
 
 const props = defineProps<{
   node: any;

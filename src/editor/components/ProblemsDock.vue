@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { GroupRuleWarning } from "@/utils/groupRules";
-import { useSafeI18n } from "@/ts/useSafeI18n";
+import type { GroupRuleWarning } from "@/features/group-rules/public";
+import { useEditorI18n } from "@/editor/context/useEditorI18n";
 
 defineProps<{
   open: boolean;
@@ -12,7 +12,7 @@ const emit = defineEmits<{
   locate: [warning: GroupRuleWarning];
 }>();
 
-const { t } = useSafeI18n();
+const { t } = useEditorI18n();
 </script>
 
 <template>

@@ -13,8 +13,8 @@ import {
   useFilesStore,
 } from "@/features/workspace/public";
 import { useGlobalMessage } from "@/ts/useGlobalMessage";
-import { resolveInitialEditorLocale } from "@/ts/useSafeI18n";
-import { getAssetBaseUrl } from "@/utils/assetUrl";
+import { resolveInitialEditorLocale } from "@/features/locale/public";
+import { getAssetBaseUrl } from "@/features/assets/public";
 
 const editorContext = provideEditorContext(
   createEditorContext({

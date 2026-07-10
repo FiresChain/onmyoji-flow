@@ -1,5 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { evaluateRuleExpressionAsBoolean } from "@/utils/ruleExpression";
+import {
+  evaluateRuleExpressionAsBoolean,
+  parseRuleExpression,
+} from "@/features/group-rules/expression";
 
 describe("ruleExpression", () => {
   it("支持集合交集计数表达式", () => {
@@ -75,5 +78,12 @@ describe("ruleExpression", () => {
         scope,
       ),
     ).toThrowError("getVar 仅支持一个参数");
+  });
+
+  it("每次解析返回独立 AST，不共享模块级缓存", () => {
+    const source = 'contains(["辉夜姬"], "辉夜姬")';
+
+    expect(parseRuleExpression(source)).toEqual(parseRuleExpression(source));
+    expect(parseRuleExpression(source)).not.toBe(parseRuleExpression(source));
   });
 });

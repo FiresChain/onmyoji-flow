@@ -10,8 +10,8 @@ vi.mock("@/ts/useLogicFlow", () => ({
   })),
 }));
 
-vi.mock("@/ts/useSafeI18n", () => ({
-  useSafeI18n: vi.fn(() => ({
+vi.mock("@/editor/context/useEditorI18n", () => ({
+  useEditorI18n: vi.fn(() => ({
     t: (key: string) => key,
   })),
 }));

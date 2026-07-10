@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useNodeAppearance } from "@/ts/useNodeAppearance";
-import { useSafeI18n } from "@/ts/useSafeI18n";
+import { useEditorI18n } from "@/editor/context/useEditorI18n";
 
 type FitMode = "contain" | "cover" | "fill";
 
 const imageUrl = ref("");
 const fit = ref<FitMode>("contain");
-const { t } = useSafeI18n();
+const { t } = useEditorI18n();
 
 const { containerStyle } = useNodeAppearance({
   onPropsChange(props) {
