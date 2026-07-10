@@ -2,10 +2,8 @@
 import { useDialogs } from "../ts/useDialogs";
 import PropertySelect from "./flow/nodes/yys/PropertySelect.vue";
 import GenericImageSelector from "./common/GenericImageSelector.vue";
-import { useFilesStore } from "../ts/useStore";
 
 const { dialogs, closeDialog, closeGenericSelector } = useDialogs();
-const filesStore = useFilesStore();
 </script>
 
 <template>

@@ -44,6 +44,55 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-07-10] Session 126 - Remove Unreachable Legacy Modules
+
+- Refactory Scope:
+  - Phase: Feature-module Phase 2
+  - Task: 基于生产入口和引用证据删除不可达旧模块、Vite 示例残留与无引用直接依赖
+- In Scope Files:
+  - `src/App.vue`
+  - `src/main.js`
+  - `src/components/DialogManager.vue`
+  - `src/__tests__/toolbar-wiring.regression.test.ts`
+  - `src/stores/files.ts`（删除）
+  - `src/configs/nodeRegistry.ts`（删除）
+  - `src/components/ProjectExplorer.vue`、`Watermark.vue`（删除）
+  - `src/components/HelloWorld.vue`、`WelcomeItem.vue`、`src/components/icons/Icon*.vue`（删除）
+  - `src/components/Yys.vue`、`YysRank.vue`、`src/components/flow/nodes/yys/ShikigamiGroup.vue`、`ShikigamiProperty.vue`（删除）
+  - `src/assets/base.css`、`main.css`、`logo.svg`（删除）
+  - `src/data/filesStoreExample.json`（删除）
+  - `package.json`、`package-lock.json`
+  - `docs/REFACTORING_SUMMARY.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - `PropertySelect.vue` / `PropertySelectNode.vue`、`src/types/nodeTypes.ts`
+  - `nodeMigration.ts` 与旧 GraphData 兼容迁移
+  - `teamCodeService.ts` 与现有阵容码导入
+  - `TestEmbed.vue` 手动测试入口
+  - active FlowEditor/Toolbar/Embed 行为重构和 `docs/1management/plan.md`
+- Decisions:
+  - 仅在生产入口、app/lib sourcemap 和全仓引用均证明不可达时删除旧模块；`ASSET_LIBRARIES` 仍有消费者，因此保留 `nodeTypes.ts`。
+  - 删除计划列出的 `@logicflow/engine`、`@tailwindcss/postcss`，并删除旧 Yys 链产生的级联孤儿 `html2canvas`、`vuedraggable`；保留活跃的 `@vueup/vue-quill` 与 `jsqr`。
+  - 清除 App/main/DialogManager 中与已删除代码对应的无效 import/Store 实例化，不改变有效 PropertySelect 接线。
+  - `docs/REFACTORING_SUMMARY.md` 标为历史快照并指向现行注册位置，避免保留失效 deep-import 指引。
+  - 全量测试中的 Toolbar UI 接线用例在并发执行时超过默认 5 秒；保持断言不变，仅为该用例设置 15 秒局部超时，未放宽全局 gate。
+- Checks:
+  - `npm test`: pass（32 files / 183 tests）
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `npm run format:check`: pass
+  - `npm ci --dry-run --ignore-scripts`: pass
+  - dead-code reference + required compatibility path checks: pass
+  - `npm run build:app`: pass（JS 2,688.37 kB / gzip 805.47 kB）
+  - `npm run build:lib`: pass（ESM 2,394.52 kB / UMD 1,571.73 kB）
+  - `git diff --check`: pass
+- Risks / Follow-up:
+  - app/lib 仍有大 chunk 与 named/default mixed-export 构建警告，均为既有基线，本阶段未改变公开导出。
+  - Toolbar 测试仍输出未 stub 的 `el-slider` 警告；断言通过，后续测试设施可独立消噪。
+  - 旧文件原本已被 tree-shake，构建体积基本不变；主要收益是删除约 3,900 行不可达代码和 27 个传递安装包。
+- Next Recommended Unit:
+  - Feature-module Phase 3：建立 `core/document` 与 `core/logicflow` 单一事实源，先补契约测试，再迁移 App/Embed/Toolbar/Store 调用。
+
 ## [2026-07-10] Session 125 - Define Feature Module Architecture
 
 - Refactory Scope:

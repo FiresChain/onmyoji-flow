@@ -1,22 +1,16 @@
 <script setup lang="ts">
 import Toolbar from "./components/Toolbar.vue";
-import ProjectExplorer from "./components/ProjectExplorer.vue";
 import ComponentsPanel from "./components/flow/ComponentsPanel.vue";
 import { computed, onMounted, watch } from "vue";
 import { useFilesStore } from "@/ts/useStore";
-import Vue3DraggableResizable from "vue3-draggable-resizable";
-import { TabPaneName, TabsPaneContext } from "element-plus";
 import FlowEditor from "./components/flow/FlowEditor.vue";
-import ShikigamiSelect from "./components/flow/nodes/yys/ShikigamiSelect.vue";
-import YuhunSelect from "./components/flow/nodes/yys/YuhunSelect.vue";
-import PropertySelect from "./components/flow/nodes/yys/PropertySelect.vue";
 import DialogManager from "./components/DialogManager.vue";
 import {
   createLogicFlowScope,
   getLogicFlowInstance,
   provideLogicFlowScope,
 } from "@/ts/useLogicFlow";
-import { migrateGraphData, needsMigration } from "@/utils/nodeMigration";
+import { migrateGraphData } from "@/utils/nodeMigration";
 import { useGlobalMessage } from "@/ts/useGlobalMessage";
 
 const logicFlowScope = provideLogicFlowScope(createLogicFlowScope());

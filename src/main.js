@@ -17,7 +17,6 @@ import ja from "./locales/ja.json";
 import en from "./locales/en.json";
 
 import { createPinia } from "pinia"; // 导入 Pinia
-import { useFilesStore } from "./ts/useStore";
 
 const app = createApp(App);
 
@@ -94,5 +93,3 @@ app
   .use(ElementPlus)
   .use(Vue3DraggableResizable)
   .mount("#app");
-
-const filesStore = useFilesStore();

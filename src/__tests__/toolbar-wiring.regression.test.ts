@@ -2305,7 +2305,7 @@ describe("toolbar wiring regression", () => {
 
     await clickButtonByText("清空画布");
     expect(wiringSpies.handleClearCanvas).toHaveBeenCalledTimes(1);
-  });
+  }, 15_000);
 
   it("applies theme to current canvas and syncs refreshed graph data", async () => {
     vi.useFakeTimers();

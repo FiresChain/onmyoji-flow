@@ -1,5 +1,9 @@
 # 阴阳师编辑器重构总结
 
+> 历史快照：本文记录早期资产选择器重构，不代表当前目录结构。当前模块边界以
+> `docs/2design/ModuleArchitecture.md` 为准；节点注册在 feature-module 迁移前由
+> `src/components/flow/composables/useFlowEditorRuntime.ts` 和 `src/flowRuntime.ts` 执行。
+
 ## 重构完成情况
 
 ✅ **所有阶段已完成**
@@ -45,7 +49,8 @@ openGenericSelector(SELECTOR_PRESETS.yuhun, (selectedItem) => {
 
 #### 新增文件
 - `src/types/nodeTypes.ts` - 节点类型定义和分类
-- `src/configs/nodeRegistry.ts` - 节点注册表
+- `src/components/flow/composables/useFlowEditorRuntime.ts` - 编辑模式节点注册（迁移前位置）
+- `src/flowRuntime.ts` - 公开预览 runtime 节点注册（迁移前位置）
 - `src/components/flow/nodes/common/AssetSelectorNode.vue` - 资产选择器节点
 - `src/components/flow/panels/AssetSelectorPanel.vue` - 资产选择器面板
 
@@ -121,8 +126,7 @@ src/
 │   ├── selector.ts              # 选择器配置接口
 │   └── nodeTypes.ts             # 节点类型定义
 ├── configs/
-│   ├── selectorPresets.ts       # 预设配置
-│   └── nodeRegistry.ts          # 节点注册表
+│   └── selectorPresets.ts       # 预设配置
 ├── components/
 │   └── common/
 │       └── GenericImageSelector.vue  # 通用选择器
@@ -149,15 +153,11 @@ src/
 └── App.vue                      # 集成数据迁移
 ```
 
-### 保留文件（向后兼容）
+### 已移除的旧 UI 文件（数据迁移仍向后兼容）
 ```
-src/components/flow/
-├── nodes/yys/
-│   ├── ShikigamiSelectNode.vue  # 保留（旧节点仍可用）
-│   └── YuhunSelectNode.vue      # 保留（旧节点仍可用）
-└── panels/
-    ├── ShikigamiPanel.vue       # 保留（旧节点仍可用）
-    └── YuhunPanel.vue           # 保留（旧节点仍可用）
+旧式神/御魂专用 Node、Panel 已由统一 `AssetSelectorNode` 与
+`AssetSelectorPanel` 替代。旧 GraphData 继续通过 `nodeMigration.ts` 转换，
+不依赖保留旧 UI 文件。
 ```
 
 ---
@@ -249,7 +249,7 @@ skills: {
 - [ ] AI 推荐
 
 ### 代码清理（可选）
-- [ ] 删除旧的 ShikigamiSelectNode 和 YuhunSelectNode（如果确认不再需要）
+- [x] 删除旧的 ShikigamiSelectNode 和 YuhunSelectNode（GraphData 迁移继续保留）
 - [ ] 删除旧的 ShikigamiPanel 和 YuhunPanel
 - [ ] 更新文档和注释
 
