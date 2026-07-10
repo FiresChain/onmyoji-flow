@@ -1149,10 +1149,11 @@ const {
   showMessage,
 });
 
-const { refreshLogicFlowCanvas } = useToolbarCanvasRefresh({
-  filesStore,
-  logicFlowScope,
-});
+const { refreshLogicFlowCanvas, disposeCanvasRefresh } =
+  useToolbarCanvasRefresh({
+    filesStore,
+    logicFlowScope,
+  });
 
 const { loadExample, handleResetWorkspace, handleClearCanvas } =
   useToolbarWorkspaceCommands({
@@ -1285,6 +1286,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   disposeAssetManagement();
+  disposeCanvasRefresh();
 });
 
 const {

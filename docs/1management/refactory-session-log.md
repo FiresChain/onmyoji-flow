@@ -44,6 +44,48 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-07-10] Session 127 - Centralize Graph And LogicFlow Adapters
+
+- Refactory Scope:
+  - Phase: Feature-module Phase 3
+  - Task: 建立 `core/document` 与 `core/logicflow` 单一事实源，统一 GraphData、RootDocument、`zIndex`、runtime registry 与 viewport 往返
+- In Scope Files:
+  - `src/core/document/*`（新增 canonical types、normalize、migrations、validation 与 JSON Schema）
+  - `src/core/logicflow/*`（新增 runtime、graph IO、viewport、plugin preset 与 registration adapter）
+  - `src/editor/node-types/registry.ts`（新增默认节点唯一 registry）
+  - `src/App.vue`、`src/YysEditorEmbed.vue`、`src/flowRuntime.ts`、`src/index.js`
+  - `src/components/Toolbar.vue`、`src/components/composables/useToolbarCanvasRefresh.ts`、`useToolbarWorkspaceCommands.ts`
+  - `src/components/flow/FlowEditor.vue`、`src/components/flow/composables/useFlowEditorRuntime.ts`、`useFlowGroupRuleOrchestrator.ts`
+  - `src/ts/schema.ts`、`src/ts/useLogicFlow.ts`、`src/ts/useStore.ts`
+  - `src/utils/graphSchema.ts`、`src/utils/groupRules.ts`、`src/utils/nodeMigration.ts`
+  - `src/__tests__/core/*`、`src/__tests__/contracts/public-api.test.ts` 与相关 App/Embed/Toolbar/Store 回归测试
+  - `docs/2design/DataModel.md`、`docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - EditorContext、workspace persistence/session/transfer 拆分（Phase 4）
+  - FlowEditor 命令和节点实现共置（Phase 5）
+  - feature/shell 迁移、阵容码实现与 `docs/1management/plan.md`
+- Decisions:
+  - `core/document` 成为 GraphData、RootDocument、Transform、迁移和校验的唯一事实源；旧 `schema.ts`、`nodeMigration.ts`、`graphSchema.ts` 保留兼容 facade，未知 root/file/graph/node/edge 字段继续往返保留。
+  - `core/logicflow` 统一 render/capture、`zIndex`、viewport 和 runtime 生命周期；恢复 viewport 时先 reset，再分别应用 scale 与 translation，避免把 translation 当作 zoom point。
+  - edit/preview 共用 `editor/node-types/registry.ts`；preview 继续过滤 dynamic-group 及其关联边，并保留非空自定义 plugin/node 列表的替换语义。
+  - `flowRuntime.ts` 保留原宽松公开 `FlowPlugin`/`FlowNodeRegistration` 类型，只在 core 边界适配 SDK 类型，避免破坏既有 TypeScript 消费者。
+  - FlowEditor runtime 独占 edit-mode LogicFlow 销毁权；Embed facade 不再重复 destroy，并增加卸载只销毁一次的生命周期回归测试。
+- Checks:
+  - `npm test`: pass（38 files / 221 tests）
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `npm run format:check`: pass
+  - Phase 3 targeted core/public/embed tests: pass（26 tests）
+  - `npm run build:app`: pass（JS 2,692.11 kB / gzip 806.75 kB）
+  - `npm run build:lib`: pass（ESM 2,400.89 kB / UMD 1,575.98 kB）
+  - `git diff --check`: pass
+- Risks / Follow-up:
+  - app/lib 仍有大 chunk 与 named/default mixed-export 构建警告；Toolbar 测试仍输出未 stub 的 `el-slider` 和刻意错误分支日志，均为既有基线。
+  - Phase 3 相对 Phase 2 构建基线增加约 3.74 kB app JS、6.37 kB ESM、4.25 kB UMD；主要来自统一 runtime/schema adapter，Phase 8 再记录最终体积。
+  - `useLogicFlow`、`useCanvasSettings`、dialogs、locale、asset URL 与 Store timer/persistence 仍有模块级实例状态，必须在下一原子单元完成隔离。
+- Next Recommended Unit:
+  - Feature-module Phase 4：引入实例级 EditorContext，并拆分 serializable filesStore、FilesPersistence、workspace session 与 document transfer；Embed 使用内存 persistence。
+
 ## [2026-07-10] Session 126 - Remove Unreachable Legacy Modules
 
 - Refactory Scope:

@@ -50,4 +50,51 @@ describe("graphSchema asset library normalization", () => {
     expect(node.properties.selectedAsset.library).toBe("hunling");
     expect(node.properties.selectedAsset.assetId).toContain("hunling:");
   });
+
+  it("keeps graph extensions while applying core and business normalization", () => {
+    const graph = normalizeGraphRawDataSchema({
+      graphExtension: { revision: 2 },
+      nodes: [
+        {
+          id: "group-1",
+          type: "dynamic-group",
+          nodeExtension: "keep-node",
+          properties: {
+            children: [" node-1 ", "node-1"],
+            propertyExtension: "keep-property",
+            meta: { z: 4, metaExtension: "keep-meta" },
+          },
+        },
+      ],
+      edges: [
+        {
+          id: "edge-1",
+          sourceNodeId: "group-1",
+          targetNodeId: "group-1",
+          edgeExtension: "keep-edge",
+        },
+      ],
+    });
+
+    expect(graph).toMatchObject({
+      graphExtension: { revision: 2 },
+      nodes: [
+        {
+          zIndex: 4,
+          children: ["node-1"],
+          nodeExtension: "keep-node",
+          properties: {
+            children: ["node-1"],
+            propertyExtension: "keep-property",
+            meta: { metaExtension: "keep-meta" },
+            groupMeta: {
+              version: 1,
+              groupKind: "team",
+            },
+          },
+        },
+      ],
+      edges: [{ edgeExtension: "keep-edge" }],
+    });
+  });
 });

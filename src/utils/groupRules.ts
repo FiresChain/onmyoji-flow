@@ -1,15 +1,11 @@
 import type { GroupRulesConfig } from "@/configs/groupRules";
+import type { GraphData } from "@/core/document/types";
 import { readSharedGroupRulesConfig } from "@/utils/groupRulesConfigSource";
 import {
   getDynamicGroupChildIds,
   normalizeGraphRawDataSchema,
 } from "@/utils/graphSchema";
 import { evaluateRuleExpressionAsBoolean } from "@/utils/ruleExpression";
-
-type GraphData = {
-  nodes: any[];
-  edges: any[];
-};
 
 type TeamAsset = {
   nodeId: string;
@@ -422,7 +418,7 @@ const evaluateCondition = (
 };
 
 export const validateGraphGroupRules = (
-  graphData: GraphData,
+  graphData: unknown,
   config?: GroupRulesConfig,
 ): GroupRuleWarning[] => {
   const effectiveConfig = config || readSharedGroupRulesConfig();

@@ -36,7 +36,7 @@
 
 ## Graph/Node 基础模型
 
-Graph/Node 结构整体沿用 LogicFlow 的 GraphData 定义（nodes/edges、id/type/x/y/width/height 等）；我们只约定节点 `properties` 中的业务字段，并在需要时适配 LogicFlow 的样式/图层信息，而不是重新定义一套独立的画布数据模型。
+Graph/Node 结构整体兼容 LogicFlow 的 GraphData（nodes/edges、id/type/x/y/width/height 等）。仓库内唯一类型来源为 `src/core/document/types.ts`，LogicFlow SDK 类型只在 adapter 边界使用；节点 `properties` 的阴阳师业务字段仍由对应 feature/node type 解释。
 
 ```ts
 // Graph 文档（嵌入在每个 file.graphRawData 内）
@@ -48,8 +48,8 @@ interface GraphDocument {
 interface GraphNode {
   id: string;
   type: string; // imageNode | textNode | vectorNode | shikigamiSelect | yuhunSelect | propertySelect | ...
-  x?: number; // LogicFlow 原生定位
-  y?: number;
+  x: number; // LogicFlow 原生定位
+  y: number;
   width?: number; // 渲染冗余：由 properties.style.width 同步而来
   height?: number; // 渲染冗余：由 properties.style.height 同步而来
   zIndex?: number; // 规范层级字段（唯一语义）
@@ -123,7 +123,7 @@ interface NodeMeta {
 }
 ```
 
-> 说明：上述 `GraphDocument`、`GraphNode`、`GraphEdge`、`NodeStyle`、`NodeMeta` 主要用于说明结构，实际实现直接使用 LogicFlow 提供的 GraphData；样式/图层字段属于可选扩展，v1 只要求节点 `properties` 中的业务字段与阴阳师相关业务数据。
+> 说明：上述 `GraphDocument`、`GraphNode`、`GraphEdge`、`NodeStyle`、`NodeMeta` 对应 `src/core/document/types.ts`。`core/document` 不依赖 Vue、DOM 或 LogicFlow；`core/logicflow` 负责与 SDK 数据类型互转。样式/图层字段属于可选扩展，RootDocument v1 的运行时约束以同目录 validator 与 JSON Schema 为准。
 
 ## 节点类型扩展字段
 
@@ -231,8 +231,8 @@ const DefaultNodeStyle: NodeStyle = {
   - 若 `node.width/height` 存在但 `properties.style` 缺失，创建 `style` 并拷贝宽高；
   - 给所有节点补 `meta.visible=true`，`meta.locked=false`；
   - 生成 `createdAt/updatedAt`（以当前时间或从已有字段推断）。
-- 常量：`const CURRENT_SCHEMA_VERSION = '1.0.0'` 存放于 `src/ts/useStore.ts` 或 `src/ts/schema.ts`。
-- RootDocument JSON Schema：`src/schemas/root-document.v1.json`（导入/恢复/导出前均执行结构校验）。
+- 常量：`CURRENT_SCHEMA_VERSION = '1.0.0'` 存放于 `src/core/document/migrations.ts`，`src/ts/schema.ts` 仅作旧路径兼容转发。
+- RootDocument JSON Schema：`src/core/document/root-document.v1.json`（导入/恢复/导出前均执行结构校验）。
 
 - 导出：同时写出 `activeFileId` 与 `activeFile`（名称），以兼容旧版。
 - 导入：优先使用 `activeFileId` 匹配；若缺失则回退按 `activeFile`（名称）匹配；两者都缺则选首个文件。

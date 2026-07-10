@@ -63,7 +63,7 @@ import {
 } from "vue";
 import ElementPlus from "element-plus";
 import { createPinia, setActivePinia } from "pinia";
-import LogicFlow from "@logicflow/core";
+import type LogicFlow from "@logicflow/core";
 import "@logicflow/core/lib/style/index.css";
 import "@logicflow/extension/lib/style/index.css";
 
@@ -75,169 +75,63 @@ import { useFilesStore } from "@/ts/useStore";
 import { useSafeI18n } from "@/ts/useSafeI18n";
 import {
   createLogicFlowScope,
-  destroyLogicFlowInstance,
   getLogicFlowInstance,
   provideLogicFlowScope,
 } from "@/ts/useLogicFlow";
+import { normalizeGraph } from "@/core/document/normalizeGraph";
+import type {
+  GraphData,
+  GraphEdge as EdgeData,
+  GraphNode as NodeData,
+} from "@/core/document/types";
+import { createLogicFlowRuntime } from "@/core/logicflow/createRuntime";
+import { captureGraphData, renderGraphData } from "@/core/logicflow/graphIO";
+import { type FlowCapabilityLevel } from "@/core/logicflow/types";
+import type { FlowNodeRegistration, FlowPlugin } from "@/flowRuntime";
+import type {
+  FlowNodeRegistration as CoreFlowNodeRegistration,
+  FlowPlugin as CoreFlowPlugin,
+} from "@/core/logicflow/types";
 import {
-  registerFlowNodes,
-  resolveFlowPlugins,
-  type FlowCapabilityLevel,
-  type FlowNodeRegistration,
-  type FlowPlugin,
-} from "./flowRuntime";
+  centerViewport,
+  fitView as fitViewport,
+  getViewport,
+  resetViewportTranslate,
+  resetViewportZoom,
+  zoomViewport,
+} from "@/core/logicflow/viewport";
+import { getDefaultNodeRegistrations } from "@/editor/node-types/registry";
 import { rewriteAssetUrlsDeep, setAssetBaseUrl } from "@/utils/assetUrl";
 
-// 类型定义
-export interface GraphData {
-  nodes: NodeData[];
-  edges: EdgeData[];
-}
-
-export interface NodeData {
-  id: string;
-  type: string;
-  x: number;
-  y: number;
-  zIndex?: number;
-  properties?: Record<string, any>;
-  text?: { value: string };
-}
-
-export interface EdgeData {
-  id: string;
-  type: string;
-  sourceNodeId: string;
-  targetNodeId: string;
-  properties?: Record<string, any>;
-}
-
-const isPlainObject = (input: unknown): input is Record<string, any> =>
-  !!input && typeof input === "object" && !Array.isArray(input);
-
-const sanitizeLabelProperty = (
-  properties: unknown,
-): Record<string, any> | undefined => {
-  if (!isPlainObject(properties)) {
-    return undefined;
-  }
-  const nextProperties: Record<string, any> = { ...properties };
-  if (Array.isArray(nextProperties._label)) {
-    const normalizedLabels = nextProperties._label.filter(
-      (label: any) =>
-        isPlainObject(label) &&
-        (label.id != null ||
-          label.text != null ||
-          label.value != null ||
-          label.content != null),
-    );
-    if (normalizedLabels.length === 0) {
-      delete nextProperties._label;
-    } else {
-      nextProperties._label = normalizedLabels;
-    }
-  }
-  return nextProperties;
-};
+export type {
+  GraphData,
+  GraphEdge as EdgeData,
+  GraphNode as NodeData,
+} from "@/core/document/types";
 
 const sanitizeGraphData = (
   input?: GraphData | null,
   options?: { hideDynamicGroups?: boolean },
 ): GraphData => {
-  if (!input || !Array.isArray(input.nodes) || !Array.isArray(input.edges)) {
-    return { nodes: [], edges: [] };
-  }
-
-  const rawNodes = input.nodes
-    .filter((node): node is NodeData => isPlainObject(node))
-    .map((node) => {
-      const nextNode: NodeData = { ...node };
-      const nextProperties = sanitizeLabelProperty(nextNode.properties);
-      if (nextProperties) {
-        nextNode.properties = rewriteAssetUrlsDeep(nextProperties);
-      }
-      return nextNode;
-    });
-
-  const hiddenDynamicGroup = options?.hideDynamicGroups === true;
-  const nodes = hiddenDynamicGroup
-    ? rawNodes.filter((node) => node.type !== "dynamic-group")
-    : rawNodes;
-  const nodeIdSet = new Set(nodes.map((node) => node.id));
-
-  const edges = input.edges
-    .filter((edge): edge is EdgeData => isPlainObject(edge))
-    .map((edge) => {
-      const nextEdge: EdgeData = { ...edge };
-      const nextProperties = sanitizeLabelProperty(nextEdge.properties);
-      if (nextProperties) {
-        nextEdge.properties = rewriteAssetUrlsDeep(nextProperties);
-      }
-      return nextEdge;
-    })
-    .filter(
-      (edge) =>
-        !hiddenDynamicGroup ||
-        (nodeIdSet.has(edge.sourceNodeId) && nodeIdSet.has(edge.targetNodeId)),
-    );
-
-  return { nodes, edges };
-};
-
-const normalizeZIndex = (value: unknown): number | undefined => {
-  const parsed = Number(value);
-  if (!Number.isFinite(parsed)) {
-    return undefined;
-  }
-  return Math.trunc(parsed);
-};
-
-const applyNodeZIndexToInstance = (lfInstance: any, graphData: GraphData) => {
-  const nodes = Array.isArray(graphData?.nodes) ? graphData.nodes : [];
-  nodes.forEach((node) => {
-    const nodeId = typeof node?.id === "string" ? node.id : "";
-    if (!nodeId) return;
-    const zIndex = normalizeZIndex(node?.zIndex);
-    if (zIndex == null) return;
-    const model = lfInstance.getNodeModelById?.(nodeId);
-    model?.setZIndex?.(zIndex);
-  });
-};
-
-const renderGraphDataWithLayer = (lfInstance: any, graphData: GraphData) => {
-  lfInstance.render(graphData);
-  applyNodeZIndexToInstance(lfInstance, graphData);
-};
-
-const collectGraphDataWithLayer = (lfInstance: any): GraphData | null => {
-  if (!lfInstance || typeof lfInstance.getGraphRawData !== "function") {
-    return null;
-  }
-
-  const graphData = lfInstance.getGraphRawData() as GraphData;
-  if (!graphData || !Array.isArray(graphData.nodes)) {
-    return { nodes: [], edges: [] };
-  }
-
-  const nodes = graphData.nodes.map((node) => {
-    const nodeId = typeof node?.id === "string" ? node.id : "";
-    const model = nodeId ? lfInstance.getNodeModelById?.(nodeId) : null;
-    const modelZIndex = normalizeZIndex(model?.zIndex);
-    const nodeZIndex = normalizeZIndex(node?.zIndex);
-    const mergedZIndex = modelZIndex ?? nodeZIndex;
-    if (mergedZIndex == null) {
-      return { ...node };
-    }
-    return {
-      ...node,
-      zIndex: mergedZIndex,
-    };
-  });
-
+  const graphData = normalizeGraph(input, options);
   return {
     ...graphData,
-    nodes,
-    edges: Array.isArray(graphData.edges) ? graphData.edges : [],
+    nodes: graphData.nodes.map(
+      (node): NodeData => ({
+        ...node,
+        ...(node.properties
+          ? { properties: rewriteAssetUrlsDeep(node.properties) }
+          : {}),
+      }),
+    ),
+    edges: graphData.edges.map(
+      (edge): EdgeData => ({
+        ...edge,
+        ...(edge.properties
+          ? { properties: rewriteAssetUrlsDeep(edge.properties) }
+          : {}),
+      }),
+    ),
   };
 };
 
@@ -332,7 +226,22 @@ const previewLf = ref<LogicFlow | null>(null);
 const embedRootRef = ref<HTMLElement | null>(null);
 const toolbarHostRef = ref<HTMLElement | null>(null);
 let embedResizeObserver: ResizeObserver | null = null;
+let disposePreviewRuntime: (() => void) | null = null;
+const pendingTimers = new Set<ReturnType<typeof setTimeout>>();
 const editorContentHeight = ref("100%");
+
+const scheduleEmbedTask = (task: () => void, delay: number) => {
+  const timer = setTimeout(() => {
+    pendingTimers.delete(timer);
+    task();
+  }, delay);
+  pendingTimers.add(timer);
+};
+
+const disposeEmbedTasks = () => {
+  pendingTimers.forEach((timer) => clearTimeout(timer));
+  pendingTimers.clear();
+};
 
 // Computed
 const effectiveCapability = computed<FlowCapabilityLevel>(() => {
@@ -442,10 +351,9 @@ const setupEmbedResizeObserver = () => {
 };
 
 const destroyPreviewMode = () => {
-  if (previewLf.value) {
-    previewLf.value.destroy();
-    previewLf.value = null;
-  }
+  disposePreviewRuntime?.();
+  disposePreviewRuntime = null;
+  previewLf.value = null;
 };
 
 // 初始化预览模式的 LogicFlow
@@ -455,32 +363,34 @@ const initPreviewMode = () => {
   destroyPreviewMode();
   const isRenderOnly = effectiveCapability.value === "render-only";
 
-  // 创建 LogicFlow 实例（只读模式）
-  previewLf.value = new LogicFlow({
+  const initialData = props.data
+    ? sanitizeGraphData(props.data, { hideDynamicGroups: true })
+    : undefined;
+  const runtime = createLogicFlowRuntime({
     container: previewContainerRef.value,
-    width: previewContainerRef.value.offsetWidth,
-    height: previewContainerRef.value.offsetHeight,
-    grid: false,
-    keyboard: {
-      enabled: !isRenderOnly,
+    capability: effectiveCapability.value,
+    plugins: props.plugins as CoreFlowPlugin[] | undefined,
+    nodeRegistrations: props.nodeRegistrations as
+      | CoreFlowNodeRegistration[]
+      | undefined,
+    defaultNodeRegistrations: getDefaultNodeRegistrations(),
+    initialData,
+    logicFlowOptions: {
+      width: previewContainerRef.value.offsetWidth,
+      height: previewContainerRef.value.offsetHeight,
+      grid: false,
+      keyboard: {
+        enabled: !isRenderOnly,
+      },
+      isSilentMode: isRenderOnly,
+      stopScrollGraph: isRenderOnly,
+      stopZoomGraph: isRenderOnly,
+      stopMoveGraph: isRenderOnly,
+      adjustNodePosition: !isRenderOnly,
     },
-    // render-only 模式禁用所有交互能力
-    isSilentMode: isRenderOnly,
-    stopScrollGraph: isRenderOnly,
-    stopZoomGraph: isRenderOnly,
-    stopMoveGraph: isRenderOnly,
-    adjustNodePosition: !isRenderOnly,
-    plugins: resolveFlowPlugins(effectiveCapability.value, props.plugins),
   });
-
-  // 注册节点（支持外部注入）
-  registerFlowNodes(previewLf.value, props.nodeRegistrations);
-
-  // 渲染数据
-  if (props.data) {
-    const safeData = sanitizeGraphData(props.data, { hideDynamicGroups: true });
-    renderGraphDataWithLayer(previewLf.value, safeData);
-  }
+  previewLf.value = runtime.instance;
+  disposePreviewRuntime = runtime.dispose;
 };
 
 // Methods
@@ -509,10 +419,10 @@ const getGraphData = (): GraphData | null => {
   if (props.mode === "edit") {
     const lfInstance = getLogicFlowInstance(logicFlowScope);
     if (lfInstance) {
-      return collectGraphDataWithLayer(lfInstance);
+      return captureGraphData(lfInstance);
     }
   } else if (props.mode === "preview" && previewLf.value) {
-    return collectGraphDataWithLayer(previewLf.value);
+    return captureGraphData(previewLf.value);
   }
   return null;
 };
@@ -524,10 +434,10 @@ const setGraphData = (data: GraphData) => {
   if (props.mode === "edit") {
     const lfInstance = getLogicFlowInstance(logicFlowScope);
     if (lfInstance) {
-      renderGraphDataWithLayer(lfInstance, safeData);
+      renderGraphData(lfInstance, safeData);
     }
   } else if (props.mode === "preview" && previewLf.value) {
-    renderGraphDataWithLayer(previewLf.value, safeData);
+    renderGraphData(previewLf.value, safeData);
   }
 };
 
@@ -539,7 +449,7 @@ const resolveActiveLogicFlow = (): any => {
 };
 
 const hasRenderableGraphNodes = (lfInstance: any): boolean => {
-  const graphData = collectGraphDataWithLayer(lfInstance);
+  const graphData = captureGraphData(lfInstance);
   const nodes = Array.isArray(graphData?.nodes) ? graphData.nodes : [];
   return nodes.length > 0;
 };
@@ -549,7 +459,7 @@ const fitView = (
   horizontalOffset?: number,
 ): boolean => {
   const lfInstance = resolveActiveLogicFlow();
-  if (!lfInstance || typeof lfInstance.fitView !== "function") {
+  if (!lfInstance) {
     return false;
   }
   if (!hasRenderableGraphNodes(lfInstance)) {
@@ -563,9 +473,9 @@ const fitView = (
     typeof verticalOffset === "number" ||
     typeof horizontalOffset === "number"
   ) {
-    lfInstance.fitView(verticalOffset, horizontalOffset);
+    fitViewport(lfInstance, verticalOffset, horizontalOffset);
   } else {
-    lfInstance.fitView();
+    fitViewport(lfInstance);
   }
   return true;
 };
@@ -575,34 +485,22 @@ const zoom = (
   point?: [number, number],
 ): boolean => {
   const lfInstance = resolveActiveLogicFlow();
-  if (!lfInstance || typeof lfInstance.zoom !== "function") {
-    return false;
-  }
-  lfInstance.zoom(zoomSize, point);
-  return true;
+  return lfInstance ? zoomViewport(lfInstance, zoomSize, point) : false;
 };
 
 const resetZoom = (): boolean => {
   const lfInstance = resolveActiveLogicFlow();
-  if (!lfInstance || typeof lfInstance.resetZoom !== "function") {
-    return false;
-  }
-  lfInstance.resetZoom();
-  return true;
+  return lfInstance ? resetViewportZoom(lfInstance) : false;
 };
 
 const resetTranslate = (): boolean => {
   const lfInstance = resolveActiveLogicFlow();
-  if (!lfInstance || typeof lfInstance.resetTranslate !== "function") {
-    return false;
-  }
-  lfInstance.resetTranslate();
-  return true;
+  return lfInstance ? resetViewportTranslate(lfInstance) : false;
 };
 
 const translateCenter = (): boolean => {
   const lfInstance = resolveActiveLogicFlow();
-  if (!lfInstance || typeof lfInstance.translateCenter !== "function") {
+  if (!lfInstance) {
     return false;
   }
   if (!hasRenderableGraphNodes(lfInstance)) {
@@ -612,16 +510,15 @@ const translateCenter = (): boolean => {
   if (!host || host.clientWidth <= 0 || host.clientHeight <= 0) {
     return false;
   }
-  lfInstance.translateCenter();
-  return true;
+  return centerViewport(lfInstance);
 };
 
 const getTransform = (): Record<string, number> | null => {
   const lfInstance = resolveActiveLogicFlow();
-  if (!lfInstance || typeof lfInstance.getTransform !== "function") {
+  if (!lfInstance) {
     return null;
   }
-  return lfInstance.getTransform();
+  return getViewport(lfInstance) as Record<string, number>;
 };
 
 defineExpose({
@@ -669,8 +566,10 @@ watch(
   (newMode) => {
     if (newMode === "preview") {
       // 切换到预览模式，初始化预览 LogicFlow
-      setTimeout(() => {
-        initPreviewMode();
+      scheduleEmbedTask(() => {
+        if (props.mode === "preview") {
+          initPreviewMode();
+        }
       }, 100);
     } else {
       destroyPreviewMode();
@@ -685,8 +584,10 @@ watch(
   [() => props.capability, () => props.plugins, () => props.nodeRegistrations],
   () => {
     if (props.mode === "preview") {
-      setTimeout(() => {
-        initPreviewMode();
+      scheduleEmbedTask(() => {
+        if (props.mode === "preview") {
+          initPreviewMode();
+        }
       }, 0);
     }
   },
@@ -718,7 +619,10 @@ onMounted(() => {
     triggerEditorResize();
     // 编辑模式由 FlowEditor 组件初始化
     // 等待 FlowEditor 初始化完成后加载数据
-    setTimeout(() => {
+    scheduleEmbedTask(() => {
+      if (props.mode !== "edit") {
+        return;
+      }
       if (props.data) {
         setGraphData(props.data);
       }
@@ -730,10 +634,10 @@ onMounted(() => {
 
 // 清理
 onBeforeUnmount(() => {
+  disposeEmbedTasks();
   embedResizeObserver?.disconnect();
   embedResizeObserver = null;
   destroyPreviewMode();
-  destroyLogicFlowInstance(logicFlowScope);
 });
 </script>
 

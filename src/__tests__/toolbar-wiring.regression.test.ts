@@ -2347,6 +2347,9 @@ describe("toolbar wiring regression", () => {
         clearData: vi.fn(),
         render: vi.fn(),
         zoom: vi.fn(),
+        translate: vi.fn(),
+        resetZoom: vi.fn(),
+        resetTranslate: vi.fn(),
       };
       logicFlowMock.current = logicFlowInstance;
       toolbarStoreMock.getTab.mockReturnValue({
@@ -2356,6 +2359,7 @@ describe("toolbar wiring regression", () => {
         },
         transform: {
           SCALE_X: 1,
+          SCALE_Y: 1,
           TRANSLATE_X: 0,
           TRANSLATE_Y: 0,
         },
@@ -2374,8 +2378,12 @@ describe("toolbar wiring regression", () => {
 
       vi.advanceTimersByTime(100);
 
-      expect(logicFlowInstance.clearData).toHaveBeenCalledTimes(1);
+      expect(logicFlowInstance.clearData).not.toHaveBeenCalled();
       expect(logicFlowInstance.render).toHaveBeenCalledTimes(1);
+      expect(logicFlowInstance.resetZoom).toHaveBeenCalledTimes(1);
+      expect(logicFlowInstance.resetTranslate).toHaveBeenCalledTimes(1);
+      expect(logicFlowInstance.zoom).toHaveBeenCalledWith(1);
+      expect(logicFlowInstance.translate).toHaveBeenCalledWith(0, 0);
     } finally {
       vi.useRealTimers();
     }

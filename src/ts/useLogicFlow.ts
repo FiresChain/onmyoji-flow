@@ -39,6 +39,20 @@ export function getLogicFlowInstance(scope?: LogicFlowScope): LogicFlow | null {
   return logicFlowInstances.get(resolveLogicFlowScope(scope)) ?? null;
 }
 
+export function clearLogicFlowInstance(
+  scope?: LogicFlowScope,
+  expectedInstance?: LogicFlow,
+) {
+  const resolvedScope = resolveLogicFlowScope(scope);
+  if (
+    expectedInstance &&
+    logicFlowInstances.get(resolvedScope) !== expectedInstance
+  ) {
+    return;
+  }
+  logicFlowInstances.delete(resolvedScope);
+}
+
 export function destroyLogicFlowInstance(scope?: LogicFlowScope) {
   const resolvedScope = resolveLogicFlowScope(scope);
   const instance = logicFlowInstances.get(resolvedScope);

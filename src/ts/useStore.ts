@@ -4,11 +4,13 @@ import { ref, computed } from "vue";
 import { ElMessageBox } from "element-plus";
 import { useGlobalMessage } from "./useGlobalMessage";
 import { getLogicFlowInstance, type LogicFlowScope } from "./useLogicFlow";
+import type { FlowFile, RootDocument } from "@/core/document/types";
+import { captureGraphData } from "@/core/logicflow/graphIO";
+import { getViewport, normalizeViewport } from "@/core/logicflow/viewport";
 import {
   CURRENT_SCHEMA_VERSION,
   formatRootDocumentValidationErrors,
   migrateToV1,
-  RootDocument,
   validateRootDocumentV1,
 } from "./schema";
 import { normalizeGraphRawDataSchema } from "@/utils/graphSchema";
@@ -21,24 +23,10 @@ const LOCALSTORAGE_DEBOUNCE_DELAY = 1000; // 1秒防抖
 
 type PersistedRoot = RootDocument;
 
-interface FlowFile {
-  id: string; // stable identity, do not rely on name for selection
-  label: string;
-  name: string;
-  visible: boolean;
-  type: string;
-  graphRawData?: object;
-  transform?: {
-    SCALE_X: number;
-    SCALE_Y: number;
-    TRANSLATE_X: number;
-    TRANSLATE_Y: number;
-  };
-}
-
 function getDefaultState() {
   const id =
     "f_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  const now = Date.now();
   return {
     fileList: [
       {
@@ -57,6 +45,8 @@ function getDefaultState() {
           TRANSLATE_X: 0,
           TRANSLATE_Y: 0,
         },
+        createdAt: now,
+        updatedAt: now,
       },
     ],
     // legacy: kept for compatibility, actual selection uses activeFileId
@@ -105,6 +95,7 @@ function saveStateToLocalStorage(state: any) {
 
 export const useFilesStore = defineStore("files", () => {
   const boundLogicFlowScope = ref<LogicFlowScope | null>(null);
+  let rootDocumentExtras: Record<string, unknown> = {};
 
   const bindLogicFlowScope = (scope?: LogicFlowScope) => {
     boundLogicFlowScope.value = scope ?? null;
@@ -125,20 +116,30 @@ export const useFilesStore = defineStore("files", () => {
 
   // 根据传入列表补全缺省字段并补齐 id
   const normalizeList = (list: any[]): FlowFile[] => {
+    const now = Date.now();
     return (list || []).map((f: any, i: number) => ({
+      ...(f && typeof f === "object" ? f : {}),
       id: f?.id || genId(),
       label: f?.label ?? f?.name ?? `File ${i + 1}`,
       name: f?.name ?? f?.label ?? `File ${i + 1}`,
       visible: f?.visible ?? true,
       type: f?.type ?? "FLOW",
       graphRawData: normalizeGraphRawDataSchema(f?.graphRawData),
-      transform: f?.transform ?? {
-        SCALE_X: 1,
-        SCALE_Y: 1,
-        TRANSLATE_X: 0,
-        TRANSLATE_Y: 0,
-      },
+      transform: normalizeViewport(f?.transform),
+      createdAt: f?.createdAt ?? now,
+      updatedAt: f?.updatedAt ?? f?.createdAt ?? now,
     }));
+  };
+
+  const captureRootDocumentExtras = (root: PersistedRoot) => {
+    const {
+      schemaVersion: _schemaVersion,
+      fileList: _fileList,
+      activeFile: _activeFile,
+      activeFileId: _activeFileId,
+      ...extras
+    } = root;
+    rootDocumentExtras = extras;
   };
 
   const findById = (id?: string) => fileList.value.find((f) => f.id === id);
@@ -217,6 +218,7 @@ export const useFilesStore = defineStore("files", () => {
       // 导入装载属于初始化路径，不经过运行时切换入口
       fileList.value = normalized;
       setActiveFileForBootstrap(resolvedActiveId);
+      captureRootDocumentExtras(root);
 
       showMessage("success", "数据导入成功");
     } catch (error) {
@@ -230,6 +232,7 @@ export const useFilesStore = defineStore("files", () => {
     try {
       const activeName = findById(activeFileId.value)?.name || "";
       const payload: PersistedRoot = {
+        ...rootDocumentExtras,
         schemaVersion: CURRENT_SCHEMA_VERSION,
         fileList: fileList.value as any,
         activeFileId: activeFileId.value || undefined,
@@ -283,6 +286,7 @@ export const useFilesStore = defineStore("files", () => {
 
         fileList.value = normalized;
         setActiveFileForBootstrap(resolvedActiveId);
+        captureRootDocumentExtras(root);
         showMessage("success", "已恢复上次工作区");
         return;
       } catch (error) {
@@ -293,6 +297,7 @@ export const useFilesStore = defineStore("files", () => {
     }
 
     // 无保存数据：使用默认
+    rootDocumentExtras = {};
     fileList.value = normalizeList(defaultState.fileList);
     setActiveFileForBootstrap(defaultState.activeFileId);
   };
@@ -300,6 +305,7 @@ export const useFilesStore = defineStore("files", () => {
   // 提供重置接口：清空本地并回到默认
   const resetWorkspace = () => {
     clearFilesStoreLocalStorage();
+    rootDocumentExtras = {};
     const def = getDefaultState();
     fileList.value = normalizeList(def.fileList);
     setActiveFileForBootstrap(def.activeFileId);
@@ -316,6 +322,7 @@ export const useFilesStore = defineStore("files", () => {
 
   const persistState = () => {
     const state: PersistedRoot = {
+      ...rootDocumentExtras,
       schemaVersion: CURRENT_SCHEMA_VERSION,
       fileList: fileList.value as any,
       activeFileId: activeFileId.value || undefined,
@@ -401,6 +408,7 @@ export const useFilesStore = defineStore("files", () => {
 
     requestAnimationFrame(() => {
       const newFileName = `File ${fileList.value.length + 1}`;
+      const now = Date.now();
       const newFile: FlowFile = {
         id: genId(),
         label: newFileName,
@@ -417,6 +425,8 @@ export const useFilesStore = defineStore("files", () => {
           TRANSLATE_X: 0,
           TRANSLATE_Y: 0,
         },
+        createdAt: now,
+        updatedAt: now,
       };
       fileList.value.push(newFile);
       switchActiveFile(newFile.id);
@@ -521,31 +531,18 @@ export const useFilesStore = defineStore("files", () => {
 
     if (logicFlowInstance && targetId) {
       try {
-        // 获取画布最新数据
-        const graphData = logicFlowInstance.getGraphRawData();
-        const transform = logicFlowInstance.getTransform();
+        const graphData = captureGraphData(logicFlowInstance);
+        const transform = getViewport(logicFlowInstance);
 
         if (graphData) {
-          // 手动添加 zIndex 信息到每个节点
-          const enrichedGraphData = {
-            ...graphData,
-            nodes: (graphData.nodes || []).map((node: any) => {
-              const model = logicFlowInstance.getNodeModelById(node.id);
-              const zIndex = model?.zIndex ?? node.zIndex ?? 1;
-              return {
-                ...node,
-                zIndex: zIndex,
-              };
-            }),
-          };
-          const normalizedGraphData =
-            normalizeGraphRawDataSchema(enrichedGraphData);
+          const normalizedGraphData = normalizeGraphRawDataSchema(graphData);
 
           // 直接保存原始数据到 GraphRawData
           const file = findById(targetId);
           if (file) {
             file.graphRawData = normalizedGraphData;
             file.transform = transform;
+            file.updatedAt = Date.now();
           }
         }
       } catch (error) {

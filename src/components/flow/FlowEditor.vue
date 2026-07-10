@@ -152,12 +152,7 @@ import {
   computed,
 } from "vue";
 import type LogicFlow from "@logicflow/core";
-import type {
-  NodeData,
-  BaseNodeModel,
-  GraphModel,
-  GraphData,
-} from "@logicflow/core";
+import type { NodeData, BaseNodeModel, GraphModel } from "@logicflow/core";
 import "@logicflow/core/lib/style/index.css";
 import "@logicflow/extension/lib/style/index.css";
 import "@logicflow/core/es/index.css";
@@ -170,7 +165,9 @@ import { useFlowEditorRuntime } from "./composables/useFlowEditorRuntime";
 import { useFlowGroupRuleOrchestrator } from "./composables/useFlowGroupRuleOrchestrator";
 import { useFlowLayerCommands } from "./composables/useFlowLayerCommands";
 import { useGlobalMessage } from "@/ts/useGlobalMessage";
-import { destroyLogicFlowInstance, useLogicFlowScope } from "@/ts/useLogicFlow";
+import type { GraphData } from "@/core/document/types";
+import { captureGraphData } from "@/core/logicflow/graphIO";
+import { useLogicFlowScope } from "@/ts/useLogicFlow";
 import {
   normalizePropertiesWithStyle,
   normalizeNodeStyle,
@@ -296,7 +293,7 @@ function shouldSkipShortcut(event?: KeyboardEvent) {
 const emitGraphDataChange = () => {
   const lfInstance = lf.value;
   if (!lfInstance) return;
-  emit("graph-data-change", lfInstance.getGraphRawData() as GraphData);
+  emit("graph-data-change", captureGraphData(lfInstance));
 };
 
 function ensureMeta(meta?: Record<string, any>) {
@@ -834,7 +831,6 @@ onBeforeUnmount(() => {
   disposeFlowEditorRuntime?.();
   disposeFlowEditorRuntime = null;
   disposeGroupRuleOrchestrator();
-  destroyLogicFlowInstance(logicFlowScope);
   destroyCanvasSettingsScope(logicFlowScope);
   lf.value = null;
 });

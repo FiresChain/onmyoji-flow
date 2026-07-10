@@ -25,5 +25,6 @@ export { YysEditorEmbed as YysEditorPreview }; // 别名导出，用于 wiki 预
 export default YysEditorEmbed;
 
 // 类型导出
+export * from "./core/document/types";
 export * from "./YysEditorEmbed.vue";
 export * from "./flowRuntime";

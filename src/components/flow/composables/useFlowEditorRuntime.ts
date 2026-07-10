@@ -1,29 +1,19 @@
-import LogicFlow, { EventType } from "@logicflow/core";
+import { EventType } from "@logicflow/core";
 import type {
   BaseNodeModel,
   EdgeData,
+  default as LogicFlow,
   NodeData,
   Position,
 } from "@logicflow/core";
 import type { Ref } from "vue";
 import {
-  Menu,
-  Label,
-  Snapshot,
-  SelectionSelect,
-  MiniMap,
-  Control,
-  DynamicGroup,
-} from "@logicflow/extension";
-import { register } from "@logicflow/vue-node-registry";
-import PropertySelectNode from "../nodes/yys/PropertySelectNode.vue";
-import ImageNode from "../nodes/common/ImageNode.vue";
-import AssetSelectorNode from "../nodes/common/AssetSelectorNode.vue";
-import TextNode from "../nodes/common/TextNode.vue";
-import TextNodeModel from "../nodes/common/TextNodeModel";
-import VectorNode from "../nodes/common/VectorNode.vue";
-import VectorNodeModel from "../nodes/common/VectorNodeModel";
-import { setLogicFlowInstance, type LogicFlowScope } from "@/ts/useLogicFlow";
+  clearLogicFlowInstance,
+  setLogicFlowInstance,
+  type LogicFlowScope,
+} from "@/ts/useLogicFlow";
+import { createLogicFlowRuntime } from "@/core/logicflow/createRuntime";
+import { getDefaultNodeRegistrations } from "@/editor/node-types/registry";
 import {
   clearAssetNodeReferenceByLabelOwner,
   getAssetLabelOwnerFromNode,
@@ -70,23 +60,6 @@ export interface FlowEditorRuntimeOptions {
   applySelectionSelect: (enabled: boolean) => void;
 }
 
-function registerNodes(lfInstance: LogicFlow) {
-  register(
-    { type: "propertySelect", component: PropertySelectNode },
-    lfInstance,
-  );
-  register({ type: "imageNode", component: ImageNode }, lfInstance);
-  register({ type: "assetSelector", component: AssetSelectorNode }, lfInstance);
-  register(
-    { type: "textNode", component: TextNode, model: TextNodeModel },
-    lfInstance,
-  );
-  register(
-    { type: "vectorNode", component: VectorNode, model: VectorNodeModel },
-    lfInstance,
-  );
-}
-
 export function useFlowEditorRuntime() {
   const mountFlowEditorRuntime = (options: FlowEditorRuntimeOptions) => {
     const {
@@ -123,57 +96,58 @@ export function useFlowEditorRuntime() {
       applySelectionSelect,
     } = options;
 
-    lf.value = new LogicFlow({
+    if (!containerRef.value) {
+      return () => {};
+    }
+
+    const runtime = createLogicFlowRuntime({
       container: containerRef.value,
-      grid: { type: "dot", size: 10 },
-      stopMoveGraph: true,
-      allowResize: true,
-      allowRotate: true,
-      overlapMode: -1,
-      snapline: snaplineEnabled.value,
-      keyboard: {
-        enabled: true,
-      },
-      style: {
-        text: {
-          color: "#333333",
-          fontSize: 14,
-          background: {
-            fill: "#ffffff",
-            stroke: "#dcdfe6",
-            strokeWidth: 1,
-            radius: 4,
+      capability: "interactive",
+      enableLabel,
+      defaultNodeRegistrations: getDefaultNodeRegistrations(),
+      logicFlowOptions: {
+        grid: { type: "dot", size: 10 },
+        stopMoveGraph: true,
+        allowResize: true,
+        allowRotate: true,
+        overlapMode: -1,
+        snapline: snaplineEnabled.value,
+        keyboard: {
+          enabled: true,
+        },
+        style: {
+          text: {
+            color: "#333333",
+            fontSize: 14,
+            background: {
+              fill: "#ffffff",
+              stroke: "#dcdfe6",
+              strokeWidth: 1,
+              radius: 4,
+            },
+          },
+          nodeText: {
+            color: "#333333",
+            fontSize: 14,
           },
         },
-        nodeText: {
-          color: "#333333",
-          fontSize: 14,
-        },
-      },
-      plugins: [
-        DynamicGroup,
-        Menu,
-        ...(enableLabel ? [Label] : []),
-        Snapshot,
-        SelectionSelect,
-        MiniMap,
-        Control,
-      ],
-      pluginsOptions: {
-        label: {
-          isMultiple: false,
-          textOverflowMode: "wrap",
-        },
-        miniMap: {
-          isShowHeader: false,
-          isShowCloseIcon: true,
-          width: 200,
-          height: 140,
-          rightPosition: 16,
-          bottomPosition: 16,
+        pluginsOptions: {
+          label: {
+            isMultiple: false,
+            textOverflowMode: "wrap",
+          },
+          miniMap: {
+            isShowHeader: false,
+            isShowCloseIcon: true,
+            width: 200,
+            height: 140,
+            rightPosition: 16,
+            bottomPosition: 16,
+          },
         },
       },
     });
+    lf.value = runtime.instance;
 
     const lfInstance = lf.value;
     if (!lfInstance) {
@@ -353,7 +327,6 @@ export function useFlowEditorRuntime() {
       ],
     });
 
-    registerNodes(lfInstance);
     setLogicFlowInstance(lfInstance, logicFlowScope);
     snapGridEnabled.value = configSnapGridEnabled;
     snaplineEnabled.value = configSnaplineEnabled;
@@ -539,7 +512,13 @@ export function useFlowEditorRuntime() {
       logClipboardDebug("selection:drop");
     });
 
-    return () => {};
+    return () => {
+      runtime.dispose();
+      clearLogicFlowInstance(logicFlowScope, lfInstance);
+      if (lf.value === lfInstance) {
+        lf.value = null;
+      }
+    };
   };
 
   return {

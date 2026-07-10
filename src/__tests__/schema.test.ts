@@ -179,6 +179,38 @@ describe("Schema 数据结构验证", () => {
     expect(migratedNode.properties.meta.z).toBeUndefined();
   });
 
+  it("migrateToV1 应通过兼容入口保留未知文档和文件字段", () => {
+    const migrated = migrateToV1({
+      rootExtension: { owner: "plugin-a" },
+      activeFile: "File 1",
+      fileList: [
+        {
+          id: "file-1",
+          name: "File 1",
+          label: "File 1",
+          visible: true,
+          type: "FLOW",
+          fileExtension: "keep-file",
+          graphRawData: {
+            graphExtension: "keep-graph",
+            nodes: [],
+            edges: [],
+          },
+        },
+      ],
+    });
+
+    expect(migrated).toMatchObject({
+      rootExtension: { owner: "plugin-a" },
+      fileList: [
+        {
+          fileExtension: "keep-file",
+          graphRawData: { graphExtension: "keep-graph" },
+        },
+      ],
+    });
+  });
+
   it("RootDocument schema 常量应与当前版本一致", () => {
     expect(ROOT_DOCUMENT_V1_SCHEMA.properties.schemaVersion.const).toBe(
       CURRENT_SCHEMA_VERSION,

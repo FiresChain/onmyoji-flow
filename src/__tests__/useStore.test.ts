@@ -504,6 +504,45 @@ describe("useFilesStore 数据操作测试", () => {
     expect(logicFlowMocks.getGraphRawData).not.toHaveBeenCalled();
   });
 
+  it("import -> persist 应保留 RootDocument 与文件扩展字段", () => {
+    vi.useFakeTimers();
+    try {
+      const store = useFilesStore();
+      store.importData({
+        ...createSampleRootDocument(),
+        workspaceMeta: { owner: "contract-owner" },
+        fileList: createSampleRootDocument().fileList.map((file, index) => ({
+          ...file,
+          createdAt: 100 + index,
+          updatedAt: 200 + index,
+          featureMeta: { index },
+        })),
+      });
+
+      store.updateTab("file-1");
+      vi.advanceTimersByTime(1000);
+
+      const persisted = JSON.parse(
+        localStorageMock.getItem("filesStore") || "{}",
+      );
+      expect(persisted.workspaceMeta).toEqual({ owner: "contract-owner" });
+      expect(persisted.fileList[0]).toMatchObject({
+        id: "file-1",
+        createdAt: 100,
+        featureMeta: { index: 0 },
+      });
+      expect(persisted.fileList[0].updatedAt).toEqual(expect.any(Number));
+      expect(persisted.fileList[1]).toMatchObject({
+        id: "file-2",
+        createdAt: 101,
+        updatedAt: 201,
+        featureMeta: { index: 1 },
+      });
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("importData 遇到 schema 校验失败时不应污染当前状态", () => {
     const store = useFilesStore();
     store.initializeWithPrompt();

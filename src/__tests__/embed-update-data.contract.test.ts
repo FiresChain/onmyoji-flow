@@ -1,9 +1,14 @@
-import { describe, expect, it } from "vitest";
-import { defineComponent, h } from "vue";
+import { describe, expect, it, vi } from "vitest";
+import { defineComponent, h, onBeforeUnmount } from "vue";
 import { mount } from "@vue/test-utils";
 import YysEditorEmbed, { type GraphData } from "@/YysEditorEmbed.vue";
 import flowEditorSource from "@/components/flow/FlowEditor.vue?raw";
 import flowEditorRuntimeSource from "@/components/flow/composables/useFlowEditorRuntime.ts?raw";
+import {
+  clearLogicFlowInstance,
+  setLogicFlowInstance,
+  useLogicFlowScope,
+} from "@/ts/useLogicFlow";
 
 const normalizeQuoteStyle = (text: string) => text.replace(/['"]/g, '"');
 
@@ -129,6 +134,43 @@ const createFlowEditorMultiChangeStub = (payloads: GraphData[]) =>
   });
 
 describe("YysEditorEmbed update:data contract", () => {
+  it("lets the FlowEditor runtime destroy its instance exactly once on unmount", () => {
+    const destroy = vi.fn();
+    const RuntimeOwnerStub = defineComponent({
+      name: "FlowEditor",
+      setup() {
+        const scope = useLogicFlowScope();
+        const instance = { destroy };
+        setLogicFlowInstance(instance as any, scope);
+        onBeforeUnmount(() => {
+          instance.destroy();
+          clearLogicFlowInstance(scope, instance as any);
+        });
+        return () => h("div", { class: "runtime-owner-stub" });
+      },
+    });
+
+    const wrapper = mount(YysEditorEmbed, {
+      props: {
+        mode: "edit",
+        showToolbar: false,
+        showComponentPanel: false,
+      },
+      global: {
+        stubs: {
+          FlowEditor: RuntimeOwnerStub,
+          Toolbar: true,
+          ComponentsPanel: true,
+          DialogManager: true,
+        },
+      },
+    });
+
+    wrapper.unmount();
+
+    expect(destroy).toHaveBeenCalledTimes(1);
+  });
+
   it("emits update:data in edit mode when FlowEditor reports graph data change", async () => {
     const payload: GraphData = {
       nodes: [
@@ -235,7 +277,9 @@ describe("YysEditorEmbed update:data contract", () => {
     });
 
     const runtimeRequiredSnippets = [
-      "lf.value = new LogicFlow({",
+      "const runtime = createLogicFlowRuntime({",
+      "defaultNodeRegistrations: getDefaultNodeRegistrations(),",
+      "lf.value = runtime.instance;",
       "setLogicFlowInstance(lfInstance, logicFlowScope);",
       "lfInstance.on(EventType.NODE_ADD",
       "lfInstance.on('node:dnd-add'",
@@ -249,6 +293,7 @@ describe("YysEditorEmbed update:data contract", () => {
       "lfInstance.on(EventType.EDGE_ADJUST",
       "lfInstance.on(EventType.EDGE_EXCHANGE_NODE",
       "lfInstance.on(EventType.HISTORY_CHANGE",
+      "runtime.dispose();",
     ];
     runtimeRequiredSnippets.forEach((snippet) => {
       expectContainsIgnoringQuoteStyle(flowEditorRuntimeSource, snippet);

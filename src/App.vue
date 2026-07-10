@@ -10,6 +10,10 @@ import {
   getLogicFlowInstance,
   provideLogicFlowScope,
 } from "@/ts/useLogicFlow";
+import { normalizeGraph } from "@/core/document/normalizeGraph";
+import type { GraphData } from "@/core/document/types";
+import { renderGraphData } from "@/core/logicflow/graphIO";
+import { normalizeViewport, setViewport } from "@/core/logicflow/viewport";
 import { migrateGraphData } from "@/utils/nodeMigration";
 import { useGlobalMessage } from "@/ts/useGlobalMessage";
 
@@ -22,43 +26,30 @@ const activeFileModel = computed({
   set: (value: string) => filesStore.setActiveFile(value),
 });
 
-const normalizeGraphData = (data: any) => {
-  if (
-    data &&
-    Array.isArray((data as any).nodes) &&
-    Array.isArray((data as any).edges)
-  ) {
-    // 应用数据迁移
-    const {
-      graphData: migratedData,
-      migratedCount,
-      migrations,
-    } = migrateGraphData(data);
-
-    // 如果有迁移，显示提示信息
-    if (migratedCount > 0) {
-      console.log(`[数据迁移] 迁移了 ${migratedCount} 个节点:`, migrations);
-      showMessage("info", `已自动升级 ${migratedCount} 个节点到新版本`);
-    }
-
-    // 清理节点数据，移除可能导致 Label 插件出错的空 _label 数组
-    const cleanedData = {
-      ...migratedData,
-      nodes: migratedData.nodes.map((node: any) => {
-        const cleanedNode = { ...node };
-        if (
-          cleanedNode.properties &&
-          Array.isArray(cleanedNode.properties._label) &&
-          cleanedNode.properties._label.length === 0
-        ) {
-          delete cleanedNode.properties._label;
-        }
-        return cleanedNode;
-      }),
-    };
-    return cleanedData;
+const normalizeGraphData = (data: unknown): GraphData => {
+  const { graphData, migratedCount } = migrateGraphData(normalizeGraph(data));
+  if (migratedCount > 0) {
+    showMessage("info", `已自动升级 ${migratedCount} 个节点到新版本`);
   }
-  return { nodes: [], edges: [] };
+  return normalizeGraph(graphData);
+};
+
+const renderWorkspaceFile = (fileId?: string) => {
+  const logicFlowInstance = getLogicFlowInstance(logicFlowScope);
+  const currentTab = filesStore.getTab(fileId || filesStore.activeFileId);
+  if (!logicFlowInstance || !currentTab?.graphRawData) {
+    return;
+  }
+
+  try {
+    renderGraphData(
+      logicFlowInstance,
+      normalizeGraphData(currentTab.graphRawData),
+    );
+    setViewport(logicFlowInstance, normalizeViewport(currentTab.transform));
+  } catch (error) {
+    console.warn("渲染画布数据失败:", error);
+  }
 };
 
 const handleTabsEdit = (
@@ -83,34 +74,7 @@ watch(
   () => filesStore.activeFileId,
   (newId) => {
     if (newId) {
-      const logicFlowInstance = getLogicFlowInstance(logicFlowScope);
-      const currentTab = filesStore.getTab(newId);
-
-      if (logicFlowInstance && currentTab?.graphRawData) {
-        try {
-          const graphData = normalizeGraphData(currentTab.graphRawData);
-          logicFlowInstance.render(graphData);
-
-          // 渲染后立即恢复 zIndex
-          if (graphData.nodes) {
-            graphData.nodes.forEach((nodeData: any) => {
-              if (nodeData.zIndex !== undefined) {
-                const model = logicFlowInstance.getNodeModelById(nodeData.id);
-                if (model) {
-                  model.setZIndex(nodeData.zIndex);
-                }
-              }
-            });
-          }
-
-          logicFlowInstance.zoom(currentTab.transform?.SCALE_X ?? 1, [
-            currentTab.transform?.TRANSLATE_X ?? 0,
-            currentTab.transform?.TRANSLATE_Y ?? 0,
-          ]);
-        } catch (error) {
-          console.warn("渲染画布数据失败:", error);
-        }
-      }
+      renderWorkspaceFile(newId);
     }
   },
   { flush: "post" },
@@ -120,37 +84,7 @@ watch(
 watch(
   () => filesStore.fileList,
   () => {
-    const logicFlowInstance = getLogicFlowInstance(logicFlowScope);
-    const currentTab = filesStore.getTab(filesStore.activeFileId);
-
-    if (logicFlowInstance && currentTab?.graphRawData) {
-      try {
-        const graphData = normalizeGraphData(currentTab.graphRawData);
-        logicFlowInstance.render(graphData);
-
-        // 渲染后立即恢复 zIndex
-        if (graphData.nodes) {
-          graphData.nodes.forEach((nodeData: any) => {
-            if (nodeData.zIndex !== undefined) {
-              const model = logicFlowInstance.getNodeModelById(nodeData.id);
-              if (model) {
-                console.log(
-                  `[导入数据] 恢复节点 ${nodeData.id} 的 zIndex: ${nodeData.zIndex}`,
-                );
-                model.setZIndex(nodeData.zIndex);
-              }
-            }
-          });
-        }
-
-        logicFlowInstance.zoom(currentTab.transform?.SCALE_X ?? 1, [
-          currentTab.transform?.TRANSLATE_X ?? 0,
-          currentTab.transform?.TRANSLATE_Y ?? 0,
-        ]);
-      } catch (error) {
-        console.warn("渲染画布数据失败:", error);
-      }
-    }
+    renderWorkspaceFile();
   },
   { flush: "post" },
 );

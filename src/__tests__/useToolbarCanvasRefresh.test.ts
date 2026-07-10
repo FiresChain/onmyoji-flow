@@ -20,7 +20,6 @@ describe("useToolbarCanvasRefresh", () => {
     const nodeModelA = { setZIndex: vi.fn() };
     const nodeModelB = { setZIndex: vi.fn() };
     const logicFlowInstance = {
-      clearData: vi.fn(),
       render: vi.fn(),
       getNodeModelById: vi.fn((nodeId: string) => {
         if (nodeId === "node-a") return nodeModelA;
@@ -28,6 +27,9 @@ describe("useToolbarCanvasRefresh", () => {
         return null;
       }),
       zoom: vi.fn(),
+      translate: vi.fn(),
+      resetZoom: vi.fn(),
+      resetTranslate: vi.fn(),
     };
 
     vi.mocked(getLogicFlowInstance).mockReturnValue(logicFlowInstance as never);
@@ -44,6 +46,7 @@ describe("useToolbarCanvasRefresh", () => {
         },
         transform: {
           SCALE_X: 1.5,
+          SCALE_Y: 1.5,
           TRANSLATE_X: 40,
           TRANSLATE_Y: -16,
         },
@@ -56,24 +59,27 @@ describe("useToolbarCanvasRefresh", () => {
     });
 
     refreshLogicFlowCanvas();
-    expect(logicFlowInstance.clearData).not.toHaveBeenCalled();
 
     vi.advanceTimersByTime(100);
 
-    expect(logicFlowInstance.clearData).toHaveBeenCalledTimes(1);
     expect(logicFlowInstance.render).toHaveBeenCalledTimes(1);
     expect(nodeModelA.setZIndex).toHaveBeenCalledWith(12);
     expect(nodeModelB.setZIndex).toHaveBeenCalledWith(3);
-    expect(logicFlowInstance.zoom).toHaveBeenCalledWith(1.5, [40, -16]);
+    expect(logicFlowInstance.resetZoom).toHaveBeenCalledTimes(1);
+    expect(logicFlowInstance.resetTranslate).toHaveBeenCalledTimes(1);
+    expect(logicFlowInstance.zoom).toHaveBeenCalledWith(1.5);
+    expect(logicFlowInstance.translate).toHaveBeenCalledWith(40, -16);
   });
 
   it("refreshLogicFlowCanvas 在非法 zIndex 与缺失 transform 时应安全跳过", () => {
     const nodeModel = { setZIndex: vi.fn() };
     const logicFlowInstance = {
-      clearData: vi.fn(),
       render: vi.fn(),
       getNodeModelById: vi.fn(() => nodeModel),
       zoom: vi.fn(),
+      translate: vi.fn(),
+      resetZoom: vi.fn(),
+      resetTranslate: vi.fn(),
     };
 
     vi.mocked(getLogicFlowInstance).mockReturnValue(logicFlowInstance as never);
@@ -96,9 +102,32 @@ describe("useToolbarCanvasRefresh", () => {
     refreshLogicFlowCanvas();
     vi.advanceTimersByTime(100);
 
-    expect(logicFlowInstance.clearData).toHaveBeenCalledTimes(1);
     expect(logicFlowInstance.render).toHaveBeenCalledTimes(1);
     expect(nodeModel.setZIndex).not.toHaveBeenCalled();
-    expect(logicFlowInstance.zoom).not.toHaveBeenCalled();
+    expect(logicFlowInstance.resetZoom).toHaveBeenCalledTimes(1);
+    expect(logicFlowInstance.resetTranslate).toHaveBeenCalledTimes(1);
+    expect(logicFlowInstance.zoom).toHaveBeenCalledWith(1);
+    expect(logicFlowInstance.translate).toHaveBeenCalledWith(0, 0);
+  });
+
+  it("disposeCanvasRefresh 应取消尚未执行的刷新", () => {
+    const logicFlowInstance = { render: vi.fn() };
+    vi.mocked(getLogicFlowInstance).mockReturnValue(logicFlowInstance as never);
+    const filesStore = {
+      activeFileId: "file-3",
+      getTab: vi.fn(() => ({ graphRawData: { nodes: [], edges: [] } })),
+    };
+
+    const { refreshLogicFlowCanvas, disposeCanvasRefresh } =
+      useToolbarCanvasRefresh({
+        filesStore,
+        logicFlowScope: Symbol("scope"),
+      });
+
+    refreshLogicFlowCanvas();
+    disposeCanvasRefresh();
+    vi.advanceTimersByTime(100);
+
+    expect(getLogicFlowInstance).not.toHaveBeenCalled();
   });
 });

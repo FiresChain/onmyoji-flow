@@ -1,57 +1,33 @@
 import type LogicFlow from "@logicflow/core";
+
 import {
-  Menu,
-  Label,
-  Snapshot,
-  SelectionSelect,
-  MiniMap,
-  Control,
-  DynamicGroup,
-} from "@logicflow/extension";
-import { register } from "@logicflow/vue-node-registry";
+  getFlowPluginsByCapability as getPluginPreset,
+  resolveFlowPlugins as resolvePluginPreset,
+} from "@/core/logicflow/pluginPresets";
+import { registerFlowNodes as applyNodeRegistrations } from "@/core/logicflow/registerNodes";
+import type {
+  FlowCapabilityLevel as CoreFlowCapabilityLevel,
+  FlowNodeRegistration as CoreFlowNodeRegistration,
+  FlowPlugin as CoreFlowPlugin,
+} from "@/core/logicflow/types";
+import { getDefaultNodeRegistrations } from "@/editor/node-types/registry";
 
-import ImageNode from "./components/flow/nodes/common/ImageNode.vue";
-import AssetSelectorNode from "./components/flow/nodes/common/AssetSelectorNode.vue";
-import TextNode from "./components/flow/nodes/common/TextNode.vue";
-import TextNodeModel from "./components/flow/nodes/common/TextNodeModel";
-import VectorNode from "./components/flow/nodes/common/VectorNode.vue";
-import VectorNodeModel from "./components/flow/nodes/common/VectorNodeModel";
+export type FlowCapabilityLevel = CoreFlowCapabilityLevel;
 
-export type FlowCapabilityLevel = "render-only" | "interactive";
-
+// Keep the published facade permissive for existing non-Vue registrations.
 export interface FlowNodeRegistration {
   type: string;
   component?: any;
   model?: any;
+  [key: string]: any;
 }
 
 export type FlowPlugin = any;
 
-const DEFAULT_FLOW_NODES: FlowNodeRegistration[] = [
-  { type: "imageNode", component: ImageNode },
-  { type: "assetSelector", component: AssetSelectorNode },
-  { type: "textNode", component: TextNode, model: TextNodeModel },
-  { type: "vectorNode", component: VectorNode, model: VectorNodeModel },
-];
-
-const FLOW_PLUGIN_PRESETS: Record<FlowCapabilityLevel, FlowPlugin[]> = {
-  // 预览模式也需要 DynamicGroup，避免包含 dynamic-group 节点的图在只读渲染时报错
-  "render-only": [DynamicGroup, Snapshot],
-  interactive: [
-    DynamicGroup,
-    Menu,
-    Label,
-    Snapshot,
-    SelectionSelect,
-    MiniMap,
-    Control,
-  ],
-};
-
 export function getFlowPluginsByCapability(
   capability: FlowCapabilityLevel,
 ): FlowPlugin[] {
-  return [...FLOW_PLUGIN_PRESETS[capability]];
+  return getPluginPreset(capability) as FlowPlugin[];
 }
 
 export function resolveFlowPlugins(
@@ -61,11 +37,11 @@ export function resolveFlowPlugins(
   if (Array.isArray(plugins) && plugins.length > 0) {
     return plugins;
   }
-  return getFlowPluginsByCapability(capability);
+  return resolvePluginPreset(capability, plugins as CoreFlowPlugin[]);
 }
 
 export function getDefaultFlowNodes(): FlowNodeRegistration[] {
-  return [...DEFAULT_FLOW_NODES];
+  return getDefaultNodeRegistrations() as FlowNodeRegistration[];
 }
 
 export function resolveFlowNodes(
@@ -80,7 +56,9 @@ export function resolveFlowNodes(
 export function registerFlowNodes(
   lfInstance: LogicFlow,
   nodes?: FlowNodeRegistration[],
-) {
-  const registrations = resolveFlowNodes(nodes);
-  registrations.forEach((registration) => register(registration, lfInstance));
+): void {
+  applyNodeRegistrations(
+    lfInstance,
+    resolveFlowNodes(nodes) as CoreFlowNodeRegistration[],
+  );
 }

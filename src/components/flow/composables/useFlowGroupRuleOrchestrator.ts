@@ -1,6 +1,6 @@
 import type LogicFlow from "@logicflow/core";
-import type { GraphData } from "@logicflow/core";
 import { ref, type Ref } from "vue";
+import { captureGraphData } from "@/core/logicflow/graphIO";
 import {
   validateGraphGroupRules,
   type GroupRuleWarning,
@@ -30,7 +30,7 @@ export function useFlowGroupRuleOrchestrator(
       groupRuleWarnings.value = [];
       return;
     }
-    const graphData = lfInstance.getGraphRawData() as GraphData;
+    const graphData = captureGraphData(lfInstance);
     groupRuleWarnings.value = validateGraphGroupRules(graphData);
   }
 

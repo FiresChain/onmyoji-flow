@@ -1,4 +1,6 @@
 import { ElMessageBox } from "element-plus";
+import { clearGraphData } from "@/core/logicflow/graphIO";
+import { resetViewport } from "@/core/logicflow/viewport";
 import { getLogicFlowInstance, type LogicFlowScope } from "@/ts/useLogicFlow";
 
 type MessageType = "success" | "warning" | "info" | "error";
@@ -101,9 +103,8 @@ export function useToolbarWorkspaceCommands(
         const activeFile = filesStore.getTab(activeId);
 
         if (lfInstance) {
-          lfInstance.clearData();
-          lfInstance.render({ nodes: [], edges: [] });
-          lfInstance.zoom(1, [0, 0]);
+          clearGraphData(lfInstance);
+          resetViewport(lfInstance);
         }
 
         if (activeFile) {

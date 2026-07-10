@@ -1,3 +1,5 @@
+import { normalizeGraph } from "@/core/document/normalizeGraph";
+import type { GraphData } from "@/core/document/types";
 import { normalizeAssetLibraryId } from "@/utils/assetLibrary";
 
 export const GROUP_META_VERSION = 1;
@@ -45,14 +47,6 @@ const normalizeStringList = (value: unknown, fallback: string[]): string[] => {
     .map((item) => normalizeText(item))
     .filter((item) => !!item);
   return normalized.length ? Array.from(new Set(normalized)) : [...fallback];
-};
-
-const normalizeZIndex = (value: unknown): number | undefined => {
-  const parsed = Number(value);
-  if (!Number.isFinite(parsed)) {
-    return undefined;
-  }
-  return Math.trunc(parsed);
 };
 
 export const normalizeDynamicGroupMeta = (
@@ -142,52 +136,18 @@ export const normalizeSelectedAssetRecord = (
   };
 };
 
-export const normalizeGraphRawDataSchema = (
-  graphData: any,
-): { nodes: any[]; edges: any[] } => {
-  const rawNodes = Array.isArray(graphData?.nodes) ? graphData.nodes : [];
-  const rawEdges = Array.isArray(graphData?.edges) ? graphData.edges : [];
-
-  const nodes = rawNodes.map((node: any) => {
+export const normalizeGraphRawDataSchema = (graphData: unknown): GraphData => {
+  const normalizedGraph = normalizeGraph(graphData);
+  const nodes = normalizedGraph.nodes.map((node) => {
     const properties =
       node?.properties && typeof node.properties === "object"
         ? { ...node.properties }
         : {};
-    const meta =
-      properties.meta && typeof properties.meta === "object"
-        ? { ...properties.meta }
-        : undefined;
-    const normalizedZIndex =
-      normalizeZIndex(node?.zIndex) ??
-      normalizeZIndex(meta?.zIndex) ??
-      normalizeZIndex(meta?.z);
-
-    if (meta) {
-      delete meta.z;
-      delete meta.zIndex;
-      if (Object.keys(meta).length) {
-        properties.meta = meta;
-      } else {
-        delete properties.meta;
-      }
-    }
-    const normalizedNode =
-      normalizedZIndex != null
-        ? {
-            ...node,
-            zIndex: normalizedZIndex,
-          }
-        : {
-            ...node,
-          };
-    if (normalizedZIndex == null) {
-      delete normalizedNode.zIndex;
-    }
 
     if (node?.type === "dynamic-group") {
       const children = getDynamicGroupChildIds(node);
       return {
-        ...normalizedNode,
+        ...node,
         children,
         properties: {
           ...properties,
@@ -205,25 +165,28 @@ export const normalizeGraphRawDataSchema = (
         properties.selectedAsset,
         normalizedLibrary,
       );
+      const selectedAssetLibrary = normalizeAssetLibraryId(
+        selectedAsset?.library,
+      );
       return {
-        ...normalizedNode,
+        ...node,
         properties: {
           ...properties,
           assetLibrary:
-            selectedAsset?.library || normalizedLibrary || "shikigami",
+            selectedAssetLibrary || normalizedLibrary || "shikigami",
           selectedAsset,
         },
       };
     }
 
     return {
-      ...normalizedNode,
+      ...node,
       properties,
     };
   });
 
   return {
+    ...normalizedGraph,
     nodes,
-    edges: rawEdges,
   };
 };

@@ -156,8 +156,10 @@ describe("useToolbarWorkspaceCommands", () => {
     const context = createContext();
     const lfInstance = {
       clearData: vi.fn(),
-      render: vi.fn(),
       zoom: vi.fn(),
+      translate: vi.fn(),
+      resetZoom: vi.fn(),
+      resetTranslate: vi.fn(),
     };
 
     vi.mocked(ElMessageBox.confirm).mockResolvedValue("confirm" as never);
@@ -167,8 +169,10 @@ describe("useToolbarWorkspaceCommands", () => {
     await flushMicrotasks();
 
     expect(lfInstance.clearData).toHaveBeenCalledTimes(1);
-    expect(lfInstance.render).toHaveBeenCalledWith({ nodes: [], edges: [] });
-    expect(lfInstance.zoom).toHaveBeenCalledWith(1, [0, 0]);
+    expect(lfInstance.resetZoom).toHaveBeenCalledTimes(1);
+    expect(lfInstance.resetTranslate).toHaveBeenCalledTimes(1);
+    expect(lfInstance.zoom).toHaveBeenCalledWith(1);
+    expect(lfInstance.translate).toHaveBeenCalledWith(0, 0);
     expect(context.activeFile).toBeDefined();
     expect(context.activeFile?.graphRawData).toEqual({ nodes: [], edges: [] });
     expect(context.activeFile?.transform).toEqual({
@@ -188,8 +192,10 @@ describe("useToolbarWorkspaceCommands", () => {
     const context = createContext();
     const lfInstance = {
       clearData: vi.fn(),
-      render: vi.fn(),
       zoom: vi.fn(),
+      translate: vi.fn(),
+      resetZoom: vi.fn(),
+      resetTranslate: vi.fn(),
     };
 
     vi.mocked(ElMessageBox.confirm).mockRejectedValue(new Error("cancel"));
@@ -199,8 +205,8 @@ describe("useToolbarWorkspaceCommands", () => {
     await flushMicrotasks();
 
     expect(lfInstance.clearData).not.toHaveBeenCalled();
-    expect(lfInstance.render).not.toHaveBeenCalled();
     expect(lfInstance.zoom).not.toHaveBeenCalled();
+    expect(lfInstance.translate).not.toHaveBeenCalled();
     expect(context.filesStore.updateTab).not.toHaveBeenCalled();
     expect(context.showMessage).not.toHaveBeenCalledWith(
       "success",
@@ -236,8 +242,10 @@ describe("useToolbarWorkspaceCommands", () => {
     const context = createContext({ activeFile: null });
     const lfInstance = {
       clearData: vi.fn(),
-      render: vi.fn(),
       zoom: vi.fn(),
+      translate: vi.fn(),
+      resetZoom: vi.fn(),
+      resetTranslate: vi.fn(),
     };
 
     vi.mocked(ElMessageBox.confirm).mockResolvedValue("confirm" as never);
@@ -248,8 +256,10 @@ describe("useToolbarWorkspaceCommands", () => {
 
     expect(context.activeFile).toBeUndefined();
     expect(lfInstance.clearData).toHaveBeenCalledTimes(1);
-    expect(lfInstance.render).toHaveBeenCalledWith({ nodes: [], edges: [] });
-    expect(lfInstance.zoom).toHaveBeenCalledWith(1, [0, 0]);
+    expect(lfInstance.resetZoom).toHaveBeenCalledTimes(1);
+    expect(lfInstance.resetTranslate).toHaveBeenCalledTimes(1);
+    expect(lfInstance.zoom).toHaveBeenCalledWith(1);
+    expect(lfInstance.translate).toHaveBeenCalledWith(0, 0);
     expect(context.filesStore.updateTab).not.toHaveBeenCalled();
     expect(context.showMessage).toHaveBeenCalledWith(
       "success",

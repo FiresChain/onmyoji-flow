@@ -14,20 +14,3 @@ declare const global: any;
 declare namespace NodeJS {
   type Timeout = number;
 }
-
-interface FlowFile {
-  id?: string;
-  name: string;
-  label: string;
-  type: string;
-  visible: boolean;
-  graphRawData: unknown;
-  transform: {
-    SCALE_X: number;
-    SCALE_Y: number;
-    TRANSLATE_X: number;
-    TRANSLATE_Y: number;
-  };
-  createdAt: number;
-  updatedAt: number;
-}

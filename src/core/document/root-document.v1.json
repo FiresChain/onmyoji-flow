@@ -3,7 +3,7 @@
   "$id": "https://rookie4show.github.io/onmyoji-flow/schemas/root-document.v1.json",
   "title": "Onmyoji Flow RootDocument v1",
   "type": "object",
-  "additionalProperties": false,
+  "additionalProperties": true,
   "required": ["schemaVersion", "fileList", "activeFile"],
   "properties": {
     "schemaVersion": {
@@ -28,7 +28,7 @@
   "$defs": {
     "transform": {
       "type": "object",
-      "additionalProperties": false,
+      "additionalProperties": true,
       "required": ["SCALE_X", "SCALE_Y", "TRANSLATE_X", "TRANSLATE_Y"],
       "properties": {
         "SCALE_X": { "type": "number" },
@@ -72,7 +72,7 @@
     },
     "graphDocument": {
       "type": "object",
-      "additionalProperties": false,
+      "additionalProperties": true,
       "required": ["nodes", "edges"],
       "properties": {
         "nodes": {
