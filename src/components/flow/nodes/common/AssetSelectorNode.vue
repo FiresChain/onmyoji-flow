@@ -3,7 +3,7 @@ import { computed, ref, inject, onMounted, onBeforeUnmount } from "vue";
 import type { CSSProperties } from "vue";
 import { toTextStyle } from "@/ts/nodeStyle";
 import { useNodeAppearance } from "@/ts/useNodeAppearance";
-import { resolveAssetUrl } from "@/utils/assetUrl";
+import { useEditorAssetUrlResolver } from "@/editor/context/useEditorContext";
 
 const currentAsset = ref({
   name: "未选择资产",
@@ -11,6 +11,7 @@ const currentAsset = ref({
   library: "shikigami",
 });
 const getNode = inject("getNode") as (() => any) | undefined;
+const resolveAssetUrl = useEditorAssetUrlResolver();
 const zIndex = ref(1);
 let intervalId: number | null = null;
 

@@ -127,18 +127,30 @@ const isPlainObject = (value: unknown): value is Record<string, any> =>
   Object.prototype.toString.call(value) === "[object Object]";
 
 export const rewriteAssetUrlsDeep = <T>(input: T): T => {
+  return rewriteAssetUrlsDeepWithResolver(input, resolveAssetUrl);
+};
+
+export const rewriteAssetUrlsDeepWithResolver = <T>(
+  input: T,
+  resolver: (value: unknown) => unknown,
+): T => {
   if (typeof input === "string") {
-    return resolveAssetUrl(input) as T;
+    return resolver(input) as T;
   }
 
   if (Array.isArray(input)) {
-    return input.map((item) => rewriteAssetUrlsDeep(item)) as T;
+    return input.map((item) =>
+      rewriteAssetUrlsDeepWithResolver(item, resolver),
+    ) as T;
   }
 
   if (isPlainObject(input)) {
     const output: Record<string, any> = {};
     Object.keys(input).forEach((key) => {
-      output[key] = rewriteAssetUrlsDeep((input as Record<string, any>)[key]);
+      output[key] = rewriteAssetUrlsDeepWithResolver(
+        (input as Record<string, any>)[key],
+        resolver,
+      );
     });
     return output as T;
   }
@@ -150,6 +162,19 @@ export const resolveAssetUrlsInDataSource = <T extends Record<string, any>>(
   dataSource: T[],
   imageField: string,
 ): T[] =>
+  resolveAssetUrlsInDataSourceWithResolver(
+    dataSource,
+    imageField,
+    resolveAssetUrl,
+  );
+
+export const resolveAssetUrlsInDataSourceWithResolver = <
+  T extends Record<string, any>,
+>(
+  dataSource: T[],
+  imageField: string,
+  resolver: (value: unknown) => unknown,
+): T[] =>
   dataSource.map((item) => {
     const imageValue = item?.[imageField];
     if (typeof imageValue !== "string") {
@@ -157,6 +182,6 @@ export const resolveAssetUrlsInDataSource = <T extends Record<string, any>>(
     }
     return {
       ...item,
-      [imageField]: resolveAssetUrl(imageValue),
+      [imageField]: resolver(imageValue),
     };
   });

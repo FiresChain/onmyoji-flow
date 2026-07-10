@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import {
+  clearLogicFlowInstance,
   createLogicFlowScope,
   destroyLogicFlowInstance,
   getLogicFlowInstance,
@@ -10,19 +11,8 @@ const createMockLogicFlow = () => ({
   destroy: vi.fn(),
 });
 
-describe("useLogicFlow scope isolation", () => {
-  it("keeps default-scope API compatibility", () => {
-    const lf = createMockLogicFlow();
-
-    setLogicFlowInstance(lf as any);
-    expect(getLogicFlowInstance()).toBe(lf);
-
-    destroyLogicFlowInstance();
-    expect(lf.destroy).toHaveBeenCalledTimes(1);
-    expect(getLogicFlowInstance()).toBeNull();
-  });
-
-  it("isolates instances across scopes", () => {
+describe("useLogicFlow EditorContext compatibility", () => {
+  it("keeps explicit instance scopes isolated without a module registry", () => {
     const scopeA = createLogicFlowScope();
     const scopeB = createLogicFlowScope();
     const lfA = createMockLogicFlow();
@@ -35,12 +25,29 @@ describe("useLogicFlow scope isolation", () => {
     expect(getLogicFlowInstance(scopeB)).toBe(lfB);
 
     destroyLogicFlowInstance(scopeA);
-    expect(lfA.destroy).toHaveBeenCalledTimes(1);
+    expect(lfA.destroy).toHaveBeenCalledOnce();
     expect(getLogicFlowInstance(scopeA)).toBeNull();
     expect(getLogicFlowInstance(scopeB)).toBe(lfB);
 
     destroyLogicFlowInstance(scopeB);
-    expect(lfB.destroy).toHaveBeenCalledTimes(1);
-    expect(getLogicFlowInstance(scopeB)).toBeNull();
+    expect(lfB.destroy).toHaveBeenCalledOnce();
+  });
+
+  it("uses identity checks when a stale owner tries to clear a replacement", () => {
+    const scope = createLogicFlowScope();
+    const first = createMockLogicFlow();
+    const second = createMockLogicFlow();
+
+    setLogicFlowInstance(first as any, scope);
+    setLogicFlowInstance(second as any, scope);
+    clearLogicFlowInstance(scope, first as any);
+
+    expect(first.destroy).toHaveBeenCalledOnce();
+    expect(second.destroy).not.toHaveBeenCalled();
+    expect(getLogicFlowInstance(scope)).toBe(second);
+
+    clearLogicFlowInstance(scope, second as any);
+    expect(second.destroy).toHaveBeenCalledOnce();
+    expect(getLogicFlowInstance(scope)).toBeNull();
   });
 });

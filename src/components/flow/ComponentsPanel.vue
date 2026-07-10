@@ -10,7 +10,7 @@ import iconVector from "@/assets/component-icons/vector.svg";
 import type { AssetLibraryId } from "@/types/assets";
 import { getLogicFlowInstance, useLogicFlowScope } from "@/ts/useLogicFlow";
 import { useSafeI18n } from "@/ts/useSafeI18n";
-import { resolveAssetUrl } from "@/utils/assetUrl";
+import { useEditorAssetUrlResolver } from "@/editor/context/useEditorContext";
 import {
   readNodeCreateSizeConfig,
   resolveCreateNodeSize,
@@ -19,6 +19,7 @@ import { buildAssetNodeCreateProperties } from "@/utils/assetTheme";
 
 const logicFlowScope = useLogicFlowScope();
 const { t } = useSafeI18n();
+const resolveAssetUrl = useEditorAssetUrlResolver();
 const MIN_PANEL_WIDTH = 220;
 const MAX_PANEL_WIDTH = 420;
 const DEFAULT_PANEL_WIDTH = 260;

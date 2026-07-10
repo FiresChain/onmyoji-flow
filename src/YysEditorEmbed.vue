@@ -12,12 +12,7 @@
     <template v-if="mode === 'edit'">
       <!-- 工具栏 -->
       <div v-if="showToolbar" ref="toolbarHostRef" class="toolbar-host">
-        <Toolbar
-          :is-embed="true"
-          :pinia-instance="localPinia"
-          @save="handleSave"
-          @cancel="handleCancel"
-        />
+        <Toolbar :is-embed="true" @save="handleSave" @cancel="handleCancel" />
       </div>
 
       <!-- 主内容区 -->
@@ -58,11 +53,12 @@ import {
   watch,
   onMounted,
   onBeforeUnmount,
+  onUnmounted,
   nextTick,
   getCurrentInstance,
 } from "vue";
 import ElementPlus from "element-plus";
-import { createPinia, setActivePinia } from "pinia";
+import { createPinia, getActivePinia, setActivePinia } from "pinia";
 import type LogicFlow from "@logicflow/core";
 import "@logicflow/core/lib/style/index.css";
 import "@logicflow/extension/lib/style/index.css";
@@ -71,13 +67,14 @@ import FlowEditor from "./components/flow/FlowEditor.vue";
 import Toolbar from "./components/Toolbar.vue";
 import ComponentsPanel from "./components/flow/ComponentsPanel.vue";
 import DialogManager from "./components/DialogManager.vue";
-import { useFilesStore } from "@/ts/useStore";
-import { useSafeI18n } from "@/ts/useSafeI18n";
+import { createEditorContext } from "@/editor/context/EditorContext";
+import { provideEditorContext } from "@/editor/context/useEditorContext";
 import {
-  createLogicFlowScope,
-  getLogicFlowInstance,
-  provideLogicFlowScope,
-} from "@/ts/useLogicFlow";
+  createMemoryFilesPersistence,
+  createWorkspaceSession,
+  provideWorkspaceSession,
+  useFilesStore,
+} from "@/features/workspace/public";
 import { normalizeGraph } from "@/core/document/normalizeGraph";
 import type {
   GraphData,
@@ -101,7 +98,10 @@ import {
   zoomViewport,
 } from "@/core/logicflow/viewport";
 import { getDefaultNodeRegistrations } from "@/editor/node-types/registry";
-import { rewriteAssetUrlsDeep, setAssetBaseUrl } from "@/utils/assetUrl";
+import {
+  getAssetBaseUrl,
+  rewriteAssetUrlsDeepWithResolver,
+} from "@/utils/assetUrl";
 
 export type {
   GraphData,
@@ -109,18 +109,50 @@ export type {
   GraphNode as NodeData,
 } from "@/core/document/types";
 
+const PINIA_MISSING_INJECTION_WARNING = 'injection "Symbol(pinia)" not found';
+
+const getActivePiniaForEmbed = () => {
+  const appConfig = getCurrentInstance()?.appContext.config;
+  if (!appConfig) {
+    return getActivePinia();
+  }
+
+  // Pinia 3 probes injection before returning its global active instance.
+  const previousWarnHandler = appConfig.warnHandler;
+  appConfig.warnHandler = (message, instance, trace) => {
+    if (message.includes(PINIA_MISSING_INJECTION_WARNING)) {
+      return;
+    }
+    previousWarnHandler?.(message, instance, trace);
+  };
+  try {
+    return getActivePinia();
+  } finally {
+    appConfig.warnHandler = previousWarnHandler;
+  }
+};
+
 const sanitizeGraphData = (
   input?: GraphData | null,
   options?: { hideDynamicGroups?: boolean },
+  resolveAsset?: (path: string) => string,
 ): GraphData => {
   const graphData = normalizeGraph(input, options);
+  const rewriteAssetUrls = <T,>(value: T): T =>
+    resolveAsset
+      ? rewriteAssetUrlsDeepWithResolver(value, (assetValue) =>
+          typeof assetValue === "string"
+            ? resolveAsset(assetValue)
+            : assetValue,
+        )
+      : value;
   return {
     ...graphData,
     nodes: graphData.nodes.map(
       (node): NodeData => ({
         ...node,
         ...(node.properties
-          ? { properties: rewriteAssetUrlsDeep(node.properties) }
+          ? { properties: rewriteAssetUrls(node.properties) }
           : {}),
       }),
     ),
@@ -128,7 +160,7 @@ const sanitizeGraphData = (
       (edge): EdgeData => ({
         ...edge,
         ...(edge.properties
-          ? { properties: rewriteAssetUrlsDeep(edge.properties) }
+          ? { properties: rewriteAssetUrls(edge.properties) }
           : {}),
       }),
     ),
@@ -184,12 +216,38 @@ const emit = defineEmits<{
   error: [error: Error];
 }>();
 
-// 创建局部 Pinia 实例（状态隔离）
+const initialAssetBaseUrl = props.assetBaseUrl ?? getAssetBaseUrl();
+const editorContext = provideEditorContext(
+  createEditorContext({
+    locale: props.config?.locale ?? "zh",
+    assetBaseUrl: initialAssetBaseUrl,
+    settings: {
+      snapGridEnabled: props.config?.grid ?? true,
+      snaplineEnabled: props.config?.snapline ?? true,
+      keyboardEnabled: props.config?.keyboard ?? true,
+    },
+  }),
+);
+
+// Explicit Pinia creation is wrapped so the host's active Pinia is restored.
+const activePiniaBeforeEmbed = getActivePiniaForEmbed();
 const localPinia = createPinia();
-setActivePinia(localPinia);
-const logicFlowScope = provideLogicFlowScope(createLogicFlowScope());
-const filesStore = useFilesStore(localPinia);
-filesStore.bindLogicFlowScope(logicFlowScope);
+let filesStore: ReturnType<typeof useFilesStore>;
+try {
+  filesStore = useFilesStore(localPinia);
+} finally {
+  setActivePinia(activePiniaBeforeEmbed);
+}
+const workspaceSession = provideWorkspaceSession(
+  createWorkspaceSession({
+    store: filesStore,
+    persistence: createMemoryFilesPersistence(),
+    getEditorPort: () => editorContext.port.value,
+    pinia: localPinia,
+    restoreActivePinia: activePiniaBeforeEmbed,
+  }),
+);
+workspaceSession.initialize();
 
 const ensureElementPlusInstalled = () => {
   const instance = getCurrentInstance();
@@ -270,7 +328,6 @@ const resolvedEmbedConfig = computed(() => ({
   keyboard: props.config?.keyboard ?? true,
 }));
 
-const { setLocale: setSafeLocale } = useSafeI18n();
 const normalizeEmbedLocale = (
   input: unknown,
 ): EditorConfig["locale"] | null => {
@@ -288,7 +345,7 @@ const syncEmbedLocale = (localeInput: unknown) => {
   if (!normalized) {
     return;
   }
-  setSafeLocale(normalized);
+  editorContext.setLocale(normalized);
 };
 syncEmbedLocale(props.config?.locale);
 
@@ -364,7 +421,11 @@ const initPreviewMode = () => {
   const isRenderOnly = effectiveCapability.value === "render-only";
 
   const initialData = props.data
-    ? sanitizeGraphData(props.data, { hideDynamicGroups: true })
+    ? sanitizeGraphData(
+        props.data,
+        { hideDynamicGroups: true },
+        editorContext.resolveAssetUrl,
+      )
     : undefined;
   const runtime = createLogicFlowRuntime({
     container: previewContainerRef.value,
@@ -374,7 +435,6 @@ const initPreviewMode = () => {
       | CoreFlowNodeRegistration[]
       | undefined,
     defaultNodeRegistrations: getDefaultNodeRegistrations(),
-    initialData,
     logicFlowOptions: {
       width: previewContainerRef.value.offsetWidth,
       height: previewContainerRef.value.offsetHeight,
@@ -389,8 +449,14 @@ const initPreviewMode = () => {
       adjustNodePosition: !isRenderOnly,
     },
   });
+  editorContext.setRuntime(runtime);
+  if (initialData) {
+    runtime.port.render(initialData);
+  }
   previewLf.value = runtime.instance;
-  disposePreviewRuntime = runtime.dispose;
+  disposePreviewRuntime = () => {
+    editorContext.clearRuntime(runtime);
+  };
 };
 
 // Methods
@@ -416,36 +482,25 @@ const handleGraphDataChange = (graphData: GraphData) => {
 
 // 公开方法（供父组件调用）
 const getGraphData = (): GraphData | null => {
-  if (props.mode === "edit") {
-    const lfInstance = getLogicFlowInstance(logicFlowScope);
-    if (lfInstance) {
-      return captureGraphData(lfInstance);
-    }
-  } else if (props.mode === "preview" && previewLf.value) {
-    return captureGraphData(previewLf.value);
-  }
-  return null;
+  return editorContext.port.value?.capture() ?? null;
 };
 
 const setGraphData = (data: GraphData) => {
-  const safeData = sanitizeGraphData(data, {
-    hideDynamicGroups: props.mode === "preview",
-  });
-  if (props.mode === "edit") {
-    const lfInstance = getLogicFlowInstance(logicFlowScope);
-    if (lfInstance) {
-      renderGraphData(lfInstance, safeData);
-    }
-  } else if (props.mode === "preview" && previewLf.value) {
-    renderGraphData(previewLf.value, safeData);
-  }
+  const safeData = sanitizeGraphData(
+    data,
+    {
+      hideDynamicGroups: props.mode === "preview",
+    },
+    editorContext.resolveAssetUrl,
+  );
+  editorContext.port.value?.render(safeData);
 };
 
 const resolveActiveLogicFlow = (): any => {
   if (props.mode === "preview") {
     return previewLf.value;
   }
-  return getLogicFlowInstance(logicFlowScope);
+  return editorContext.runtime.value?.instance ?? null;
 };
 
 const hasRenderableGraphNodes = (lfInstance: any): boolean => {
@@ -555,7 +610,7 @@ watch(
 watch(
   () => props.assetBaseUrl,
   (value) => {
-    setAssetBaseUrl(value);
+    editorContext.setAssetBaseUrl(value ?? initialAssetBaseUrl);
   },
   { immediate: true },
 );
@@ -634,10 +689,15 @@ onMounted(() => {
 
 // 清理
 onBeforeUnmount(() => {
+  workspaceSession.dispose();
   disposeEmbedTasks();
   embedResizeObserver?.disconnect();
   embedResizeObserver = null;
   destroyPreviewMode();
+});
+
+onUnmounted(() => {
+  editorContext.dispose();
 });
 </script>
 

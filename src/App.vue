@@ -1,93 +1,79 @@
 <script setup lang="ts">
 import Toolbar from "./components/Toolbar.vue";
 import ComponentsPanel from "./components/flow/ComponentsPanel.vue";
-import { computed, onMounted, watch } from "vue";
-import { useFilesStore } from "@/ts/useStore";
+import { computed, onBeforeUnmount, onMounted, onUnmounted, watch } from "vue";
 import FlowEditor from "./components/flow/FlowEditor.vue";
 import DialogManager from "./components/DialogManager.vue";
+import { createEditorContext } from "@/editor/context/EditorContext";
+import { provideEditorContext } from "@/editor/context/useEditorContext";
 import {
-  createLogicFlowScope,
-  getLogicFlowInstance,
-  provideLogicFlowScope,
-} from "@/ts/useLogicFlow";
-import { normalizeGraph } from "@/core/document/normalizeGraph";
-import type { GraphData } from "@/core/document/types";
-import { renderGraphData } from "@/core/logicflow/graphIO";
-import { normalizeViewport, setViewport } from "@/core/logicflow/viewport";
-import { migrateGraphData } from "@/utils/nodeMigration";
+  createLocalStorageFilesPersistence,
+  createWorkspaceSession,
+  provideWorkspaceSession,
+  useFilesStore,
+} from "@/features/workspace/public";
 import { useGlobalMessage } from "@/ts/useGlobalMessage";
+import { resolveInitialEditorLocale } from "@/ts/useSafeI18n";
+import { getAssetBaseUrl } from "@/utils/assetUrl";
 
-const logicFlowScope = provideLogicFlowScope(createLogicFlowScope());
+const editorContext = provideEditorContext(
+  createEditorContext({
+    locale: resolveInitialEditorLocale(),
+    assetBaseUrl: getAssetBaseUrl(),
+  }),
+);
 const filesStore = useFilesStore();
-filesStore.bindLogicFlowScope(logicFlowScope);
+const workspaceSession = provideWorkspaceSession(
+  createWorkspaceSession({
+    store: filesStore,
+    persistence: createLocalStorageFilesPersistence(),
+    getEditorPort: () => editorContext.port.value,
+  }),
+);
 const { showMessage } = useGlobalMessage();
 const activeFileModel = computed({
   get: () => filesStore.activeFileId,
-  set: (value: string) => filesStore.setActiveFile(value),
+  set: (value: string) => workspaceSession.setActiveFile(value),
 });
-
-const normalizeGraphData = (data: unknown): GraphData => {
-  const { graphData, migratedCount } = migrateGraphData(normalizeGraph(data));
-  if (migratedCount > 0) {
-    showMessage("info", `已自动升级 ${migratedCount} 个节点到新版本`);
-  }
-  return normalizeGraph(graphData);
-};
-
-const renderWorkspaceFile = (fileId?: string) => {
-  const logicFlowInstance = getLogicFlowInstance(logicFlowScope);
-  const currentTab = filesStore.getTab(fileId || filesStore.activeFileId);
-  if (!logicFlowInstance || !currentTab?.graphRawData) {
-    return;
-  }
-
-  try {
-    renderGraphData(
-      logicFlowInstance,
-      normalizeGraphData(currentTab.graphRawData),
-    );
-    setViewport(logicFlowInstance, normalizeViewport(currentTab.transform));
-  } catch (error) {
-    console.warn("渲染画布数据失败:", error);
-  }
-};
 
 const handleTabsEdit = (
   targetName: string | undefined,
   action: "remove" | "add",
 ) => {
   if (action === "remove") {
-    filesStore.removeTab(targetName);
+    workspaceSession.removeTab(targetName);
   } else if (action === "add") {
-    filesStore.addTab();
+    workspaceSession.addTab();
   }
 };
 
 onMounted(() => {
-  // 初始化自动保存功能
-  filesStore.initializeWithPrompt();
-  filesStore.setupAutoSave();
+  const result = workspaceSession.initialize();
+  if (result.error) {
+    showMessage("warning", "本地工作区数据损坏，已重置为默认状态");
+  } else if (result.restored) {
+    showMessage("success", "已恢复上次工作区");
+  }
+  workspaceSession.startAutoSave();
 });
 
-// 1) 切换激活文件：仅渲染新数据；保存旧文件职责由 store.setActiveFile 统一处理
 watch(
-  () => filesStore.activeFileId,
-  (newId) => {
-    if (newId) {
-      renderWorkspaceFile(newId);
+  () => editorContext.runtime.value,
+  (runtime) => {
+    if (runtime) {
+      workspaceSession.renderActiveFile();
     }
   },
   { flush: "post" },
 );
 
-// 2) 导入等替换 fileList 引用时，主动按当前 activeFileId 渲染一次，不保存旧数据
-watch(
-  () => filesStore.fileList,
-  () => {
-    renderWorkspaceFile();
-  },
-  { flush: "post" },
-);
+onBeforeUnmount(() => {
+  workspaceSession.dispose();
+});
+
+onUnmounted(() => {
+  editorContext.dispose();
+});
 </script>
 
 <template>

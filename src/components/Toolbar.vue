@@ -991,14 +991,13 @@
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from "vue";
 import { ElDropdown, ElDropdownItem, ElDropdownMenu } from "element-plus";
 import updateLogs from "../data/updateLog.json";
-import { useFilesStore } from "@/ts/useStore";
 import { useGlobalMessage } from "@/ts/useGlobalMessage";
 import { getLogicFlowInstance, useLogicFlowScope } from "@/ts/useLogicFlow";
 import { useCanvasSettings } from "@/ts/useCanvasSettings";
 import { useSafeI18n } from "@/ts/useSafeI18n";
-import type { Pinia } from "pinia";
+import { useWorkspaceSession } from "@/features/workspace/public";
+import { useEditorAssetUrlResolver } from "@/editor/context/useEditorContext";
 import { ASSET_LIBRARY_IDS, type AssetLibraryId } from "@/types/assets";
-import { resolveAssetUrl } from "@/utils/assetUrl";
 import { applyAssetThemeToCurrentFile } from "@/utils/assetTheme";
 import {
   type AssetThemeConfig,
@@ -1019,18 +1018,16 @@ import { useToolbarCanvasRefresh } from "@/components/composables/useToolbarCanv
 const props = withDefaults(
   defineProps<{
     isEmbed?: boolean;
-    piniaInstance?: Pinia;
   }>(),
   {
     isEmbed: false,
   },
 );
 
-const filesStore = props.piniaInstance
-  ? useFilesStore(props.piniaInstance)
-  : useFilesStore();
+const workspaceSession = useWorkspaceSession();
+const filesStore = workspaceSession.store;
 const logicFlowScope = useLogicFlowScope();
-filesStore.bindLogicFlowScope(logicFlowScope);
+const resolveAssetUrl = useEditorAssetUrlResolver();
 const contactImageUrl = resolveAssetUrl("/assets/Other/Contact.png") as string;
 const { showMessage } = useGlobalMessage();
 const { selectionEnabled, snapGridEnabled, snaplineEnabled } =
@@ -1069,7 +1066,13 @@ const handleLanguageChange = (nextLocale: SupportedLocale) => {
   const normalized = normalizeLocale(nextLocale);
   currentLanguage.value = normalized;
   setLocale(normalized);
-  localStorage.setItem(LOCALE_STORAGE_KEY, normalized);
+  if (!props.isEmbed) {
+    try {
+      localStorage.setItem(LOCALE_STORAGE_KEY, normalized);
+    } catch {
+      // Storage is optional in private mode.
+    }
+  }
 };
 
 // 定义响应式数据
@@ -1151,14 +1154,12 @@ const {
 
 const { refreshLogicFlowCanvas, disposeCanvasRefresh } =
   useToolbarCanvasRefresh({
-    filesStore,
-    logicFlowScope,
+    workspaceSession,
   });
 
 const { loadExample, handleResetWorkspace, handleClearCanvas } =
   useToolbarWorkspaceCommands({
-    filesStore,
-    logicFlowScope,
+    workspaceSession,
     showMessage,
     refreshLogicFlowCanvas,
   });
@@ -1264,7 +1265,7 @@ const applyThemeToCurrentCanvas = () => {
     applyAssetThemeToCurrentFile(logicFlowInstance as any, {
       config: nodeSizeDraft.value,
     });
-    filesStore.updateTab(filesStore.activeFileId);
+    workspaceSession.updateTab(filesStore.activeFileId);
     refreshLogicFlowCanvas();
     showMessage("success", t("nodeSize.message.applyCurrentSuccess"));
   } finally {
@@ -1287,6 +1288,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
   disposeAssetManagement();
   disposeCanvasRefresh();
+  disposeImportExportCommands();
 });
 
 const {
@@ -1301,9 +1303,10 @@ const {
   prepareCapture,
   downloadImage,
   handleClose,
+  disposeImportExportCommands,
 } = useToolbarImportExportCommands({
   state,
-  filesStore,
+  workspaceSession,
   logicFlowScope,
   importSource,
   teamCodeInput,

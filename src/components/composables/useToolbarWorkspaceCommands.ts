@@ -1,33 +1,12 @@
 import { ElMessageBox } from "element-plus";
-import { clearGraphData } from "@/core/logicflow/graphIO";
-import { resetViewport } from "@/core/logicflow/viewport";
-import { getLogicFlowInstance, type LogicFlowScope } from "@/ts/useLogicFlow";
+import type { WorkspaceSession } from "@/features/workspace/public";
 
 type MessageType = "success" | "warning" | "info" | "error";
 
 type ShowMessage = (type: MessageType, message: string) => void;
 
-interface ToolbarWorkspaceFileLike {
-  graphRawData?: unknown;
-  transform?: {
-    SCALE_X: number;
-    SCALE_Y: number;
-    TRANSLATE_X: number;
-    TRANSLATE_Y: number;
-  };
-}
-
-interface ToolbarWorkspaceStoreLike {
-  importData: (data: unknown) => void;
-  resetWorkspace: () => void;
-  updateTab: (id?: string) => void;
-  getTab: (id: string) => ToolbarWorkspaceFileLike | undefined;
-  activeFileId: string;
-}
-
 interface UseToolbarWorkspaceCommandsOptions {
-  filesStore: ToolbarWorkspaceStoreLike;
-  logicFlowScope: LogicFlowScope;
+  workspaceSession: WorkspaceSession;
   showMessage: ShowMessage;
   refreshLogicFlowCanvas: (message?: string) => void;
 }
@@ -35,8 +14,7 @@ interface UseToolbarWorkspaceCommandsOptions {
 export function useToolbarWorkspaceCommands(
   options: UseToolbarWorkspaceCommandsOptions,
 ) {
-  const { filesStore, logicFlowScope, showMessage, refreshLogicFlowCanvas } =
-    options;
+  const { workspaceSession, showMessage, refreshLogicFlowCanvas } = options;
 
   const loadExample = () => {
     ElMessageBox.confirm("加载样例会覆盖当前数据，是否覆盖？", "提示", {
@@ -68,7 +46,7 @@ export function useToolbarWorkspaceCommands(
           ],
           activeFile: "example",
         };
-        filesStore.importData(defaultState);
+        workspaceSession.importData(defaultState);
         refreshLogicFlowCanvas("LogicFlow 画布已重新渲染（示例数据）");
         showMessage("success", "数据已恢复");
       })
@@ -84,7 +62,7 @@ export function useToolbarWorkspaceCommands(
       type: "warning",
     })
       .then(() => {
-        filesStore.resetWorkspace();
+        workspaceSession.resetWorkspace();
       })
       .catch(() => {
         // 用户取消
@@ -98,26 +76,7 @@ export function useToolbarWorkspaceCommands(
       type: "warning",
     })
       .then(() => {
-        const lfInstance = getLogicFlowInstance(logicFlowScope) as any;
-        const activeId = filesStore.activeFileId;
-        const activeFile = filesStore.getTab(activeId);
-
-        if (lfInstance) {
-          clearGraphData(lfInstance);
-          resetViewport(lfInstance);
-        }
-
-        if (activeFile) {
-          activeFile.graphRawData = { nodes: [], edges: [] };
-          activeFile.transform = {
-            SCALE_X: 1,
-            SCALE_Y: 1,
-            TRANSLATE_X: 0,
-            TRANSLATE_Y: 0,
-          };
-          filesStore.updateTab(activeId);
-        }
-
+        workspaceSession.clearActiveFile();
         showMessage("success", "当前画布已清空");
       })
       .catch(() => {

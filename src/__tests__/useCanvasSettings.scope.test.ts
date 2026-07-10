@@ -1,53 +1,38 @@
 import { describe, expect, it } from "vitest";
 import { createLogicFlowScope } from "@/ts/useLogicFlow";
-import {
-  destroyCanvasSettingsScope,
-  useCanvasSettings,
-} from "@/ts/useCanvasSettings";
+import { useCanvasSettings } from "@/ts/useCanvasSettings";
 
-describe("useCanvasSettings scope isolation", () => {
-  it("shares the same refs within one scope", () => {
-    const scope = createLogicFlowScope();
-    const settingsA = useCanvasSettings(scope);
-    const settingsB = useCanvasSettings(scope);
-
-    expect(settingsA.selectionEnabled).toBe(settingsB.selectionEnabled);
-    expect(settingsA.snapGridEnabled).toBe(settingsB.snapGridEnabled);
-    expect(settingsA.snaplineEnabled).toBe(settingsB.snaplineEnabled);
-
-    settingsA.selectionEnabled.value = false;
-    settingsA.snapGridEnabled.value = false;
-    settingsA.snaplineEnabled.value = false;
-
-    expect(settingsB.selectionEnabled.value).toBe(false);
-    expect(settingsB.snapGridEnabled.value).toBe(false);
-    expect(settingsB.snaplineEnabled.value).toBe(false);
-
-    destroyCanvasSettingsScope(scope);
-  });
-
-  it("isolates settings across scopes and resets after destroy", () => {
+describe("useCanvasSettings EditorContext isolation", () => {
+  it("shares refs inside one context and isolates separate contexts", () => {
     const scopeA = createLogicFlowScope();
     const scopeB = createLogicFlowScope();
+    const firstLookup = useCanvasSettings(scopeA);
+    const secondLookup = useCanvasSettings(scopeA);
+    const otherScope = useCanvasSettings(scopeB);
 
-    const settingsA = useCanvasSettings(scopeA);
-    const settingsB = useCanvasSettings(scopeB);
+    expect(firstLookup.selectionEnabled).toBe(secondLookup.selectionEnabled);
+    firstLookup.selectionEnabled.value = false;
+    firstLookup.snapGridEnabled.value = false;
+    firstLookup.snaplineEnabled.value = false;
 
-    settingsA.selectionEnabled.value = false;
-    settingsA.snapGridEnabled.value = false;
-    settingsA.snaplineEnabled.value = false;
+    expect(secondLookup.selectionEnabled.value).toBe(false);
+    expect(otherScope.selectionEnabled.value).toBe(true);
+    expect(otherScope.snapGridEnabled.value).toBe(true);
+    expect(otherScope.snaplineEnabled.value).toBe(true);
 
-    expect(settingsB.selectionEnabled.value).toBe(true);
-    expect(settingsB.snapGridEnabled.value).toBe(true);
-    expect(settingsB.snaplineEnabled.value).toBe(true);
+    scopeA.dispose();
+    scopeB.dispose();
+  });
 
-    destroyCanvasSettingsScope(scopeA);
-    const nextSettingsA = useCanvasSettings(scopeA);
-    expect(nextSettingsA.selectionEnabled.value).toBe(true);
-    expect(nextSettingsA.snapGridEnabled.value).toBe(true);
-    expect(nextSettingsA.snaplineEnabled.value).toBe(true);
+  it("starts a new context with fresh settings", () => {
+    const previous = createLogicFlowScope();
+    previous.settings.selectionEnabled.value = false;
+    previous.dispose();
 
-    destroyCanvasSettingsScope(scopeA);
-    destroyCanvasSettingsScope(scopeB);
+    const replacement = createLogicFlowScope();
+    expect(replacement.settings.selectionEnabled.value).toBe(true);
+    expect(replacement.settings.snapGridEnabled.value).toBe(true);
+    expect(replacement.settings.snaplineEnabled.value).toBe(true);
+    replacement.dispose();
   });
 });

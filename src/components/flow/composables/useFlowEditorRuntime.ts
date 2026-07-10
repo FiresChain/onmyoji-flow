@@ -7,11 +7,7 @@ import type {
   Position,
 } from "@logicflow/core";
 import type { Ref } from "vue";
-import {
-  clearLogicFlowInstance,
-  setLogicFlowInstance,
-  type LogicFlowScope,
-} from "@/ts/useLogicFlow";
+import type { LogicFlowScope } from "@/ts/useLogicFlow";
 import { createLogicFlowRuntime } from "@/core/logicflow/createRuntime";
 import { getDefaultNodeRegistrations } from "@/editor/node-types/registry";
 import {
@@ -327,7 +323,7 @@ export function useFlowEditorRuntime() {
       ],
     });
 
-    setLogicFlowInstance(lfInstance, logicFlowScope);
+    logicFlowScope.setRuntime(runtime);
     snapGridEnabled.value = configSnapGridEnabled;
     snaplineEnabled.value = configSnaplineEnabled;
     applyKeyboardEnabled(configKeyboardEnabled);
@@ -513,8 +509,7 @@ export function useFlowEditorRuntime() {
     });
 
     return () => {
-      runtime.dispose();
-      clearLogicFlowInstance(logicFlowScope, lfInstance);
+      logicFlowScope.clearRuntime(runtime);
       if (lf.value === lfInstance) {
         lf.value = null;
       }

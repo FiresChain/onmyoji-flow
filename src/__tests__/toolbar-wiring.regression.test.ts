@@ -22,6 +22,7 @@ const wiringSpies = vi.hoisted(() => ({
   mountDialogState: vi.fn(),
   mountAssetManagement: vi.fn(),
   disposeAssetManagement: vi.fn(),
+  disposeImportExportCommands: vi.fn(),
 }));
 
 const toolbarStoreMock = vi.hoisted(() => ({
@@ -39,8 +40,20 @@ const logicFlowMock = vi.hoisted(() => ({
   current: null as any,
 }));
 
+const workspaceSessionSpies = vi.hoisted(() => ({
+  renderActiveFile: vi.fn(() => true),
+}));
+
 vi.mock("@/ts/useStore", () => ({
   useFilesStore: vi.fn(() => toolbarStoreMock),
+}));
+
+vi.mock("@/features/workspace/public", () => ({
+  useWorkspaceSession: vi.fn(() => ({
+    store: toolbarStoreMock,
+    updateTab: toolbarStoreMock.updateTab,
+    renderActiveFile: workspaceSessionSpies.renderActiveFile,
+  })),
 }));
 
 vi.mock("@/ts/useLogicFlow", () => ({
@@ -99,6 +112,7 @@ vi.mock("@/components/composables/useToolbarImportExportCommands", () => ({
       prepareCapture: wiringSpies.prepareCapture,
       downloadImage: vi.fn(),
       handleClose: vi.fn(),
+      disposeImportExportCommands: wiringSpies.disposeImportExportCommands,
     }),
   ),
 }));
@@ -2254,6 +2268,8 @@ describe("toolbar wiring regression", () => {
     toolbarStoreMock.exportData.mockReset();
     toolbarStoreMock.importData.mockReset();
     toolbarStoreMock.resetWorkspace.mockReset();
+    workspaceSessionSpies.renderActiveFile.mockReset();
+    workspaceSessionSpies.renderActiveFile.mockReturnValue(true);
     toolbarStoreMock.activeFileId = "file-1";
     logicFlowMock.current = null;
   });
@@ -2375,15 +2391,12 @@ describe("toolbar wiring regression", () => {
       expect(logicFlowInstance.setProperties).toHaveBeenCalled();
       expect(toolbarStoreMock.updateTab).toHaveBeenCalledWith("file-1");
       expect(logicFlowInstance.clearData).not.toHaveBeenCalled();
+      expect(workspaceSessionSpies.renderActiveFile).not.toHaveBeenCalled();
 
       vi.advanceTimersByTime(100);
 
       expect(logicFlowInstance.clearData).not.toHaveBeenCalled();
-      expect(logicFlowInstance.render).toHaveBeenCalledTimes(1);
-      expect(logicFlowInstance.resetZoom).toHaveBeenCalledTimes(1);
-      expect(logicFlowInstance.resetTranslate).toHaveBeenCalledTimes(1);
-      expect(logicFlowInstance.zoom).toHaveBeenCalledWith(1);
-      expect(logicFlowInstance.translate).toHaveBeenCalledWith(0, 0);
+      expect(workspaceSessionSpies.renderActiveFile).toHaveBeenCalledTimes(1);
     } finally {
       vi.useRealTimers();
     }

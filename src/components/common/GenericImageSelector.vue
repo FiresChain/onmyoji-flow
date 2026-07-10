@@ -83,7 +83,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onBeforeUnmount } from "vue";
 import type { SelectorConfig, GroupConfig } from "@/types/selector";
-import { resolveAssetUrl } from "@/utils/assetUrl";
+import { useEditorAssetUrlResolver } from "@/editor/context/useEditorContext";
 import { buildSelectorItemKey } from "@/utils/selectorItemKey";
 import { useSafeI18n } from "@/ts/useSafeI18n";
 import {
@@ -102,6 +102,7 @@ const emit = defineEmits<{
   select: [item: any];
 }>();
 const { t } = useSafeI18n();
+const resolveAssetUrl = useEditorAssetUrlResolver();
 
 const show = computed({
   get: () => props.modelValue,

@@ -44,6 +44,49 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-07-10] Session 128 - Isolate Editor Context And Workspace Persistence
+
+- Refactory Scope:
+  - Phase: Feature-module Phase 4
+  - Task: 用实例级 `EditorContext` 替换模块级 runtime/settings/dialog 状态，并拆分 serializable filesStore、FilesPersistence、WorkspaceSession 与 document transfer
+- In Scope Files:
+  - `src/editor/context/*`（新增 Context、Vue provide/inject 与 graphModel bridge）
+  - `src/features/workspace/*`（新增 model、store、persistence、session、transfer 与内部 `public.ts`）
+  - `src/shared/platform/storage.ts`、`src/shared/platform/download.ts`
+  - `src/App.vue`、`src/YysEditorEmbed.vue`
+  - `src/ts/useLogicFlow.ts`、`useCanvasSettings.ts`、`useDialogs.ts`、`useSafeI18n.ts`、`useStore.ts`
+  - `src/utils/assetUrl.ts` 与现有 asset resolver 消费组件
+  - Toolbar workspace/import/export composables 与对应回归测试
+  - `src/__tests__/editor/*`、`features/workspace/*`、`shared/platform/*`、multi-instance 与 Embed 隔离测试
+  - `docs/2design/ComponentArchitecture.md`、`docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - FlowEditor runtime/commands 与节点 View/Model/Inspector 共置（Phase 5）
+  - assets/group-rules/capture/locale feature UI 与 Toolbar 替换（Phase 6）
+  - standalone/embed shells（Phase 7）、`teamCodeService.ts`、`docs/1management/plan.md` 与其他 worktree
+- Decisions:
+  - `EditorContext` 成为 runtime/EditorPort/settings/dialog/locale/asset resolver 的实例所有者；vue-node-registry 的独立 Vue app 通过 graphModel bridge 获取所属 Context，stale runtime disposer 不得清除替代 runtime。
+  - `features/workspace/public.ts` 是跨模块内部入口；filesStore 只保存可序列化状态，EditorPort 协调、RootDocument 迁移/校验、storage/debounce 分属 session、transfer 与 persistence。
+  - 文件切换固定执行 capture source -> 更新 active ID -> render target；metadata 更新不捕获到非 active 文件。Toolbar 通过 WorkspaceSession 和 shared download 调用，不直接观察 LogicFlow render/viewport。
+  - standalone 保留 `filesStore` localStorage key；损坏数据只删除 owned key。Embed 始终使用 memory persistence，并为每个实例创建独立 Pinia/store/session。
+  - Embed 精确保存并恢复进入 setup 时的 active Pinia；针对 Pinia 3 无默认值 injection probe，仅在同步读取期间过滤精确缺失注入 warning，转发并立即恢复宿主 warnHandler。
+  - `setAssetBaseUrl` 保留兼容默认 API，Embed 创建时复制默认值到实例 resolver；`config.locale` 进入实例 Context，运行时修改不影响其他实例。
+  - autosave/debounce/Embed task/ResizeObserver/runtime 均由实例 disposer 清理；disposed WorkspaceSession 不允许重新启动 autosave。
+- Checks:
+  - Phase 4 targeted editor/workspace/embed/Toolbar tests: pass
+  - `npm test`: pass（43 files / 245 tests）
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `npm run format:check`: pass
+  - `npm run build:app`: pass（JS 2,695.38 kB / gzip 807.34 kB）
+  - `npm run build:lib`: pass（ESM 2,320.42 kB / UMD 1,521.78 kB）
+  - `git diff --check`: pass
+- Risks / Follow-up:
+  - Pinia warning filter depends on the current Pinia 3/Vue warning text and must be revisited on framework upgrades; it is synchronously installed and restored and has a no-warning regression test.
+  - app/lib retain existing large-chunk and mixed default/named export warnings. Relative to Phase 3, app JS increases 3.27 kB, while ESM decreases 80.47 kB and UMD decreases 54.20 kB.
+  - App/Embed/Toolbar/FlowEditor are not yet thin shell/editor components; compatibility facades remain until Phases 5-7 move their consumers.
+- Next Recommended Unit:
+  - Feature-module Phase 5：拆分 FlowEditor runtime/commands，显式解绑事件与键盘监听，按节点类型共置 View/Model/Inspector/defaults/registration，并清理生产调试日志。
+
 ## [2026-07-10] Session 127 - Centralize Graph And LogicFlow Adapters
 
 - Refactory Scope:

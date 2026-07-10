@@ -173,10 +173,7 @@ import {
   normalizeNodeStyle,
   styleEquals,
 } from "@/ts/nodeStyle";
-import {
-  destroyCanvasSettingsScope,
-  useCanvasSettings,
-} from "@/ts/useCanvasSettings";
+import { useCanvasSettings } from "@/ts/useCanvasSettings";
 import { useSafeI18n } from "@/ts/useSafeI18n";
 
 const MOVE_STEP = 2;
@@ -831,7 +828,6 @@ onBeforeUnmount(() => {
   disposeFlowEditorRuntime?.();
   disposeFlowEditorRuntime = null;
   disposeGroupRuleOrchestrator();
-  destroyCanvasSettingsScope(logicFlowScope);
   lf.value = null;
 });
 </script>

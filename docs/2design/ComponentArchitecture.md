@@ -154,7 +154,7 @@ interface YysEditorEmbedProps {
   showPropertyPanel?: boolean; // 编辑模式下控制属性面板显示
   showComponentPanel?: boolean;
 
-  // 配置选项（最小实现已生效：grid/snapline/keyboard）
+  // 配置选项（已生效：grid/snapline/keyboard/locale）
   config?: EditorConfig;
 }
 
@@ -181,7 +181,7 @@ interface EdgeData {
   properties?: Record<string, any>;
 }
 
-// 编辑器配置（当前最小实现：grid/snapline/keyboard）
+// 编辑器配置（当前实现：grid/snapline/keyboard/locale）
 interface EditorConfig {
   // 画布配置
   grid?: boolean;
@@ -225,7 +225,7 @@ const defaultProps = {
   showPropertyPanel: true, // 编辑模式默认显示属性面板
   showComponentPanel: true,
   config: {
-    // 当前最小实现已生效（grid/snapline/keyboard）
+    // 当前实现已生效（grid/snapline/keyboard/locale）
     grid: true,
     snapline: true,
     keyboard: true,
@@ -238,8 +238,9 @@ const defaultProps = {
 ### 契约状态（2026-03）
 
 1. `showPropertyPanel`：在 `mode='edit'` 下生效，用于控制右侧属性面板显示；默认值 `true`。
-2. `config`：当前最小可用实现已生效 `grid/snapline/keyboard` 三项。
-3. `config` 其余字段（如 `theme/locale`）仍为兼容保留，暂未接入运行时消费。
+2. `config`：`grid/snapline/keyboard/locale` 已接入实例上下文；运行时更新
+   `config.locale` 只影响当前 Embed 实例。
+3. `config.theme` 仍为兼容保留，暂未接入运行时消费。
 
 ---
 
@@ -257,6 +258,25 @@ const defaultProps = {
 5. Embed workspace 使用内存 adapter，不读取或写入 standalone 的 `filesStore` key。
 6. facade 与 shell 通过 `EditorPort` 完成 render/capture/viewport 操作，不直接获取
    LogicFlow 实例。
+
+### 0.1 Phase 4 已落地状态（2026-07-10）
+
+1. `App.vue` 与每个 `YysEditorEmbed` 挂载分别创建 `EditorContext`。runtime、
+   `EditorPort`、画布 settings、dialog、locale 与 asset resolver 均由该实例拥有；
+   vue-node-registry 创建的独立 Vue app 通过 graphModel bridge 获取同一实例上下文。
+2. `useLogicFlow`、`useCanvasSettings`、`useDialogs`、`useSafeI18n` 与 `useStore` 仅保留
+   兼容 facade，不再维护模块级可变 Map、ref 或 reactive 单例。
+3. workspace 的仓库内部入口为 `features/workspace/public.ts`：
+   `filesStore` 只保存可序列化状态，`FilesPersistence` 管理存储和 debounce，
+   `WorkspaceSession` 协调 `EditorPort`，`documentTransfer` 负责迁移、校验和 JSON 往返。
+4. 文件切换顺序固定为“capture 当前文件 -> 更新 active ID -> render 目标文件”；
+   metadata 更新不得把当前画布写入非 active 文件。
+5. standalone 继续使用 `filesStore` localStorage key，损坏恢复只删除该 key；Embed
+   始终使用实例级 memory persistence，并在 Pinia action 后恢复宿主 active Pinia。
+6. `WorkspaceSession` 的 autosave interval、`FilesPersistence` 的 debounce timer、Embed
+   timer/ResizeObserver 和 Context runtime 都在卸载路径清理，dispose 为幂等操作。
+7. standalone/embed shell 与 preview composable 拆分仍属于 Phase 7；当前根组件尚未宣称
+   达到薄 facade 目标态。
 
 ### 1. YysEditorEmbed.vue 组件结构
 

@@ -1,5 +1,14 @@
 import { getLogicFlowInstance, type LogicFlowScope } from "@/ts/useLogicFlow";
 import {
+  createRootDocumentDownloadPayload,
+  parseRootDocumentJson,
+  type WorkspaceSession,
+} from "@/features/workspace/public";
+import {
+  downloadDataUrl,
+  downloadTextPayload,
+} from "@/shared/platform/download";
+import {
   convertTeamCodeToRootDocument,
   decodeTeamCodeFromQrImage,
 } from "@/utils/teamCodeService";
@@ -8,20 +17,6 @@ import type { Ref } from "vue";
 type MessageType = "success" | "warning" | "info" | "error";
 
 type ShowMessage = (type: MessageType, message: string) => void;
-
-interface ToolbarFileItem {
-  id?: string;
-  name?: string;
-  [key: string]: unknown;
-}
-
-interface ToolbarFilesStoreLike {
-  updateTab: (id?: string) => void;
-  exportData: () => void;
-  importData: (data: unknown) => void;
-  fileList: ToolbarFileItem[];
-  activeFileId: string;
-}
 
 interface ToolbarImportExportState {
   previewImage: string | null;
@@ -44,7 +39,7 @@ interface WatermarkSettings {
 
 interface UseToolbarImportExportCommandsOptions {
   state: ToolbarImportExportState;
-  filesStore: ToolbarFilesStoreLike;
+  workspaceSession: WorkspaceSession;
   logicFlowScope: LogicFlowScope;
   importSource: Ref<"json" | "teamCode">;
   teamCodeInput: Ref<string>;
@@ -153,7 +148,7 @@ export function useToolbarImportExportCommands(
 ) {
   const {
     state,
-    filesStore,
+    workspaceSession,
     logicFlowScope,
     importSource,
     teamCodeInput,
@@ -163,6 +158,20 @@ export function useToolbarImportExportCommands(
     showMessage,
     refreshLogicFlowCanvas,
   } = options;
+  const pendingTimers = new Set<ReturnType<typeof setTimeout>>();
+
+  const schedule = (task: () => void, delay: number) => {
+    const timer = setTimeout(() => {
+      pendingTimers.delete(timer);
+      task();
+    }, delay);
+    pendingTimers.add(timer);
+  };
+
+  const disposeImportExportCommands = () => {
+    pendingTimers.forEach((timer) => clearTimeout(timer));
+    pendingTimers.clear();
+  };
 
   const captureLogicFlowSnapshot = async () => {
     const logicFlowInstance = getLogicFlowInstance(logicFlowScope) as any;
@@ -212,10 +221,7 @@ export function useToolbarImportExportCommands(
 
   const downloadImage = () => {
     if (state.previewImage) {
-      const link = document.createElement("a");
-      link.href = state.previewImage;
-      link.download = "screenshot.png";
-      link.click();
+      downloadDataUrl(state.previewImage, "screenshot.png");
       state.previewVisible = false;
     }
   };
@@ -226,28 +232,33 @@ export function useToolbarImportExportCommands(
   };
 
   const handleExport = () => {
-    filesStore.updateTab();
-    setTimeout(() => {
-      filesStore.exportData();
+    workspaceSession.updateTab();
+    schedule(() => {
+      const exported = workspaceSession.exportDocument();
+      if ("error" in exported) {
+        showMessage("error", "数据导出失败");
+        return;
+      }
+      const payload = createRootDocumentDownloadPayload(exported.document);
+      if (!payload.ok) {
+        showMessage("error", "数据导出失败");
+        return;
+      }
+      downloadTextPayload(payload.value);
+      showMessage("success", "数据导出成功");
     }, 2000);
   };
 
   const handlePreviewData = () => {
-    filesStore.updateTab();
+    workspaceSession.updateTab();
 
-    setTimeout(() => {
+    schedule(() => {
       try {
-        const activeName =
-          filesStore.fileList.find(
-            (file) => file.id === filesStore.activeFileId,
-          )?.name || "";
-        const dataObj = {
-          schemaVersion: 1,
-          fileList: filesStore.fileList,
-          activeFileId: filesStore.activeFileId,
-          activeFile: activeName,
-        };
-        state.previewDataContent = JSON.stringify(dataObj, null, 2);
+        const exported = workspaceSession.exportDocument();
+        if ("error" in exported) {
+          throw exported.error;
+        }
+        state.previewDataContent = JSON.stringify(exported.document, null, 2);
         state.showDataPreviewDialog = true;
       } catch (error) {
         console.error("生成预览数据失败:", error);
@@ -287,8 +298,19 @@ export function useToolbarImportExportCommands(
         reader.onload = (loadEvent) => {
           try {
             const readerTarget = loadEvent.target as FileReader;
-            const data = JSON.parse(readerTarget.result as string);
-            filesStore.importData(data);
+            const parsed = parseRootDocumentJson(
+              readerTarget.result as string,
+              {
+                context: "toolbar-json-import",
+              },
+            );
+            if ("error" in parsed) {
+              throw new Error(parsed.error.message);
+            }
+            const imported = workspaceSession.importData(parsed.value);
+            if ("error" in imported) {
+              throw imported.error;
+            }
             refreshLogicFlowCanvas("LogicFlow 画布已重新渲染（导入数据）");
           } catch (error) {
             console.error("Failed to import file", error);
@@ -326,7 +348,10 @@ export function useToolbarImportExportCommands(
       const rootDocument = requestOptions
         ? await convertTeamCodeToRootDocument(rawTeamCode, requestOptions)
         : await convertTeamCodeToRootDocument(rawTeamCode);
-      filesStore.importData(rootDocument);
+      const imported = workspaceSession.importData(rootDocument);
+      if ("error" in imported) {
+        throw imported.error;
+      }
       refreshLogicFlowCanvas("LogicFlow 画布已重新渲染（阵容码导入）");
       state.showImportDialog = false;
       teamCodeInput.value = "";
@@ -375,5 +400,6 @@ export function useToolbarImportExportCommands(
     prepareCapture,
     downloadImage,
     handleClose,
+    disposeImportExportCommands,
   };
 }

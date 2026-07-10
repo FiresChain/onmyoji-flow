@@ -1,14 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
 import { defineComponent, h, onBeforeUnmount } from "vue";
 import { mount } from "@vue/test-utils";
+import { createPinia, getActivePinia, setActivePinia } from "pinia";
 import YysEditorEmbed, { type GraphData } from "@/YysEditorEmbed.vue";
 import flowEditorSource from "@/components/flow/FlowEditor.vue?raw";
 import flowEditorRuntimeSource from "@/components/flow/composables/useFlowEditorRuntime.ts?raw";
-import {
-  clearLogicFlowInstance,
-  setLogicFlowInstance,
-  useLogicFlowScope,
-} from "@/ts/useLogicFlow";
+import { useLogicFlowScope } from "@/ts/useLogicFlow";
+import type { LogicFlowRuntime } from "@/core/logicflow/types";
 
 const normalizeQuoteStyle = (text: string) => text.replace(/['"]/g, '"');
 
@@ -134,17 +132,69 @@ const createFlowEditorMultiChangeStub = (payloads: GraphData[]) =>
   });
 
 describe("YysEditorEmbed update:data contract", () => {
+  it("restores the active Pinia when the host app has no Pinia plugin", () => {
+    const activePinia = createPinia();
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    setActivePinia(activePinia);
+
+    try {
+      const wrapper = mount(YysEditorEmbed, {
+        props: {
+          mode: "edit",
+          showToolbar: false,
+          showComponentPanel: false,
+        },
+        global: {
+          stubs: {
+            FlowEditor: true,
+            Toolbar: true,
+            ComponentsPanel: true,
+            DialogManager: true,
+          },
+        },
+      });
+
+      expect(getActivePinia()).toBe(activePinia);
+      wrapper.unmount();
+      expect(getActivePinia()).toBe(activePinia);
+      expect(
+        warnSpy.mock.calls.some(([message]) =>
+          String(message).includes('injection "Symbol(pinia)" not found'),
+        ),
+      ).toBe(false);
+    } finally {
+      warnSpy.mockRestore();
+      setActivePinia(undefined);
+    }
+  });
+
   it("lets the FlowEditor runtime destroy its instance exactly once on unmount", () => {
     const destroy = vi.fn();
     const RuntimeOwnerStub = defineComponent({
       name: "FlowEditor",
       setup() {
         const scope = useLogicFlowScope();
-        const instance = { destroy };
-        setLogicFlowInstance(instance as any, scope);
+        const runtime = {
+          instance: { graphModel: {} },
+          port: {
+            render: vi.fn(),
+            capture: vi.fn(() => ({ nodes: [], edges: [] })),
+            clear: vi.fn(),
+            getViewport: vi.fn(() => ({
+              SCALE_X: 1,
+              SCALE_Y: 1,
+              TRANSLATE_X: 0,
+              TRANSLATE_Y: 0,
+            })),
+            setViewport: vi.fn(),
+            fitView: vi.fn(),
+            dispose: destroy,
+          },
+          dispose: destroy,
+        } as unknown as LogicFlowRuntime;
+        scope.setRuntime(runtime);
         onBeforeUnmount(() => {
-          instance.destroy();
-          clearLogicFlowInstance(scope, instance as any);
+          scope.clearRuntime(runtime);
         });
         return () => h("div", { class: "runtime-owner-stub" });
       },
@@ -280,7 +330,7 @@ describe("YysEditorEmbed update:data contract", () => {
       "const runtime = createLogicFlowRuntime({",
       "defaultNodeRegistrations: getDefaultNodeRegistrations(),",
       "lf.value = runtime.instance;",
-      "setLogicFlowInstance(lfInstance, logicFlowScope);",
+      "logicFlowScope.setRuntime(runtime);",
       "lfInstance.on(EventType.NODE_ADD",
       "lfInstance.on('node:dnd-add'",
       "lfInstance.on(EventType.NODE_PROPERTIES_CHANGE",
@@ -293,7 +343,7 @@ describe("YysEditorEmbed update:data contract", () => {
       "lfInstance.on(EventType.EDGE_ADJUST",
       "lfInstance.on(EventType.EDGE_EXCHANGE_NODE",
       "lfInstance.on(EventType.HISTORY_CHANGE",
-      "runtime.dispose();",
+      "logicFlowScope.clearRuntime(runtime);",
     ];
     runtimeRequiredSnippets.forEach((snippet) => {
       expectContainsIgnoringQuoteStyle(flowEditorRuntimeSource, snippet);

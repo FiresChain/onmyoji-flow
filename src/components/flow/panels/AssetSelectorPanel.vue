@@ -4,10 +4,8 @@ import { useDialogs } from "@/ts/useDialogs";
 import { getLogicFlowInstance, useLogicFlowScope } from "@/ts/useLogicFlow";
 import { getSelectorPreset } from "@/configs/selectorPresets";
 import type { SelectorConfig } from "@/types/selector";
-import {
-  resolveAssetUrl,
-  resolveAssetUrlsInDataSource,
-} from "@/utils/assetUrl";
+import { resolveAssetUrlsInDataSourceWithResolver } from "@/utils/assetUrl";
+import { useEditorAssetUrlResolver } from "@/editor/context/useEditorContext";
 import { deleteCustomAsset, listCustomAssets } from "@/utils/customAssets";
 import { normalizeSelectedAssetRecord } from "@/utils/graphSchema";
 import { useSafeI18n } from "@/ts/useSafeI18n";
@@ -24,6 +22,7 @@ const props = defineProps<{
 const { openGenericSelector } = useDialogs();
 const logicFlowScope = useLogicFlowScope();
 const { t, getLocale } = useSafeI18n();
+const resolveAssetUrl = useEditorAssetUrlResolver();
 
 const currentLibrary = computed(
   () => props.node.properties?.assetLibrary || "shikigami",
@@ -104,7 +103,11 @@ const handleOpenSelector = () => {
   const config: SelectorConfig = {
     ...preset,
     groups: mergedGroups,
-    dataSource: resolveAssetUrlsInDataSource(mergedDataSource, imageField),
+    dataSource: resolveAssetUrlsInDataSourceWithResolver(
+      mergedDataSource,
+      imageField,
+      resolveAssetUrl,
+    ),
     currentItem: normalizedSelectedAsset,
     assetLibrary: library,
     allowUserAssetUpload: true,

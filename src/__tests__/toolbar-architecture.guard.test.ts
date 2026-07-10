@@ -250,8 +250,8 @@ describe("Toolbar architecture guard", () => {
       "addWatermarkToImage",
       "const input = document.createElement('input');",
       "document.createElement('input')",
-      "const link = document.createElement('a');",
-      "document.createElement('a')",
+      "downloadDataUrl(state.previewImage, 'screenshot.png');",
+      "downloadTextPayload(payload.value);",
       "const reader = new FileReader();",
       "new FileReader()",
       "await navigator.clipboard.writeText(state.previewDataContent);",
@@ -291,15 +291,16 @@ describe("Toolbar architecture guard", () => {
       "logicFlowInstance.getSnapshotBase64(",
       "const input = document.createElement('input');",
       "document.createElement('input')",
-      "const link = document.createElement('a');",
-      "document.createElement('a')",
+      "downloadDataUrl(state.previewImage, 'screenshot.png');",
+      "downloadTextPayload(payload.value);",
       "const reader = new FileReader();",
       "new FileReader()",
       "await navigator.clipboard.writeText(state.previewDataContent);",
       "navigator.clipboard.writeText(state.previewDataContent);",
-      "filesStore.exportData();",
-      "const activeName =",
-      "file.id === filesStore.activeFileId",
+      "workspaceSession.updateTab();",
+      "workspaceSession.exportDocument();",
+      "parseRootDocumentJson",
+      "disposeImportExportCommands",
       "state.showDataPreviewDialog = true;",
       "}, 100);",
       "showMessage('error', '文件格式错误');",
@@ -315,10 +316,10 @@ describe("Toolbar architecture guard", () => {
     );
 
     expect(importExportCommandsSource).toMatch(
-      /const handleExport = \(\) => \{\s*filesStore\.updateTab\(\);\s*setTimeout\(\(\) => \{\s*filesStore\.exportData\(\);\s*\},\s*2000\);\s*\};/s,
+      /const handleExport = \(\) => \{\s*workspaceSession\.updateTab\(\);\s*schedule\(\(\) => \{[\s\S]*workspaceSession\.exportDocument\(\);[\s\S]*\},\s*2000\);\s*\};/s,
     );
     expect(importExportCommandsSource).toMatch(
-      /const handlePreviewData = \(\) => \{\s*filesStore\.updateTab\(\);\s*setTimeout\(\(\) => \{[\s\S]*state\.showDataPreviewDialog = true;[\s\S]*\},\s*100\);\s*\};/s,
+      /const handlePreviewData = \(\) => \{\s*workspaceSession\.updateTab\(\);\s*schedule\(\(\) => \{[\s\S]*state\.showDataPreviewDialog = true;[\s\S]*\},\s*100\);\s*\};/s,
     );
   });
 
@@ -715,9 +716,12 @@ describe("Toolbar architecture guard", () => {
     expect(importExportCallExpressionTexts).toContain(
       "navigator.clipboard.writeText",
     );
+    expect(importExportCallExpressionTexts).toContain("downloadDataUrl");
+    expect(importExportCallExpressionTexts).toContain("downloadTextPayload");
     expect(importExportCreateElementArgs).toEqual(
-      expect.arrayContaining(['"input"', '"a"']),
+      expect.arrayContaining(['"input"']),
     );
+    expect(importExportCreateElementArgs).not.toContain('"a"');
     expect(
       importExportAst.newExpressions.some((newExpression) => {
         return (
@@ -729,7 +733,10 @@ describe("Toolbar architecture guard", () => {
 
     const hasExportTimerOwnership = importExportAst.callExpressions.some(
       (callExpression) => {
-        if (!isSetTimeoutCall(callExpression)) {
+        if (
+          getCallExpressionText(callExpression, importExportAst.sourceFile) !==
+          "schedule"
+        ) {
           return false;
         }
         const delay = getSetTimeoutDelay(callExpression);
@@ -737,14 +744,20 @@ describe("Toolbar architecture guard", () => {
           callExpression,
           importExportAst.sourceFile,
         );
-        return delay === 2000 && callbackText.includes("filesStore.exportData");
+        return (
+          delay === 2000 &&
+          callbackText.includes("workspaceSession.exportDocument")
+        );
       },
     );
     expect(hasExportTimerOwnership).toBe(true);
 
     const hasPreviewTimerOwnership = importExportAst.callExpressions.some(
       (callExpression) => {
-        if (!isSetTimeoutCall(callExpression)) {
+        if (
+          getCallExpressionText(callExpression, importExportAst.sourceFile) !==
+          "schedule"
+        ) {
           return false;
         }
         const delay = getSetTimeoutDelay(callExpression);
@@ -863,6 +876,7 @@ describe("Toolbar architecture guard", () => {
         "prepareCapture",
         "downloadImage",
         "handleClose",
+        "disposeImportExportCommands",
       ]),
     );
 

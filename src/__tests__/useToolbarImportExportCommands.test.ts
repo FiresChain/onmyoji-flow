@@ -1,7 +1,12 @@
 ﻿import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ref } from "vue";
 import { useToolbarImportExportCommands } from "@/components/composables/useToolbarImportExportCommands";
-import { getLogicFlowInstance } from "@/ts/useLogicFlow";
+import { createLogicFlowScope, getLogicFlowInstance } from "@/ts/useLogicFlow";
+import type { WorkspaceSession } from "@/features/workspace/public";
+import {
+  downloadDataUrl,
+  downloadTextPayload,
+} from "@/shared/platform/download";
 import {
   convertTeamCodeToRootDocument,
   decodeTeamCodeFromQrImage,
@@ -15,6 +20,28 @@ vi.mock("@/utils/teamCodeService", () => ({
   convertTeamCodeToRootDocument: vi.fn(),
   decodeTeamCodeFromQrImage: vi.fn(),
 }));
+
+vi.mock("@/shared/platform/download", () => ({
+  downloadDataUrl: vi.fn(),
+  downloadTextPayload: vi.fn(),
+}));
+
+vi.mock("@/features/workspace/public", async () => {
+  const actual = await vi.importActual<
+    typeof import("@/features/workspace/public")
+  >("@/features/workspace/public");
+  return {
+    ...actual,
+    createRootDocumentDownloadPayload: vi.fn(() => ({
+      ok: true,
+      value: {
+        fileName: "onmyoji-flow-files.json",
+        mimeType: "application/json;charset=utf-8",
+        content: "{}",
+      },
+    })),
+  };
+});
 
 vi.mock("@/ts/useLogicFlow", async () => {
   const actual =
@@ -39,11 +66,12 @@ interface ToolbarTestContext {
   };
   filesStore: {
     updateTab: ReturnType<typeof vi.fn>;
-    exportData: ReturnType<typeof vi.fn>;
+    exportData: ReturnType<typeof vi.fn<() => void>>;
     importData: ReturnType<typeof vi.fn>;
     fileList: Array<{ id: string; name: string }>;
     activeFileId: string;
   };
+  workspaceSession: WorkspaceSession;
   importSource: ReturnType<typeof ref<"json" | "teamCode">>;
   teamCodeInput: ReturnType<typeof ref<string>>;
   teamCodeValidationEnabled: ReturnType<typeof ref<boolean>>;
@@ -64,9 +92,9 @@ const createContext = (): ToolbarTestContext => {
     decodingTeamCodeQr: false,
   };
 
-  const filesStore = {
+  const filesStore: ToolbarTestContext["filesStore"] = {
     updateTab: vi.fn(),
-    exportData: vi.fn(),
+    exportData: vi.fn<() => void>(),
     importData: vi.fn(),
     fileList: [
       { id: "file-a", name: "alpha" },
@@ -81,11 +109,34 @@ const createContext = (): ToolbarTestContext => {
   const teamCodeQrInputRef = ref<HTMLInputElement | null>(null);
   const showMessage = vi.fn();
   const refreshLogicFlowCanvas = vi.fn();
+  const exportDocument = vi.fn(() => ({
+    ok: true,
+    document: {
+      schemaVersion: "1.0.0",
+      fileList: filesStore.fileList,
+      activeFileId: filesStore.activeFileId,
+      activeFile:
+        filesStore.fileList.find((file) => file.id === filesStore.activeFileId)
+          ?.name ?? "",
+    },
+  }));
+  filesStore.importData.mockImplementation((data) => ({
+    ok: true,
+    document: data,
+  }));
+  vi.mocked(downloadTextPayload).mockImplementation(() => {
+    filesStore.exportData();
+  });
+  const workspaceSession = {
+    updateTab: filesStore.updateTab,
+    exportDocument,
+    importData: filesStore.importData,
+  } as unknown as WorkspaceSession;
 
   const commands = useToolbarImportExportCommands({
     state,
-    filesStore,
-    logicFlowScope: Symbol("test-scope"),
+    workspaceSession,
+    logicFlowScope: createLogicFlowScope(),
     importSource,
     teamCodeInput,
     teamCodeValidationEnabled,
@@ -105,6 +156,7 @@ const createContext = (): ToolbarTestContext => {
   return {
     state,
     filesStore,
+    workspaceSession,
     importSource,
     teamCodeInput,
     teamCodeValidationEnabled,
@@ -244,11 +296,11 @@ describe("useToolbarImportExportCommands", () => {
 
     expect(context.state.showDataPreviewDialog).toBe(true);
     const parsed = JSON.parse(context.state.previewDataContent) as {
-      schemaVersion: number;
+      schemaVersion: string;
       activeFileId: string;
       activeFile: string;
     };
-    expect(parsed.schemaVersion).toBe(1);
+    expect(parsed.schemaVersion).toBe("1.0.0");
     expect(parsed.activeFileId).toBe("file-b");
     expect(parsed.activeFile).toBe("beta");
   });
@@ -1238,31 +1290,17 @@ describe("useToolbarImportExportCommands", () => {
 
   it("downloadImage keeps close-preview behavior after download", () => {
     const context = createContext();
-    const link = {
-      href: "",
-      download: "",
-      click: vi.fn(),
-    };
-    const originalCreateElement = document.createElement.bind(document);
-    const createElementSpy = vi
-      .spyOn(document, "createElement")
-      .mockImplementation((tagName: string) => {
-        if (tagName === "a") {
-          return link as unknown as HTMLAnchorElement;
-        }
-        return originalCreateElement(tagName);
-      });
 
     context.state.previewImage = "data:image/png;base64,mock";
     context.state.previewVisible = true;
 
     context.commands.downloadImage();
 
-    expect(link.href).toBe("data:image/png;base64,mock");
-    expect(link.download).toBe("screenshot.png");
-    expect(link.click).toHaveBeenCalledTimes(1);
+    expect(downloadDataUrl).toHaveBeenCalledWith(
+      "data:image/png;base64,mock",
+      "screenshot.png",
+    );
     expect(context.state.previewVisible).toBe(false);
-    createElementSpy.mockRestore();
   });
 
   it("handleClose keeps preview cleanup behavior", () => {

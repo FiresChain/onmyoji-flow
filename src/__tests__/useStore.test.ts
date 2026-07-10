@@ -1,26 +1,44 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
-import { setActivePinia, createPinia } from "pinia";
-import * as ts from "typescript";
-import { useFilesStore } from "../ts/useStore";
-import useStoreSourceCode from "../ts/useStore.ts?raw";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { createPinia, setActivePinia } from "pinia";
 
-const logicFlowMocks = vi.hoisted(() => ({
-  getGraphRawData: vi.fn(() => ({
-    nodes: [{ id: "lf-node", type: "rect", x: 100, y: 100 }],
-    edges: [],
-  })),
-  getTransform: vi.fn(() => ({
-    SCALE_X: 1,
-    SCALE_Y: 1,
-    TRANSLATE_X: 0,
-    TRANSLATE_Y: 0,
-  })),
-  getNodeModelById: vi.fn(() => ({ zIndex: 1 })),
-}));
-const logicFlowScopeMock = vi.hoisted(() => Symbol("test-logic-flow-scope"));
+import type { GraphData, RootDocument, Transform } from "@/core/document/types";
+import type { EditorPort } from "@/core/logicflow/types";
+import type { FilesPersistence } from "@/features/workspace/filesPersistence";
+import { useFilesStore } from "@/features/workspace/filesStore";
+import { createWorkspaceSession } from "@/features/workspace/useWorkspaceSession";
 
-const createSampleRootDocument = () => ({
+const IDENTITY_VIEWPORT: Transform = {
+  SCALE_X: 1,
+  SCALE_Y: 1,
+  TRANSLATE_X: 0,
+  TRANSLATE_Y: 0,
+};
+
+const CAPTURED_VIEWPORT: Transform = {
+  SCALE_X: 2,
+  SCALE_Y: 2,
+  TRANSLATE_X: 8,
+  TRANSLATE_Y: 9,
+};
+
+const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
+
+const createGraph = (nodeId: string, position = 10): GraphData => ({
+  nodes: [
+    {
+      id: nodeId,
+      type: "rect",
+      x: position,
+      y: position,
+      properties: {},
+    },
+  ],
+  edges: [],
+});
+
+const createSampleRootDocument = (): RootDocument => ({
   schemaVersion: "1.0.0",
+  workspaceMeta: { owner: "contract-owner" },
   fileList: [
     {
       id: "file-1",
@@ -28,10 +46,11 @@ const createSampleRootDocument = () => ({
       label: "File 1",
       visible: true,
       type: "FLOW",
-      graphRawData: {
-        nodes: [{ id: "source-node", type: "rect", x: 10, y: 10 }],
-        edges: [],
-      },
+      graphRawData: createGraph("source-node", 10),
+      transform: IDENTITY_VIEWPORT,
+      createdAt: 100,
+      updatedAt: 200,
+      featureMeta: { index: 0 },
     },
     {
       id: "file-2",
@@ -39,677 +58,541 @@ const createSampleRootDocument = () => ({
       label: "File 2",
       visible: true,
       type: "FLOW",
-      graphRawData: {
-        nodes: [{ id: "target-node", type: "rect", x: 20, y: 20 }],
-        edges: [],
+      graphRawData: createGraph("target-node", 20),
+      transform: {
+        SCALE_X: 1.5,
+        SCALE_Y: 1.5,
+        TRANSLATE_X: 12,
+        TRANSLATE_Y: 24,
       },
+      createdAt: 101,
+      updatedAt: 201,
+      featureMeta: { index: 1 },
     },
   ],
   activeFileId: "file-1",
   activeFile: "File 1",
 });
 
-const parseUseStoreSource = () => {
-  return ts.createSourceFile(
-    "useStore.ts",
-    useStoreSourceCode,
-    ts.ScriptTarget.Latest,
-    true,
-    ts.ScriptKind.TS,
-  );
-};
-
-const getEnclosingFunctionName = (node: ts.Node): string | null => {
-  let current: ts.Node | undefined = node;
-  while (current) {
-    if (ts.isFunctionDeclaration(current) && current.name) {
-      return current.name.text;
-    }
-    if (
-      ts.isMethodDeclaration(current) &&
-      current.name &&
-      ts.isIdentifier(current.name)
-    ) {
-      return current.name.text;
-    }
-    if (ts.isArrowFunction(current) || ts.isFunctionExpression(current)) {
-      const parent = current.parent;
-      if (ts.isVariableDeclaration(parent) && ts.isIdentifier(parent.name)) {
-        return parent.name.text;
-      }
-      if (ts.isPropertyAssignment(parent)) {
-        const name = parent.name;
-        if (ts.isIdentifier(name) || ts.isStringLiteral(name)) {
-          return name.text;
-        }
-      }
-    }
-    current = current.parent;
-  }
-  return null;
-};
-
-const collectStateValueWriteFunctions = (
-  sourceFile: ts.SourceFile,
-  stateIdentifier: string,
+const createPersistenceFake = (
+  initialDocument: RootDocument | null,
+  events: string[],
+  loadError?: Error,
 ) => {
-  const functions = new Set<string>();
-  const visit = (node: ts.Node) => {
-    if (
-      ts.isBinaryExpression(node) &&
-      node.operatorToken.kind === ts.SyntaxKind.EqualsToken &&
-      ts.isPropertyAccessExpression(node.left) &&
-      node.left.name.text === "value" &&
-      ts.isIdentifier(node.left.expression) &&
-      node.left.expression.text === stateIdentifier
-    ) {
-      const functionName = getEnclosingFunctionName(node);
-      if (functionName) {
-        functions.add(functionName);
-      }
+  let current = initialDocument ? clone(initialDocument) : null;
+  const saved: RootDocument[] = [];
+  const load = vi.fn(() => {
+    if (loadError) {
+      throw loadError;
     }
-    ts.forEachChild(node, visit);
+    return current ? clone(current) : null;
+  });
+  const save = vi.fn((document: RootDocument) => {
+    const snapshot = clone(document);
+    current = snapshot;
+    saved.push(snapshot);
+    events.push("persist");
+  });
+  const remove = vi.fn(() => {
+    current = null;
+  });
+  const flush = vi.fn();
+  const dispose = vi.fn();
+  const persistence: FilesPersistence = {
+    load,
+    save,
+    remove,
+    flush,
+    dispose,
   };
-  visit(sourceFile);
-  return functions;
-};
 
-const collectActiveFileIdWriteFunctions = (sourceFile: ts.SourceFile) => {
-  return collectStateValueWriteFunctions(sourceFile, "activeFileId");
-};
-
-const collectFileListWriteFunctions = (sourceFile: ts.SourceFile) => {
-  return collectStateValueWriteFunctions(sourceFile, "fileList");
-};
-
-const collectCallers = (sourceFile: ts.SourceFile, calleeName: string) => {
-  const callers = new Set<string>();
-  const visit = (node: ts.Node) => {
-    if (
-      ts.isCallExpression(node) &&
-      ts.isIdentifier(node.expression) &&
-      node.expression.text === calleeName
-    ) {
-      const functionName = getEnclosingFunctionName(node);
-      if (functionName) {
-        callers.add(functionName);
-      }
-    }
-    ts.forEachChild(node, visit);
-  };
-  visit(sourceFile);
-  return callers;
-};
-
-const hasGlobalLocalStorageClearCall = (sourceFile: ts.SourceFile) => {
-  let found = false;
-  const visit = (node: ts.Node) => {
-    if (
-      ts.isCallExpression(node) &&
-      ts.isPropertyAccessExpression(node.expression) &&
-      ts.isIdentifier(node.expression.expression) &&
-      node.expression.expression.text === "localStorage" &&
-      node.expression.name.text === "clear"
-    ) {
-      found = true;
-      return;
-    }
-    ts.forEachChild(node, visit);
-  };
-  visit(sourceFile);
-  return found;
-};
-
-// Mock localStorage
-const localStorageMock = (() => {
-  let store: Record<string, string> = {};
   return {
-    getItem: (key: string) => store[key] || null,
-    setItem: (key: string, value: string) => {
-      store[key] = value;
-    },
-    removeItem: (key: string) => {
-      delete store[key];
-    },
-    clear: () => {
-      store = {};
-    },
+    persistence,
+    saved,
+    load,
+    save,
+    remove,
+    flush,
+    dispose,
   };
-})();
+};
 
-Object.defineProperty(global, "localStorage", { value: localStorageMock });
+const createEditorPortFake = (events: string[]) => {
+  const capturedGraph = createGraph("captured-node", 100);
+  const render = vi.fn((data: GraphData) => {
+    events.push(`render:${data.nodes[0]?.id ?? "empty"}`);
+  });
+  const capture = vi.fn(() => {
+    events.push("capture");
+    return clone(capturedGraph);
+  });
+  const clear = vi.fn(() => {
+    events.push("clear");
+  });
+  const getViewport = vi.fn(() => {
+    events.push("getViewport");
+    return clone(CAPTURED_VIEWPORT);
+  });
+  const setViewport = vi.fn((transform: Transform) => {
+    events.push(
+      `setViewport:${transform.SCALE_X}:${transform.TRANSLATE_X}:${transform.TRANSLATE_Y}`,
+    );
+  });
+  const fitView = vi.fn();
+  const dispose = vi.fn();
+  const port: EditorPort = {
+    render,
+    capture,
+    clear,
+    getViewport,
+    setViewport,
+    fitView,
+    dispose,
+  };
 
-// Mock ElMessageBox 和 useGlobalMessage
-vi.mock("element-plus", () => ({
-  ElMessageBox: {
-    confirm: vi.fn(),
-  },
-}));
+  return {
+    port,
+    capturedGraph,
+    render,
+    capture,
+    clear,
+    getViewport,
+    setViewport,
+  };
+};
 
-vi.mock("../ts/useGlobalMessage", () => ({
-  useGlobalMessage: () => ({
-    showMessage: vi.fn(),
-  }),
-}));
+interface HarnessOptions {
+  initialDocument?: RootDocument | null;
+  loadError?: Error;
+  now?: number;
+}
 
-vi.mock("../ts/useLogicFlow", () => ({
-  getLogicFlowInstance: vi.fn(() => ({
-    getGraphRawData: logicFlowMocks.getGraphRawData,
-    getTransform: logicFlowMocks.getTransform,
-    getNodeModelById: logicFlowMocks.getNodeModelById,
-  })),
-  useLogicFlowScope: vi.fn(() => logicFlowScopeMock),
-}));
+const createHarness = (options: HarnessOptions = {}) => {
+  const events: string[] = [];
+  const pinia = createPinia();
+  const store = useFilesStore(pinia);
+  const persistenceFake = createPersistenceFake(
+    options.initialDocument === undefined
+      ? createSampleRootDocument()
+      : options.initialDocument,
+    events,
+    options.loadError,
+  );
+  const editorFake = createEditorPortFake(events);
+  const session = createWorkspaceSession({
+    store,
+    persistence: persistenceFake.persistence,
+    getEditorPort: () => editorFake.port,
+    pinia,
+    now: () => options.now ?? 1_000,
+  });
 
-describe("useFilesStore 数据操作测试", () => {
+  return {
+    events,
+    pinia,
+    store,
+    session,
+    ...persistenceFake,
+    ...editorFake,
+  };
+};
+
+describe("workspace files store and session", () => {
   beforeEach(() => {
-    setActivePinia(createPinia());
-    localStorageMock.clear();
-    logicFlowMocks.getGraphRawData.mockClear();
-    logicFlowMocks.getTransform.mockClear();
-    logicFlowMocks.getNodeModelById.mockClear();
+    setActivePinia(undefined);
   });
 
-  it("应该初始化默认文件列表", () => {
-    const store = useFilesStore();
-    store.initializeWithPrompt();
-
-    expect(store.fileList.length).toBeGreaterThan(0);
-    expect(store.fileList[0].name).toBe("File 1");
-    expect(store.fileList[0].type).toBe("FLOW");
-    expect(logicFlowMocks.getGraphRawData).not.toHaveBeenCalled();
+  afterEach(() => {
+    vi.useRealTimers();
+    setActivePinia(undefined);
   });
 
-  it("initializeWithPrompt 从 localStorage 恢复时不应触发 LogicFlow 数据回写", () => {
-    localStorageMock.setItem(
-      "filesStore",
-      JSON.stringify(createSampleRootDocument()),
-    );
-    const store = useFilesStore();
+  it("没有持久化数据时创建默认文件并渲染空画布", () => {
+    const harness = createHarness({ initialDocument: null, now: 123 });
 
-    store.initializeWithPrompt();
+    expect(harness.session.initialize()).toEqual({ restored: false });
 
-    expect(store.fileList.length).toBe(2);
-    expect(store.activeFileId).toBe("file-1");
-    expect(logicFlowMocks.getGraphRawData).not.toHaveBeenCalled();
+    expect(harness.store.fileList).toHaveLength(1);
+    expect(harness.store.fileList[0]).toMatchObject({
+      name: "File 1",
+      label: "File 1",
+      type: "FLOW",
+      visible: true,
+      graphRawData: { nodes: [], edges: [] },
+      createdAt: 123,
+      updatedAt: 123,
+    });
+    expect(harness.store.activeFileId).toBe(harness.store.fileList[0].id);
+    expect(harness.capture).not.toHaveBeenCalled();
+    expect(harness.render).toHaveBeenCalledWith({ nodes: [], edges: [] });
+    expect(harness.setViewport).toHaveBeenCalledWith(IDENTITY_VIEWPORT);
   });
 
-  it("initializeWithPrompt 恢复时应按 activeFile(name) 回退活动文件且不触发 LogicFlow 回写", () => {
-    localStorageMock.setItem(
-      "filesStore",
-      JSON.stringify({
-        ...createSampleRootDocument(),
-        activeFileId: "missing-file",
-        activeFile: "File 2",
+  it("从 persistence 恢复文档时不捕获当前画布", () => {
+    const harness = createHarness();
+
+    expect(harness.session.initialize()).toEqual({ restored: true });
+
+    expect(harness.store.fileList).toHaveLength(2);
+    expect(harness.store.activeFileId).toBe("file-1");
+    expect(harness.store.rootDocumentExtras).toEqual({
+      workspaceMeta: { owner: "contract-owner" },
+    });
+    expect(harness.capture).not.toHaveBeenCalled();
+    expect(harness.render).toHaveBeenCalledWith(
+      expect.objectContaining({
+        nodes: [expect.objectContaining({ id: "source-node" })],
       }),
     );
-    const store = useFilesStore();
-
-    store.initializeWithPrompt();
-
-    expect(store.activeFileId).toBe("file-2");
-    expect(logicFlowMocks.getGraphRawData).not.toHaveBeenCalled();
   });
 
-  it("initializeWithPrompt 恢复时当 activeFileId/activeFile 都无效应回退首文件且不触发 LogicFlow 回写", () => {
-    localStorageMock.setItem(
-      "filesStore",
-      JSON.stringify({
-        ...createSampleRootDocument(),
-        activeFileId: "missing-file",
-        activeFile: "Missing File",
-      }),
-    );
-    const store = useFilesStore();
-
-    store.initializeWithPrompt();
-
-    expect(store.activeFileId).toBe("file-1");
-    expect(logicFlowMocks.getGraphRawData).not.toHaveBeenCalled();
-  });
-
-  it("添加新文件应该增加文件列表长度", async () => {
-    const store = useFilesStore();
-    store.initializeWithPrompt();
-
-    const initialLength = store.fileList.length;
-    store.addTab();
-
-    // 等待 requestAnimationFrame 完成
-    await new Promise((resolve) => setTimeout(resolve, 50));
-
-    expect(store.fileList.length).toBe(initialLength + 1);
-    expect(store.fileList[store.fileList.length - 1].name).toContain("File");
-  });
-
-  it("删除文件应该减少文件列表长度", async () => {
-    const store = useFilesStore();
-    store.initializeWithPrompt();
-    store.addTab();
-
-    // 等待添加完成
-    await new Promise((resolve) => setTimeout(resolve, 50));
-
-    const initialLength = store.fileList.length;
-    const fileToDelete = store.fileList[0];
-
-    store.removeTab(fileToDelete.id);
-
-    expect(store.fileList.length).toBe(initialLength - 1);
-  });
-
-  it("切换活动文件应该更新 activeFileId", async () => {
-    const store = useFilesStore();
-    store.initializeWithPrompt();
-    store.addTab();
-
-    // 等待添加完成
-    await new Promise((resolve) => setTimeout(resolve, 50));
-
-    const secondFile = store.fileList[1];
-    store.setActiveFile(secondFile.id);
-
-    expect(store.activeFileId).toBe(secondFile.id);
-  });
-
-  it("addTab 切换活动文件时应仅保存一次来源文件且不串写新文件 graphRawData", async () => {
-    const store = useFilesStore();
-    store.importData(createSampleRootDocument());
-
-    store.addTab();
-    await new Promise((resolve) => setTimeout(resolve, 50));
-
-    const newActiveFile = store.fileList[store.fileList.length - 1];
-    const sourceAfter = store.getTab("file-1")?.graphRawData;
-
-    expect(store.activeFileId).toBe(newActiveFile.id);
-    expect(sourceAfter).toMatchObject({
-      nodes: [{ id: "lf-node", type: "rect", x: 100, y: 100, zIndex: 1 }],
-      edges: [],
-    });
-    expect(newActiveFile.graphRawData).toEqual({
-      nodes: [],
-      edges: [],
-    });
-    expect(logicFlowMocks.getGraphRawData).toHaveBeenCalledTimes(1);
-  });
-
-  it("切换活动文件时应只保存一次来源文件且不串写目标文件", () => {
-    const store = useFilesStore();
-
-    store.importData(createSampleRootDocument());
-
-    const targetBefore = JSON.parse(
-      JSON.stringify(store.getTab("file-2")?.graphRawData),
-    );
-    store.setActiveFile("file-2");
-    const sourceAfter = store.getTab("file-1")?.graphRawData;
-    const targetAfter = store.getTab("file-2")?.graphRawData;
-
-    expect(store.activeFileId).toBe("file-2");
-    expect(sourceAfter).toMatchObject({
-      nodes: [{ id: "lf-node", type: "rect", x: 100, y: 100, zIndex: 1 }],
-      edges: [],
-    });
-    expect(targetAfter).toEqual(targetBefore);
-    expect(logicFlowMocks.getGraphRawData).toHaveBeenCalledTimes(1);
-  });
-
-  it("切换到当前活动文件时不应触发重复保存", () => {
-    const store = useFilesStore();
-    store.importData(createSampleRootDocument());
-
-    store.setActiveFile("file-1");
-
-    expect(logicFlowMocks.getGraphRawData).not.toHaveBeenCalled();
-  });
-
-  it("对非活动文件 setVisible 不应串写目标文件 graphRawData", () => {
-    const store = useFilesStore();
-    store.importData(createSampleRootDocument());
-
-    const targetBefore = JSON.parse(
-      JSON.stringify(store.getTab("file-2")?.graphRawData),
-    );
-    store.setVisible("file-2", false);
-    const targetAfter = store.getTab("file-2")?.graphRawData;
-
-    expect(targetAfter).toEqual(targetBefore);
-    expect(store.getTab("file-2")?.visible).toBe(false);
-    expect(logicFlowMocks.getGraphRawData).not.toHaveBeenCalled();
-  });
-
-  it("隐藏活动文件后应保持保存来源明确且不串写新活动文件 graphRawData", () => {
-    const store = useFilesStore();
-    store.importData(createSampleRootDocument());
-
-    const fallbackBefore = JSON.parse(
-      JSON.stringify(store.getTab("file-2")?.graphRawData),
-    );
-    store.setVisible("file-1", false);
-    const hiddenFile = store.getTab("file-1");
-    const fallbackAfter = store.getTab("file-2")?.graphRawData;
-
-    expect(store.activeFileId).toBe("file-2");
-    expect(hiddenFile?.visible).toBe(false);
-    expect(fallbackAfter).toEqual(fallbackBefore);
-    expect(hiddenFile?.graphRawData).toMatchObject({
-      nodes: [{ id: "lf-node", type: "rect", x: 100, y: 100, zIndex: 1 }],
-      edges: [],
-    });
-    expect(logicFlowMocks.getGraphRawData).toHaveBeenCalledTimes(1);
-  });
-
-  it("removeTab 删除活动文件触发切换时不应重复保存或串写目标文件", () => {
-    const store = useFilesStore();
-    store.importData(createSampleRootDocument());
-
-    const fallbackBefore = JSON.parse(
-      JSON.stringify(store.getTab("file-2")?.graphRawData),
-    );
-    store.removeTab("file-1");
-    const fallbackAfter = store.getTab("file-2")?.graphRawData;
-
-    expect(store.activeFileId).toBe("file-2");
-    expect(store.getTab("file-1")).toBeUndefined();
-    expect(fallbackAfter).toEqual(fallbackBefore);
-    expect(logicFlowMocks.getGraphRawData).not.toHaveBeenCalled();
-  });
-
-  it("对非活动文件 renameFile 不应串写目标文件 graphRawData", () => {
-    const store = useFilesStore();
-    store.importData(createSampleRootDocument());
-
-    const targetBefore = JSON.parse(
-      JSON.stringify(store.getTab("file-2")?.graphRawData),
-    );
-    store.renameFile("file-2", "Renamed File");
-    const targetAfter = store.getTab("file-2")?.graphRawData;
-
-    expect(targetAfter).toEqual(targetBefore);
-    expect(store.getTab("file-2")?.name).toBe("Renamed File");
-    expect(logicFlowMocks.getGraphRawData).not.toHaveBeenCalled();
-  });
-
-  it("对非活动文件 deleteFile 不应触发画布同步串写", () => {
-    const store = useFilesStore();
-    store.importData(createSampleRootDocument());
-
-    const activeBefore = JSON.parse(
-      JSON.stringify(store.getTab("file-1")?.graphRawData),
-    );
-    store.deleteFile("file-2");
-    const activeAfter = store.getTab("file-1")?.graphRawData;
-
-    expect(store.getTab("file-2")).toBeUndefined();
-    expect(activeAfter).toEqual(activeBefore);
-    expect(logicFlowMocks.getGraphRawData).not.toHaveBeenCalled();
-  });
-
-  it("deleteFile 删除活动文件触发切换时不应将当前画布数据串写到新活动文件", () => {
-    const store = useFilesStore();
-    store.importData(createSampleRootDocument());
-
-    const fallbackBefore = JSON.parse(
-      JSON.stringify(store.getTab("file-2")?.graphRawData),
-    );
-    store.deleteFile("file-1");
-    const fallbackAfter = store.getTab("file-2")?.graphRawData;
-
-    expect(store.getTab("file-1")).toBeUndefined();
-    expect(store.activeFileId).toBe("file-2");
-    expect(fallbackAfter).toEqual(fallbackBefore);
-    expect(logicFlowMocks.getGraphRawData).not.toHaveBeenCalled();
-  });
-
-  it("visibleFiles 应该只返回可见文件", async () => {
-    const store = useFilesStore();
-    store.initializeWithPrompt();
-    store.addTab();
-
-    // 等待添加完成
-    await new Promise((resolve) => setTimeout(resolve, 50));
-
-    // 隐藏第一个文件
-    store.fileList[0].visible = false;
-
-    expect(store.visibleFiles.length).toBe(store.fileList.length - 1);
-    expect(store.visibleFiles.every((f) => f.visible)).toBe(true);
-  });
-
-  it("导入数据应该正确恢复文件列表", () => {
-    const store = useFilesStore();
-
-    const mockData = {
-      schemaVersion: "1.0.0",
-      fileList: [
-        {
-          id: "test-1",
-          name: "Test File",
-          label: "Test File",
-          visible: true,
-          type: "FLOW",
-          graphRawData: { nodes: [], edges: [] },
-        },
-      ],
-      activeFileId: "test-1",
-      activeFile: "Test File",
-    };
-
-    store.importData(mockData);
-
-    expect(store.fileList.length).toBe(1);
-    expect(store.fileList[0].name).toBe("Test File");
-    expect(store.activeFileId).toBe("test-1");
-    expect(logicFlowMocks.getGraphRawData).not.toHaveBeenCalled();
-  });
-
-  it("import -> persist 应保留 RootDocument 与文件扩展字段", () => {
-    vi.useFakeTimers();
-    try {
-      const store = useFilesStore();
-      store.importData({
-        ...createSampleRootDocument(),
-        workspaceMeta: { owner: "contract-owner" },
-        fileList: createSampleRootDocument().fileList.map((file, index) => ({
-          ...file,
-          createdAt: 100 + index,
-          updatedAt: 200 + index,
-          featureMeta: { index },
-        })),
-      });
-
-      store.updateTab("file-1");
-      vi.advanceTimersByTime(1000);
-
-      const persisted = JSON.parse(
-        localStorageMock.getItem("filesStore") || "{}",
-      );
-      expect(persisted.workspaceMeta).toEqual({ owner: "contract-owner" });
-      expect(persisted.fileList[0]).toMatchObject({
-        id: "file-1",
-        createdAt: 100,
-        featureMeta: { index: 0 },
-      });
-      expect(persisted.fileList[0].updatedAt).toEqual(expect.any(Number));
-      expect(persisted.fileList[1]).toMatchObject({
-        id: "file-2",
-        createdAt: 101,
-        updatedAt: 201,
-        featureMeta: { index: 1 },
-      });
-    } finally {
-      vi.useRealTimers();
-    }
-  });
-
-  it("importData 遇到 schema 校验失败时不应污染当前状态", () => {
-    const store = useFilesStore();
-    store.initializeWithPrompt();
-
-    const beforeList = JSON.parse(JSON.stringify(store.fileList));
-    const beforeActiveFileId = store.activeFileId;
-
-    store.importData({
-      schemaVersion: "2.0.0",
-      fileList: [
-        {
-          id: "broken",
-          label: "Broken",
-          name: "Broken",
-          visible: true,
-          type: "FLOW",
-          graphRawData: {},
-          transform: {
-            SCALE_X: 1,
-            SCALE_Y: 1,
-            TRANSLATE_X: 0,
-            TRANSLATE_Y: 0,
-          },
-        },
-      ],
-      activeFile: "Missing File",
-      activeFileId: "missing-id",
-    });
-
-    expect(store.fileList).toEqual(beforeList);
-    expect(store.activeFileId).toBe(beforeActiveFileId);
-    expect(logicFlowMocks.getGraphRawData).not.toHaveBeenCalled();
-  });
-
-  it("importData 对已带 schemaVersion 的数据也应兼容 meta.z -> zIndex", () => {
-    const store = useFilesStore();
-
-    store.importData({
-      schemaVersion: "1.0.0",
-      fileList: [
-        {
-          id: "test-1",
-          name: "Test File",
-          label: "Test File",
-          visible: true,
-          type: "FLOW",
-          graphRawData: {
-            nodes: [
-              {
-                id: "legacy-node",
-                type: "rect",
-                properties: {
-                  style: { width: 100, height: 100 },
-                  meta: { z: 9, locked: true },
-                },
-              },
-            ],
-            edges: [],
-          },
-        },
-      ],
-      activeFileId: "test-1",
-      activeFile: "Test File",
-    });
-
-    const node = (store.fileList[0].graphRawData as any).nodes[0];
-    expect(node.zIndex).toBe(9);
-    expect(node.properties.meta.z).toBeUndefined();
-    expect(node.properties.meta.locked).toBe(true);
-    expect(logicFlowMocks.getGraphRawData).not.toHaveBeenCalled();
-  });
-
-  it("importData 恢复时应按 activeFile(name) 回退活动文件且不触发 LogicFlow 回写", () => {
-    const store = useFilesStore();
-    const mockData = {
-      ...createSampleRootDocument(),
+  it.each([
+    {
+      label: "activeFile(name)",
       activeFileId: "missing-file",
       activeFile: "File 2",
+      expectedId: "file-2",
+    },
+    {
+      label: "首文件",
+      activeFileId: "missing-file",
+      activeFile: "Missing File",
+      expectedId: "file-1",
+    },
+  ])("恢复时活动文件无效则回退到 $label", (scenario) => {
+    const harness = createHarness({
+      initialDocument: {
+        ...createSampleRootDocument(),
+        activeFileId: scenario.activeFileId,
+        activeFile: scenario.activeFile,
+      },
+    });
+
+    expect(harness.session.initialize()).toEqual({ restored: true });
+    expect(harness.store.activeFileId).toBe(scenario.expectedId);
+    expect(harness.capture).not.toHaveBeenCalled();
+  });
+
+  it("持久化读取损坏时清理所属数据并恢复默认文档", () => {
+    const harness = createHarness({
+      initialDocument: null,
+      loadError: new SyntaxError("corrupted JSON"),
+      now: 456,
+    });
+
+    const result = harness.session.initialize();
+
+    expect(result.restored).toBe(false);
+    expect(result.error).toBeInstanceOf(SyntaxError);
+    expect(harness.remove).toHaveBeenCalledOnce();
+    expect(harness.store.fileList).toHaveLength(1);
+    expect(harness.store.fileList[0]).toMatchObject({
+      name: "File 1",
+      createdAt: 456,
+      updatedAt: 456,
+    });
+    expect(harness.capture).not.toHaveBeenCalled();
+  });
+
+  it("导入校验失败时不污染现有状态、画布或 persistence", () => {
+    const harness = createHarness();
+    harness.session.initialize();
+    const before = clone(harness.store.toDocument());
+    harness.render.mockClear();
+    harness.capture.mockClear();
+    harness.save.mockClear();
+    harness.saved.length = 0;
+
+    const result = harness.session.importData({
+      ...createSampleRootDocument(),
+      schemaVersion: "2.0.0",
+    });
+
+    expect(result.ok).toBe(false);
+    expect(harness.store.toDocument()).toEqual(before);
+    expect(harness.render).not.toHaveBeenCalled();
+    expect(harness.capture).not.toHaveBeenCalled();
+    expect(harness.save).not.toHaveBeenCalled();
+  });
+
+  it("导入时迁移 meta.z 并保留其他节点元数据", () => {
+    const harness = createHarness({ initialDocument: null });
+    harness.session.initialize();
+    harness.save.mockClear();
+    harness.saved.length = 0;
+    const document = createSampleRootDocument();
+    document.fileList[0].graphRawData.nodes[0].properties = {
+      style: { width: 100, height: 100 },
+      meta: { z: 9, locked: true },
     };
 
-    store.importData(mockData);
+    const result = harness.session.importData(document);
 
-    expect(store.activeFileId).toBe("file-2");
-    expect(logicFlowMocks.getGraphRawData).not.toHaveBeenCalled();
+    expect(result.ok).toBe(true);
+    const node = harness.store.fileList[0].graphRawData.nodes[0];
+    expect(node.zIndex).toBe(9);
+    expect(node.properties?.meta).toMatchObject({ locked: true });
+    expect(node.properties?.meta?.z).toBeUndefined();
+    expect(harness.save).toHaveBeenCalledOnce();
+    expect(harness.capture).not.toHaveBeenCalled();
   });
 
-  it("重置工作区应该恢复到默认状态", async () => {
-    const store = useFilesStore();
-    store.initializeWithPrompt();
-    store.addTab();
-    store.addTab();
+  it("import -> capture -> persist 保留扩展字段与文件时间戳", () => {
+    const harness = createHarness({ initialDocument: null, now: 999 });
+    harness.session.initialize();
+    harness.saved.length = 0;
+    harness.save.mockClear();
 
-    // 等待添加完成
-    await new Promise((resolve) => setTimeout(resolve, 100));
-
-    logicFlowMocks.getGraphRawData.mockClear();
-    store.resetWorkspace();
-
-    expect(store.fileList.length).toBe(1);
-    expect(store.fileList[0].name).toBe("File 1");
-    expect(logicFlowMocks.getGraphRawData).not.toHaveBeenCalled();
-  });
-
-  it("activeFileId 写入边界应仅允许 bootstrap 与 switch 入口（结构性防回归）", () => {
-    const sourceFile = parseUseStoreSource();
-    const writeFunctions = [
-      ...collectActiveFileIdWriteFunctions(sourceFile),
-    ].sort();
-
-    expect(writeFunctions).toEqual([
-      "setActiveFileForBootstrap",
-      "switchActiveFile",
-    ]);
-  });
-
-  it("fileList 写入边界应仅允许导入/初始化/重置入口（结构性防回归）", () => {
-    const sourceFile = parseUseStoreSource();
-    const writeFunctions = [
-      ...collectFileListWriteFunctions(sourceFile),
-    ].sort();
-
-    expect(writeFunctions).toEqual([
-      "importData",
-      "initializeWithPrompt",
-      "resetWorkspace",
-    ]);
-  });
-
-  it("localStorage 异常分支不应调用全局 clear（结构性防回归）", () => {
-    const sourceFile = parseUseStoreSource();
-    const namespaceClearCallers = collectCallers(
-      sourceFile,
-      "clearFilesStoreLocalStorage",
+    expect(harness.session.importData(createSampleRootDocument()).ok).toBe(
+      true,
     );
+    expect(harness.saved[harness.saved.length - 1]).toMatchObject({
+      workspaceMeta: { owner: "contract-owner" },
+      fileList: [
+        {
+          id: "file-1",
+          createdAt: 100,
+          updatedAt: 200,
+          featureMeta: { index: 0 },
+        },
+        {
+          id: "file-2",
+          createdAt: 101,
+          updatedAt: 201,
+          featureMeta: { index: 1 },
+        },
+      ],
+    });
 
-    expect(hasGlobalLocalStorageClearCall(sourceFile)).toBe(false);
-    expect(namespaceClearCallers.has("saveStateToLocalStorage")).toBe(true);
+    harness.session.updateTab("file-1");
+
+    expect(harness.saved[harness.saved.length - 1]).toMatchObject({
+      workspaceMeta: { owner: "contract-owner" },
+      fileList: [
+        {
+          id: "file-1",
+          createdAt: 100,
+          updatedAt: 999,
+          featureMeta: { index: 0 },
+        },
+        {
+          id: "file-2",
+          createdAt: 101,
+          updatedAt: 201,
+          featureMeta: { index: 1 },
+        },
+      ],
+    });
   });
 
-  it("运行时切换入口应通过统一入口 switchActiveFile（结构性防回归）", () => {
-    const sourceFile = parseUseStoreSource();
-    const switchCallers = collectCallers(sourceFile, "switchActiveFile");
-    const removeTabCallers = collectCallers(sourceFile, "removeTab");
-    const writeFunctions = collectActiveFileIdWriteFunctions(sourceFile);
+  it("切换文件时先捕获来源文件，再渲染目标文件", () => {
+    const harness = createHarness({ now: 777 });
+    harness.session.initialize();
+    const targetBefore = clone(harness.store.getTab("file-2")?.graphRawData);
+    harness.events.length = 0;
+    harness.saved.length = 0;
 
-    expect(switchCallers.has("setActiveFile")).toBe(true);
-    expect(switchCallers.has("addTab")).toBe(true);
-    expect(switchCallers.has("removeTab")).toBe(true);
-    expect(switchCallers.has("setVisible")).toBe(true);
-    expect(removeTabCallers.has("deleteFile")).toBe(true);
+    expect(harness.session.setActiveFile("file-2")).toBe(true);
 
-    expect(writeFunctions.has("setActiveFile")).toBe(false);
-    expect(writeFunctions.has("addTab")).toBe(false);
-    expect(writeFunctions.has("removeTab")).toBe(false);
-    expect(writeFunctions.has("setVisible")).toBe(false);
-    expect(writeFunctions.has("deleteFile")).toBe(false);
+    expect(harness.events).toEqual([
+      "capture",
+      "getViewport",
+      "render:target-node",
+      "setViewport:1.5:12:24",
+      "persist",
+    ]);
+    expect(harness.store.activeFileId).toBe("file-2");
+    expect(harness.store.getTab("file-1")).toMatchObject({
+      graphRawData: harness.capturedGraph,
+      transform: CAPTURED_VIEWPORT,
+      updatedAt: 777,
+    });
+    expect(harness.store.getTab("file-2")?.graphRawData).toEqual(targetBefore);
   });
 
-  it("运行时入口不应直接写 fileList.value（结构性防回归）", () => {
-    const sourceFile = parseUseStoreSource();
-    const writeFunctions = collectFileListWriteFunctions(sourceFile);
+  it("切换到当前文件时不捕获、不渲染也不持久化", () => {
+    const harness = createHarness();
+    harness.session.initialize();
+    harness.capture.mockClear();
+    harness.render.mockClear();
+    harness.save.mockClear();
 
-    expect(writeFunctions.has("setActiveFile")).toBe(false);
-    expect(writeFunctions.has("addTab")).toBe(false);
-    expect(writeFunctions.has("removeTab")).toBe(false);
-    expect(writeFunctions.has("setVisible")).toBe(false);
-    expect(writeFunctions.has("deleteFile")).toBe(false);
-    expect(writeFunctions.has("renameFile")).toBe(false);
+    expect(harness.session.setActiveFile("file-1")).toBe(false);
+    expect(harness.capture).not.toHaveBeenCalled();
+    expect(harness.render).not.toHaveBeenCalled();
+    expect(harness.save).not.toHaveBeenCalled();
+  });
+
+  it("非活动文件的重命名与可见性修改不会串写 graphRawData", () => {
+    const harness = createHarness();
+    harness.session.initialize();
+    const targetBefore = clone(harness.store.getTab("file-2")?.graphRawData);
+    harness.capture.mockClear();
+    harness.render.mockClear();
+
+    expect(harness.session.renameFile("file-2", " Renamed File ")).toBe(true);
+    expect(harness.session.setVisible("file-2", false)).toBe(true);
+
+    expect(harness.store.getTab("file-2")).toMatchObject({
+      name: "Renamed File",
+      label: "Renamed File",
+      visible: false,
+      graphRawData: targetBefore,
+    });
+    expect(harness.store.activeFileId).toBe("file-1");
+    expect(harness.store.visibleFiles.map((file) => file.id)).toEqual([
+      "file-1",
+    ]);
+    expect(harness.capture).not.toHaveBeenCalled();
+    expect(harness.render).not.toHaveBeenCalled();
+  });
+
+  it("新增文件时保存来源画布且新文件保持空数据", () => {
+    const harness = createHarness({ now: 888 });
+    harness.session.initialize();
+    const existingTarget = clone(harness.store.getTab("file-2")?.graphRawData);
+    harness.events.length = 0;
+
+    harness.session.addTab();
+
+    const addedFile = harness.store.activeFile;
+    expect(harness.store.fileList).toHaveLength(3);
+    expect(addedFile).toMatchObject({
+      name: "File 3",
+      graphRawData: { nodes: [], edges: [] },
+    });
+    expect(harness.store.getTab("file-1")).toMatchObject({
+      graphRawData: harness.capturedGraph,
+      transform: CAPTURED_VIEWPORT,
+      updatedAt: 888,
+    });
+    expect(harness.store.getTab("file-2")?.graphRawData).toEqual(
+      existingTarget,
+    );
+    expect(harness.events).toEqual([
+      "capture",
+      "getViewport",
+      "render:empty",
+      "setViewport:1:0:0",
+      "persist",
+    ]);
+  });
+
+  it("删除非活动文件时不读取画布或改写活动文件", () => {
+    const harness = createHarness();
+    harness.session.initialize();
+    const activeBefore = clone(harness.store.getTab("file-1")?.graphRawData);
+    harness.capture.mockClear();
+    harness.render.mockClear();
+
+    expect(harness.session.deleteFile("file-2")).toBe(true);
+
+    expect(harness.store.getTab("file-2")).toBeUndefined();
+    expect(harness.store.activeFileId).toBe("file-1");
+    expect(harness.store.getTab("file-1")?.graphRawData).toEqual(activeBefore);
+    expect(harness.capture).not.toHaveBeenCalled();
+    expect(harness.render).not.toHaveBeenCalled();
+  });
+
+  it("删除活动文件时直接渲染回退文件且不串写其数据", () => {
+    const harness = createHarness();
+    harness.session.initialize();
+    const fallbackBefore = clone(harness.store.getTab("file-2")?.graphRawData);
+    harness.capture.mockClear();
+    harness.render.mockClear();
+
+    expect(harness.session.removeTab("file-1")).toBe(true);
+
+    expect(harness.store.getTab("file-1")).toBeUndefined();
+    expect(harness.store.activeFileId).toBe("file-2");
+    expect(harness.store.getTab("file-2")?.graphRawData).toEqual(
+      fallbackBefore,
+    );
+    expect(harness.capture).not.toHaveBeenCalled();
+    expect(harness.render).toHaveBeenCalledWith(
+      expect.objectContaining({
+        nodes: [expect.objectContaining({ id: "target-node" })],
+      }),
+    );
+  });
+
+  it("隐藏活动文件时捕获来源并切换到可见回退文件", () => {
+    const harness = createHarness({ now: 654 });
+    harness.session.initialize();
+    const fallbackBefore = clone(harness.store.getTab("file-2")?.graphRawData);
+    harness.events.length = 0;
+
+    expect(harness.session.setVisible("file-1", false)).toBe(true);
+
+    expect(harness.store.activeFileId).toBe("file-2");
+    expect(harness.store.getTab("file-1")).toMatchObject({
+      visible: false,
+      graphRawData: harness.capturedGraph,
+      updatedAt: 654,
+    });
+    expect(harness.store.getTab("file-2")?.graphRawData).toEqual(
+      fallbackBefore,
+    );
+    expect(harness.events).toEqual([
+      "capture",
+      "getViewport",
+      "render:target-node",
+      "setViewport:1.5:12:24",
+      "persist",
+    ]);
+  });
+
+  it("重置工作区会删除持久化数据并恢复默认文件", () => {
+    const harness = createHarness({ now: 321 });
+    harness.session.initialize();
+    harness.remove.mockClear();
+    harness.render.mockClear();
+    harness.capture.mockClear();
+    harness.saved.length = 0;
+
+    harness.session.resetWorkspace();
+
+    expect(harness.remove).toHaveBeenCalledOnce();
+    expect(harness.store.fileList).toHaveLength(1);
+    expect(harness.store.fileList[0]).toMatchObject({
+      name: "File 1",
+      graphRawData: { nodes: [], edges: [] },
+      createdAt: 321,
+      updatedAt: 321,
+    });
+    expect(harness.store.activeFileId).toBe(harness.store.fileList[0].id);
+    expect(harness.capture).not.toHaveBeenCalled();
+    expect(harness.render).toHaveBeenCalledWith({ nodes: [], edges: [] });
+    expect(harness.saved).toHaveLength(0);
+  });
+
+  it("dispose 停止自动保存 timer、flush persistence 且可重复调用", () => {
+    vi.useFakeTimers();
+    const harness = createHarness();
+    harness.session.initialize();
+    harness.capture.mockClear();
+    harness.save.mockClear();
+    harness.saved.length = 0;
+
+    harness.session.startAutoSave(100);
+    vi.advanceTimersByTime(99);
+    expect(harness.save).not.toHaveBeenCalled();
+
+    vi.advanceTimersByTime(1);
+    expect(harness.capture).toHaveBeenCalledOnce();
+    expect(harness.save).toHaveBeenCalledOnce();
+
+    harness.session.dispose();
+    const savedAfterDispose = harness.saved.length;
+    expect(harness.flush).toHaveBeenCalledOnce();
+    expect(harness.dispose).toHaveBeenCalledOnce();
+    expect(harness.session.persist()).toBe(false);
+
+    vi.advanceTimersByTime(500);
+    harness.session.dispose();
+
+    expect(harness.saved).toHaveLength(savedAfterDispose);
+    expect(harness.flush).toHaveBeenCalledOnce();
+    expect(harness.dispose).toHaveBeenCalledOnce();
   });
 });
