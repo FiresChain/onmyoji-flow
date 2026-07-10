@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { mount } from "@vue/test-utils";
-import ComponentsPanel from "@/components/flow/ComponentsPanel.vue";
+import NodePalette from "@/editor/components/NodePalette.vue";
 import {
   resetNodeCreateSizeConfig,
   writeNodeCreateSizeConfig,
@@ -31,7 +31,7 @@ vi.mock("@/utils/assetUrl", () => ({
   resolveAssetUrl: vi.fn((value: string) => value),
 }));
 
-describe("ComponentsPanel node create size", () => {
+describe("NodePalette node create size", () => {
   beforeEach(() => {
     startDragMock.mockReset();
     resetNodeCreateSizeConfig();
@@ -44,7 +44,7 @@ describe("ComponentsPanel node create size", () => {
       },
     });
 
-    const wrapper = mount(ComponentsPanel);
+    const wrapper = mount(NodePalette);
     const target = wrapper
       .findAll(".component-item")
       .find((item) => item.text().includes("flow.components.onmyoji.name"));

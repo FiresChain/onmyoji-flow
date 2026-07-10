@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import Toolbar from "./components/Toolbar.vue";
-import ComponentsPanel from "./components/flow/ComponentsPanel.vue";
+import NodePalette from "./editor/components/NodePalette.vue";
 import { computed, onBeforeUnmount, onMounted, onUnmounted, watch } from "vue";
-import FlowEditor from "./components/flow/FlowEditor.vue";
-import DialogManager from "./components/DialogManager.vue";
+import FlowEditor from "./editor/components/FlowEditor.vue";
+import EditorDialogHost from "./editor/components/EditorDialogHost.vue";
 import { createEditorContext } from "@/editor/context/EditorContext";
 import { provideEditorContext } from "@/editor/context/useEditorContext";
 import {
@@ -83,7 +83,7 @@ onUnmounted(() => {
     <!-- 侧边栏和工作区 -->
     <div class="main-content">
       <!-- 侧边栏 -->
-      <ComponentsPanel />
+      <NodePalette />
       <!-- 工作区 -->
       <div class="workspace">
         <el-tabs
@@ -105,7 +105,7 @@ onUnmounted(() => {
         </div>
       </div>
     </div>
-    <DialogManager />
+    <EditorDialogHost />
   </div>
 </template>
 

@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { mount } from "@vue/test-utils";
 import { nextTick } from "vue";
-import PropertyPanel from "@/components/flow/PropertyPanel.vue";
+import Inspector from "@/editor/components/Inspector.vue";
 
 vi.mock("@/ts/useLogicFlow", () => ({
   useLogicFlowScope: vi.fn(() => Symbol("property-panel-scope")),
@@ -17,7 +17,7 @@ vi.mock("@/ts/useSafeI18n", () => ({
 }));
 
 function mountPanel() {
-  return mount(PropertyPanel, {
+  return mount(Inspector, {
     props: {
       node: null,
       height: "100%",
@@ -41,7 +41,7 @@ function mountPanel() {
   });
 }
 
-describe("PropertyPanel resize", () => {
+describe("Inspector resize", () => {
   afterEach(() => {
     vi.restoreAllMocks();
     document.body.style.cursor = "";

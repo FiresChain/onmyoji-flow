@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref } from "vue";
-import PropertyRulePanel from "./panels/PropertyRulePanel.vue";
-import ImagePanel from "./panels/ImagePanel.vue";
-import TextPanel from "./panels/TextPanel.vue";
-import StylePanel from "./panels/StylePanel.vue";
-import AssetSelectorPanel from "./panels/AssetSelectorPanel.vue";
-import VectorPanel from "./panels/VectorPanel.vue";
-import DynamicGroupPanel from "./panels/DynamicGroupPanel.vue";
+import AssetSelectorInspector from "@/editor/node-types/asset-selector/Inspector.vue";
+import DynamicGroupInspector from "@/editor/node-types/dynamic-group/Inspector.vue";
+import ImageInspector from "@/editor/node-types/image/Inspector.vue";
+import PropertyRuleInspector from "@/editor/node-types/property-rule/Inspector.vue";
+import TextInspector from "@/editor/node-types/text/Inspector.vue";
+import VectorInspector from "@/editor/node-types/vector/Inspector.vue";
+import StyleInspector from "./StyleInspector.vue";
 import { ASSET_LIBRARIES } from "@/types/nodeTypes";
 import { getLogicFlowInstance, useLogicFlowScope } from "@/ts/useLogicFlow";
 import { useSafeI18n } from "@/ts/useSafeI18n";
@@ -49,12 +49,12 @@ const nodeType = computed(() => {
 const activeTab = ref("game");
 
 const panelMap: Record<string, any> = {
-  propertySelect: PropertyRulePanel,
-  imageNode: ImagePanel,
-  textNode: TextPanel,
-  assetSelector: AssetSelectorPanel,
-  vectorNode: VectorPanel,
-  "dynamic-group": DynamicGroupPanel,
+  propertySelect: PropertyRuleInspector,
+  imageNode: ImageInspector,
+  textNode: TextInspector,
+  assetSelector: AssetSelectorInspector,
+  vectorNode: VectorInspector,
+  "dynamic-group": DynamicGroupInspector,
 };
 
 const panelComponent = computed(() => panelMap[nodeType.value] || null);
@@ -212,7 +212,7 @@ onBeforeUnmount(() => {
 
         <!-- 图像属性 Tab -->
         <el-tab-pane :label="t('flow.property.tab.style')" name="style">
-          <StylePanel :node="selectedNode" />
+          <StyleInspector :node="selectedNode" />
         </el-tab-pane>
       </el-tabs>
     </div>

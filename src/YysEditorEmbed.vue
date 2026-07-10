@@ -18,7 +18,7 @@
       <!-- 主内容区 -->
       <div class="editor-content" :style="editorContentStyle">
         <!-- 左侧组件库 -->
-        <ComponentsPanel v-if="showComponentPanel" />
+        <NodePalette v-if="showComponentPanel" />
 
         <!-- 中间画布 + 右侧属性面板 -->
         <FlowEditor
@@ -34,7 +34,7 @@
         />
       </div>
 
-      <DialogManager />
+      <EditorDialogHost />
     </template>
 
     <!-- 预览模式：只有画布（只读） -->
@@ -63,10 +63,10 @@ import type LogicFlow from "@logicflow/core";
 import "@logicflow/core/lib/style/index.css";
 import "@logicflow/extension/lib/style/index.css";
 
-import FlowEditor from "./components/flow/FlowEditor.vue";
+import FlowEditor from "./editor/components/FlowEditor.vue";
 import Toolbar from "./components/Toolbar.vue";
-import ComponentsPanel from "./components/flow/ComponentsPanel.vue";
-import DialogManager from "./components/DialogManager.vue";
+import NodePalette from "./editor/components/NodePalette.vue";
+import EditorDialogHost from "./editor/components/EditorDialogHost.vue";
 import { createEditorContext } from "@/editor/context/EditorContext";
 import { provideEditorContext } from "@/editor/context/useEditorContext";
 import {

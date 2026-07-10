@@ -44,6 +44,45 @@ Copy this block and append at the top for each new refactor session.
 
 ## Log Entries
 
+## [2026-07-10] Session 129 - Modularize Editor And Node Types
+
+- Refactory Scope:
+  - Phase: Feature-module Phase 5
+  - Task: 拆分 FlowEditor runtime/commands/UI，按节点类型共置 View/Model/Inspector/defaults/registration，并为所有实例资源建立真实 disposer
+- In Scope Files:
+  - `src/editor/components/*`（FlowEditor、NodePalette、Inspector、StyleInspector、CanvasControls、ProblemsDock、EditorDialogHost）
+  - `src/editor/runtime/*`（lifecycle、runtime mount、event/keyboard/context menu、canvas 与 group-rule 编排）
+  - `src/editor/commands/*`（selection、nodeState、arrange、layers、grouping）
+  - `src/editor/node-types/*`（image、text、vector、asset-selector、dynamic-group、property-rule、registry 与 palette）
+  - `src/App.vue`、`src/YysEditorEmbed.vue`
+  - editor/runtime/node-types 及 App/Embed 路径回归测试
+  - `docs/2design/ModuleArchitecture.md`、`FlowEditorArchitecture.md`、`ComponentArchitecture.md`、`DataModel.md`、`StyleAndAppearance.md`
+  - `docs/1management/refactory-session-log.md`
+- Out of Scope:
+  - assets/group-rules/capture/locale feature 与 Toolbar 弹窗拆分（Phase 6）
+  - standalone/embed shells（Phase 7）、`teamCodeService.ts`、`docs/1management/plan.md`、其他 worktree 与构建产物
+- Decisions:
+  - `FlowEditor.vue` 保留画布模板、实例生命周期和节点 normalize/sanitize 边界；选择、节点状态、排列、图层与分组算法进入无模块级实例状态的 command factory。
+  - runtime 分为创建/Context ownership、LogicFlow events、keyboard、context menu、canvas interaction 与 group-rule orchestration；20 个 LogicFlow event 使用相同 handler `off`，9 组 keyboard binding 明确移除。
+  - `lifecycle.ts` 统一顺序 mount、失败逆序回滚与完整 cleanup；canvas/group-rule 使用 generation guard，runtime disposer 使用实例身份保护，任一 cleanup 抛错不阻止其他资源释放。
+  - 每类节点的 View、Model、Inspector、默认值和 registration 共置；palette 每次调用 properties factory。默认 registry 顺序保持 `propertySelect, imageNode, assetSelector, textNode, vectorNode`，dynamic-group 继续由插件注册。
+  - `App.vue` 与 Embed 仅更新到 editor 组件新路径；Toolbar 与 shell 结构不在本阶段提前迁移。生产调试日志与无效旧路径注释已清除。
+- Checks:
+  - Phase 5 targeted integration tests: pass（11 files / 55 tests；lifecycle 异常路径追加 4 files / 17 tests）
+  - `npm test`: pass（46 files / 263 tests）
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `npm run format:check`: pass
+  - `npm run build:app`: pass（JS 2,699.62 kB / gzip 809.00 kB）
+  - `npm run build:lib`: pass（ESM 2,323.85 kB / UMD 1,525.73 kB）
+  - `git diff --check`: pass
+- Risks / Follow-up:
+  - editor 仍通过 `utils/`、`configs/` 与 `ts/` 消费 assets/group-rules/locale 过渡实现；这些依赖必须在 Phase 6 经 feature `public.ts` 收敛。
+  - App/Embed 仍直接组装 Toolbar/editor/preview runtime，薄 facade 与 shell 边界留到 Phase 7。
+  - app/lib 保留既有 large-chunk 与 mixed default/named export warnings。相对 Phase 4，app JS 增加 4.24 kB，ESM 增加 3.43 kB，UMD 增加 3.95 kB。
+- Next Recommended Unit:
+  - Feature-module Phase 6：迁移 assets、group-rules、capture、locale 与对应 dialog UI，通过 feature public 边界替换 Toolbar 业务实现，同时保留阵容码旧服务适配。
+
 ## [2026-07-10] Session 128 - Isolate Editor Context And Workspace Persistence
 
 - Refactory Scope:

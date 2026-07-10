@@ -1,113 +1,98 @@
-# FlowEditor Architecture（Phase 2 - Step 4）
+# FlowEditor Architecture（Feature-module Phase 5）
 
-> 本文前半部分记录现有 composable 拆分。Feature-module 重构完成后，最终职责与
-> 依赖边界以 [ModuleArchitecture.md](./ModuleArchitecture.md) 为准。
+> 截至 2026-07-10，本页描述已落地的 editor runtime、commands、components 与
+> node-types 边界。仓库总依赖方向以
+> [ModuleArchitecture.md](./ModuleArchitecture.md) 为准。
 
-## 1. 目标
+## 1. 职责边界
 
-在不改变 UI 与业务语义的前提下，逐步把 `FlowEditor.vue` 过重职责拆出到 composable，降低单文件复杂度。当前已完成：
+`src/editor/components/FlowEditor.vue` 保留画布模板、实例生命周期、节点
+normalize/sanitize 边界和子组件编排。可复用的 runtime 接线、编辑命令、节点定义与
+独立 UI 已从 SFC 主体移出；它不负责 localStorage、RootDocument 持久化或 feature UI。
 
-1. Step 1：LogicFlow 运行时接线抽离。
-2. Step 2：图层命令抽离（`bringToFront/sendToBack/bringForward/sendBackward`）。
-3. Step 3：group rule 校验编排抽离（刷新/调度/共享配置订阅/告警定位）。
-4. Step 4：画布交互运行时杂项抽离（右键拖拽、contextmenu 抑制、resize 接线与清理）。
-5. Step 5：对齐/分布命令抽离（`alignSelected/distributeSelected` 与按钮配置）。
+```text
+FlowEditor.vue
+├── components/
+│   ├── CanvasControls.vue
+│   ├── ProblemsDock.vue
+│   └── Inspector.vue
+├── runtime/
+│   ├── lifecycle.ts
+│   ├── mountEditorRuntime.ts
+│   ├── bindEditorEvents.ts
+│   ├── keyboardShortcuts.ts
+│   ├── contextMenu.ts
+│   ├── canvasInteraction.ts
+│   └── groupRuleOrchestrator.ts
+└── commands/
+    ├── selection.ts
+    ├── nodeState.ts
+    ├── arrange.ts
+    ├── layers.ts
+    └── grouping.ts
+```
 
-## 2. 模块边界
+`CanvasControls`、`ProblemsDock` 与 `Inspector` 只展示状态并发出动作，不保存画布
+runtime，也不实现排列、图层或分组算法。`Inspector` 根据节点类型路由到共置的节点
+Inspector，通用样式由 `StyleInspector.vue` 编辑。
 
-### `src/components/flow/FlowEditor.vue`
+## 2. Runtime 生命周期
 
-- 保留渲染层和业务命令编排层（模板、选择/对齐/分布、分组规则校验触发、对外 expose）。
-- 保留与宿主兼容的 props/events：
-  - `configSnapGridEnabled`
-  - `configSnaplineEnabled`
-  - `configKeyboardEnabled`
-  - `graph-data-change`
-- 通过 `mountFlowEditorRuntime(...)` 完成运行时初始化，不再内联大段 `onMounted` 接线实现。
-- 通过 `useFlowLayerCommands(...)` 复用图层命令实现，避免图层逻辑散落在组件主体内。
-- 通过 `useFlowGroupRuleOrchestrator(...)` 统一管理告警刷新调度与定位编排。
-- 通过 `useFlowCanvasInteraction(...)` 统一管理画布交互与 resize 接线清理。
-- 通过 `useFlowArrangeCommands(...)` 统一管理节点对齐/分布命令与按钮配置。
+| 模块                       | 责任                                                         |
+| -------------------------- | ------------------------------------------------------------ |
+| `lifecycle.ts`             | 顺序 mount、失败时逆序回滚、卸载时完整执行全部 disposer      |
+| `mountEditorRuntime.ts`    | 创建 LogicFlow、应用 registry、接入 EditorContext、失败回滚  |
+| `bindEditorEvents.ts`      | 注册 20 个 LogicFlow 事件，并以同一 event/handler 显式解绑   |
+| `keyboardShortcuts.ts`     | 注册并移除 9 组编辑快捷键                                    |
+| `contextMenu.ts`           | 配置节点、边、画布和多选菜单                                 |
+| `canvasInteraction.ts`     | 右键平移、contextmenu、resize、RAF、timeout、ResizeObserver   |
+| `groupRuleOrchestrator.ts` | 规则校验调度、共享规则订阅与告警定位                         |
 
-### `src/components/flow/composables/useFlowEditorRuntime.ts`
+每个 mount 都返回幂等 disposer。canvas 与 group-rule mount 使用 generation guard，旧
+disposer 不得清理新的 mount；runtime disposer 通过实例身份检查，不能清除替代 runtime。
+任一 mount 失败时已完成的资源按逆序释放；任一 cleanup 抛错时仍继续释放其余资源。
 
-- 承担 LogicFlow 实例初始化：
-  - `new LogicFlow(...)`
-  - 插件配置与节点注册
-  - `setLogicFlowInstance(...)`
-- 承担关键事件绑定：
-  - 节点/边变更事件
-  - 历史变更事件
-  - 选择事件
-  - 图渲染事件
-- 返回 disposer，统一清理：
-  - LogicFlow runtime 相关资源（不再承担画布交互 wiring）
+## 3. 编辑命令
 
-### `src/components/flow/composables/useFlowLayerCommands.ts`
+命令模块通过函数参数取得 LogicFlow、当前选择、消息与翻译能力，不持有模块级实例状态：
 
-- 承担图层命令实现（保持行为不变）：
-  - `bringToFront`
-  - `sendToBack`
-  - `bringForward`
-  - `sendBackward`
-- 依赖注入仅限 `lf` 与 `selectedNode`，不引入额外全局状态。
+- `selection.ts`：删除、方向键移动、快捷键输入目标过滤；
+- `nodeState.ts`：锁定、可见性、节点 meta 与边可见性同步；
+- `arrange.ts`：六种对齐和水平/垂直分布；
+- `layers.ts`：置顶、置底、上移、下移；
+- `grouping.ts`：组合、解组和分组节点集合展开。
 
-### `src/components/flow/composables/useFlowGroupRuleOrchestrator.ts`
+隐藏或锁定节点的过滤语义、组合成员移动以及提示文案与迁移前保持一致。
 
-- 承担 group rule 校验编排（保持行为不变）：
-  - `refreshGroupRuleWarnings`
-  - `scheduleGroupRuleValidation`
-  - 共享配置订阅触发（`subscribeSharedGroupRulesConfig`）
-  - 告警定位（`locateProblemNode`）
-- 提供独立的 mount/dispose，统一清理 timer 与订阅。
+## 4. 节点共置
 
-### `src/components/flow/composables/useFlowCanvasInteraction.ts`
+每个节点类型位于 `src/editor/node-types/<type>/`，按需要共置 `Node.vue`、`Model.ts`、
+`Inspector.vue`、对话框和 `definition.ts`。`definition.ts` 提供节点 type、默认 properties
+factory 和 registration factory，避免 palette 拖拽之间共享嵌套默认对象。
 
-- 承担画布交互运行时杂项（保持行为不变）：
-  - 右键拖动画布平移
-  - 拖拽后短时 `contextmenu` 抑制
-  - `ResizeObserver` + `window resize` 接线
-  - 统一清理（事件监听、observer、拖拽态）
-- 对外只暴露 `resizeCanvas` 与 mount/dispose，供 `FlowEditor` 生命周期调用。
+`editor/node-types/registry.ts` 是默认 Vue 节点注册的唯一事实源，顺序保持为：
 
-### `src/components/flow/composables/useFlowArrangeCommands.ts`
+```text
+propertySelect, imageNode, assetSelector, textNode, vectorNode
+```
 
-- 承担对齐/分布命令实现（保持行为不变）：
-  - `alignSelected`
-  - `distributeSelected`
-- 内聚节点矩形计算与提示文案，避免 `FlowEditor.vue` 内联大段排布算法。
+`dynamic-group` 继续由 `@logicflow/extension` 插件注册，不进入 Vue node registry。
+edit 与 preview 均读取同一默认 registry；preview 隐藏 dynamic-group 的既有策略不变。
 
-## 3. 兼容性说明
+## 5. 兼容性与验证
 
-本次仅做实现位置迁移，不改变以下行为：
+本阶段不改变 `FlowEditor` props/events、Embed 公开 API、GraphData 格式、storage key 或
+UI 行为。生产调试日志已移除，旧 `src/components/flow/composables/useFlow*` 实现不再
+保留兼容 facade。
 
-1. `YysEditorEmbed` 与 `Toolbar` 调用方式不变。
-2. `FlowEditor` 对外 props/events 语义不变。
-3. 关键 `graph-data-change` 触发路径不变（仅从组件内联迁移到 composable）。
-4. 图层命令执行语义不变（仅迁移实现位置）。
-5. group rule 告警刷新与定位语义不变（仅迁移实现位置）。
-6. 画布交互事件语义与清理行为不变（仅迁移实现位置）。
+主要回归覆盖：
 
-## 4. 后续建议（不在本次范围）
+- `src/__tests__/useFlowEditorRuntime.test.ts`；
+- `src/__tests__/useFlowCanvasInteraction.test.ts`；
+- `src/__tests__/useFlowGroupRuleOrchestrator.test.ts`；
+- `src/__tests__/editor/runtime-lifecycle.test.ts`；
+- `src/__tests__/editor/commands.test.ts`；
+- `src/__tests__/editor/node-types.test.ts`。
 
-1. 对 `FlowEditor` 新增 composables 的接口边界补充结构守卫测试，防止后续回归把职责重新耦合回组件主体。
-
-## 5. Feature-module 目标职责
-
-`editor/components/FlowEditor.vue` 最终只保留画布模板、实例生命周期和对外组件契约。
-现有 composable 按职责迁移，不继续作为通用业务容器：
-
-| 现有职责                                        | 目标归属                                       |
-| ----------------------------------------------- | ---------------------------------------------- |
-| LogicFlow 创建、插件与 graph IO                 | `core/logicflow`                               |
-| 事件注册与解绑                                  | `editor/runtime/bindEditorEvents.ts`           |
-| 选择、排列、图层、分组命令                      | `editor/commands/*`                            |
-| 节点 View/Model/Inspector/defaults/registration | `editor/node-types/<type>/`                    |
-| palette 与默认节点目录                          | `editor/node-types/palette.ts` / `registry.ts` |
-| 规则表达式与验证                                | `features/group-rules`                         |
-| 画布截图                                        | `features/capture`                             |
-| 运行时、settings、dialogs、asset resolver       | 实例级 `EditorContext`                         |
-
-`FlowEditor` 不负责 localStorage、RootDocument 持久化或 feature UI。所有 listener、
-timer、observer 和 subscription 的 mount 都必须返回 disposer，并由组件卸载路径调用。
-默认节点只在 `editor/node-types/registry.ts` 声明；edit/preview 共用该事实源。
+assets、group-rules、capture、locale 与 Toolbar 业务弹窗仍在旧容器中，归属
+Feature-module Phase 6；standalone/embed shell 拆分归属 Phase 7。

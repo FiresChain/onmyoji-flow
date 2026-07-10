@@ -1,7 +1,5 @@
 import type LogicFlow from "@logicflow/core";
 import type { BaseNodeModel } from "@logicflow/core";
-import type { Ref } from "vue";
-import { useSafeI18n } from "@/ts/useSafeI18n";
 
 export type AlignType =
   | "left"
@@ -13,10 +11,12 @@ export type AlignType =
 export type DistributeType = "horizontal" | "vertical";
 
 type MessageType = "success" | "warning" | "info" | "error";
+type Translate = (key: string) => string;
 
-interface UseFlowArrangeCommandsOptions {
-  lf: Ref<LogicFlow | null>;
+export interface ArrangeCommandsOptions {
+  getLogicFlow: () => LogicFlow | null;
   showMessage: (type: MessageType, message: string) => void;
+  translate: Translate;
   getSelectedNodeModelsFiltered: () => BaseNodeModel[];
 }
 
@@ -34,29 +34,37 @@ interface SelectedRect {
   centerY: number;
 }
 
-export function useFlowArrangeCommands(options: UseFlowArrangeCommandsOptions) {
-  const { lf, showMessage, getSelectedNodeModelsFiltered } = options;
-  const { t } = useSafeI18n();
+export const ALIGNMENT_BUTTONS: ReadonlyArray<{
+  key: AlignType;
+  labelKey: string;
+}> = Object.freeze([
+  { key: "left", labelKey: "flowEditor.align.left" },
+  { key: "right", labelKey: "flowEditor.align.right" },
+  { key: "top", labelKey: "flowEditor.align.top" },
+  { key: "bottom", labelKey: "flowEditor.align.bottom" },
+  { key: "hcenter", labelKey: "flowEditor.align.hcenter" },
+  { key: "vcenter", labelKey: "flowEditor.align.vcenter" },
+]);
 
-  const alignmentButtons: { key: AlignType; labelKey: string }[] = [
-    { key: "left", labelKey: "flowEditor.align.left" },
-    { key: "right", labelKey: "flowEditor.align.right" },
-    { key: "top", labelKey: "flowEditor.align.top" },
-    { key: "bottom", labelKey: "flowEditor.align.bottom" },
-    { key: "hcenter", labelKey: "flowEditor.align.hcenter" },
-    { key: "vcenter", labelKey: "flowEditor.align.vcenter" },
-  ];
+export const DISTRIBUTE_BUTTONS: ReadonlyArray<{
+  key: DistributeType;
+  labelKey: string;
+}> = Object.freeze([
+  { key: "horizontal", labelKey: "flowEditor.distribute.horizontal" },
+  { key: "vertical", labelKey: "flowEditor.distribute.vertical" },
+]);
 
-  const distributeButtons: { key: DistributeType; labelKey: string }[] = [
-    { key: "horizontal", labelKey: "flowEditor.distribute.horizontal" },
-    { key: "vertical", labelKey: "flowEditor.distribute.vertical" },
-  ];
+export function createArrangeCommands(options: ArrangeCommandsOptions) {
+  const {
+    getLogicFlow,
+    showMessage,
+    translate,
+    getSelectedNodeModelsFiltered,
+  } = options;
 
   const getSelectedRects = (): SelectedRect[] => {
-    const lfInstance = lf.value;
-    if (!lfInstance) return [];
-    const actionable = getSelectedNodeModelsFiltered();
-    return actionable.map((model: BaseNodeModel) => {
+    if (!getLogicFlow()) return [];
+    return getSelectedNodeModelsFiltered().map((model) => {
       const bounds = model.getBounds();
       const width = bounds.maxX - bounds.minX;
       const height = bounds.maxY - bounds.minY;
@@ -74,7 +82,7 @@ export function useFlowArrangeCommands(options: UseFlowArrangeCommandsOptions) {
   const alignSelected = (direction: AlignType) => {
     const rects = getSelectedRects();
     if (rects.length < 2) {
-      showMessage("warning", t("flowEditor.message.alignNeedTwo"));
+      showMessage("warning", translate("flowEditor.message.alignNeedTwo"));
       return;
     }
 
@@ -117,7 +125,10 @@ export function useFlowArrangeCommands(options: UseFlowArrangeCommandsOptions) {
   const distributeSelected = (type: DistributeType) => {
     const rects = getSelectedRects();
     if (rects.length < 3) {
-      showMessage("warning", t("flowEditor.message.distributeNeedThree"));
+      showMessage(
+        "warning",
+        translate("flowEditor.message.distributeNeedThree"),
+      );
       return;
     }
 
@@ -136,31 +147,32 @@ export function useFlowArrangeCommands(options: UseFlowArrangeCommandsOptions) {
         (sorted.length - 1);
       let cursor = first.bounds.minX + first.width;
 
-      for (let i = 1; i < sorted.length - 1; i += 1) {
+      for (let index = 1; index < sorted.length - 1; index += 1) {
         cursor += gap;
-        const item = sorted[i];
+        const item = sorted[index];
         item.model.moveTo(cursor + item.width / 2, item.centerY);
         cursor += item.width;
       }
-    } else {
-      const totalHeight = sorted.reduce((sum, item) => sum + item.height, 0);
-      const gap =
-        (last.bounds.maxY - first.bounds.minY - totalHeight) /
-        (sorted.length - 1);
-      let cursor = first.bounds.minY + first.height;
+      return;
+    }
 
-      for (let i = 1; i < sorted.length - 1; i += 1) {
-        cursor += gap;
-        const item = sorted[i];
-        item.model.moveTo(item.centerX, cursor + item.height / 2);
-        cursor += item.height;
-      }
+    const totalHeight = sorted.reduce((sum, item) => sum + item.height, 0);
+    const gap =
+      (last.bounds.maxY - first.bounds.minY - totalHeight) /
+      (sorted.length - 1);
+    let cursor = first.bounds.minY + first.height;
+
+    for (let index = 1; index < sorted.length - 1; index += 1) {
+      cursor += gap;
+      const item = sorted[index];
+      item.model.moveTo(item.centerX, cursor + item.height / 2);
+      cursor += item.height;
     }
   };
 
   return {
-    alignmentButtons,
-    distributeButtons,
+    alignmentButtons: ALIGNMENT_BUTTONS,
+    distributeButtons: DISTRIBUTE_BUTTONS,
     alignSelected,
     distributeSelected,
   };

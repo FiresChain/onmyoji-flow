@@ -3,8 +3,10 @@ import { defineComponent, h, onBeforeUnmount } from "vue";
 import { mount } from "@vue/test-utils";
 import { createPinia, getActivePinia, setActivePinia } from "pinia";
 import YysEditorEmbed, { type GraphData } from "@/YysEditorEmbed.vue";
-import flowEditorSource from "@/components/flow/FlowEditor.vue?raw";
-import flowEditorRuntimeSource from "@/components/flow/composables/useFlowEditorRuntime.ts?raw";
+import flowEditorSource from "@/editor/components/FlowEditor.vue?raw";
+import bindEditorEventsSource from "@/editor/runtime/bindEditorEvents.ts?raw";
+import keyboardShortcutsSource from "@/editor/runtime/keyboardShortcuts.ts?raw";
+import mountEditorRuntimeSource from "@/editor/runtime/mountEditorRuntime.ts?raw";
 import { useLogicFlowScope } from "@/ts/useLogicFlow";
 import type { LogicFlowRuntime } from "@/core/logicflow/types";
 
@@ -148,8 +150,8 @@ describe("YysEditorEmbed update:data contract", () => {
           stubs: {
             FlowEditor: true,
             Toolbar: true,
-            ComponentsPanel: true,
-            DialogManager: true,
+            NodePalette: true,
+            EditorDialogHost: true,
           },
         },
       });
@@ -210,8 +212,8 @@ describe("YysEditorEmbed update:data contract", () => {
         stubs: {
           FlowEditor: RuntimeOwnerStub,
           Toolbar: true,
-          ComponentsPanel: true,
-          DialogManager: true,
+          NodePalette: true,
+          EditorDialogHost: true,
         },
       },
     });
@@ -244,8 +246,8 @@ describe("YysEditorEmbed update:data contract", () => {
         stubs: {
           FlowEditor: createFlowEditorStub(payload),
           Toolbar: true,
-          ComponentsPanel: true,
-          DialogManager: true,
+          NodePalette: true,
+          EditorDialogHost: true,
         },
       },
     });
@@ -296,8 +298,8 @@ describe("YysEditorEmbed update:data contract", () => {
         stubs: {
           FlowEditor: createFlowEditorMultiChangeStub(payloads),
           Toolbar: true,
-          ComponentsPanel: true,
-          DialogManager: true,
+          NodePalette: true,
+          EditorDialogHost: true,
         },
       },
     });
@@ -326,28 +328,40 @@ describe("YysEditorEmbed update:data contract", () => {
       expect(flowEditorSource).toContain(snippet);
     });
 
-    const runtimeRequiredSnippets = [
+    const mountRequiredSnippets = [
       "const runtime = createLogicFlowRuntime({",
       "defaultNodeRegistrations: getDefaultNodeRegistrations(),",
       "lf.value = runtime.instance;",
       "logicFlowScope.setRuntime(runtime);",
-      "lfInstance.on(EventType.NODE_ADD",
-      "lfInstance.on('node:dnd-add'",
-      "lfInstance.on(EventType.NODE_PROPERTIES_CHANGE",
-      "lfInstance.on(EventType.NODE_PROPERTIES_DELETE",
-      "lfInstance.on(EventType.NODE_DROP",
-      "lfInstance.on(EventType.TEXT_UPDATE",
-      "lfInstance.on(EventType.LABEL_UPDATE",
-      "lfInstance.on(EventType.EDGE_ADD",
-      "lfInstance.on(EventType.EDGE_DELETE",
-      "lfInstance.on(EventType.EDGE_ADJUST",
-      "lfInstance.on(EventType.EDGE_EXCHANGE_NODE",
-      "lfInstance.on(EventType.HISTORY_CHANGE",
       "logicFlowScope.clearRuntime(runtime);",
     ];
-    runtimeRequiredSnippets.forEach((snippet) => {
-      expectContainsIgnoringQuoteStyle(flowEditorRuntimeSource, snippet);
+    mountRequiredSnippets.forEach((snippet) => {
+      expectContainsIgnoringQuoteStyle(mountEditorRuntimeSource, snippet);
     });
+
+    const eventRequiredSnippets = [
+      "eventDisposers.push(() => instance.off(event, handler));",
+      "bind(EventType.NODE_ADD",
+      "bind('node:dnd-add'",
+      "bind(EventType.NODE_PROPERTIES_CHANGE",
+      "bind(EventType.NODE_PROPERTIES_DELETE",
+      "bind(EventType.NODE_DROP",
+      "bind(EventType.TEXT_UPDATE",
+      "bind(EventType.LABEL_UPDATE",
+      "bind(EventType.EDGE_ADD",
+      "bind(EventType.EDGE_DELETE",
+      "bind(EventType.EDGE_ADJUST",
+      "bind(EventType.EDGE_EXCHANGE_NODE",
+      "bind(EventType.HISTORY_CHANGE",
+    ];
+    eventRequiredSnippets.forEach((snippet) => {
+      expectContainsIgnoringQuoteStyle(bindEditorEventsSource, snippet);
+    });
+
+    expectContainsIgnoringQuoteStyle(
+      keyboardShortcutsSource,
+      "disposers.push(() => instance.keyboard.off(keys));",
+    );
   });
 
   it("applies showPropertyPanel and config(grid/snapline/keyboard) in edit mode", async () => {
@@ -379,8 +393,8 @@ describe("YysEditorEmbed update:data contract", () => {
         stubs: {
           FlowEditor: createFlowEditorStub(payload),
           Toolbar: true,
-          ComponentsPanel: true,
-          DialogManager: true,
+          NodePalette: true,
+          EditorDialogHost: true,
         },
       },
     });

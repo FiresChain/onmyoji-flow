@@ -47,7 +47,7 @@ interface GraphDocument {
 
 interface GraphNode {
   id: string;
-  type: string; // imageNode | textNode | vectorNode | shikigamiSelect | yuhunSelect | propertySelect | ...
+  type: string; // imageNode | textNode | vectorNode | assetSelector | propertySelect | ...
   x: number; // LogicFlow 原生定位
   y: number;
   width?: number; // 渲染冗余：由 properties.style.width 同步而来
@@ -190,7 +190,8 @@ interface PropertyRuleProps {
 ## 同步与渲染约定
 
 - 源数据以 `properties.style.width/height` 为准；渲染时将其同步到节点 `width/height`。
-- 层级以节点顶层字段 `zIndex` 为准；渲染前对 nodes 进行稳定排序（先 zIndex，再 createdAt）。
+- 层级以节点顶层字段 `zIndex` 为准；`core/logicflow/graphIO.ts` 在 render 后将其应用到
+  model，并在 capture 时从 model 写回，保证 round trip。
 - 兼容导入：若旧数据存在 `properties.meta.z`/`properties.meta.zIndex`，加载时迁移为节点顶层 `zIndex` 并移除旧字段。
 - 通用样式仅描述；具体生效由各节点视图组件（.vue）解释执行。
 
@@ -224,10 +225,12 @@ const DefaultNodeStyle: NodeStyle = {
 };
 ```
 
-## useStore 接入点与 schemaVersion
+## Workspace 接入点与 schemaVersion
 
-- 保存/导出：在 `saveStateToLocalStorage` 与 `exportData` 输出中添加 `schemaVersion: "1.0.0"`。
-- 读取/导入：`loadStateFromLocalStorage`/`importData` 检测 `schemaVersion`；无则走迁移器补齐：
+- 保存/恢复：`features/workspace/filesPersistence.ts` 只读写 `filesStore` owned key，
+  `useWorkspaceSession.ts` 在文件切换前通过 EditorPort capture 当前图数据。
+- 导入/导出：`features/workspace/documentTransfer.ts` 负责 RootDocument 迁移、校验与
+  JSON 往返；无 `schemaVersion` 的输入走迁移器补齐：
   - 若 `node.width/height` 存在但 `properties.style` 缺失，创建 `style` 并拷贝宽高；
   - 给所有节点补 `meta.visible=true`，`meta.locked=false`；
   - 生成 `createdAt/updatedAt`（以当前时间或从已有字段推断）。
@@ -346,17 +349,17 @@ const DefaultNodeStyle: NodeStyle = {
 
 ## 实施清单（与代码关联）
 
-1. `src/ts/useStore.ts`
-   - 导出/保存时写入 `schemaVersion`；导入/读取时若缺失则调用 `migrateToV1(state)`。
-   - 定义 `CURRENT_SCHEMA_VERSION = '1.0.0'`；新增 `migrateToV1`（按上文迁移策略）。
-2. `src/components/flow/FlowEditor.vue`
-   - 渲染前对 `nodes` 按 `zIndex` 与 `createdAt` 稳定排序；
-   - `render` 前将 `properties.style.width/height` 同步到节点尺寸。
+1. `src/features/workspace/{filesPersistence,documentTransfer,useWorkspaceSession}.ts`
+   - 分别负责 owned storage、RootDocument 往返与 EditorPort 协调；store 只保留可序列化状态。
+2. `src/core/logicflow/graphIO.ts` 与 `src/editor/components/FlowEditor.vue`
+   - adapter 负责 GraphData render/capture 与 `zIndex` round trip；
+   - editor 在节点 normalize 时同步 `properties.style.width/height` 与节点尺寸语义。
 3. 节点视图（\*.vue）
    - image/text/vector 节点按 `properties.style` 解析样式；
    - 旧字段兼容期内保留 fallback，逐步迁出。
-4. 属性面板 `PropertyPanel.vue`
-   - 统一读取/写入 `properties.style.*`；文本属性写入 `textStyle` 与 `text.content`。
+4. `editor/components/{Inspector,StyleInspector}.vue` 与
+   `editor/node-types/<type>/Inspector.vue`
+   - 统一读取/写入 `properties.style.*`；类型 Inspector 只处理对应节点业务字段。
 
 ---
 

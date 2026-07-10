@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import { useDialogs } from "../ts/useDialogs";
-import PropertySelect from "./flow/nodes/yys/PropertySelect.vue";
-import GenericImageSelector from "./common/GenericImageSelector.vue";
+import GenericImageSelector from "@/components/common/GenericImageSelector.vue";
+import PropertySelectDialog from "@/editor/node-types/property-rule/PropertySelectDialog.vue";
+import { useDialogs } from "@/ts/useDialogs";
 
 const { dialogs, closeDialog, closeGenericSelector } = useDialogs();
 </script>
 
 <template>
-  <PropertySelect
+  <PropertySelectDialog
     v-if="dialogs.property.show"
     :showPropertySelect="dialogs.property.show"
     :currentProperty="dialogs.property.data"

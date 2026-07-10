@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ref } from "vue";
-import { useFlowGroupRuleOrchestrator } from "@/components/flow/composables/useFlowGroupRuleOrchestrator";
+import { useFlowGroupRuleOrchestrator } from "@/editor/runtime/groupRuleOrchestrator";
 import type { GroupRuleWarning } from "@/utils/groupRules";
 import { validateGraphGroupRules } from "@/utils/groupRules";
 import { subscribeSharedGroupRulesConfig } from "@/utils/groupRulesConfigSource";
@@ -144,7 +144,7 @@ describe("useFlowGroupRuleOrchestrator", () => {
       showMessage,
     });
 
-    mountGroupRuleOrchestrator();
+    const dispose = mountGroupRuleOrchestrator();
     expect(mockedSubscribeSharedGroupRulesConfig).toHaveBeenCalledTimes(1);
     expect(onSharedConfigUpdate).not.toBeNull();
 
@@ -154,7 +154,88 @@ describe("useFlowGroupRuleOrchestrator", () => {
     expect(mockedValidateGraphGroupRules).toHaveBeenCalledWith(graphData);
     expect(groupRuleWarnings.value).toEqual([warningFixture]);
 
+    dispose();
     disposeGroupRuleOrchestrator();
     expect(unsubscribe).toHaveBeenCalledTimes(1);
+  });
+
+  it("returns an idempotent disposer that cancels timers and ignores stale subscriptions", () => {
+    const unsubscribe = vi.fn();
+    let onSharedConfigUpdate: (() => void) | null = null;
+    mockedSubscribeSharedGroupRulesConfig.mockImplementation(
+      (listener: () => void) => {
+        onSharedConfigUpdate = listener;
+        return unsubscribe;
+      },
+    );
+    const lf = ref({
+      getGraphRawData: vi.fn(() => ({ nodes: [], edges: [] })),
+    } as any);
+    const orchestrator = useFlowGroupRuleOrchestrator({
+      lf,
+      selectedNode: ref<any>(null),
+      showMessage: vi.fn(),
+    });
+
+    const dispose = orchestrator.mountGroupRuleOrchestrator();
+    orchestrator.scheduleGroupRuleValidation(50);
+    dispose();
+    orchestrator.disposeGroupRuleOrchestrator();
+    onSharedConfigUpdate?.();
+    vi.runAllTimers();
+
+    expect(unsubscribe).toHaveBeenCalledTimes(1);
+    expect(mockedValidateGraphGroupRules).not.toHaveBeenCalled();
+  });
+
+  it("does not let a stale mount disposer clean a replacement subscription", () => {
+    const listeners: Array<() => void> = [];
+    const unsubscribers = [vi.fn(), vi.fn()];
+    mockedSubscribeSharedGroupRulesConfig.mockImplementation((listener) => {
+      const index = listeners.push(listener) - 1;
+      return unsubscribers[index];
+    });
+    const orchestrator = useFlowGroupRuleOrchestrator({
+      lf: ref({
+        getGraphRawData: vi.fn(() => ({ nodes: [], edges: [] })),
+      } as any),
+      selectedNode: ref<any>(null),
+      showMessage: vi.fn(),
+    });
+
+    const disposeFirstMount = orchestrator.mountGroupRuleOrchestrator();
+    const disposeSecondMount = orchestrator.mountGroupRuleOrchestrator();
+    expect(unsubscribers[0]).toHaveBeenCalledOnce();
+
+    disposeFirstMount();
+    listeners[0]();
+    listeners[1]();
+    disposeSecondMount();
+    vi.runAllTimers();
+
+    expect(unsubscribers[1]).toHaveBeenCalledOnce();
+    expect(mockedValidateGraphGroupRules).not.toHaveBeenCalled();
+  });
+
+  it("returns to an unmounted state when subscription setup fails", () => {
+    mockedSubscribeSharedGroupRulesConfig.mockImplementation(() => {
+      throw new Error("subscribe failed");
+    });
+    const orchestrator = useFlowGroupRuleOrchestrator({
+      lf: ref({
+        getGraphRawData: vi.fn(() => ({ nodes: [], edges: [] })),
+      } as any),
+      selectedNode: ref<any>(null),
+      showMessage: vi.fn(),
+    });
+
+    expect(() => orchestrator.mountGroupRuleOrchestrator()).toThrow(
+      "subscribe failed",
+    );
+    orchestrator.scheduleGroupRuleValidation(0);
+    orchestrator.disposeGroupRuleOrchestrator();
+    vi.runAllTimers();
+
+    expect(mockedValidateGraphGroupRules).not.toHaveBeenCalled();
   });
 });

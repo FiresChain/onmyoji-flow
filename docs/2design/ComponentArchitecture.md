@@ -278,7 +278,23 @@ const defaultProps = {
 7. standalone/embed shell 与 preview composable 拆分仍属于 Phase 7；当前根组件尚未宣称
    达到薄 facade 目标态。
 
-### 1. YysEditorEmbed.vue 组件结构
+### 0.2 Phase 5 已落地状态（2026-07-10）
+
+1. `App.vue` 与 `YysEditorEmbed.vue` 当前直接组装 `NodePalette`、`FlowEditor` 和
+   `EditorDialogHost`；`FlowEditor` 再组装 `CanvasControls`、`ProblemsDock` 与
+   `Inspector`。
+2. runtime、commands 与 node-types 已迁入 `src/editor`。节点 View、Model、Inspector、
+   默认值与 registration 按类型共置，edit/preview 共用默认 registry。
+3. LogicFlow event、keyboard、DOM listener、timer、RAF、ResizeObserver 与规则订阅均由
+   实例 disposer 清理；mount 失败执行逆序回滚，stale disposer 不清理替代实例。
+4. Toolbar feature 拆分仍属于 Phase 6；standalone/embed shell 和独立 PreviewCanvas
+   仍属于 Phase 7。当前 preview 仍由 `YysEditorEmbed.vue` 直接创建只读 runtime。
+
+### 1. YysEditorEmbed.vue 迁移前组件结构（历史记录）
+
+> 下列代码仅记录早期组件化方案。当前生产路径为
+> `editor/components/{NodePalette,FlowEditor,EditorDialogHost}.vue`，且公开数据同步、
+> preview runtime 与实例 workspace 已不再使用此简化实现。
 
 ```vue
 <template>
@@ -436,7 +452,7 @@ onMounted(() => {
 
 **问题**：同页多实例嵌入时，若沿用模块级共享状态，会出现跨实例互相污染（画布实例、画布设置、store 写入目标串扰）。
 
-**已落地方案（Phase 1）**：以 `LogicFlowScope` 作为实例边界，三层隔离对齐到同一 scope。
+**历史过渡方案（已由 Phase 4 替换）**：曾以 `LogicFlowScope` Map 作为实例边界。
 
 ```typescript
 // YysEditorEmbed.vue
@@ -466,11 +482,17 @@ const { selectionEnabled, snapGridEnabled, snaplineEnabled } =
   useCanvasSettings(scope);
 ```
 
-实现要点：
+历史实现要点（不再代表当前代码）：
 
 1. `useLogicFlow` 使用 `Map<LogicFlowScope, LogicFlow>` 管理实例，组件卸载时按 scope 销毁。
 2. `useCanvasSettings` 使用 `Map<LogicFlowScope, CanvasSettingsState>` 管理画布设置，跨实例不共享开关状态。
 3. `useStore` 通过 `bindLogicFlowScope(scope)` 显式绑定画布来源，避免切换文件时误写其他实例数据。
+
+当前实现以每个 App/Embed 自己创建的 `EditorContext` 为唯一实例边界。`useLogicFlow`、
+`useCanvasSettings`、`useDialogs` 与 `useSafeI18n` 只是 Context 注入兼容 facade，不维护
+模块级可变 Map/ref/reactive。Embed 同时拥有独立 Pinia、memory persistence 与
+WorkspaceSession；standalone 使用 `filesStore` key 的 localStorage persistence。组件
+卸载统一 dispose runtime、workspace、timer、observer 与 subscription。
 
 ### 3. 样式隔离策略
 

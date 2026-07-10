@@ -22,6 +22,12 @@ export function useFlowCanvasInteraction(
   let rightDragLastY = 0;
   let rightDragDistance = 0;
   let suppressContextMenuUntil = 0;
+  let resizeAnimationFrameId: number | null = null;
+  let resizeTimerId: ReturnType<typeof setTimeout> | null = null;
+  let mountedContainer: HTMLElement | null = null;
+  let mountedFlowHost: HTMLElement | null = null;
+  let mounted = false;
+  let mountGeneration = 0;
 
   const resolveResizeHost = () => {
     const container = containerRef.value;
@@ -43,7 +49,6 @@ export function useFlowCanvasInteraction(
     const height = resizeHost.clientHeight;
     if (width > 0 && height > 0) {
       lfInstance.resize(width, height);
-      return;
     }
   };
 
@@ -51,11 +56,17 @@ export function useFlowCanvasInteraction(
     resizeCanvas();
   };
 
-  const queueCanvasResize = () => {
+  const queueCanvasResize = (generation: number) => {
     resizeCanvas();
     if (typeof window === "undefined") return;
-    window.requestAnimationFrame(() => resizeCanvas());
-    setTimeout(() => resizeCanvas(), 120);
+    resizeAnimationFrameId = window.requestAnimationFrame(() => {
+      resizeAnimationFrameId = null;
+      if (mounted && generation === mountGeneration) resizeCanvas();
+    });
+    resizeTimerId = setTimeout(() => {
+      resizeTimerId = null;
+      if (mounted && generation === mountGeneration) resizeCanvas();
+    }, 120);
   };
 
   function handleRightDragMouseMove(event: MouseEvent) {
@@ -65,14 +76,12 @@ export function useFlowCanvasInteraction(
     const deltaY = event.clientY - rightDragLastY;
     rightDragLastX = event.clientX;
     rightDragLastY = event.clientY;
-
     if (deltaX === 0 && deltaY === 0) return;
 
     rightDragDistance += Math.abs(deltaX) + Math.abs(deltaY);
     if (!rightDragMoved && rightDragDistance >= RIGHT_DRAG_THRESHOLD) {
       rightDragMoved = true;
     }
-
     if (rightDragMoved) {
       lf.value?.translate(deltaX, deltaY);
       event.preventDefault();
@@ -83,10 +92,9 @@ export function useFlowCanvasInteraction(
     if (!isRightDragging) return;
 
     isRightDragging = false;
-    flowHostRef.value?.classList.remove("flow-container--panning");
+    mountedFlowHost?.classList.remove("flow-container--panning");
     window.removeEventListener("mousemove", handleRightDragMouseMove);
     window.removeEventListener("mouseup", handleRightDragMouseUp);
-
     if (rightDragMoved) {
       suppressContextMenuUntil =
         Date.now() + RIGHT_DRAG_CONTEXTMENU_SUPPRESS_MS;
@@ -102,7 +110,7 @@ export function useFlowCanvasInteraction(
 
     const target = event.target as HTMLElement | null;
     if (target?.closest(".lf-menu")) return;
-    if (!containerRef.value?.contains(target)) return;
+    if (!mountedContainer?.contains(target)) return;
 
     isRightDragging = true;
     rightDragMoved = false;
@@ -111,7 +119,7 @@ export function useFlowCanvasInteraction(
     rightDragLastY = event.clientY;
     suppressContextMenuUntil = 0;
 
-    flowHostRef.value?.classList.add("flow-container--panning");
+    mountedFlowHost?.classList.add("flow-container--panning");
     window.addEventListener("mousemove", handleRightDragMouseMove);
     window.addEventListener("mouseup", handleRightDragMouseUp);
   }
@@ -125,41 +133,76 @@ export function useFlowCanvasInteraction(
   }
 
   function mountCanvasInteraction() {
-    containerRef.value?.addEventListener("mousedown", handleCanvasMouseDown);
-    containerRef.value?.addEventListener(
-      "contextmenu",
-      handleCanvasContextMenu,
-      true,
-    );
+    disposeCanvasInteraction();
+    const generation = ++mountGeneration;
+    mounted = true;
+    mountedContainer = containerRef.value;
+    mountedFlowHost = flowHostRef.value;
 
-    if (typeof ResizeObserver !== "undefined") {
-      containerResizeObserver = new ResizeObserver(() => {
-        resizeCanvas();
+    try {
+      mountedContainer?.addEventListener("mousedown", handleCanvasMouseDown);
+      mountedContainer?.addEventListener(
+        "contextmenu",
+        handleCanvasContextMenu,
+        true,
+      );
+
+      if (typeof ResizeObserver !== "undefined") {
+        containerResizeObserver = new ResizeObserver(() => {
+          resizeCanvas();
+        });
+        if (mountedFlowHost) {
+          containerResizeObserver.observe(mountedFlowHost);
+        }
+        if (mountedContainer && mountedContainer !== mountedFlowHost) {
+          containerResizeObserver.observe(mountedContainer);
+        }
+      }
+      window.addEventListener("resize", handleWindowResize);
+      nextTick(() => {
+        if (mounted && generation === mountGeneration) {
+          queueCanvasResize(generation);
+        }
       });
-      if (flowHostRef.value) {
-        containerResizeObserver.observe(flowHostRef.value);
+    } catch (error) {
+      if (generation === mountGeneration) {
+        disposeCanvasInteraction();
       }
-      if (containerRef.value && containerRef.value !== flowHostRef.value) {
-        containerResizeObserver.observe(containerRef.value);
-      }
+      throw error;
     }
-    window.addEventListener("resize", handleWindowResize);
-    nextTick(() => {
-      queueCanvasResize();
-    });
+
+    return () => {
+      if (generation === mountGeneration) {
+        disposeCanvasInteraction();
+      }
+    };
   }
 
   function disposeCanvasInteraction() {
+    mountGeneration += 1;
+    if (!mounted && !containerResizeObserver && !mountedContainer) return;
+    mounted = false;
     stopRightDrag();
     containerResizeObserver?.disconnect();
     containerResizeObserver = null;
+    if (resizeAnimationFrameId !== null) {
+      window.cancelAnimationFrame?.(resizeAnimationFrameId);
+      resizeAnimationFrameId = null;
+    }
+    if (resizeTimerId !== null) {
+      clearTimeout(resizeTimerId);
+      resizeTimerId = null;
+    }
     window.removeEventListener("resize", handleWindowResize);
-    containerRef.value?.removeEventListener("mousedown", handleCanvasMouseDown);
-    containerRef.value?.removeEventListener(
+    mountedContainer?.removeEventListener("mousedown", handleCanvasMouseDown);
+    mountedContainer?.removeEventListener(
       "contextmenu",
       handleCanvasContextMenu,
       true,
     );
+    mountedFlowHost?.classList.remove("flow-container--panning");
+    mountedContainer = null;
+    mountedFlowHost = null;
   }
 
   return {

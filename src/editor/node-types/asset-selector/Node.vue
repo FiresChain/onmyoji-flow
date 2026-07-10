@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, inject, onMounted, onBeforeUnmount } from "vue";
+import { computed, ref } from "vue";
 import type { CSSProperties } from "vue";
 import { toTextStyle } from "@/ts/nodeStyle";
 import { useNodeAppearance } from "@/ts/useNodeAppearance";
@@ -10,32 +10,7 @@ const currentAsset = ref({
   avatar: "",
   library: "shikigami",
 });
-const getNode = inject("getNode") as (() => any) | undefined;
 const resolveAssetUrl = useEditorAssetUrlResolver();
-const zIndex = ref(1);
-let intervalId: number | null = null;
-
-// 使用轮询方式定期更新 zIndex
-onMounted(() => {
-  const node = getNode?.();
-  if (node) {
-    zIndex.value = node.zIndex ?? 1;
-
-    // 每 100ms 检查一次 zIndex 是否变化
-    intervalId = window.setInterval(() => {
-      const currentZIndex = node.zIndex ?? 1;
-      if (zIndex.value !== currentZIndex) {
-        zIndex.value = currentZIndex;
-      }
-    }, 100);
-  }
-});
-
-onBeforeUnmount(() => {
-  if (intervalId !== null) {
-    clearInterval(intervalId);
-  }
-});
 
 const { containerStyle, textStyle } = useNodeAppearance({
   onPropsChange(props) {

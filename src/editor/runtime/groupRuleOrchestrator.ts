@@ -1,5 +1,6 @@
 import type LogicFlow from "@logicflow/core";
 import { ref, type Ref } from "vue";
+
 import { captureGraphData } from "@/core/logicflow/graphIO";
 import {
   validateGraphGroupRules,
@@ -23,6 +24,8 @@ export function useFlowGroupRuleOrchestrator(
   const groupRuleWarnings = ref<GroupRuleWarning[]>([]);
   let groupRuleValidationTimer: ReturnType<typeof setTimeout> | null = null;
   let unsubscribeSharedGroupRules: (() => void) | null = null;
+  let mounted = false;
+  let mountGeneration = 0;
 
   function refreshGroupRuleWarnings() {
     const lfInstance = lf.value;
@@ -35,10 +38,11 @@ export function useFlowGroupRuleOrchestrator(
   }
 
   function scheduleGroupRuleValidation(delay = 120) {
-    if (groupRuleValidationTimer) {
+    if (groupRuleValidationTimer !== null) {
       clearTimeout(groupRuleValidationTimer);
     }
     groupRuleValidationTimer = setTimeout(() => {
+      groupRuleValidationTimer = null;
       refreshGroupRuleWarnings();
     }, delay);
   }
@@ -71,14 +75,31 @@ export function useFlowGroupRuleOrchestrator(
   }
 
   function mountGroupRuleOrchestrator() {
-    unsubscribeSharedGroupRules?.();
-    unsubscribeSharedGroupRules = subscribeSharedGroupRulesConfig(() => {
-      scheduleGroupRuleValidation(0);
-    });
+    disposeGroupRuleOrchestrator();
+    const generation = ++mountGeneration;
+    mounted = true;
+    try {
+      unsubscribeSharedGroupRules = subscribeSharedGroupRulesConfig(() => {
+        if (!mounted || generation !== mountGeneration) return;
+        scheduleGroupRuleValidation(0);
+      });
+    } catch (error) {
+      if (generation === mountGeneration) {
+        disposeGroupRuleOrchestrator();
+      }
+      throw error;
+    }
+    return () => {
+      if (generation === mountGeneration) {
+        disposeGroupRuleOrchestrator();
+      }
+    };
   }
 
   function disposeGroupRuleOrchestrator() {
-    if (groupRuleValidationTimer) {
+    mountGeneration += 1;
+    mounted = false;
+    if (groupRuleValidationTimer !== null) {
       clearTimeout(groupRuleValidationTimer);
       groupRuleValidationTimer = null;
     }

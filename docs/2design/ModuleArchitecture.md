@@ -6,6 +6,11 @@ This document defines the target architecture for the `refactor/feature-modules`
 work. The directory tree below is a migration target, not a statement that every
 module already exists.
 
+Migration status (2026-07-10): `core/document`, `core/logicflow`, instance
+`EditorContext`, `features/workspace`, and editor runtime/commands/node-types are
+implemented. Business features and standalone/embed shells remain Phase 6 and 7
+work.
+
 The refactor must:
 
 1. keep the standalone application and embeddable component behavior compatible;
@@ -66,13 +71,18 @@ src/
 │   │   ├── FlowEditor.vue
 │   │   ├── NodePalette.vue
 │   │   ├── Inspector.vue
+│   │   ├── StyleInspector.vue
 │   │   ├── CanvasControls.vue
 │   │   ├── ProblemsDock.vue
 │   │   └── EditorDialogHost.vue
 │   ├── runtime/
+│   │   ├── lifecycle.ts
+│   │   ├── mountEditorRuntime.ts
 │   │   ├── bindEditorEvents.ts
 │   │   ├── keyboardShortcuts.ts
-│   │   └── contextMenu.ts
+│   │   ├── contextMenu.ts
+│   │   ├── canvasInteraction.ts
+│   │   └── groupRuleOrchestrator.ts
 │   ├── commands/
 │   │   ├── selection.ts
 │   │   ├── nodeState.ts
@@ -164,7 +174,11 @@ Additional enforced constraints:
 - Default nodes are declared only in `editor/node-types/registry.ts`;
   `core/logicflow/registerNodes.ts` only applies registrations passed to it.
 - A node's View, Model, Inspector, defaults, and registration are colocated by node
-  type.
+  type. Each `definition.ts` supplies its type, fresh properties factory, and where
+  applicable its registration factory.
+- The default Vue registry order is `propertySelect`, `imageNode`, `assetSelector`,
+  `textNode`, `vectorNode`. `dynamic-group` remains plugin-registered and is not a
+  Vue node registration. Palette creation must return fresh nested properties.
 - Every listener, timer, observer, and subscription mount function returns a real
   disposer.
 - No new mutable module-level `Map`, `ref`, `reactive`, or configuration singleton is

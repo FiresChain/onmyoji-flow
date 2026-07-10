@@ -40,7 +40,8 @@ interface NodeStyle {
 }
 ```
 
-默认值参考 `src/ts/schema.ts:DefaultNodeStyle`：
+默认值事实源为 `src/core/document/types.ts:DefaultNodeStyle`；`src/ts/schema.ts` 仅作
+旧路径兼容转发：
 - `width=180, height=120, rotate=0`
 - `fill='#ffffff', stroke='#dcdfe6', strokeWidth=1, radius=4, opacity=1`
 - `shadow={ color:'rgba(0,0,0,0.1)', blur:4, offsetX:0, offsetY:2 }`
@@ -55,7 +56,6 @@ interface NodeStyle {
 ## 节点元信息：`properties.meta`
 ```ts
 interface NodeMeta {
-  z?: number;         // 层级
   locked?: boolean;   // 锁定
   visible?: boolean;  // 可见
   groupId?: string;   // 分组
@@ -64,6 +64,8 @@ interface NodeMeta {
   updatedAt?: number;
 }
 ```
+节点层级的规范字段是顶层 `GraphNode.zIndex`。旧 `properties.meta.z` / `meta.zIndex`
+仅作为迁移输入，归一化后会被移除。
 FlowEditor 在渲染/normalize 时会补齐 `meta.visible=true`、`meta.locked=false` 并应用到节点模型（可见性、可拖拽等）。
 
 ## 监听与渲染路径
@@ -87,21 +89,24 @@ const { containerStyle, textStyle } = useNodeAppearance({
 - 自动解绑监听，减少重复代码。
 
 已接入的节点组件：
-- 图片节点 `src/components/flow/nodes/common/ImageNode.vue`
-- 式神节点 `.../yys/ShikigamiSelectNode.vue`
-- 御魂节点 `.../yys/YuhunSelectNode.vue`
-- 属性节点 `.../yys/PropertySelectNode.vue`
+- `src/editor/node-types/image/Node.vue`
+- `src/editor/node-types/asset-selector/Node.vue`
+- `src/editor/node-types/property-rule/Node.vue`
+- `src/editor/node-types/text/Node.vue`
+- `src/editor/node-types/vector/Node.vue`
 
-## 编辑入口：PropertyPanel
-- 样式面板 `src/components/flow/panels/StylePanel.vue` 写入 `properties.style`：
+## 编辑入口：Inspector
+- `src/editor/components/StyleInspector.vue` 写入 `properties.style`：
   - 填充色、描边色/线宽、圆角、阴影（色/模糊/偏移）、透明度
   - 文本对齐、行高、字重
-- 图片面板 `ImagePanel.vue` 写入宽高/fit/url，并保持与 `style.width/height` 同步。
-- 其他面板（式神/御魂/属性）仅写业务字段，样式统一由 `useNodeAppearance` 消费。
+- `src/editor/node-types/image/Inspector.vue` 写入宽高/fit/url，并保持与
+  `style.width/height` 同步。
+- 其他类型 Inspector 仅写对应业务字段，样式统一由 `useNodeAppearance` 消费。
 
 ## 持久化与 schema
 - 顶层导出结构：`RootDocument`（见 `docs/2design/DataModel.md`），包含 `schemaVersion`。
-- 保存/导入路径：`useFilesStore` 写出/读入 `schemaVersion`；缺省数据走 `migrateToV1` 将散落的宽高/可见/锁定补齐到 `properties.style/meta`。
+- `WorkspaceSession` 通过 EditorPort 协调 capture/render；`documentTransfer` 负责
+  schema 迁移、校验与 JSON 往返；`FilesPersistence` 只管理 owned storage。
 
 ## 校验建议
 - width/height > 0；strokeWidth ≥ 0；radius ≥ 0 或四元组合法；opacity ∈ [0,1]。
@@ -111,4 +116,4 @@ const { containerStyle, textStyle } = useNodeAppearance({
 ## 后续扩展建议
 - 文本节点接入富文本：在 `textStyle` 扩展行高倍数、字间距、背景/描边。
 - 叠加高级效果：blendMode/filter；保持向后兼容，新增字段时通过 `schemaVersion` 控制迁移。
-- 矢量节点：在 `vector` 节点中消费同一套 `style`，并在编辑面板复用 `StylePanel`。 
+- 矢量节点：在 `vector` 节点中消费同一套 `style`，并复用 `StyleInspector`。
