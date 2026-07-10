@@ -7,16 +7,16 @@
 2. **确认任务**：根据 plan.md 中的"下一步行动计划"，向我确认要开发哪个功能
 
 3. **开发实现**：
-   - 使用 Serena 的符号工具高效读取代码
-   - 使用 Context7 的查询Logic-flow相关文档
+   - 本地 `rg`/文件读取足够时优先使用本地工具；复杂跨文件符号追踪再使用 Serena
+   - 查询最新 LogicFlow 官方 API 或版本差异时使用 Context7
    - 遵循项目现有的代码风格和架构
    - 关键文件位置：
-     - 画布：src/components/flow/FlowEditor.vue
-     - 属性面板：src/components/flow/panels/
-     - Store：src/ts/useStore.ts
-     - Schema：src/ts/schema.ts
+     - 画布：src/editor/components/FlowEditor.vue
+     - 属性面板：src/editor/components/Inspector.vue、src/editor/node-types/\*/Inspector.vue
+     - Store：src/features/workspace/filesStore.ts
+     - Schema：src/core/document/
 
-4. **等待测试**：开发完成后，等我测试并确认功能正常
+4. **验证测试**：开发完成后运行仓库质量闸门，再由我确认功能正常
 
 5. **更新文档**：测试通过后，更新 docs/1management/plan.md：
    - 更新相关模块的完成度
@@ -26,12 +26,14 @@
 技术栈：Vue 3 + Vite + LogicFlow + Pinia + Element Plus
 
 当前状态（对齐 plan.md）：
+
 - ✅ 阶段 1 完成（独立编辑器）
 - ✅ 阶段 2 完成（组件化改造）
 - 🔄 阶段 3 进行中（wiki 集成稳定化）
 - 📅 当前里程碑时间点：Milestone 3 预计 2026-03 第 1 周收尾
 
 当前优先级（对齐 plan.md）：
+
 - 🔴 高优先级：步骤 6 剩余项“优化加载性能”
 - 🟡 中优先级：Milestone 3 剩余项“文档完善”
 - 🟢 低优先级：交互体验持续打磨（Notion 块体验对齐）

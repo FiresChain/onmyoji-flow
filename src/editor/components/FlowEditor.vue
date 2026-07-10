@@ -83,15 +83,14 @@ import {
   getSelectedNodeModelsFiltered as readSelectedNodeModelsFiltered,
   shouldSkipEditorShortcut,
 } from "@/editor/commands/selection";
-import { useGlobalMessage } from "@/ts/useGlobalMessage";
+import { useGlobalMessage } from "@/shared/ui/useGlobalMessage";
 import type { GraphData } from "@/core/document/types";
 import { captureGraphData } from "@/core/logicflow/graphIO";
-import { useLogicFlowScope } from "@/ts/useLogicFlow";
+import { useEditorContext } from "@/editor/context/useEditorContext";
 import {
   normalizePropertiesWithStyle,
   styleEquals,
 } from "@/core/document/nodeStyle";
-import { useCanvasSettings } from "@/ts/useCanvasSettings";
 import { useEditorI18n } from "@/editor/context/useEditorI18n";
 
 const props = withDefaults(
@@ -118,10 +117,10 @@ const emit = defineEmits<{
 const flowHostRef = ref<HTMLElement | null>(null);
 const containerRef = ref<HTMLElement | null>(null);
 const lf = ref<LogicFlow | null>(null);
-const logicFlowScope = useLogicFlowScope();
+const editorContext = useEditorContext();
 const selectedCount = ref(0);
 const { selectionEnabled, snapGridEnabled, snaplineEnabled } =
-  useCanvasSettings();
+  editorContext.settings;
 const { showMessage } = useGlobalMessage();
 const { t } = useEditorI18n();
 
@@ -377,7 +376,7 @@ onMounted(() => {
       mountFlowEditorRuntime({
         lf,
         containerRef,
-        logicFlowScope,
+        editorContext,
         enableLabel: props.enableLabel,
         configSnapGridEnabled: props.configSnapGridEnabled,
         configSnaplineEnabled: props.configSnaplineEnabled,

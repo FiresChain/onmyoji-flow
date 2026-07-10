@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { useDialogs } from "@/ts/useDialogs";
-import { getLogicFlowInstance, useLogicFlowScope } from "@/ts/useLogicFlow";
+import { useDialogs } from "@/editor/context/useDialogs";
 import {
   deleteCustomAsset,
   getSelectorPreset,
@@ -13,7 +12,10 @@ import {
   resolveAssetUrlsInDataSourceWithResolver,
   type SelectorConfig,
 } from "@/features/assets/public";
-import { useEditorAssetUrlResolver } from "@/editor/context/useEditorContext";
+import {
+  useEditorAssetUrlResolver,
+  useEditorContext,
+} from "@/editor/context/useEditorContext";
 import { useEditorI18n } from "@/editor/context/useEditorI18n";
 
 const props = defineProps<{
@@ -21,7 +23,7 @@ const props = defineProps<{
 }>();
 
 const { openGenericSelector } = useDialogs();
-const logicFlowScope = useLogicFlowScope();
+const editorContext = useEditorContext();
 const { t, getLocale } = useEditorI18n();
 const resolveAssetUrl = useEditorAssetUrlResolver();
 
@@ -48,7 +50,7 @@ const nameVisible = computed(() => {
 });
 
 const handleToggleNameVisible = (nextVisible: boolean) => {
-  const lf = getLogicFlowInstance(logicFlowScope);
+  const lf = editorContext.runtime.value?.instance;
   const node = props.node;
   if (!lf || !node) return;
   const currentAssetName = node.properties?.assetName || {};
@@ -62,7 +64,7 @@ const handleToggleNameVisible = (nextVisible: boolean) => {
 };
 
 const handleOpenSelector = () => {
-  const lf = getLogicFlowInstance(logicFlowScope);
+  const lf = editorContext.runtime.value?.instance;
   const node = props.node;
   if (!lf || !node) return;
 

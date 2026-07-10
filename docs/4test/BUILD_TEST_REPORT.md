@@ -1,5 +1,10 @@
 # 🎉 组件化改造构建测试报告
 
+> 历史快照（2026-02-20）：本页保留首次组件化构建记录，其中旧包名、体积和手工测试
+> 路径不代表当前基线。当前产物与 gate 以 `package.json`、
+> `docs/1management/project-baseline.md` 和 `refactory-session-log.md` 最新条目为准；
+> `src/TestEmbed.vue` 已由 Embed contract/integration tests 取代。
+
 ## ✅ 构建成功！
 
 ### 📦 生成的文件
@@ -14,6 +19,7 @@ dist/
 ```
 
 **Gzip 压缩后大小：**
+
 - ES Module: 35.20 KB
 - UMD: 31.09 KB
 - CSS: 32.87 KB
@@ -22,7 +28,7 @@ dist/
 
 - ✅ 入口文件：`src/index.js`
 - ✅ 输出格式：ES Module + UMD
-- ✅ 外部化依赖：vue, element-plus, pinia, @logicflow/*
+- ✅ 外部化依赖：vue, element-plus, pinia, @logicflow/\*
 - ✅ 生成 Source Map
 - ✅ 导出 CSS 文件
 
@@ -61,28 +67,28 @@ npm install file:../yys-editor
 
 ```vue
 <script setup>
-import { ref } from 'vue'
-import { YysEditorEmbed } from 'yys-editor'
-import 'yys-editor/style.css'
+import { ref } from "vue";
+import { YysEditorEmbed } from "yys-editor";
+import "yys-editor/style.css";
 
 const flowData = ref({
   nodes: [
     {
-      id: 'node1',
-      type: 'rect',
+      id: "node1",
+      type: "rect",
       x: 100,
       y: 100,
-      text: { value: '测试节点' },
-      properties: { width: 120, height: 60 }
-    }
+      text: { value: "测试节点" },
+      properties: { width: 120, height: 60 },
+    },
   ],
-  edges: []
-})
+  edges: [],
+});
 
 const handleSave = (data) => {
-  console.log('保存数据:', data)
-  alert('保存成功！')
-}
+  console.log("保存数据:", data);
+  alert("保存成功！");
+};
 </script>
 
 <template>
@@ -98,11 +104,7 @@ const handleSave = (data) => {
     />
 
     <h2>预览模式</h2>
-    <YysEditorEmbed
-      mode="preview"
-      :data="flowData"
-      :height="300"
-    />
+    <YysEditorEmbed mode="preview" :data="flowData" :height="300" />
   </div>
 </template>
 ```
@@ -159,10 +161,10 @@ npm run dev
 
 ```vue
 <script setup>
-import { YysEditorEmbed } from 'yys-editor'
-import 'yys-editor/style.css'
+import { YysEditorEmbed } from "yys-editor";
+import "yys-editor/style.css";
 
-const flowData = ref({ nodes: [], edges: [] })
+const flowData = ref({ nodes: [], edges: [] });
 </script>
 
 <template>
@@ -177,24 +179,24 @@ const flowData = ref({ nodes: [], edges: [] })
 
 ### Props
 
-| 属性 | 类型 | 默认值 | 说明 |
-|------|------|--------|------|
-| `data` | `GraphData` | `undefined` | 初始数据 |
-| `mode` | `'preview' \| 'edit'` | `'edit'` | 模式 |
-| `width` | `string \| number` | `'100%'` | 宽度 |
-| `height` | `string \| number` | `'600px'` | 高度 |
-| `showToolbar` | `boolean` | `true` | 显示工具栏 |
-| `showPropertyPanel` | `boolean` | `true` | 显示属性面板 |
-| `showComponentPanel` | `boolean` | `true` | 显示组件库 |
+| 属性                 | 类型                  | 默认值      | 说明         |
+| -------------------- | --------------------- | ----------- | ------------ |
+| `data`               | `GraphData`           | `undefined` | 初始数据     |
+| `mode`               | `'preview' \| 'edit'` | `'edit'`    | 模式         |
+| `width`              | `string \| number`    | `'100%'`    | 宽度         |
+| `height`             | `string \| number`    | `'600px'`   | 高度         |
+| `showToolbar`        | `boolean`             | `true`      | 显示工具栏   |
+| `showPropertyPanel`  | `boolean`             | `true`      | 显示属性面板 |
+| `showComponentPanel` | `boolean`             | `true`      | 显示组件库   |
 
 ### Events
 
-| 事件 | 参数 | 说明 |
-|------|------|------|
+| 事件          | 参数                | 说明     |
+| ------------- | ------------------- | -------- |
 | `update:data` | `(data: GraphData)` | 数据变更 |
-| `save` | `(data: GraphData)` | 保存 |
-| `cancel` | `()` | 取消 |
-| `error` | `(error: Error)` | 错误 |
+| `save`        | `(data: GraphData)` | 保存     |
+| `cancel`      | `()`                | 取消     |
+| `error`       | `(error: Error)`    | 错误     |
 
 ---
 
@@ -203,7 +205,7 @@ const flowData = ref({ nodes: [], edges: [] })
 - **设计文档**: `docs/2design/ComponentArchitecture.md`
 - **使用文档**: `docs/3usage/YysEditorEmbed.md`
 - **示例页面**: `examples/embed-demo.html`
-- **测试组件**: `src/TestEmbed.vue`
+- **当前自动化测试**: `src/__tests__/shells/embed-editor-shell.contract.test.ts`
 - **快速开始**: `EMBED_README.md`
 
 ---

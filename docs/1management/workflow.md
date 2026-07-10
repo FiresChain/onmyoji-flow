@@ -22,6 +22,7 @@ cat docs/1management/plan.md
 ```
 
 重点关注：
+
 - **项目完成度总览**：了解各模块当前状态
 - **下一步行动计划**：确定优先级和待办任务
 - **愿景实施进度**：查看当前处于哪个阶段
@@ -35,6 +36,7 @@ cat docs/1management/next.md
 ```
 
 这里通常包含：
+
 - 当前优先级任务
 - 开发流程说明
 - 技术栈信息
@@ -42,6 +44,7 @@ cat docs/1management/next.md
 #### 1.3 确定任务
 
 根据 plan.md 中的优先级确定要开发的功能：
+
 - 🔴 高优先级：紧急或核心功能
 - 🟡 中优先级：重要但不紧急
 - 🟢 低优先级：优化和增强
@@ -54,14 +57,14 @@ cat docs/1management/next.md
 
 根据功能类型选择或创建设计文档：
 
-| 功能类型 | 设计文档 | 说明 |
-|---------|---------|------|
-| 数据模型变更 | `DataModel.md` | Schema、数据结构、迁移逻辑 |
-| 样式系统 | `StyleAndAppearance.md` | 样式属性、渲染逻辑 |
-| 新节点类型 | `NodeTypes.md` | 节点定义、属性、行为 |
-| 交互功能 | `Interactions.md` | 快捷键、拖拽、选择等 |
-| 状态管理 | `StateManagement.md` | Store、持久化、同步 |
-| 其他功能 | `<功能名>.md` | 自定义设计文档 |
+| 功能类型     | 设计文档                | 说明                       |
+| ------------ | ----------------------- | -------------------------- |
+| 数据模型变更 | `DataModel.md`          | Schema、数据结构、迁移逻辑 |
+| 样式系统     | `StyleAndAppearance.md` | 样式属性、渲染逻辑         |
+| 新节点类型   | `NodeTypes.md`          | 节点定义、属性、行为       |
+| 交互功能     | `Interactions.md`       | 快捷键、拖拽、选择等       |
+| 状态管理     | `StateManagement.md`    | Store、持久化、同步        |
+| 其他功能     | `<功能名>.md`           | 自定义设计文档             |
 
 #### 2.2 编写设计文档
 
@@ -71,26 +74,31 @@ cat docs/1management/next.md
 # 功能名称
 
 ## 背景与目标
+
 - 为什么需要这个功能
 - 要解决什么问题
 - 预期效果
 
 ## 技术方案
+
 - 实现思路
 - 技术选型
 - 架构设计
 
 ## 数据模型（如涉及）
+
 - Schema 变更
 - 数据结构定义
 - 迁移策略
 
 ## 实现细节
+
 - 关键代码位置
 - 核心逻辑说明
 - 注意事项
 
 ## 测试计划
+
 - 测试用例
 - 边界情况
 - 验收标准
@@ -106,17 +114,21 @@ cat docs/1management/next.md
 # 撤销重做系统
 
 ## 背景与目标
+
 实现 Ctrl+Z/Y 快捷键，支持撤销和重做画布操作。
 
 ## 技术方案
+
 使用 LogicFlow 框架原生的 History 插件。
 
 ## 实现细节
+
 - 位置：src/components/flow/FlowEditor.vue
 - 插件配置：History 插件，maxSize: 50
 - 快捷键：Ctrl+Z 撤销，Ctrl+Y 重做
 
 ## 测试计划
+
 - 测试节点增删改操作的撤销重做
 - 测试移动、缩放的撤销重做
 - 测试历史栈上限
@@ -173,6 +185,7 @@ mcp__context7__query-docs
 ```
 
 **代码风格：**
+
 - 遵循项目现有的代码风格
 - 使用 TypeScript 类型定义
 - 添加必要的注释
@@ -183,15 +196,20 @@ mcp__context7__query-docs
 1. **读取相关代码**：使用 Serena 工具快速定位
 2. **实现功能**：按照设计文档编写代码
 3. **本地测试**：启动开发服务器验证功能
-4. **代码检查**：运行 lint 和 format
+4. **代码检查**：运行完整质量闸门
 
 ```bash
 # 启动开发服务器
 npm run dev
 
-# 代码检查
+# 完整质量闸门
+npm test
 npm run lint
-npm run format
+npm run typecheck
+npm run format:check
+npm run dead-code
+npm run build:app
+npm run build:lib
 ```
 
 ### 4. 测试验证
@@ -230,26 +248,27 @@ npm run format
 **更新模块完成度：**
 
 ```markdown
-## 1. 画布（LogicFlow） — 完成度：100%  ← 更新百分比
+## 1. 画布（LogicFlow） — 完成度：100% ← 更新百分比
+
 - 已完成：
-  - ✅ 撤销重做系统：Ctrl+Z/Y 快捷键...  ← 添加新功能
+  - ✅ 撤销重做系统：Ctrl+Z/Y 快捷键... ← 添加新功能
   - ...
 - 未完成：
-  - 无  ← 如果全部完成，清空未完成列表
+  - 无 ← 如果全部完成，清空未完成列表
 ```
 
 **标记愿景步骤完成：**
 
 ```markdown
-| 步骤 | 任务 | 状态 | 说明 |
-|------|------|------|------|
-| 10 | 历史与撤销重做 | ✅ 完成 | LogicFlow 框架原生支持 |  ← 更新状态
+| 步骤 | 任务           | 状态    | 说明                   |
+| ---- | -------------- | ------- | ---------------------- | ---------- |
+| 10   | 历史与撤销重做 | ✅ 完成 | LogicFlow 框架原生支持 | ← 更新状态 |
 ```
 
 **更新总体完成度：**
 
 ```markdown
-**总体完成度：98%** | **愿景一完成度：100%**  ← 重新计算百分比
+**总体完成度：98%** | **愿景一完成度：100%** ← 重新计算百分比
 ```
 
 **更新下一步行动计划：**
@@ -258,8 +277,9 @@ npm run format
 ## 🎯 下一步行动计划
 
 ### 🟢 低优先级（后续优化）
-1. ~~撤销重做系统~~（已完成）  ← 标记已完成或移除
-2. **矢量节点增强**  ← 下一个任务
+
+1. ~~撤销重做系统~~（已完成） ← 标记已完成或移除
+2. **矢量节点增强** ← 下一个任务
 ```
 
 #### 5.2 更新 next.md（可选）
@@ -268,7 +288,8 @@ npm run format
 
 ```markdown
 当前优先级（从 plan.md）：
-- 🔴 高优先级：~~实现撤销重做系统~~（已完成）  ← 标记完成
+
+- 🔴 高优先级：~~实现撤销重做系统~~（已完成） ← 标记完成
 - 🟡 中优先级：textNode 富文本编辑
 ```
 
@@ -280,6 +301,7 @@ npm run format
 ## 实现记录
 
 ### 2026-02-20
+
 - ✅ 完成撤销重做系统
 - 使用 LogicFlow History 插件
 - 快捷键：Ctrl+Z/Y
@@ -309,6 +331,7 @@ npm run format
 ```
 
 **Type 类型：**
+
 - `feat`: 新功能
 - `fix`: 修复 bug
 - `refactor`: 重构代码
@@ -317,6 +340,7 @@ npm run format
 - `chore`: 构建或工具变动
 
 **示例：**
+
 ```
 feat: 实现撤销重做系统
 
@@ -346,6 +370,7 @@ cat docs/1management/plan.md
 ```
 
 发现：
+
 - 愿景一步骤 10：历史与撤销重做（未完成）
 - 优先级：🔴 高优先级
 
@@ -357,9 +382,11 @@ cat docs/1management/plan.md
 # 撤销重做系统
 
 ## 技术方案
+
 使用 LogicFlow 框架原生的 History 插件
 
 ## 实现细节
+
 - 位置：src/components/flow/FlowEditor.vue
 - 插件：History，maxSize: 50
 - 快捷键：Ctrl+Z/Y
@@ -368,6 +395,7 @@ cat docs/1management/plan.md
 #### 步骤 3：实际开发
 
 在 `FlowEditor.vue` 中：
+
 - 引入 History 插件
 - 配置插件参数
 - 添加快捷键监听
@@ -381,6 +409,7 @@ cat docs/1management/plan.md
 #### 步骤 5：更新文档
 
 更新 `plan.md`：
+
 ```markdown
 | 10 | 历史与撤销重做 | ✅ 完成 | LogicFlow 框架原生支持 |
 
@@ -412,25 +441,25 @@ git commit -m "feat: 实现撤销重做系统"
 ### 场景 3：数据模型变更
 
 1. **必须**在 `DataModel.md` 中详细设计
-2. 更新 `schema.ts` 类型定义
+2. 更新 `src/core/document/types.ts`、JSON Schema 与迁移/校验实现
 3. 实现数据迁移逻辑
 4. 测试新旧数据兼容性
-5. 在 plan.md 中更新 schemaVersion
+5. 用户明确确认完成后，再在 `plan.md` 中更新 schemaVersion/进度
 
 ### 场景 4：重构现有代码
 
 1. 在设计文档中说明重构原因和方案
 2. 确保不破坏现有功能
 3. 提交时使用 `refactor:` 类型
-4. 在 plan.md 中更新模块说明
+4. 仅在用户明确确认阶段完成后更新 `plan.md`
 
 ## 开发工具
 
 ### Serena 工具（代码导航）
 
 ```bash
-# 查看文件符号概览
-mcp__serena__get_symbols_overview --relative_path src/components/flow/FlowEditor.vue
+# 查看复杂文件的符号概览（本地 rg 不足时）
+mcp__serena__get_symbols_overview --relative_path src/editor/components/FlowEditor.vue
 
 # 查找特定符号
 mcp__serena__find_symbol --name_path handleUndo
@@ -453,14 +482,14 @@ mcp__context7__query-docs --query "History plugin"
 # 启动开发服务器
 npm run dev
 
-# 代码检查
+# 完整质量闸门
+npm test
 npm run lint
-
-# 代码格式化
-npm run format
-
-# 一键检查
-npm run lint && npm run format
+npm run typecheck
+npm run format:check
+npm run dead-code
+npm run build:app
+npm run build:lib
 ```
 
 ## 常见问题
@@ -488,6 +517,7 @@ npm run lint && npm run format
 ### Q: 如何计算完成度百分比？
 
 根据模块的已完成功能占总功能的比例：
+
 - 100%：所有功能完成
 - 90%：核心功能完成，少量优化待做
 - 75%：主要功能完成，部分功能待补

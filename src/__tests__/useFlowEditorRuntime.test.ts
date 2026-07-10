@@ -70,7 +70,7 @@ function createRuntimeFixture() {
   mocks.createLogicFlowRuntime.mockReturnValue(runtime);
 
   let activeRuntime: unknown = null;
-  const logicFlowScope = {
+  const editorContext = {
     setRuntime: vi.fn((nextRuntime: unknown) => {
       activeRuntime = nextRuntime;
     }),
@@ -111,7 +111,7 @@ function createRuntimeFixture() {
   const options = {
     lf,
     containerRef: ref<HTMLElement | null>(document.createElement("div")),
-    logicFlowScope: logicFlowScope as any,
+    editorContext: editorContext as any,
     enableLabel: false,
     configSnapGridEnabled: true,
     configSnaplineEnabled: true,
@@ -129,7 +129,7 @@ function createRuntimeFixture() {
     instance,
     keyboard,
     lf,
-    logicFlowScope,
+    editorContext,
     off,
     on,
     options,
@@ -175,7 +175,7 @@ describe("useFlowEditorRuntime lifecycle", () => {
     shortcutKeys.forEach((keys) => {
       expect(fixture.keyboard.off).toHaveBeenCalledWith(keys);
     });
-    expect(fixture.logicFlowScope.clearRuntime).toHaveBeenCalledWith(
+    expect(fixture.editorContext.clearRuntime).toHaveBeenCalledWith(
       fixture.runtime,
     );
     expect(fixture.runtime.dispose).toHaveBeenCalledOnce();
@@ -186,7 +186,7 @@ describe("useFlowEditorRuntime lifecycle", () => {
     dispose();
     expect(fixture.off).toHaveBeenCalledTimes(eventOffCount);
     expect(fixture.keyboard.off).toHaveBeenCalledTimes(shortcutOffCount);
-    expect(fixture.logicFlowScope.clearRuntime).toHaveBeenCalledOnce();
+    expect(fixture.editorContext.clearRuntime).toHaveBeenCalledOnce();
   });
 
   it("does not clear a replacement instance from a stale disposer", () => {
@@ -196,11 +196,11 @@ describe("useFlowEditorRuntime lifecycle", () => {
     const replacementInstance = { id: "replacement" };
     const replacementRuntime = { instance: replacementInstance };
 
-    fixture.logicFlowScope.replaceRuntime(replacementRuntime);
+    fixture.editorContext.replaceRuntime(replacementRuntime);
     fixture.lf.value = replacementInstance;
     dispose();
 
-    expect(fixture.logicFlowScope.clearRuntime).toHaveBeenCalledWith(
+    expect(fixture.editorContext.clearRuntime).toHaveBeenCalledWith(
       fixture.runtime,
     );
     expect(fixture.runtime.dispose).not.toHaveBeenCalled();
@@ -226,7 +226,7 @@ describe("useFlowEditorRuntime lifecycle", () => {
 
     expect(fixture.off).toHaveBeenCalledTimes(2);
     expect(fixture.keyboard.off).toHaveBeenCalledTimes(10);
-    expect(fixture.logicFlowScope.clearRuntime).toHaveBeenCalledWith(
+    expect(fixture.editorContext.clearRuntime).toHaveBeenCalledWith(
       fixture.runtime,
     );
     expect(fixture.runtime.dispose).toHaveBeenCalledOnce();
@@ -244,7 +244,7 @@ describe("useFlowEditorRuntime lifecycle", () => {
     });
 
     expect(() => dispose()).toThrow("off failed");
-    expect(fixture.logicFlowScope.clearRuntime).toHaveBeenCalledWith(
+    expect(fixture.editorContext.clearRuntime).toHaveBeenCalledWith(
       fixture.runtime,
     );
     expect(fixture.runtime.dispose).toHaveBeenCalledOnce();

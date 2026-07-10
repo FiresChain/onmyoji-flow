@@ -1,5 +1,9 @@
 # ✅ yys-editor 组件化改造完成总结
 
+> 历史快照（2026-02-20）：旧包名与产物体积仅记录首次组件化结果。当前 canonical
+> package 是 `@rookie4show/onmyoji-flow`；最新架构、构建与测试状态见
+> `docs/2design/ModuleArchitecture.md` 和 `docs/1management/refactory-session-log.md`。
+
 ## 🎉 完成情况
 
 **完成时间：** 2026-02-20
@@ -10,15 +14,18 @@
 ## 📦 交付成果
 
 ### 1. 核心组件
+
 - ✅ `src/YysEditorEmbed.vue` - 嵌入式组件
 - ✅ `src/index.js` - 导出入口
-- ✅ `src/TestEmbed.vue` - 测试组件
+- ✅ `src/__tests__/shells/embed-editor-shell.contract.test.ts` - Embed 契约测试
 
 ### 2. 构建配置
+
 - ✅ `vite.config.lib.js` - 库模式构建配置
 - ✅ `package.json` - 更新导出配置
 
 ### 3. 构建产物
+
 ```
 dist/
 ├── yys-editor.es.js       155 KB (gzip: 35 KB)
@@ -27,6 +34,7 @@ dist/
 ```
 
 ### 4. 文档
+
 - ✅ `docs/2design/ComponentArchitecture.md` - 设计文档
 - ✅ `docs/3build/YysEditorEmbed.md` - 使用文档
 - ✅ `docs/3build/EMBED_README.md` - 快速开始
@@ -38,15 +46,18 @@ dist/
 ## 🎯 功能特性
 
 ### 双模式支持
+
 - ✅ **预览模式**：只读展示，无编辑 UI
 - ✅ **编辑模式**：完整编辑功能
 
 ### 完整接口
+
 - ✅ **Props**：data, mode, width, height, 配置项
 - ✅ **Emits**：update:data, save, cancel, error
 - ✅ **Methods**：getGraphData(), setGraphData()
 
 ### 状态隔离
+
 - ✅ 使用局部 Pinia 实例
 - ✅ 样式 scoped
 - ✅ 多实例互不影响
@@ -56,18 +67,20 @@ dist/
 ## 📖 使用方式
 
 ### 安装
+
 ```bash
 # 在 onmyoji-wiki 项目中
 npm install file:../yys-editor
 ```
 
 ### 使用
+
 ```vue
 <script setup>
-import { YysEditorEmbed } from 'yys-editor'
-import 'yys-editor/style.css'
+import { YysEditorEmbed } from "yys-editor";
+import "yys-editor/style.css";
 
-const flowData = ref({ nodes: [], edges: [] })
+const flowData = ref({ nodes: [], edges: [] });
 </script>
 
 <template>
@@ -87,6 +100,7 @@ const flowData = ref({ nodes: [], edges: [] })
 ### 在 onmyoji-wiki 中集成
 
 1. **安装依赖**
+
    ```bash
    cd ../onmyoji-wiki
    npm install file:../yys-editor
@@ -106,13 +120,13 @@ const flowData = ref({ nodes: [], edges: [] })
 
 ## 📁 文档索引
 
-| 文档 | 路径 | 说明 |
-|------|------|------|
-| 项目计划 | `docs/1management/plan.md` | 项目整体规划 |
-| 设计文档 | `docs/2design/ComponentArchitecture.md` | 架构设计 |
-| 使用文档 | `docs/3build/YysEditorEmbed.md` | API 和示例 |
-| 快速开始 | `docs/3build/EMBED_README.md` | 快速上手 |
-| 测试报告 | `docs/4test/BUILD_TEST_REPORT.md` | 构建测试 |
+| 文档     | 路径                                    | 说明         |
+| -------- | --------------------------------------- | ------------ |
+| 项目计划 | `docs/1management/plan.md`              | 项目整体规划 |
+| 设计文档 | `docs/2design/ComponentArchitecture.md` | 架构设计     |
+| 使用文档 | `docs/3build/YysEditorEmbed.md`         | API 和示例   |
+| 快速开始 | `docs/3build/EMBED_README.md`           | 快速上手     |
+| 测试报告 | `docs/4test/BUILD_TEST_REPORT.md`       | 构建测试     |
 
 ---
 

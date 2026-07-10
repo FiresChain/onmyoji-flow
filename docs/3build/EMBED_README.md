@@ -29,19 +29,18 @@ onmyoji-flow 现在支持两种使用方式：
 4. **文档和示例**
    - 创建了 `docs/3build/YysEditorEmbed.md` 使用文档
    - 创建了 `examples/embed-demo.html` 示例页面
-   - 创建了 `src/TestEmbed.vue` 测试组件
+   - 为 facade、edit/preview 切换、数据同步、viewport 与多实例隔离建立了自动化测试
 
 ## 🚀 快速开始
 
-### 1. 测试嵌入式组件
+### 1. 验证嵌入式组件
 
-在开发模式下测试组件：
+运行 Embed 契约测试：
 
 ```bash
-# 启动开发服务器
-npm run dev
-
-# 访问测试页面（需要修改 main.js 引入 TestEmbed.vue）
+npm test -- src/__tests__/shells/embed-facade.test.ts \
+  src/__tests__/shells/embed-editor-shell.contract.test.ts \
+  src/__tests__/multi-instance-embed-isolation.test.ts
 ```
 
 ### 2. 构建库文件
@@ -81,27 +80,25 @@ npm install
 
 ```vue
 <script setup>
-import { ref } from 'vue'
-import { YysEditorEmbed } from '@rookie4show/onmyoji-flow'
-import '@rookie4show/onmyoji-flow/style.css'
+import { ref } from "vue";
+import { YysEditorEmbed } from "@rookie4show/onmyoji-flow";
+import "@rookie4show/onmyoji-flow/style.css";
 
 const flowData = ref({
   nodes: [],
-  edges: []
-})
+  edges: [],
+});
+const editorRef = ref();
 
-const handleSave = (data) => {
-  console.log('保存数据:', data)
-}
+const handleSave = () => {
+  const data = editorRef.value?.getGraphData();
+  if (data) console.log("保存数据:", data);
+};
 </script>
 
 <template>
-  <YysEditorEmbed
-    mode="edit"
-    :data="flowData"
-    :height="600"
-    @save="handleSave"
-  />
+  <button type="button" @click="handleSave">保存</button>
+  <YysEditorEmbed ref="editorRef" mode="edit" :data="flowData" :height="600" />
 </template>
 ```
 
@@ -109,34 +106,47 @@ const handleSave = (data) => {
 
 ### Props
 
-| 属性 | 类型 | 默认值 | 说明 |
-|------|------|--------|------|
-| `data` | `GraphData` | `undefined` | 初始数据 |
-| `mode` | `'preview' \| 'edit'` | `'edit'` | 模式 |
-| `width` | `string \| number` | `'100%'` | 宽度 |
-| `height` | `string \| number` | `'600px'` | 高度 |
-| `showToolbar` | `boolean` | `true` | 显示工具栏 |
-| `showPropertyPanel` | `boolean` | `true` | 编辑模式下控制右侧属性面板显示 |
-| `showComponentPanel` | `boolean` | `true` | 显示组件库 |
-| `config` | `EditorConfig` | `{}` | 最小实现已生效：`grid/snapline/keyboard` |
+| 属性                 | 类型                             | 默认值                   | 说明                                            |
+| -------------------- | -------------------------------- | ------------------------ | ----------------------------------------------- |
+| `data`               | `GraphData`                      | `undefined`              | 初始数据                                        |
+| `mode`               | `'preview' \| 'edit'`            | `'edit'`                 | 模式                                            |
+| `width`              | `string \| number`               | `'100%'`                 | 宽度                                            |
+| `height`             | `string \| number`               | `'600px'`                | 高度                                            |
+| `showToolbar`        | `boolean`                        | `true`                   | 显示工具栏                                      |
+| `showPropertyPanel`  | `boolean`                        | `true`                   | 编辑模式下控制右侧属性面板显示                  |
+| `showComponentPanel` | `boolean`                        | `true`                   | 显示组件库                                      |
+| `capability`         | `'render-only' \| 'interactive'` | 按 mode 推导             | preview runtime 能力级别                        |
+| `config`             | `EditorConfig`                   | 见下文                   | `grid/snapline/keyboard/locale` 按实例生效      |
+| `plugins`            | `FlowPlugin[]`                   | 默认 preset              | 仅 preview；非空数组替换 preset，空数组回退默认 |
+| `nodeRegistrations`  | `FlowNodeRegistration[]`         | 默认 registry            | 仅 preview；非空数组替换默认，空数组回退默认    |
+| `assetBaseUrl`       | `string`                         | 全局兼容默认值的实例快照 | 当前实例的素材 URL 基址                         |
 
 ### Events
 
-| 事件 | 参数 | 说明 |
-|------|------|------|
-| `update:data` | `(data: GraphData)` | 数据变更 |
-| `save` | `(data: GraphData)` | 保存 |
-| `cancel` | `()` | 取消 |
-| `error` | `(error: Error)` | 错误 |
+| 事件          | 参数                | 说明                                              |
+| ------------- | ------------------- | ------------------------------------------------- |
+| `update:data` | `(data: GraphData)` | 数据变更                                          |
+| `save`        | `(data: GraphData)` | 兼容保存事件；默认 command bar 当前无可见触发命令 |
+| `cancel`      | `()`                | 兼容取消事件；默认 command bar 当前无可见触发命令 |
+| `error`       | `(error: Error)`    | 错误                                              |
 
-> 契约说明（2026-03）：`showPropertyPanel` 已在 `mode='edit'` 下生效；`config` 当前已生效 `grid/snapline/keyboard`，其余字段（如 `theme/locale`）仍为兼容保留。
+> `showPropertyPanel` 在 `mode='edit'` 下生效。`config.grid/snapline/keyboard/locale`
+> 由当前实例消费，`theme` 仍为兼容保留字段。`plugins` 与 `nodeRegistrations` 不扩展
+> edit-mode runtime。
 
 ### 方法
 
-| 方法 | 说明 |
-|------|------|
-| `getGraphData()` | 获取当前画布数据 |
-| `setGraphData(data)` | 设置画布数据 |
+| 方法                                          | 说明                        |
+| --------------------------------------------- | --------------------------- |
+| `getGraphData()`                              | 获取当前画布数据            |
+| `setGraphData(data)`                          | 设置画布数据                |
+| `resizeCanvas()`                              | 按当前容器尺寸刷新画布      |
+| `fitView(verticalOffset?, horizontalOffset?)` | 有可见节点时自适应视口      |
+| `zoom(zoomSize?, point?)`                     | 缩放当前视口                |
+| `resetZoom()`                                 | 重置缩放                    |
+| `resetTranslate()`                            | 重置平移                    |
+| `translateCenter()`                           | 有可见节点时居中            |
+| `getTransform()`                              | 读取当前 viewport transform |
 
 详细文档请查看：`docs/3build/YysEditorEmbed.md`
 
@@ -154,13 +164,12 @@ const handleSave = (data) => {
   - [ ] 工具栏正常工作
   - [ ] 组件库可拖拽
   - [ ] 属性面板可编辑
-  - [ ] 保存/取消按钮触发正确事件
+  - [ ] 宿主可通过 exposed methods 读取数据并实现保存/取消流程
 
 - [ ] **数据接口**
   - [ ] Props 传入数据正确渲染
   - [ ] 数据变更触发 update:data 事件
-  - [ ] 保存触发 save 事件
-  - [ ] 取消触发 cancel 事件
+  - [ ] `getGraphData` / `setGraphData` 与 viewport methods 可用
 
 - [ ] **状态隔离**
   - [ ] 多个实例互不影响
@@ -171,10 +180,11 @@ const handleSave = (data) => {
 ```
 onmyoji-flow/
 ├── src/
-│   ├── YysEditorEmbed.vue          # 嵌入式组件 ⭐
-│   ├── TestEmbed.vue               # 测试组件
-│   ├── App.vue                     # 独立应用（保持不变）
-│   └── components/                 # 共享组件
+│   ├── YysEditorEmbed.vue          # 公开 Embed facade
+│   ├── App.vue                     # 独立应用 facade
+│   └── shells/
+│       ├── embed/                  # Embed shell、PreviewCanvas 与 composables
+│       └── standalone/             # 独立应用 shell
 ├── docs/
 │   ├── 2design/
 │   │   └── ComponentArchitecture.md  # 设计文档
@@ -192,20 +202,19 @@ onmyoji-flow/
 ### 在 onmyoji-wiki 中集成
 
 1. **安装依赖**
+
    ```bash
    cd ../onmyoji-wiki
    npm install file:../onmyoji-flow
    ```
 
 2. **创建 MDC 组件**
+
    ```vue
    <!-- components/content/YysEditor.vue -->
    <template>
      <div class="yys-editor-block" @click="openEditor">
-       <YysEditorEmbed
-         mode="preview"
-         :data="flowData"
-       />
+       <YysEditorEmbed mode="preview" :data="flowData" />
        <button>✏️ 编辑流程图</button>
      </div>
    </template>
@@ -230,6 +239,7 @@ onmyoji-flow/
 ### 依赖管理
 
 以下依赖被标记为 `peerDependencies`，需要宿主项目提供：
+
 - vue
 - element-plus
 - pinia
@@ -237,15 +247,12 @@ onmyoji-flow/
 - @logicflow/extension
 - @logicflow/vue-node-registry
 
-## 🐛 已知问题
+## 🔄 Runtime 同步
 
-1. **预览模式初始化延迟**
-   - 预览模式需要等待 DOM 渲染完成后初始化 LogicFlow
-   - 已使用 `setTimeout` 解决
-
-2. **编辑模式数据加载**
-   - 编辑模式需要等待 FlowEditor 组件初始化完成
-   - 已使用 `setTimeout` 延迟加载数据
+1. `PreviewCanvas` 创建 runtime 后通过 `ready` 同步渲染初始数据，宿主在 parent
+   `onMounted` 即可读取 graph。
+2. edit/preview 切换、prop 数据更新与 resize 均通过实例 `EditorPort` 协调；组件卸载时
+   释放 runtime、watcher、workspace、timer 与 `ResizeObserver`。
 
 ## 📚 相关文档
 
@@ -260,4 +267,3 @@ onmyoji-flow/
 ## 📄 许可证
 
 MIT
-

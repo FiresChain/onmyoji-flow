@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { useNodeAppearance } from "@/ts/useNodeAppearance";
+import { useNodeAppearance } from "@/editor/node-types/useNodeAppearance";
 
 type PropertyNodeData = {
   type: string;

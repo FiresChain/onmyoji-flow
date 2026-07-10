@@ -2,8 +2,8 @@ import type { BaseNodeModel, default as LogicFlow } from "@logicflow/core";
 import type { Ref } from "vue";
 
 import { createLogicFlowRuntime } from "@/core/logicflow/createRuntime";
+import type { EditorContext } from "@/editor/context/EditorContext";
 import { getDefaultNodeRegistrations } from "@/editor/node-types/registry";
-import type { LogicFlowScope } from "@/ts/useLogicFlow";
 
 import { bindEditorEvents } from "./bindEditorEvents";
 import { configureEditorContextMenu } from "./contextMenu";
@@ -15,7 +15,7 @@ import {
 export interface FlowEditorRuntimeOptions {
   lf: Ref<LogicFlow | null>;
   containerRef: Ref<HTMLElement | null>;
-  logicFlowScope: LogicFlowScope;
+  editorContext: EditorContext;
   enableLabel: boolean;
   configSnapGridEnabled: boolean;
   configSnaplineEnabled: boolean;
@@ -66,7 +66,7 @@ export function mountFlowEditorRuntime(
   const {
     lf,
     containerRef,
-    logicFlowScope,
+    editorContext,
     enableLabel,
     configSnapGridEnabled,
     configSnaplineEnabled,
@@ -181,7 +181,7 @@ export function mountFlowEditorRuntime(
       toggleVisibilitySelected,
     });
 
-    logicFlowScope.setRuntime(runtime);
+    editorContext.setRuntime(runtime);
     settingsChanged = true;
     snapGridEnabled.value = configSnapGridEnabled;
     snaplineEnabled.value = configSnaplineEnabled;
@@ -208,7 +208,7 @@ export function mountFlowEditorRuntime(
     );
     let cleared = false;
     try {
-      cleared = logicFlowScope.clearRuntime(runtime);
+      cleared = editorContext.clearRuntime(runtime);
     } catch {
       // Runtime disposal below is still required.
     }
@@ -236,7 +236,7 @@ export function mountFlowEditorRuntime(
 
     let cleanupError = runDisposers([disposeEvents, disposeKeyboard]);
     try {
-      logicFlowScope.clearRuntime(runtime);
+      editorContext.clearRuntime(runtime);
     } catch (error) {
       cleanupError ??= error;
     }

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { useNodeAppearance } from "@/ts/useNodeAppearance";
+import { useNodeAppearance } from "@/editor/node-types/useNodeAppearance";
 import "@vueup/vue-quill/dist/vue-quill.snow.css";
 
 const DEFAULT_HTML = "<p>请输入文本</p>";

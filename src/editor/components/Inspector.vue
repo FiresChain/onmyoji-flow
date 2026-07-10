@@ -8,10 +8,10 @@ import TextInspector from "@/editor/node-types/text/Inspector.vue";
 import VectorInspector from "@/editor/node-types/vector/Inspector.vue";
 import StyleInspector from "./StyleInspector.vue";
 import { ASSET_LIBRARIES } from "@/features/assets/public";
-import { getLogicFlowInstance, useLogicFlowScope } from "@/ts/useLogicFlow";
+import { useEditorContext } from "@/editor/context/useEditorContext";
 import { useEditorI18n } from "@/editor/context/useEditorI18n";
 
-const logicFlowScope = useLogicFlowScope();
+const editorContext = useEditorContext();
 const { t } = useEditorI18n();
 const MIN_PANEL_WIDTH = 240;
 const MAX_PANEL_WIDTH = 460;
@@ -66,7 +66,7 @@ const supportsTypeSwitch = computed(() => nodeType.value === "assetSelector");
 const currentAssetLibrary = computed({
   get: () => selectedNode.value?.properties?.assetLibrary || "shikigami",
   set: (value) => {
-    const lf = getLogicFlowInstance(logicFlowScope);
+    const lf = editorContext.runtime.value?.instance;
     if (!lf || !selectedNode.value) return;
 
     lf.setProperties(selectedNode.value.id, {

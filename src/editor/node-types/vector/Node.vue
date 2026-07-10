@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onBeforeUnmount } from "vue";
-import { useNodeAppearance } from "@/ts/useNodeAppearance";
+import { useNodeAppearance } from "@/editor/node-types/useNodeAppearance";
 
 const vectorConfig = ref({
   kind: "rect",

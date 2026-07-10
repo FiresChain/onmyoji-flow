@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { reactive, watch } from "vue";
-import { getLogicFlowInstance, useLogicFlowScope } from "@/ts/useLogicFlow";
 import { normalizeNodeStyle } from "@/core/document/nodeStyle";
+import { useEditorContext } from "@/editor/context/useEditorContext";
 import { useEditorI18n } from "@/editor/context/useEditorI18n";
 
 type FitMode = "contain" | "cover" | "fill";
@@ -9,7 +9,7 @@ type FitMode = "contain" | "cover" | "fill";
 const props = defineProps<{
   node: any;
 }>();
-const logicFlowScope = useLogicFlowScope();
+const editorContext = useEditorContext();
 const { t } = useEditorI18n();
 
 type ImageForm = {
@@ -65,7 +65,7 @@ watch(
 );
 
 const applyImageChanges = (partial: Partial<ImageForm>) => {
-  const lf = getLogicFlowInstance(logicFlowScope);
+  const lf = editorContext.runtime.value?.instance;
   const node = props.node;
   if (!lf || !node) return;
 

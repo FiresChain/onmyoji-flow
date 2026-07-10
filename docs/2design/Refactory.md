@@ -16,7 +16,8 @@
 纳入范围：
 
 1. `docs/1management/*`、`docs/2design/*`、`docs/3build/*`、`docs/4test/*`。
-2. 核心实现：`src/YysEditorEmbed.vue`、`src/components/flow/FlowEditor.vue`、`src/ts/useStore.ts`、`src/ts/schema.ts`、`src/ts/useLogicFlow.ts`、`src/ts/useCanvasSettings.ts`。
+2. 核心实现：`src/YysEditorEmbed.vue`、`src/shells/*`、`src/editor/*`、
+   `src/features/workspace/*`、`src/core/{document,logicflow}/*`。
 3. 工具链与发布：`package.json`、ESLint/Prettier/CI 工作流。
 
 不纳入范围（本轮）：
@@ -26,7 +27,10 @@
 
 ---
 
-## 2. 当前主要问题清单
+## 2. 初始基线问题清单
+
+以下内容记录重构启动时的问题；当前完成状态以 3.2 节和
+`ModuleArchitecture.md` 为准。
 
 ### 2.1 文档维护问题
 
@@ -83,6 +87,17 @@
 3. 存在高风险行为缺陷：文件切换路径可能误写目标文件数据（详见风险章节）。
 4. ESLint 目前以“可执行”为主，规则强度尚不足以约束多人/多工具统一风格。
 5. LogicFlow 兼容声明仍为过渡方案，尚未形成退出闭环。
+
+## 3.2 Feature-module 执行状态（2026-07-10）
+
+Feature-module Phases 1-8 已完成：document/LogicFlow 单一事实源、实例
+`EditorContext`、workspace persistence/session、editor/node-types、业务 features、
+standalone/embed shells 与根 facade 均进入生产路径。旧 `src/ts` 业务 facade 和不可达
+`TestEmbed.vue` 已移除；`utils/teamCodeService.ts` 作为明确冻结例外保持原位。
+
+质量闸门现为 test、全量 TS/Vue lint、typecheck、format-check、knip dead-code、
+`build:app` 与 `build:lib`，并在 Pages CI 的最终构建/上传前全部执行。具体依赖规则与
+兼容边界以 `ModuleArchitecture.md` 为准。
 
 ---
 

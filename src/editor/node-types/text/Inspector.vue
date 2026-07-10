@@ -2,11 +2,11 @@
 import { ref, watch } from "vue";
 import { QuillEditor } from "@vueup/vue-quill";
 import "@vueup/vue-quill/dist/vue-quill.snow.css";
-import { getLogicFlowInstance, useLogicFlowScope } from "@/ts/useLogicFlow";
+import { useEditorContext } from "@/editor/context/useEditorContext";
 import { useEditorI18n } from "@/editor/context/useEditorI18n";
 
 const props = defineProps<{ node: any }>();
-const logicFlowScope = useLogicFlowScope();
+const editorContext = useEditorContext();
 const { t } = useEditorI18n();
 
 const DEFAULT_HTML = t("flow.text.defaultHtml");
@@ -62,7 +62,7 @@ watch(
 );
 
 const handleContentChange = (value: string) => {
-  const lf = getLogicFlowInstance(logicFlowScope);
+  const lf = editorContext.runtime.value?.instance;
   const node = props.node;
   if (!lf || !node) return;
 

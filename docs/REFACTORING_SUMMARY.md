@@ -3,6 +3,7 @@
 > 历史快照：本文记录早期资产选择器重构，不代表当前目录结构。当前模块边界以
 > `docs/2design/ModuleArchitecture.md` 为准；节点注册在 feature-module 迁移前由
 > `src/components/flow/composables/useFlowEditorRuntime.ts` 和 `src/flowRuntime.ts` 执行。
+> 当前旧 GraphData 迁移事实源是 `src/core/document/migrations.ts`。
 
 ## 重构完成情况
 
@@ -15,32 +16,35 @@
 ### 1. 通用选择器系统
 
 #### 新增文件
+
 - `src/types/selector.ts` - 选择器配置接口定义
 - `src/configs/selectorPresets.ts` - 预设配置（式神、御魂）
 - `src/components/common/GenericImageSelector.vue` - 通用选择器组件
 
 #### 核心特性
+
 - **配置驱动**：通过配置对象控制选择器行为
 - **支持分组**：Tab 分组展示，支持自定义过滤函数
 - **搜索功能**：多字段搜索支持
 - **可扩展**：添加新资产类型只需配置，无需写新组件
 
 #### 使用示例
-```typescript
-import { useDialogs } from '@/ts/useDialogs'
-import { SELECTOR_PRESETS } from '@/configs/selectorPresets'
 
-const { openGenericSelector } = useDialogs()
+```typescript
+import { useDialogs } from "@/ts/useDialogs";
+import { SELECTOR_PRESETS } from "@/configs/selectorPresets";
+
+const { openGenericSelector } = useDialogs();
 
 // 打开式神选择器
 openGenericSelector(SELECTOR_PRESETS.shikigami, (selectedItem) => {
-  console.log('选中的式神:', selectedItem)
-})
+  console.log("选中的式神:", selectedItem);
+});
 
 // 打开御魂选择器
 openGenericSelector(SELECTOR_PRESETS.yuhun, (selectedItem) => {
-  console.log('选中的御魂:', selectedItem)
-})
+  console.log("选中的御魂:", selectedItem);
+});
 ```
 
 ---
@@ -48,6 +52,7 @@ openGenericSelector(SELECTOR_PRESETS.yuhun, (selectedItem) => {
 ### 2. 新节点类型系统
 
 #### 新增文件
+
 - `src/types/nodeTypes.ts` - 节点类型定义和分类
 - `src/components/flow/composables/useFlowEditorRuntime.ts` - 编辑模式节点注册（迁移前位置）
 - `src/flowRuntime.ts` - 公开预览 runtime 节点注册（迁移前位置）
@@ -55,6 +60,7 @@ openGenericSelector(SELECTOR_PRESETS.yuhun, (selectedItem) => {
 - `src/components/flow/panels/AssetSelectorPanel.vue` - 资产选择器面板
 
 #### 节点分类（三大类）
+
 1. **布局容器** (Layout)
    - 矩形 (rect)
    - 椭圆 (ellipse)
@@ -68,6 +74,7 @@ openGenericSelector(SELECTOR_PRESETS.yuhun, (selectedItem) => {
    - 属性选择器 (propertySelect)
 
 #### 资产选择器特性
+
 - **统一入口**：一个节点类型支持多种资产库
 - **动态切换**：在属性面板中切换资产库（式神/御魂/未来扩展）
 - **保持兼容**：旧节点自动迁移到新系统
@@ -77,18 +84,21 @@ openGenericSelector(SELECTOR_PRESETS.yuhun, (selectedItem) => {
 ### 3. 数据迁移系统
 
 #### 新增文件
+
 - `src/utils/nodeMigration.ts` - 数据迁移工具
 
 #### 迁移映射
-| 旧节点类型 | 新节点类型 | 说明 |
-|-----------|-----------|------|
-| shikigamiSelect | assetSelector | 自动转换，assetLibrary='shikigami' |
-| yuhunSelect | assetSelector | 自动转换，assetLibrary='yuhun' |
-| imageNode | imageNode | 保持不变 |
-| textNode | textNode | 保持不变 |
-| propertySelect | propertySelect | 保持不变 |
+
+| 旧节点类型      | 新节点类型     | 说明                               |
+| --------------- | -------------- | ---------------------------------- |
+| shikigamiSelect | assetSelector  | 自动转换，assetLibrary='shikigami' |
+| yuhunSelect     | assetSelector  | 自动转换，assetLibrary='yuhun'     |
+| imageNode       | imageNode      | 保持不变                           |
+| textNode        | textNode       | 保持不变                           |
+| propertySelect  | propertySelect | 保持不变                           |
 
 #### 迁移特性
+
 - **自动执行**：文件加载时自动检测并迁移
 - **用户提示**：迁移完成后显示提示信息
 - **数据保留**：保留原始数据以便回退
@@ -99,16 +109,19 @@ openGenericSelector(SELECTOR_PRESETS.yuhun, (selectedItem) => {
 ## 代码改进
 
 ### 消除重复代码
+
 - **重构前**：ShikigamiSelect 和 YuhunSelect 共约 240 行重复代码
 - **重构后**：统一为 GenericImageSelector，约 110 行
 - **减少**：约 130 行重复代码（54% 减少）
 
 ### 提升可维护性
+
 - **配置与逻辑分离**：业务配置独立于组件实现
 - **类型安全**：完整的 TypeScript 类型定义
 - **单一职责**：每个组件职责清晰
 
 ### 提升可扩展性
+
 - **添加新资产类型**：只需 3 步
   1. 准备 JSON 数据
   2. 添加预设配置
@@ -120,6 +133,7 @@ openGenericSelector(SELECTOR_PRESETS.yuhun, (selectedItem) => {
 ## 文件结构
 
 ### 新增文件（8 个）
+
 ```
 src/
 ├── types/
@@ -140,6 +154,7 @@ src/
 ```
 
 ### 修改文件（5 个）
+
 ```
 src/
 ├── ts/
@@ -154,9 +169,10 @@ src/
 ```
 
 ### 已移除的旧 UI 文件（数据迁移仍向后兼容）
+
 ```
 旧式神/御魂专用 Node、Panel 已由统一 `AssetSelectorNode` 与
-`AssetSelectorPanel` 替代。旧 GraphData 继续通过 `nodeMigration.ts` 转换，
+`AssetSelectorPanel` 替代。旧 GraphData 当前通过 `core/document/migrations.ts` 转换，
 不依赖保留旧 UI 文件。
 ```
 
@@ -165,13 +181,16 @@ src/
 ## 测试验证
 
 ### 构建测试
+
 ✅ **构建成功**
+
 ```
 ✓ 1742 modules transformed.
 ✓ built in 12.11s
 ```
 
 ### 功能验证清单
+
 - [x] 通用选择器组件创建成功
 - [x] 资产选择器节点创建成功
 - [x] 资产选择器面板创建成功
@@ -185,6 +204,7 @@ src/
 ## 使用指南
 
 ### 创建资产选择器节点
+
 1. 从组件库拖拽"资产选择器"到画布
 2. 选中节点，在右侧属性面板中：
    - 选择资产库（式神/御魂）
@@ -194,7 +214,9 @@ src/
 ### 添加新资产类型（示例：技能图标）
 
 #### 步骤 1：准备数据
+
 创建 `src/data/Skills.json`：
+
 ```json
 [
   {
@@ -206,7 +228,9 @@ src/
 ```
 
 #### 步骤 2：添加预设配置
+
 在 `src/configs/selectorPresets.ts` 中添加：
+
 ```typescript
 skills: {
   title: '请选择技能图标',
@@ -226,7 +250,9 @@ skills: {
 ```
 
 #### 步骤 3：添加资产库
+
 在 `src/types/nodeTypes.ts` 中添加：
+
 ```typescript
 { id: 'skills', label: '技能图标', selectorPreset: 'skills' }
 ```
@@ -238,17 +264,20 @@ skills: {
 ## 后续优化建议
 
 ### 性能优化
+
 - [ ] 实现虚拟滚动（大数据集）
 - [ ] 图片懒加载
 - [ ] 选择器缓存优化
 
 ### 功能扩展
+
 - [ ] 多选模式
 - [ ] 收藏功能
 - [ ] 在线资产库
 - [ ] AI 推荐
 
 ### 代码清理（可选）
+
 - [x] 删除旧的 ShikigamiSelectNode 和 YuhunSelectNode（GraphData 迁移继续保留）
 - [ ] 删除旧的 ShikigamiPanel 和 YuhunPanel
 - [ ] 更新文档和注释
@@ -258,6 +287,7 @@ skills: {
 ## 总结
 
 本次重构成功实现了：
+
 1. ✅ 通用选择器抽象 - 消除重复代码
 2. ✅ 新节点类型分类 - 清晰的架构
 3. ✅ 数据迁移系统 - 无缝升级
@@ -265,12 +295,14 @@ skills: {
 5. ✅ 可扩展性 - 轻松添加新资产类型
 
 **代码质量提升**：
+
 - 减少约 130 行重复代码
 - 提升可维护性和可扩展性
 - 完整的类型安全
 - 清晰的架构设计
 
 **用户体验提升**：
+
 - 统一的交互体验
 - 灵活的资产库切换
 - 自动数据迁移

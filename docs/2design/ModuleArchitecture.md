@@ -3,16 +3,17 @@
 ## 1. Status And Goals
 
 This document defines the architecture for the `refactor/feature-modules` work.
-The directory tree below records the implemented structure through Phase 7 and a
+The directory tree below records the implemented structure through Phase 8 and a
 few reserved logical groupings, such as shared UI and test categories, that are
-created only when needed. Phase 8 quality-gate additions are not represented yet.
+created only when needed.
 
-Migration status (2026-07-10): Phases 1-7 are implemented. This includes
+Migration status (2026-07-10): Phases 1-8 are implemented. This includes
 `core/document`, `core/logicflow`, instance `EditorContext`, editor
 runtime/commands/node-types, the workspace/assets/group-rules/capture/locale
 features, four feature dialog hosts, the common toolbar composition,
 standalone/embed shells, `PreviewCanvas`, Embed composables, and thin root facades.
-Phase 8 still needs the final architecture gates.
+ESLint directory boundaries, knip dead-code analysis, and the complete CI gate are
+also active.
 
 The refactor must:
 
@@ -73,7 +74,9 @@ src/
 ├── editor/
 │   ├── context/
 │   │   ├── EditorContext.ts
-│   │   └── useEditorContext.ts
+│   │   ├── useEditorContext.ts
+│   │   ├── useEditorI18n.ts
+│   │   └── useDialogs.ts
 │   ├── components/
 │   │   ├── FlowEditor.vue
 │   │   ├── NodePalette.vue
@@ -102,6 +105,7 @@ src/
 │   └── node-types/
 │       ├── registry.ts
 │       ├── palette.ts
+│       ├── useNodeAppearance.ts
 │       ├── image/
 │       ├── text/
 │       ├── vector/
@@ -144,7 +148,7 @@ src/
 │   │   ├── storage.ts
 │   │   ├── clipboard.ts
 │   │   └── download.ts
-│   └── ui/
+│   └── ui/useGlobalMessage.ts
 ├── data/
 ├── assets/
 ├── types/
@@ -197,8 +201,10 @@ Additional enforced constraints:
   allowed.
 - Internal code must not import types back from `YysEditorEmbed.vue`, `App.vue`, or
   `index.js`.
-- `utils/`, `configs/`, `stores/`, and `ts/` cease to be business-code containers
-  after migration.
+- `configs/`, `stores/`, and `ts/` are no longer business-code containers.
+  `utils/teamCodeService.ts` is the single frozen exception, reachable only from
+  `features/workspace/teamCodeImportAdapter.ts` until a future team-code feature is
+  explicitly authorized.
 
 ## 4. Ownership And Interfaces
 
@@ -357,7 +363,7 @@ module is migrated.
 7. Introduce standalone/embed shells and reduce root components to facades.
    **Implemented.**
 8. Enforce dependency boundaries and the complete quality gate in CI.
-   **Pending.**
+   **Implemented.**
 
 Each step must preserve behavior, add risk-proportional tests, update the refactor
 session log, and pass its focused checks before the next step starts.
@@ -373,4 +379,21 @@ The migration is complete only when:
 3. CI runs the same gates;
 4. build-size changes are recorded without committing generated build or test
    artifacts;
-5. no production business code remains in `utils/`, `configs/`, `stores/`, or `ts/`.
+5. no production business code remains in `configs/`, `stores/`, or `ts/`; the only
+   `utils/` exception is the frozen team-code service and its exact workspace
+   adapter edge.
+
+## 8. Enforced Architecture Gates
+
+- ESLint parses every JS/TS/TSX/Vue source. `module-boundaries` resolves both `@/`
+  and relative imports, checks re-exports/dynamic imports, enforces layer direction,
+  requires cross-feature consumers to use `public.ts`, and rejects legacy-container
+  imports except the exact team-code adapter edge.
+- Serializable workspace store lint rejects LogicFlow, Element Plus, editor/UI,
+  DOM, browser-global storage, and `EditorContext` dependencies.
+- `npm run dead-code` uses knip for unreachable files plus unused, unlisted, and
+  unresolved dependencies/binaries. Export-only findings are excluded because npm
+  and internal `public.ts` facades intentionally expose symbols for external
+  consumers.
+- CI runs test, lint, typecheck, format-check, dead-code, app build, and library
+  build before the final Pages build and upload.

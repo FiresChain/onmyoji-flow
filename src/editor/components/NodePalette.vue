@@ -7,15 +7,17 @@ import {
   resolveCreateNodeSize,
   type AssetLibraryId,
 } from "@/features/assets/public";
-import { getLogicFlowInstance, useLogicFlowScope } from "@/ts/useLogicFlow";
 import { useEditorI18n } from "@/editor/context/useEditorI18n";
-import { useEditorAssetUrlResolver } from "@/editor/context/useEditorContext";
+import {
+  useEditorAssetUrlResolver,
+  useEditorContext,
+} from "@/editor/context/useEditorContext";
 import {
   createNodePalette,
   type NodePaletteItem,
 } from "@/editor/node-types/palette";
 
-const logicFlowScope = useLogicFlowScope();
+const editorContext = useEditorContext();
 const { t } = useEditorI18n();
 const resolveAssetUrl = useEditorAssetUrlResolver();
 const MIN_PANEL_WIDTH = 220;
@@ -60,7 +62,7 @@ const componentGroups = computed(() =>
 
 const handleMouseDown = (e: MouseEvent, component: NodePaletteItem) => {
   e.preventDefault(); // 阻止文字选中
-  const lf = getLogicFlowInstance(logicFlowScope);
+  const lf = editorContext.runtime.value?.instance;
   if (!lf) return;
   const nextProperties = component.createProperties();
   const sizeConfig = readNodeCreateSizeConfig();

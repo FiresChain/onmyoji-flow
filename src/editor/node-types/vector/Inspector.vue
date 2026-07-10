@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed, reactive, watch } from "vue";
-import { getLogicFlowInstance, useLogicFlowScope } from "@/ts/useLogicFlow";
+import { useEditorContext } from "@/editor/context/useEditorContext";
 import { useEditorI18n } from "@/editor/context/useEditorI18n";
 
 const props = defineProps<{ node: any }>();
-const logicFlowScope = useLogicFlowScope();
+const editorContext = useEditorContext();
 const { t } = useEditorI18n();
 
 const form = reactive({
@@ -31,7 +31,7 @@ watch(
 
 // 应用更改
 const applyChanges = (partial: Record<string, any>) => {
-  const lf = getLogicFlowInstance(logicFlowScope);
+  const lf = editorContext.runtime.value?.instance;
   if (!lf || !props.node) return;
 
   const currentVector = props.node.properties?.vector || {};

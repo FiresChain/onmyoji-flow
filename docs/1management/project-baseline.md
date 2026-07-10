@@ -37,21 +37,25 @@
 - Lint: `npm run lint`
 - Typecheck: `npm run typecheck`
 - Format check: `npm run format:check`
+- Dead-code check: `npm run dead-code`
 
 ## 5. Quality Gate Baseline
 
-Target refactory gate set (as defined in `docs/2design/Refactory.md` and `AGENTS.md`):
+Current feature-module gate set:
 
 1. `npm test`
 2. `npm run lint`
 3. `npm run typecheck`
-4. `npx prettier --check "src/**/*.{js,ts,vue}"`
-5. `npm run build:lib`
+4. `npm run format:check`
+5. `npm run dead-code`
+6. `npm run build:app`
+7. `npm run build:lib`
 
 Current script status (`package.json`):
 
-- Present: `test`, `lint`, `typecheck`, `format:check`, `build:lib`
-- Missing: none for baseline gate set
+- Present: all seven gates above; Pages CI runs the same set before `build:pages`.
+- ESLint covers JS/TS/TSX/Vue and enforces the feature-module directory boundary.
+- knip checks unused files/dependencies, unlisted/unresolved imports, and binaries.
 
 ## 6. Source Of Truth References
 

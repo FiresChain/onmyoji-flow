@@ -32,7 +32,9 @@ Copy this block and append at the top for each new refactor session.
   - `npm test`: pass/fail/not-run
   - `npm run lint`: pass/fail/not-run
   - `npm run typecheck`: pass/fail/not-run
-  - `prettier --check`: pass/fail/not-run
+  - `npm run format:check`: pass/fail/not-run
+  - `npm run dead-code`: pass/fail/not-run
+  - `npm run build:app`: pass/fail/not-run
   - `npm run build:lib`: pass/fail/not-run
 - Risks / Follow-up:
   - `<risk or blocker>`
@@ -43,6 +45,50 @@ Copy this block and append at the top for each new refactor session.
 ---
 
 ## Log Entries
+
+## [2026-07-10] Session 132 - Enforce Module Architecture Gates
+
+- Refactory Scope:
+  - Phase: Feature-module Phase 8
+  - Task: 覆盖全部 TS/Vue lint，强制目录依赖边界，引入 knip dead-code 与完整 CI gates，并清理遗留业务容器
+- In Scope Files:
+  - `.eslintrc.cjs`、`eslint-rules/**`、`knip.json`
+  - `package.json`、`package-lock.json`、`.github/workflows/build-pages.yml`
+  - `src/editor/{context,node-types,components,runtime}/**` 与 `src/shared/ui/**` 的 helper 所有权迁移
+  - `src/ts/**`、`src/utils/nodeMigration.ts`、`src/TestEmbed.vue` 及失真 legacy boundary rules 清理
+  - Context/runtime/节点外观/dialog/message/module-boundary 回归测试与旧 facade 测试清理
+  - `AGENTS.md`、`README.md`、`docs/{1management,2design,3build,4test}/**` 中受影响的现行架构、API 与 gate 说明
+- Out of Scope:
+  - `src/utils/teamCodeService.ts` 实现、未来 `features/team-code` 与 `feature/team-code-copy-preview`
+  - `docs/1management/plan.md`、业务功能、视觉、公开 npm exports、storage key、数据格式和游戏数据
+- Decisions:
+  - FlowEditor/runtime、palette 与各 Inspector 直接使用所属 shell 提供的实例 `EditorContext`；旧 `useLogicFlow` / `useCanvasSettings` facade 删除，expected-runtime 身份清理和多实例隔离语义不变。
+  - dialogs、节点外观和通用消息分别进入 `editor/context`、`editor/node-types` 和 `shared/ui`；schema/store/node migration 旧转发入口删除，canonical core/feature 测试继续覆盖原契约。
+  - ESLint 解析 JS/TS/TSX/Vue；`module-boundaries` 同时处理 alias、相对 import、re-export、dynamic import 与 require，约束 layer direction、跨 feature `public.ts`、LogicFlow SDK、store 与 core/document 边界。
+  - `features/workspace/teamCodeImportAdapter.ts` 到 `utils/teamCodeService.ts` 是唯一 legacy-container 例外；只允许 shell 导入 LogicFlow `.css`，不放行 runtime SDK。
+  - 退役只针对已删除 `useStore.ts` 的 state-write rules；由 serializable-store import/global 约束、workspace session tests 和 module boundary gate 接替。
+  - knip gate 检查 unreachable files、unused/unlisted/unresolved dependencies 与 binaries；不把有意提供给 npm/internal `public.ts` 消费者的 exports 当作死代码。
+  - 删除未使用的 `@vue/eslint-config-prettier`、`eslint-plugin-vue`、`husky`、`lint-staged`，显式声明实际使用的 `vue-eslint-parser`，并新增 `knip`。
+  - CI 在 Pages 构建/上传前依次执行 test、lint、typecheck、format-check、dead-code、`build:app` 与 `build:lib`；现有 `build:pages` 部署流程保留。
+- Checks:
+  - Phase 8 focused Context/runtime suites: pass（7 files / 26 tests）
+  - Phase 8 focused helper suites: pass（6 files / 16 tests）
+  - module-boundary rule suite: pass（9 tests）
+  - `npm test`: pass（69 files / 319 tests）
+  - `npm run lint`: pass
+  - `npm run typecheck`: pass
+  - `npm run format:check`: pass
+  - `npm run dead-code`: pass
+  - `npm ci --dry-run --ignore-scripts`: pass
+  - `npm run build:app`: pass（JS 2,711.16 kB / gzip 813.32 kB）
+  - `npm run build:lib`: pass（ESM 2,341.70 kB / UMD 1,536.51 kB）
+  - `git diff --check`: pass
+- Risks / Follow-up:
+  - `src/types` 中 3 个上游 LogicFlow compat declaration 仍按 ADR-006 和 compat-freeze gate 管理；Phase 8 未伪造上游类型替代。
+  - team-code 旧服务仍是明确冻结例外；本阶段未迁移实现、未创建空 feature，也未改变转换/QR 行为。
+  - app/lib 保留既有 large-chunk 与 mixed default/named export warnings。相对 Phase 7，app JS 增加 0.22 kB、gzip 减少 0.40 kB，ESM 增加 0.30 kB，UMD 增加 0.24 kB。
+- Next Recommended Unit:
+  - 对 8 个原子提交进行分支级 review/rebase 与集成验收；后续 compat 类型退出或 team-code 模块化必须作为独立授权单元处理。
 
 ## [2026-07-10] Session 131 - Introduce Standalone And Embed Shells
 

@@ -3,10 +3,15 @@ import { mount } from "@vue/test-utils";
 import { nextTick } from "vue";
 import Inspector from "@/editor/components/Inspector.vue";
 
-vi.mock("@/ts/useLogicFlow", () => ({
-  useLogicFlowScope: vi.fn(() => Symbol("property-panel-scope")),
-  getLogicFlowInstance: vi.fn(() => ({
-    setProperties: vi.fn(),
+vi.mock("@/editor/context/useEditorContext", () => ({
+  useEditorContext: vi.fn(() => ({
+    runtime: {
+      value: {
+        instance: {
+          setProperties: vi.fn(),
+        },
+      },
+    },
   })),
 }));
 

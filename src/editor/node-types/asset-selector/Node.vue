@@ -2,7 +2,7 @@
 import { computed, ref } from "vue";
 import type { CSSProperties } from "vue";
 import { toTextStyle } from "@/editor/nodeStyle";
-import { useNodeAppearance } from "@/ts/useNodeAppearance";
+import { useNodeAppearance } from "@/editor/node-types/useNodeAppearance";
 import { useEditorAssetUrlResolver } from "@/editor/context/useEditorContext";
 
 const currentAsset = ref({

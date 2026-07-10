@@ -34,13 +34,16 @@ npm test
 npm run lint
 npm run typecheck
 npm run format:check
+npm run dead-code
+npm run build:app
+npm run build:lib
 ```
 
 ## Use as Vue Component
 
 ```ts
-import { YysEditorEmbed, YysEditorPreview } from '@rookie4show/onmyoji-flow'
-import '@rookie4show/onmyoji-flow/style.css'
+import { YysEditorEmbed, YysEditorPreview } from "@rookie4show/onmyoji-flow";
+import "@rookie4show/onmyoji-flow/style.css";
 ```
 
 ## Publish to npm

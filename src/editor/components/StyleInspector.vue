@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { reactive, ref, watch } from "vue";
-import { getLogicFlowInstance, useLogicFlowScope } from "@/ts/useLogicFlow";
 import { normalizeNodeStyle, type NodeStyle } from "@/core/document/nodeStyle";
+import { useEditorContext } from "@/editor/context/useEditorContext";
 import { useEditorI18n } from "@/editor/context/useEditorI18n";
 
 const props = defineProps<{
   node: any;
 }>();
-const logicFlowScope = useLogicFlowScope();
+const editorContext = useEditorContext();
 const { t } = useEditorI18n();
 
 type StyleForm = {
@@ -87,7 +87,7 @@ const getShadowFromForm = () => ({
 });
 
 const applyStyle = (partial: Partial<NodeStyle>) => {
-  const lf = getLogicFlowInstance(logicFlowScope);
+  const lf = editorContext.runtime.value?.instance;
   const node = props.node;
   if (!lf || !node) return;
 

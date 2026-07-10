@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { useNodeAppearance } from "@/ts/useNodeAppearance";
+import { useNodeAppearance } from "@/editor/node-types/useNodeAppearance";
 import { useEditorI18n } from "@/editor/context/useEditorI18n";
 
 type FitMode = "contain" | "cover" | "fill";

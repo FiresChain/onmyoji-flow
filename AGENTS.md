@@ -66,9 +66,11 @@ Before marking a coding task as complete, run what is applicable:
 
 1. `npm test`
 2. `npm run lint`
-3. `npm run typecheck` (if present; add when task includes tooling improvement)
-4. `npx prettier --check "src/**/*.{js,ts,vue}"`
-5. `npm run build:lib` for library-facing changes
+3. `npm run typecheck`
+4. `npm run format:check`
+5. `npm run dead-code`
+6. `npm run build:app`
+7. `npm run build:lib`
 
 If any gate cannot run or fails due repo baseline issues, report it explicitly with reason and impact.
 
@@ -191,4 +193,3 @@ A Refactory session is complete only if all are true:
    - changed files
    - what was intentionally not changed
    - exact next unit recommendation
-

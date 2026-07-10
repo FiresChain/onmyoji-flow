@@ -1,15 +1,19 @@
 import { describe, it, expect } from "vitest";
 import {
   CURRENT_SCHEMA_VERSION,
-  DefaultNodeStyle,
-  ROOT_DOCUMENT_V1_SCHEMA,
   migrateToV1,
-  validateRootDocumentV1,
+} from "@/core/document/migrations";
+import {
+  DefaultNodeStyle,
   type GraphNode,
   type GraphEdge,
   type NodeProperties,
   type RootDocument,
-} from "../ts/schema";
+} from "@/core/document/types";
+import {
+  ROOT_DOCUMENT_V1_SCHEMA,
+  validateRootDocumentV1,
+} from "@/core/document/validation";
 
 describe("Schema 数据结构验证", () => {
   it("当前 schema 版本应该是 1.0.0", () => {

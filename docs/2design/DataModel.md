@@ -234,7 +234,8 @@ const DefaultNodeStyle: NodeStyle = {
   - 若 `node.width/height` 存在但 `properties.style` 缺失，创建 `style` 并拷贝宽高；
   - 给所有节点补 `meta.visible=true`，`meta.locked=false`；
   - 生成 `createdAt/updatedAt`（以当前时间或从已有字段推断）。
-- 常量：`CURRENT_SCHEMA_VERSION = '1.0.0'` 存放于 `src/core/document/migrations.ts`，`src/ts/schema.ts` 仅作旧路径兼容转发。
+- 常量：`CURRENT_SCHEMA_VERSION = '1.0.0'` 存放于
+  `src/core/document/migrations.ts`；旧 `src/ts/schema.ts` 内部兼容入口已移除。
 - RootDocument JSON Schema：`src/core/document/root-document.v1.json`（导入/恢复/导出前均执行结构校验）。
 
 - 导出：同时写出 `activeFileId` 与 `activeFile`（名称），以兼容旧版。

@@ -1,8 +1,8 @@
 # 组件化改造设计文档
 
-> 当前状态（2026-07-10）：Phase 7 已落地。standalone/embed shells、独立
-> `PreviewCanvas`、Embed composables 与根组件薄 facade 均已进入生产路径；Phase 8
-> 质量闸门仍待实施。依赖方向以
+> 当前状态（2026-07-10）：Feature-module Phases 1-8 已落地。standalone/embed
+> shells、独立 `PreviewCanvas`、Embed composables 与根组件薄 facade 均已进入生产
+> 路径，目录边界/dead-code/CI 质量闸门已启用。依赖方向以
 > [ModuleArchitecture.md](./ModuleArchitecture.md) 为准。
 
 ## 背景与目标
@@ -310,7 +310,7 @@ const defaultProps = {
 6. 阵容码继续通过 workspace adapter 调用旧服务；本阶段未移动
    `teamCodeService.ts`，也未创建 `features/team-code`。
 
-### 0.4 Phase 7 当前实现（2026-07-10）
+### 0.4 Phase 7 阶段快照（2026-07-10）
 
 1. `App.vue` 只挂载 `StandaloneEditorShell`；`YysEditorEmbed.vue` 只声明并转发公开
    props、emits、type exports 与 exposed methods。
@@ -330,7 +330,20 @@ const defaultProps = {
    影响已挂载实例。`config.locale` 与显式 `assetBaseUrl` 更新仅影响当前实例。
 7. `shells/common/EditorToolbar.vue` 组装 emit-only `EditorCommandBar` 与 feature hosts；
    standalone shell 额外接入更新日志/反馈，Embed 不持久化 locale。
-8. Phase 8 的目录依赖 lint、dead-code 与完整 CI gates 仍待实施。
+8. 该阶段目录依赖 lint、dead-code 与完整 CI gates 尚未实施，后续已由 Phase 8 完成。
+
+### 0.5 Phase 8 当前实现（2026-07-10）
+
+1. `FlowEditor`、palette、Inspector 与各节点 Inspector 直接使用实例
+   `EditorContext`；旧 `useLogicFlow` / `useCanvasSettings` facade 已删除，runtime
+   expected-instance 清理语义保持不变。
+2. dialogs、节点外观与通用消息分别归属 `editor/context/useDialogs.ts`、
+   `editor/node-types/useNodeAppearance.ts` 与 `shared/ui/useGlobalMessage.ts`；`src/ts`
+   不再承载业务代码。
+3. ESLint 覆盖全部 TS/Vue，并通过目录边界规则约束 layer direction、feature
+   `public.ts`、store 依赖与 legacy container；阵容码 adapter 到旧 service 是唯一例外。
+4. knip 检查不可达文件和依赖问题；CI 在 Pages 构建前运行 test、lint、typecheck、
+   format-check、dead-code、`build:app` 与 `build:lib`。
 
 ### 1. YysEditorEmbed.vue 迁移前组件结构（历史记录）
 
@@ -531,11 +544,11 @@ const { selectionEnabled, snapGridEnabled, snaplineEnabled } =
 3. `useStore` 通过 `bindLogicFlowScope(scope)` 显式绑定画布来源，避免切换文件时误写其他实例数据。
 
 当前实现以每个 standalone/embed shell 创建的 `EditorContext` 为唯一实例边界。
-`useLogicFlow`、`useCanvasSettings`、`useDialogs` 与 `useEditorI18n` 只是 Context 注入兼容
-facade，不维护模块级可变 Map/ref/reactive。Embed 同时拥有独立 Pinia、memory
-persistence 与 WorkspaceSession；standalone 使用 `filesStore` key 的 localStorage
-persistence。组件卸载统一 dispose runtime、workspace、timer、observer 与
-subscription。
+生产组件直接注入该 Context；旧 `useLogicFlow`、`useCanvasSettings` 与 `src/ts`
+compatibility facade 已删除，dialogs/i18n helper 保留在 `editor/context` 所有权内。
+Embed 同时拥有独立 Pinia、memory persistence 与 WorkspaceSession；standalone 使用
+`filesStore` key 的 localStorage persistence。组件卸载统一 dispose runtime、workspace、
+timer、observer 与 subscription。
 
 ### 3. 样式隔离策略
 

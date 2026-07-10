@@ -7,7 +7,7 @@ import flowEditorSource from "@/editor/components/FlowEditor.vue?raw";
 import bindEditorEventsSource from "@/editor/runtime/bindEditorEvents.ts?raw";
 import keyboardShortcutsSource from "@/editor/runtime/keyboardShortcuts.ts?raw";
 import mountEditorRuntimeSource from "@/editor/runtime/mountEditorRuntime.ts?raw";
-import { useLogicFlowScope } from "@/ts/useLogicFlow";
+import { useEditorContext } from "@/editor/context/useEditorContext";
 import type { LogicFlowRuntime } from "@/core/logicflow/types";
 
 const normalizeQuoteStyle = (text: string) => text.replace(/['"]/g, '"');
@@ -175,7 +175,7 @@ describe("YysEditorEmbed update:data contract", () => {
     const RuntimeOwnerStub = defineComponent({
       name: "FlowEditor",
       setup() {
-        const scope = useLogicFlowScope();
+        const editorContext = useEditorContext();
         const runtime = {
           instance: { graphModel: {} },
           port: {
@@ -194,9 +194,9 @@ describe("YysEditorEmbed update:data contract", () => {
           },
           dispose: destroy,
         } as unknown as LogicFlowRuntime;
-        scope.setRuntime(runtime);
+        editorContext.setRuntime(runtime);
         onBeforeUnmount(() => {
-          scope.clearRuntime(runtime);
+          editorContext.clearRuntime(runtime);
         });
         return () => h("div", { class: "runtime-owner-stub" });
       },
@@ -332,8 +332,8 @@ describe("YysEditorEmbed update:data contract", () => {
       "const runtime = createLogicFlowRuntime({",
       "defaultNodeRegistrations: getDefaultNodeRegistrations(),",
       "lf.value = runtime.instance;",
-      "logicFlowScope.setRuntime(runtime);",
-      "logicFlowScope.clearRuntime(runtime);",
+      "editorContext.setRuntime(runtime);",
+      "editorContext.clearRuntime(runtime);",
     ];
     mountRequiredSnippets.forEach((snippet) => {
       expectContainsIgnoringQuoteStyle(mountEditorRuntimeSource, snippet);

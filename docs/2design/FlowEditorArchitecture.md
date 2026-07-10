@@ -1,7 +1,7 @@
 # FlowEditor Architecture
 
 > 截至 2026-07-10，本页描述已落地的 Phase 5 editor 边界、Phase 6 feature
-> 接入及 Phase 7 shell 组装。仓库总依赖方向以
+> 接入、Phase 7 shell 组装及 Phase 8 边界收敛。仓库总依赖方向以
 > [ModuleArchitecture.md](./ModuleArchitecture.md) 为准。
 
 ## 1. 职责边界
@@ -111,3 +111,7 @@ listener/subscription disposer 仍由实际 mount 方持有，例如 group-rule 
 editor bridge，由 `StandaloneEditorShell` / `EmbedEditorShell` 组装 `FlowEditor`；
 `App.vue` 与 `YysEditorEmbed.vue` 仅保留根 facade。preview runtime 由独立
 `PreviewCanvas` 持有，不改变 FlowEditor 的 interactive runtime 职责。
+
+Phase 8 已移除 `src/ts/useLogicFlow.ts` 与 `useCanvasSettings.ts`。FlowEditor、runtime、
+palette 和 Inspector 直接使用所属 shell 提供的实例 `EditorContext`；ESLint 目录规则
+阻止 editor 反向依赖 shell、feature UI 或 legacy container。

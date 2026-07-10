@@ -2,13 +2,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createPinia, getActivePinia, setActivePinia } from "pinia";
 
 import type { RootDocument } from "@/core/document/types";
+import { createEditorPort } from "@/core/logicflow/createRuntime";
+import type { LogicFlowRuntime } from "@/core/logicflow/types";
 import { createEditorContext } from "@/editor/context/EditorContext";
 import {
   createMemoryFilesPersistence,
   createWorkspaceSession,
   useFilesStore,
 } from "@/features/workspace/public";
-import { setLogicFlowInstance } from "@/ts/useLogicFlow";
 
 const createRootDocument = (prefix: string): RootDocument => ({
   schemaVersion: "1.0.0",
@@ -112,7 +113,17 @@ const createHarness = (prefix: string) => {
     `${prefix}-captured`,
     prefix === "a" ? 11 : 22,
   );
-  setLogicFlowInstance(logicFlow as any, context);
+  let runtimeDisposed = false;
+  const disposeRuntime = () => {
+    if (runtimeDisposed) return;
+    runtimeDisposed = true;
+    logicFlow.destroy();
+  };
+  context.setRuntime({
+    instance: logicFlow,
+    port: createEditorPort(logicFlow as any, disposeRuntime),
+    dispose: disposeRuntime,
+  } as unknown as LogicFlowRuntime);
   const session = createWorkspaceSession({
     store,
     persistence: createMemoryFilesPersistence(),

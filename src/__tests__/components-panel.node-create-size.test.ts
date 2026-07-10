@@ -8,13 +8,19 @@ import {
 
 const startDragMock = vi.fn();
 
-vi.mock("@/ts/useLogicFlow", () => ({
-  useLogicFlowScope: vi.fn(() => Symbol("components-panel-scope")),
-  getLogicFlowInstance: vi.fn(() => ({
-    dnd: {
-      startDrag: startDragMock,
+vi.mock("@/editor/context/useEditorContext", () => ({
+  useEditorContext: vi.fn(() => ({
+    runtime: {
+      value: {
+        instance: {
+          dnd: {
+            startDrag: startDragMock,
+          },
+        },
+      },
     },
   })),
+  useEditorAssetUrlResolver: vi.fn(() => (value: unknown) => value),
 }));
 
 vi.mock("@/editor/context/useEditorI18n", () => ({

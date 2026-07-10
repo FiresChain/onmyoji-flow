@@ -1,5 +1,6 @@
 import { computed, inject, onBeforeUnmount, onMounted, ref } from "vue";
 import { EventType } from "@logicflow/core";
+
 import { normalizeNodeStyle, type NodeStyle } from "@/core/document/nodeStyle";
 import { toContainerStyle, toTextStyle } from "@/editor/nodeStyle";
 
@@ -15,7 +16,7 @@ export function useNodeAppearance(options?: {
 
   const syncFromProps = (props?: any, node?: any) => {
     const target = props ?? node?.properties ?? {};
-    // 优先使用 node 的实际尺寸，因为用户缩放时 node.width/height 会先更新
+    // Node dimensions update before properties when the user resizes a node.
     const currentWidth = node?.width ?? target.width;
     const currentHeight = node?.height ?? target.height;
 

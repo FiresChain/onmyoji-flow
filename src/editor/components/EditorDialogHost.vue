@@ -2,7 +2,7 @@
 import { AssetPickerDialog } from "@/features/assets/public";
 import PropertySelectDialog from "@/editor/node-types/property-rule/PropertySelectDialog.vue";
 import { useEditorAssetUrlResolver } from "@/editor/context/useEditorContext";
-import { useDialogs } from "@/ts/useDialogs";
+import { useDialogs } from "@/editor/context/useDialogs";
 import { useEditorI18n } from "@/editor/context/useEditorI18n";
 
 const { dialogs, closeDialog, closeGenericSelector } = useDialogs();

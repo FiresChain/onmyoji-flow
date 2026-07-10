@@ -1,6 +1,7 @@
 import type { SelectorConfig } from "@/features/assets/public";
-import { useEditorContext } from "@/editor/context/useEditorContext";
-import type { EditorDialogType } from "@/editor/context/EditorContext";
+
+import type { EditorDialogType } from "./EditorContext";
+import { useEditorContext } from "./useEditorContext";
 
 export function useDialogs() {
   const dialogs = useEditorContext().dialogs;
