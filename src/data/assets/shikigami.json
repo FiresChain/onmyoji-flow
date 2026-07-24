@@ -1,5 +1,16 @@
 [
   {
+    "id": "604",
+    "library": "shikigami",
+    "avatar": "/assets/Shikigami/ssr/604.png",
+    "names": {
+      "zh": "不相狐禅",
+      "ja": "不相狐禅",
+      "en": "不相狐禅"
+    },
+    "rarity": "SSR"
+  },
+  {
     "id": "603",
     "library": "shikigami",
     "avatar": "/assets/Shikigami/ssr/603.png",
