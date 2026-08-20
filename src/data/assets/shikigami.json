@@ -1,5 +1,27 @@
 [
   {
+    "id": "606",
+    "library": "shikigami",
+    "avatar": "/assets/Shikigami/l/606.png",
+    "names": {
+      "zh": "言和",
+      "ja": "言和",
+      "en": "言和"
+    },
+    "rarity": "L"
+  },
+  {
+    "id": "605",
+    "library": "shikigami",
+    "avatar": "/assets/Shikigami/l/605.png",
+    "names": {
+      "zh": "洛天依",
+      "ja": "洛天依",
+      "en": "洛天依"
+    },
+    "rarity": "L"
+  },
+  {
     "id": "604",
     "library": "shikigami",
     "avatar": "/assets/Shikigami/ssr/604.png",
