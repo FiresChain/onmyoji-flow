@@ -93,8 +93,12 @@
                         <!-- 头像图片 -->
                         <img
                           :src="
-                            position.avatar || '/assets/Shikigami/default.png'
+                            resolveAvatarUrl(
+                              position.avatar ||
+                                '/assets/Shikigami/default.png',
+                            )
                           "
+                          crossorigin="anonymous"
                           style="cursor: pointer; vertical-align: bottom"
                           class="avatar-image"
                           @click="editShikigami(groupIndex, positionIndex)"
@@ -231,6 +235,9 @@ import * as ElementPlusIconsVue from "@element-plus/icons-vue";
 import _ from "lodash";
 import { Action, ElMessage, ElMessageBox } from "element-plus";
 import { useGlobalMessage } from "../ts/useGlobalMessage"; // 引入全局消息通知工具
+import { resolveAssetUrl } from "@/utils/assetUrl";
+
+const resolveAvatarUrl = (value: unknown) => resolveAssetUrl(value) as string;
 
 type QuillAttributor = {
   whitelist: string[];

@@ -43,6 +43,7 @@ jobs:
       - name: Build for GitHub Pages
         env:
           VITE_TEAM_CODE_SERVICE_URL: ${{ vars.VITE_TEAM_CODE_SERVICE_URL }}
+          VITE_ASSET_BASE_URL: https://onmyoji-assets.fireschain.org
         run: npm run build:pages
 
       - name: Upload pages artifact

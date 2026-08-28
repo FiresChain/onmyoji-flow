@@ -162,6 +162,7 @@
       <br />
       <img
         :src="contactImageUrl"
+        crossorigin="anonymous"
         style="
           cursor: pointer;
           vertical-align: bottom;

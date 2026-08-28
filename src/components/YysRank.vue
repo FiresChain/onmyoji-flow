@@ -42,7 +42,12 @@
                 <div class="avatar-container">
                   <!-- 头像图片 -->
                   <img
-                    :src="position.avatar || '/assets/Shikigami/default.png'"
+                    :src="
+                      resolveAvatarUrl(
+                        position.avatar || '/assets/Shikigami/default.png',
+                      )
+                    "
+                    crossorigin="anonymous"
                     style="cursor: pointer; vertical-align: bottom"
                     class="avatar-image"
                     @click="editShikigami(positionIndex)"
@@ -138,6 +143,9 @@ import ShikigamiProperty from "@/components/flow/nodes/yys/ShikigamiProperty.vue
 import _ from "lodash";
 import { useSafeI18n } from "@/ts/useSafeI18n";
 import draggable from "vuedraggable";
+import { resolveAssetUrl } from "@/utils/assetUrl";
+
+const resolveAvatarUrl = (value: unknown) => resolveAssetUrl(value) as string;
 
 const { t } = useSafeI18n();
 

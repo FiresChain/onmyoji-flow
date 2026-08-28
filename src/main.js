@@ -1,5 +1,6 @@
 import { createApp } from "vue";
 import App from "./App.vue";
+import { setAssetBaseUrl } from "./utils/assetUrl";
 
 import ElementPlus, { ElMessageBox } from "element-plus";
 import "element-plus/dist/index.css";
@@ -18,6 +19,10 @@ import en from "./locales/en.json";
 
 import { createPinia } from "pinia"; // 导入 Pinia
 import { useFilesStore } from "./ts/useStore";
+
+// Production Pages builds set VITE_ASSET_BASE_URL to the R2 custom domain.
+// Without it, the existing local `/assets/` path remains the development fallback.
+setAssetBaseUrl(import.meta.env.VITE_ASSET_BASE_URL);
 
 const app = createApp(App);
 
