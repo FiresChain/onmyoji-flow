@@ -241,7 +241,3 @@ export const getSelectorPresets = (options?: {
   onmyojiSkill: getSelectorPreset("onmyojiSkill", options),
   hunling: getSelectorPreset("hunling", options),
 });
-
-export const SELECTOR_PRESETS = getSelectorPresets({
-  locale: "zh",
-});

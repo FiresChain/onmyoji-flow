@@ -1,9 +1,31 @@
-﻿import { describe, expect, it } from "vitest";
+﻿import { beforeAll, describe, expect, it, vi } from "vitest";
+import { loadAssetCatalog } from "@/configs/assetCatalog";
 import { getSelectorPreset } from "@/configs/selectorPresets";
+import shikigami from "@/data/assets/shikigami.json";
+import yuhun from "@/data/assets/yuhun.json";
+import onmyoji from "@/data/assets/onmyoji.json";
+import onmyojiSkill from "@/data/assets/onmyojiSkill.json";
+import hunling from "@/data/assets/hunling.json";
 
 const t = (key: string) => key;
 
 describe("selector presets", () => {
+  beforeAll(async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: vi.fn().mockResolvedValue({
+          schemaVersion: 1,
+          catalogVersion: "test",
+          generatedAt: "2026-08-28T00:00:00.000Z",
+          libraries: { shikigami, yuhun, onmyoji, onmyojiSkill, hunling },
+        }),
+      }),
+    );
+    await loadAssetCatalog();
+  });
+
   it("provides all library presets", () => {
     const shikigami = getSelectorPreset("shikigami", { locale: "zh", t });
     const yuhun = getSelectorPreset("yuhun", { locale: "zh", t });

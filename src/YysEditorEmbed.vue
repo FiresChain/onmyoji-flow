@@ -8,70 +8,72 @@
     }"
     :style="containerStyle"
   >
-    <!-- 编辑模式：完整 UI -->
-    <template v-if="mode === 'edit'">
-      <!-- 工具栏 -->
-      <div v-if="showToolbar" ref="toolbarHostRef" class="toolbar-host">
-        <Toolbar
-          :is-embed="true"
-          :pinia-instance="localPinia"
-          @save="handleSave"
-          @cancel="handleCancel"
-        />
-      </div>
+    <template v-if="assetCatalogReady">
+      <!-- 编辑模式：完整 UI -->
+      <template v-if="mode === 'edit'">
+        <!-- 工具栏 -->
+        <div v-if="showToolbar" ref="toolbarHostRef" class="toolbar-host">
+          <Toolbar
+            :is-embed="true"
+            :pinia-instance="localPinia"
+            @save="handleSave"
+            @cancel="handleCancel"
+          />
+        </div>
 
-      <!-- 主内容区 -->
-      <div class="editor-content" :style="editorContentStyle">
-        <!-- 左侧组件库 -->
-        <ComponentsPanel v-if="showComponentPanel" />
+        <!-- 主内容区 -->
+        <div class="editor-content" :style="editorContentStyle">
+          <!-- 左侧组件库 -->
+          <ComponentsPanel v-if="showComponentPanel" />
 
-        <!-- 中间画布 + 右侧属性面板 -->
-        <FlowEditor
-          class="flow-editor-pane"
-          ref="flowEditorRef"
-          :height="editorContentHeight"
-          :enable-label="false"
-          :show-property-panel="showPropertyPanel"
-          :config-snap-grid-enabled="resolvedEmbedConfig.grid"
-          :config-snapline-enabled="resolvedEmbedConfig.snapline"
-          :config-keyboard-enabled="resolvedEmbedConfig.keyboard"
-          @graph-data-change="handleGraphDataChange"
-        />
-      </div>
+          <!-- 中间画布 + 右侧属性面板 -->
+          <FlowEditor
+            class="flow-editor-pane"
+            ref="flowEditorRef"
+            :height="editorContentHeight"
+            :enable-label="false"
+            :show-property-panel="showPropertyPanel"
+            :config-snap-grid-enabled="resolvedEmbedConfig.grid"
+            :config-snapline-enabled="resolvedEmbedConfig.snapline"
+            :config-keyboard-enabled="resolvedEmbedConfig.keyboard"
+            @graph-data-change="handleGraphDataChange"
+          />
+        </div>
 
-      <DialogManager />
-    </template>
+        <DialogManager />
+      </template>
 
-    <!-- 预览模式：只有画布（只读） -->
-    <template v-else>
-      <div
-        class="preview-container"
-        :class="{ 'team-code-copy-touch': isTouchPreviewSurface }"
-        :style="{ height: containerHeight }"
-      >
-        <div class="container" ref="previewContainerRef"></div>
+      <!-- 预览模式：只有画布（只读） -->
+      <template v-else>
         <div
-          v-if="shouldRenderTeamCodeCopyOverlay"
-          class="team-code-copy-layer"
-          aria-hidden="false"
+          class="preview-container"
+          :class="{ 'team-code-copy-touch': isTouchPreviewSurface }"
+          :style="{ height: containerHeight }"
         >
+          <div class="container" ref="previewContainerRef"></div>
           <div
-            v-for="item in teamCodeCopyOverlayItems"
-            :key="item.id"
-            class="team-code-copy-target"
-            :style="item.style"
+            v-if="shouldRenderTeamCodeCopyOverlay"
+            class="team-code-copy-layer"
+            aria-hidden="false"
           >
-            <button
-              class="team-code-copy-button"
-              type="button"
-              :aria-label="item.ariaLabel"
-              @click.stop="copyTeamCode(item)"
+            <div
+              v-for="item in teamCodeCopyOverlayItems"
+              :key="item.id"
+              class="team-code-copy-target"
+              :style="item.style"
             >
-              {{ item.label }}
-            </button>
+              <button
+                class="team-code-copy-button"
+                type="button"
+                :aria-label="item.ariaLabel"
+                @click.stop="copyTeamCode(item)"
+              >
+                {{ item.label }}
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      </template>
     </template>
   </div>
 </template>
@@ -113,6 +115,12 @@ import {
 } from "./flowRuntime";
 import { rewriteAssetUrlsDeep, setAssetBaseUrl } from "@/utils/assetUrl";
 import { getTeamCodeCopyItems } from "@/utils/teamCodeCopy";
+import {
+  DEFAULT_ASSET_BASE_URL,
+  isAssetCatalogLoaded,
+  loadAssetCatalog,
+  resolveAssetCatalogUrl,
+} from "@/configs/assetCatalog";
 
 // 类型定义
 export interface GraphData {
@@ -370,6 +378,54 @@ const previewTransformVersion = ref(0);
 const isTouchPreviewSurface = ref(false);
 let embedResizeObserver: ResizeObserver | null = null;
 const editorContentHeight = ref("100%");
+const assetCatalogReady = ref(isAssetCatalogLoaded());
+let componentUnmounted = false;
+let componentMounted = false;
+let catalogUiInitialized = false;
+
+const initializeCatalogUi = () => {
+  if (
+    componentUnmounted ||
+    !componentMounted ||
+    !assetCatalogReady.value ||
+    catalogUiInitialized
+  ) {
+    return;
+  }
+  catalogUiInitialized = true;
+  updatePreviewSurfaceKind();
+  setupEmbedResizeObserver();
+  if (props.mode === "preview") {
+    initPreviewMode();
+    return;
+  }
+
+  recalcEditContentHeight();
+  triggerEditorResize();
+  setTimeout(() => {
+    if (props.data) {
+      setGraphData(props.data);
+    }
+    recalcEditContentHeight();
+    triggerEditorResize();
+  }, 500);
+};
+
+const ensureAssetCatalog = async (assetBaseUrl?: string) => {
+  try {
+    await loadAssetCatalog(resolveAssetCatalogUrl(assetBaseUrl));
+    if (!componentUnmounted) {
+      assetCatalogReady.value = true;
+      await nextTick();
+      initializeCatalogUi();
+    }
+  } catch (error) {
+    if (!componentUnmounted) {
+      assetCatalogReady.value = false;
+      emit("error", error as Error);
+    }
+  }
+};
 
 // Computed
 const effectiveCapability = computed<FlowCapabilityLevel>(() => {
@@ -878,7 +934,9 @@ watch(
 watch(
   () => props.assetBaseUrl,
   (value) => {
-    setAssetBaseUrl(value);
+    const resolvedBaseUrl = value || DEFAULT_ASSET_BASE_URL;
+    setAssetBaseUrl(resolvedBaseUrl);
+    void ensureAssetCatalog(resolvedBaseUrl);
   },
   { immediate: true },
 );
@@ -887,6 +945,7 @@ watch(
 watch(
   () => props.mode,
   (newMode) => {
+    if (!assetCatalogReady.value) return;
     if (newMode === "preview") {
       // 切换到预览模式，初始化预览 LogicFlow
       setTimeout(() => {
@@ -904,7 +963,7 @@ watch(
 watch(
   [() => props.capability, () => props.plugins, () => props.nodeRegistrations],
   () => {
-    if (props.mode === "preview") {
+    if (assetCatalogReady.value && props.mode === "preview") {
       setTimeout(() => {
         initPreviewMode();
       }, 0);
@@ -930,27 +989,14 @@ watch(
 
 // 初始化
 onMounted(() => {
-  updatePreviewSurfaceKind();
-  setupEmbedResizeObserver();
-  if (props.mode === "preview") {
-    initPreviewMode();
-  } else if (props.mode === "edit") {
-    recalcEditContentHeight();
-    triggerEditorResize();
-    // 编辑模式由 FlowEditor 组件初始化
-    // 等待 FlowEditor 初始化完成后加载数据
-    setTimeout(() => {
-      if (props.data) {
-        setGraphData(props.data);
-      }
-      recalcEditContentHeight();
-      triggerEditorResize();
-    }, 500);
-  }
+  componentMounted = true;
+  initializeCatalogUi();
 });
 
 // 清理
 onBeforeUnmount(() => {
+  componentUnmounted = true;
+  componentMounted = false;
   embedResizeObserver?.disconnect();
   embedResizeObserver = null;
   destroyPreviewMode();
