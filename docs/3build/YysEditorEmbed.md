@@ -75,6 +75,9 @@ setAssetBaseUrl("https://onmyoji-assets.fireschain.org");
 图片不会被改写。若需要截图或导出包含跨域素材，R2 自定义域名必须保留允许宿主站点
 读取的 CORS 配置。
 
+正式构建还可以通过 `VITE_ASSET_VERSION` 为公共素材 URL 添加版本查询参数。迁移
+素材域名或调整 CORS 后建议递增该值，以绕过浏览器已有的长期缓存。
+
 ### 3. 编辑模式
 
 ```vue

@@ -225,8 +225,8 @@
                     v-for="(effect, index) in property.yuhun.yuhunSetEffect"
                     :key="index"
                     style="width: 50px; height: 50px"
-                    :src="resolveYuhunAvatar(effect.avatar)"
                     crossorigin="anonymous"
+                    :src="resolveYuhunAvatar(effect.avatar)"
                     class="image"
                     @click="openYuhunSelect(index)"
                   />

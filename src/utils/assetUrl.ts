@@ -9,6 +9,11 @@ const configuredAssetBaseUrl =
   typeof import.meta.env?.VITE_ASSET_BASE_URL === "string"
     ? import.meta.env.VITE_ASSET_BASE_URL.trim()
     : "";
+const configuredAssetVersion =
+  typeof import.meta !== "undefined" &&
+  typeof import.meta.env?.VITE_ASSET_VERSION === "string"
+    ? import.meta.env.VITE_ASSET_VERSION.trim()
+    : "";
 
 const ensureTrailingSlash = (value: string): string =>
   value.endsWith("/") ? value : `${value}/`;
@@ -25,6 +30,17 @@ const normalizeBaseUrl = (baseUrl: string): string => {
 
   const withLeadingSlash = trimmed.startsWith("/") ? trimmed : `/${trimmed}`;
   return ensureTrailingSlash(withLeadingSlash);
+};
+
+const appendConfiguredVersion = (value: string): string => {
+  if (!configuredAssetVersion) {
+    return value;
+  }
+
+  const [withoutHash, hash = ""] = value.split("#", 2);
+  const separator = withoutHash.includes("?") ? "&" : "?";
+  const versioned = `${withoutHash}${separator}v=${encodeURIComponent(configuredAssetVersion)}`;
+  return hash ? `${versioned}#${hash}` : versioned;
 };
 
 const inferFromNuxtRuntime = (): string | null => {
@@ -121,16 +137,28 @@ export const resolveAssetUrl = (value: unknown): unknown => {
   if (typeof value !== "string") {
     return value;
   }
+
+  const baseUrl = getAssetBaseUrl();
   if (!value.startsWith(ASSET_PREFIX)) {
+    const canonicalAbsolutePrefix = PROTOCOL_RE.test(baseUrl)
+      ? `${baseUrl}assets/`
+      : "";
+    if (
+      canonicalAbsolutePrefix &&
+      value.startsWith(canonicalAbsolutePrefix) &&
+      !value.includes("?v=") &&
+      !value.includes("&v=")
+    ) {
+      return appendConfiguredVersion(value);
+    }
     return value;
   }
 
-  const baseUrl = getAssetBaseUrl();
   if (baseUrl === "/") {
     return value;
   }
 
-  return `${baseUrl}${value.slice(1)}`;
+  return appendConfiguredVersion(`${baseUrl}${value.slice(1)}`);
 };
 
 const isPlainObject = (value: unknown): value is Record<string, any> =>
