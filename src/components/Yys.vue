@@ -92,13 +92,13 @@
                       <div class="avatar-container">
                         <!-- 头像图片 -->
                         <img
+                          crossorigin="anonymous"
                           :src="
                             resolveAvatarUrl(
                               position.avatar ||
                                 '/assets/Shikigami/default.png',
                             )
                           "
-                          crossorigin="anonymous"
                           style="cursor: pointer; vertical-align: bottom"
                           class="avatar-image"
                           @click="editShikigami(groupIndex, positionIndex)"

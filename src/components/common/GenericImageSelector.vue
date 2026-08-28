@@ -55,9 +55,13 @@
                 :style="`width: ${imageSize}px; height: ${imageSize}px;`"
                 @click="handleSelect(item)"
               >
-                <span
+                <img
                   class="selector-image-frame"
-                  :style="`width: ${imageSize - 1}px; height: ${imageSize - 1}px; background-image: url('${getItemImageUrl(item)}');`"
+                  crossorigin="anonymous"
+                  :src="getItemImageUrl(item)"
+                  :alt="item[config.itemRender.labelField]"
+                  :style="`width: ${imageSize - 1}px; height: ${imageSize - 1}px;`"
+                  draggable="false"
                 />
               </el-button>
               <span style="text-align: center; display: block">
@@ -262,12 +266,8 @@ const removeUserAsset = (item: any) => {
 }
 
 .selector-image-frame {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  display: block;
   overflow: hidden;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: contain;
+  object-fit: contain;
 }
 </style>

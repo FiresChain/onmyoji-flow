@@ -41,4 +41,21 @@ describe("asset URL resolution", () => {
       "data:image/png;base64,abc",
     );
   });
+
+  it("versions canonical R2 URLs to bypass incompatible browser caches", async () => {
+    vi.stubEnv("VITE_ASSET_BASE_URL", "https://onmyoji-assets.fireschain.org");
+    vi.stubEnv("VITE_ASSET_VERSION", "2026.08.28.2");
+    const { resolveAssetUrl } = await loadAssetUrl();
+
+    expect(resolveAssetUrl("/assets/Shikigami/ssr/604.png")).toBe(
+      "https://onmyoji-assets.fireschain.org/assets/Shikigami/ssr/604.png?v=2026.08.28.2",
+    );
+    expect(
+      resolveAssetUrl(
+        "https://onmyoji-assets.fireschain.org/assets/Shikigami/ssr/604.png",
+      ),
+    ).toBe(
+      "https://onmyoji-assets.fireschain.org/assets/Shikigami/ssr/604.png?v=2026.08.28.2",
+    );
+  });
 });

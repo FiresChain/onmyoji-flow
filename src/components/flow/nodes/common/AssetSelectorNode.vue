@@ -69,9 +69,9 @@ const normalizedAvatar = computed(
   <div class="node-content" :style="mergedContainerStyle">
     <img
       v-if="currentAsset.avatar"
+      crossorigin="anonymous"
       :src="normalizedAvatar"
       :alt="currentAsset.name"
-      crossorigin="anonymous"
       class="asset-image"
       draggable="false"
     />

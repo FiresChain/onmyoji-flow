@@ -161,8 +161,8 @@
       <span style="font-size: 24px">{{ t("feedback.contactTitle") }}</span>
       <br />
       <img
-        :src="contactImageUrl"
         crossorigin="anonymous"
+        :src="contactImageUrl"
         style="
           cursor: pointer;
           vertical-align: bottom;

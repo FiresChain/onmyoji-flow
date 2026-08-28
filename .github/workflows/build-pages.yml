@@ -44,6 +44,7 @@ jobs:
         env:
           VITE_TEAM_CODE_SERVICE_URL: ${{ vars.VITE_TEAM_CODE_SERVICE_URL }}
           VITE_ASSET_BASE_URL: https://onmyoji-assets.fireschain.org
+          VITE_ASSET_VERSION: 2026.08.28.2
         run: npm run build:pages
 
       - name: Upload pages artifact

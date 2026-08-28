@@ -348,6 +348,7 @@ onBeforeUnmount(() => {
             <img
               v-if="component.icon"
               class="component-icon-image"
+              crossorigin="anonymous"
               :src="component.icon"
               :alt="component.name"
               loading="lazy"
