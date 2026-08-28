@@ -64,7 +64,8 @@
               v-for="(effect, index) in shikigami.yuhun.yuhunSetEffect"
               :key="index"
               style="width: 50px; height: 50px"
-              :src="effect.avatar"
+              :src="resolveYuhunAvatar(effect.avatar)"
+              crossorigin="anonymous"
               class="image"
               @click="openYuhunSelect(index)"
             />
@@ -204,6 +205,9 @@ import { ref, watch, computed } from "vue";
 import ShikigamiSelect from "@/components/flow/nodes/yys/ShikigamiSelect.vue";
 import YuhunSelect from "@/components/flow/nodes/yys/YuhunSelect.vue";
 import { useSafeI18n } from "@/ts/useSafeI18n";
+import { resolveAssetUrl } from "@/utils/assetUrl";
+
+const resolveYuhunAvatar = (value) => resolveAssetUrl(value);
 // import YuhunSelect from "./YuhunSelect.vue";
 
 // 获取当前的 i18n 实例

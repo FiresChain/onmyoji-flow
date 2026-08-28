@@ -4,6 +4,12 @@ const PROTOCOL_RE = /^[a-zA-Z][a-zA-Z\d+\-.]*:\/\//;
 let explicitAssetBaseUrl: string | null = null;
 let inferredAssetBaseUrl: string | null = null;
 
+const configuredAssetBaseUrl =
+  typeof import.meta !== "undefined" &&
+  typeof import.meta.env?.VITE_ASSET_BASE_URL === "string"
+    ? import.meta.env.VITE_ASSET_BASE_URL.trim()
+    : "";
+
 const ensureTrailingSlash = (value: string): string =>
   value.endsWith("/") ? value : `${value}/`;
 
@@ -85,6 +91,10 @@ export const setAssetBaseUrl = (baseUrl?: string | null) => {
 export const getAssetBaseUrl = (): string => {
   if (explicitAssetBaseUrl) {
     return explicitAssetBaseUrl;
+  }
+
+  if (configuredAssetBaseUrl) {
+    return normalizeBaseUrl(configuredAssetBaseUrl);
   }
 
   if (inferredAssetBaseUrl) {

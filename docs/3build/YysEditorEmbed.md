@@ -59,6 +59,22 @@ const flowData = ref({
 </template>
 ```
 
+## 素材地址
+
+组件内置目录使用 `/assets/...` 作为素材路径。独立 GitHub Pages 构建通过
+`VITE_ASSET_BASE_URL` 指向公共 R2 域名；嵌入到其他站点时，如果宿主站点不提供
+同路径素材，请在首次渲染前设置素材根地址：
+
+```ts
+import { setAssetBaseUrl } from "@rookie4show/onmyoji-flow";
+
+setAssetBaseUrl("https://onmyoji-assets.fireschain.org");
+```
+
+素材根地址只会替换以 `/assets/` 开头的内置路径，外部 URL、Data URL 和用户上传的
+图片不会被改写。若需要截图或导出包含跨域素材，R2 自定义域名必须保留允许宿主站点
+读取的 CORS 配置。
+
 ### 3. 编辑模式
 
 ```vue

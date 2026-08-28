@@ -71,6 +71,7 @@ const normalizedAvatar = computed(
       v-if="currentAsset.avatar"
       :src="normalizedAvatar"
       :alt="currentAsset.name"
+      crossorigin="anonymous"
       class="asset-image"
       draggable="false"
     />

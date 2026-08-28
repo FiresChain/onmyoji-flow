@@ -82,7 +82,12 @@
                 <div class="avatar-container">
                   <!-- 头像图片 -->
                   <img
-                    :src="position.avatar || '/assets/Shikigami/default.png'"
+                    :src="
+                      resolveAvatarUrl(
+                        position.avatar || '/assets/Shikigami/default.png',
+                      )
+                    "
+                    crossorigin="anonymous"
                     style="cursor: pointer; vertical-align: bottom"
                     class="avatar-image"
                     @click="editShikigami(positionIndex)"
@@ -214,6 +219,9 @@ import _ from "lodash";
 import { Action, ElMessage, ElMessageBox } from "element-plus";
 import { useGlobalMessage } from "../../../../ts/useGlobalMessage";
 import draggable from "vuedraggable";
+import { resolveAssetUrl } from "@/utils/assetUrl";
+
+const resolveAvatarUrl = (value: unknown) => resolveAssetUrl(value) as string;
 
 type QuillAttributor = {
   whitelist: string[];
