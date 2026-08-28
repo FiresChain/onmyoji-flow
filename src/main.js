@@ -1,6 +1,11 @@
 import { createApp } from "vue";
 import App from "./App.vue";
 import { setAssetBaseUrl } from "./utils/assetUrl";
+import {
+  DEFAULT_ASSET_BASE_URL,
+  loadAssetCatalog,
+  resolveAssetCatalogUrl,
+} from "./configs/assetCatalog";
 
 import ElementPlus, { ElMessageBox } from "element-plus";
 import "element-plus/dist/index.css";
@@ -20,15 +25,10 @@ import en from "./locales/en.json";
 import { createPinia } from "pinia"; // 导入 Pinia
 import { useFilesStore } from "./ts/useStore";
 
-// Production Pages builds set VITE_ASSET_BASE_URL to the R2 custom domain.
-// Without it, the existing local `/assets/` path remains the development fallback.
-setAssetBaseUrl(import.meta.env.VITE_ASSET_BASE_URL);
-
-const app = createApp(App);
-
-for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
-  app.component(key, component);
-}
+// Production can override the shared R2 origin, but there is no local catalog fallback.
+const assetBaseUrl =
+  import.meta.env.VITE_ASSET_BASE_URL || DEFAULT_ASSET_BASE_URL;
+setAssetBaseUrl(assetBaseUrl);
 
 // 定义支持的语言列表
 const supportedLanguages = ["zh", "ja", "en"];
@@ -91,13 +91,29 @@ ElMessageBox.defaults = {
   customClass: "my-message-box", // 自定义类名，用于CSS样式覆盖
 };
 
-const pinia = createPinia(); // 创建 Pinia 实例
+const startApp = async () => {
+  await loadAssetCatalog(resolveAssetCatalogUrl(assetBaseUrl));
 
-app
-  .use(pinia) // 使用 Pinia
-  .use(i18n)
-  .use(ElementPlus)
-  .use(Vue3DraggableResizable)
-  .mount("#app");
+  const app = createApp(App);
+  for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+    app.component(key, component);
+  }
 
-const filesStore = useFilesStore();
+  const pinia = createPinia();
+  app
+    .use(pinia)
+    .use(i18n)
+    .use(ElementPlus)
+    .use(Vue3DraggableResizable)
+    .mount("#app");
+
+  useFilesStore();
+};
+
+void startApp().catch((error) => {
+  console.error(
+    "onmyoji-flow failed to start because its asset catalog could not be loaded",
+    error,
+  );
+  throw error;
+});

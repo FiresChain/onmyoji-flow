@@ -3,11 +3,109 @@ import {
   resolveAssetLocale,
   normalizeAssetLibraryIdWithFallback,
 } from "@/utils/assetLibrary";
-import shikigamiAssets from "@/data/assets/shikigami.json";
-import yuhunAssets from "@/data/assets/yuhun.json";
-import onmyojiAssets from "@/data/assets/onmyoji.json";
-import onmyojiSkillAssets from "@/data/assets/onmyojiSkill.json";
-import hunlingAssets from "@/data/assets/hunling.json";
+
+export const DEFAULT_ASSET_BASE_URL = "https://onmyoji-assets.fireschain.org";
+const DEFAULT_CATALOG_URL = `${DEFAULT_ASSET_BASE_URL}/v1/catalog.json`;
+const CATALOG_LIBRARY_IDS = [
+  "shikigami",
+  "yuhun",
+  "onmyoji",
+  "onmyojiSkill",
+  "hunling",
+] as const;
+
+type CatalogLibraryId = (typeof CATALOG_LIBRARY_IDS)[number];
+type CatalogRecord = Record<string, any>;
+type CatalogLibraries = Record<CatalogLibraryId, CatalogRecord[]>;
+
+export type AssetCatalog = {
+  schemaVersion: 1;
+  catalogVersion: string;
+  generatedAt: string;
+  libraries: CatalogLibraries;
+};
+
+let loadedCatalog: AssetCatalog | null = null;
+let catalogLoadPromise: Promise<AssetCatalog> | null = null;
+
+const validateCatalog = (value: unknown): AssetCatalog => {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    throw new TypeError("Asset catalog must be an object");
+  }
+
+  const candidate = value as Partial<AssetCatalog>;
+  if (candidate.schemaVersion !== 1) {
+    throw new TypeError(
+      `Unsupported asset catalog schema: ${String(candidate.schemaVersion)}`,
+    );
+  }
+  if (
+    typeof candidate.catalogVersion !== "string" ||
+    !candidate.catalogVersion.trim()
+  ) {
+    throw new TypeError("Asset catalog is missing catalogVersion");
+  }
+  if (!candidate.libraries || typeof candidate.libraries !== "object") {
+    throw new TypeError("Asset catalog is missing libraries");
+  }
+  for (const library of CATALOG_LIBRARY_IDS) {
+    if (!Array.isArray(candidate.libraries[library])) {
+      throw new TypeError(`Asset catalog library ${library} must be an array`);
+    }
+  }
+
+  return candidate as AssetCatalog;
+};
+
+export const resolveAssetCatalogUrl = (
+  assetBaseUrl?: string | null,
+): string => {
+  const baseUrl = assetBaseUrl?.trim();
+  if (!baseUrl) {
+    return DEFAULT_CATALOG_URL;
+  }
+  return `${baseUrl.replace(/\/+$/, "")}/v1/catalog.json`;
+};
+
+export const loadAssetCatalog = (
+  catalogUrl = DEFAULT_CATALOG_URL,
+): Promise<AssetCatalog> => {
+  if (loadedCatalog) {
+    return Promise.resolve(loadedCatalog);
+  }
+  if (catalogLoadPromise) {
+    return catalogLoadPromise;
+  }
+
+  catalogLoadPromise = fetch(catalogUrl)
+    .then(async (response) => {
+      if (!response.ok) {
+        throw new Error(
+          `Failed to load asset catalog: ${response.status} ${response.statusText}`,
+        );
+      }
+      const catalog = validateCatalog(await response.json());
+      loadedCatalog = catalog;
+      return catalog;
+    })
+    .catch((error) => {
+      catalogLoadPromise = null;
+      throw error;
+    });
+
+  return catalogLoadPromise;
+};
+
+export const isAssetCatalogLoaded = (): boolean => loadedCatalog !== null;
+
+const getCatalogLibraries = (): CatalogLibraries => {
+  if (!loadedCatalog) {
+    throw new Error(
+      "Asset catalog is not loaded; call and await loadAssetCatalog() before rendering onmyoji-flow",
+    );
+  }
+  return loadedCatalog.libraries;
+};
 
 type LocalizedText = Record<string, string>;
 
@@ -83,7 +181,7 @@ const pickLocalizedText = (
 
 const buildOnmyojiNameMap = (locale: AssetLocale): Record<string, string> => {
   const map: Record<string, string> = {};
-  (onmyojiAssets as any[]).forEach((item) => {
+  getCatalogLibraries().onmyoji.forEach((item) => {
     const id = String(item?.id || "").trim();
     if (!id) {
       return;
@@ -94,7 +192,7 @@ const buildOnmyojiNameMap = (locale: AssetLocale): Record<string, string> => {
 };
 
 const toShikigami = (locale: AssetLocale): DisplayShikigami[] =>
-  (shikigamiAssets as any[]).map((item) => {
+  getCatalogLibraries().shikigami.map((item) => {
     const id = String(item?.id || "").trim();
     return {
       id,
@@ -106,7 +204,7 @@ const toShikigami = (locale: AssetLocale): DisplayShikigami[] =>
   });
 
 const toYuhun = (locale: AssetLocale): DisplayYuhun[] =>
-  (yuhunAssets as any[]).map((item) => {
+  getCatalogLibraries().yuhun.map((item) => {
     const id = String(item?.id || "").trim();
     return {
       id,
@@ -119,7 +217,7 @@ const toYuhun = (locale: AssetLocale): DisplayYuhun[] =>
   });
 
 const toOnmyoji = (locale: AssetLocale): DisplayOnmyoji[] =>
-  (onmyojiAssets as any[]).map((item) => {
+  getCatalogLibraries().onmyoji.map((item) => {
     const id = String(item?.id || "").trim();
     return {
       id,
@@ -131,7 +229,7 @@ const toOnmyoji = (locale: AssetLocale): DisplayOnmyoji[] =>
 
 const toOnmyojiSkill = (locale: AssetLocale): DisplayOnmyojiSkill[] => {
   const onmyojiNameMap = buildOnmyojiNameMap(locale);
-  return (onmyojiSkillAssets as any[]).map((item) => {
+  return getCatalogLibraries().onmyojiSkill.map((item) => {
     const id = String(item?.id || "").trim();
     const onmyojiId = String(item?.onmyojiId || "").trim();
     return {
@@ -147,7 +245,7 @@ const toOnmyojiSkill = (locale: AssetLocale): DisplayOnmyojiSkill[] => {
 };
 
 const toHunLing = (locale: AssetLocale): DisplayHunLing[] =>
-  (hunlingAssets as any[]).map((item) => {
+  getCatalogLibraries().hunling.map((item) => {
     const id = String(item?.id || "").trim();
     return {
       id,

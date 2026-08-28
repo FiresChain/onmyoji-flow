@@ -7,6 +7,12 @@ export {
   getAssetBaseUrl,
   resolveAssetUrl,
 } from "./utils/assetUrl";
+export {
+  DEFAULT_ASSET_BASE_URL,
+  isAssetCatalogLoaded,
+  loadAssetCatalog,
+  resolveAssetCatalogUrl,
+} from "./configs/assetCatalog";
 export { DEFAULT_GROUP_RULES_CONFIG } from "./configs/groupRules";
 export { validateGraphGroupRules } from "./utils/groupRules";
 export {

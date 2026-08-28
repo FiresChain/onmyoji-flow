@@ -1,42 +1,130 @@
-﻿import { describe, expect, it } from "vitest";
-import { getAssetDataSource } from "@/configs/assetCatalog";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+const catalog = {
+  schemaVersion: 1,
+  catalogVersion: "2026.08.28.1",
+  generatedAt: "2026-08-28T00:00:00.000Z",
+  libraries: {
+    shikigami: [
+      {
+        id: "604",
+        avatar: "/assets/Shikigami/ssr/604.png",
+        names: { zh: "不相狐禅", en: "Fox", ja: "狐" },
+        rarity: "SSR",
+      },
+    ],
+    yuhun: [
+      {
+        id: "300086",
+        avatar: "/assets/Yuhun/300086.png",
+        names: { zh: "隐念" },
+        shortNames: { zh: "隐" },
+        type: "attack",
+      },
+    ],
+    onmyoji: [
+      {
+        id: "10",
+        avatar: "/assets/Onmyoji/hero_10_10.png",
+        names: { zh: "晴明", ja: "晴明" },
+      },
+    ],
+    onmyojiSkill: [
+      {
+        id: "10:1003",
+        avatar: "/assets/OnmyojiSkill/hero_10_skill_1003.png",
+        names: { zh: "基础术式", ja: "基本術式" },
+        onmyojiId: "10",
+        skillId: "1003",
+      },
+    ],
+    hunling: [
+      {
+        id: "100",
+        avatar: "/assets/HunLing/100.png",
+        names: { zh: "镇墓兽" },
+      },
+    ],
+  },
+};
+
+const loadModule = async () => {
+  vi.resetModules();
+  return import("@/configs/assetCatalog");
+};
 
 describe("assetCatalog", () => {
-  it("returns localized shikigami records", () => {
-    const zh = getAssetDataSource("shikigami", "zh");
-    const en = getAssetDataSource("shikigami", "en");
-
-    expect(Array.isArray(zh)).toBe(true);
-    expect(zh.length).toBeGreaterThan(0);
-    expect(Array.isArray(en)).toBe(true);
-    expect(en.length).toBe(zh.length);
-
-    const first = zh[0] as any;
-    expect(typeof first.id).toBe("string");
-    expect(first.library).toBe("shikigami");
-    expect(typeof first.name).toBe("string");
-    expect(typeof first.avatar).toBe("string");
+  beforeEach(() => {
+    vi.restoreAllMocks();
   });
 
-  it("returns localized onmyoji skill with onmyojiName", () => {
-    const skills = getAssetDataSource("onmyojiSkill", "ja") as any[];
-    expect(skills.length).toBeGreaterThan(0);
-    expect(skills[0].library).toBe("onmyojiSkill");
-    expect(typeof skills[0].onmyojiName).toBe("string");
-    expect(skills[0].onmyojiName.length).toBeGreaterThan(0);
+  it("throws when data is requested before the remote catalog is loaded", async () => {
+    const { getAssetDataSource } = await loadModule();
+    expect(() => getAssetDataSource("shikigami", "zh")).toThrow(
+      "Asset catalog is not loaded",
+    );
   });
 
-  it("falls back to zh locale when unknown locale is provided", () => {
-    const unknown = getAssetDataSource("yuhun", "unknown-locale");
-    const zh = getAssetDataSource("yuhun", "zh");
-    expect(unknown.length).toBe(zh.length);
-    expect((unknown[0] as any).name).toBe((zh[0] as any).name);
+  it("loads once and returns localized records for every library", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: vi.fn().mockResolvedValue(catalog),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const { loadAssetCatalog, getAssetDataSource } = await loadModule();
+
+    await Promise.all([loadAssetCatalog(), loadAssetCatalog()]);
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect((getAssetDataSource("shikigami", "en")[0] as any).name).toBe("Fox");
+    expect(
+      (getAssetDataSource("onmyojiSkill", "ja")[0] as any).onmyojiName,
+    ).toBe("晴明");
+    expect((getAssetDataSource("yuhun", "unknown-locale")[0] as any).name).toBe(
+      "隐念",
+    );
+    expect((getAssetDataSource("hunling", "zh")[0] as any).library).toBe(
+      "hunling",
+    );
   });
 
-  it("returns hunling records", () => {
-    const hunling = getAssetDataSource("hunling", "zh") as any[];
-    expect(hunling.length).toBeGreaterThan(0);
-    expect(hunling[0].library).toBe("hunling");
-    expect(typeof hunling[0].name).toBe("string");
+  it("rejects failed responses and allows a later retry", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 503,
+        statusText: "Unavailable",
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: vi.fn().mockResolvedValue(catalog),
+      });
+    vi.stubGlobal("fetch", fetchMock);
+    const { loadAssetCatalog } = await loadModule();
+
+    await expect(loadAssetCatalog()).rejects.toThrow("503 Unavailable");
+    await expect(loadAssetCatalog()).resolves.toMatchObject({
+      schemaVersion: 1,
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("rejects incomplete catalogs", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: vi.fn().mockResolvedValue({
+          ...catalog,
+          libraries: { shikigami: [] },
+        }),
+      }),
+    );
+    const { loadAssetCatalog } = await loadModule();
+
+    await expect(loadAssetCatalog()).rejects.toThrow(
+      "Asset catalog library yuhun must be an array",
+    );
   });
 });

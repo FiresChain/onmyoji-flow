@@ -2,6 +2,13 @@ import { describe, expect, it } from "vitest";
 import { defineComponent, h } from "vue";
 import { mount } from "@vue/test-utils";
 import YysEditorEmbed, { type GraphData } from "@/YysEditorEmbed.vue";
+
+vi.mock("@/configs/assetCatalog", () => ({
+  DEFAULT_ASSET_BASE_URL: "https://assets.example",
+  isAssetCatalogLoaded: vi.fn(() => true),
+  loadAssetCatalog: vi.fn().mockResolvedValue({}),
+  resolveAssetCatalogUrl: vi.fn(() => "https://assets.example/v1/catalog.json"),
+}));
 import flowEditorSource from "@/components/flow/FlowEditor.vue?raw";
 import flowEditorRuntimeSource from "@/components/flow/composables/useFlowEditorRuntime.ts?raw";
 

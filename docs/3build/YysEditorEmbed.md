@@ -61,15 +61,22 @@ const flowData = ref({
 
 ## 素材地址
 
-组件内置目录使用 `/assets/...` 作为素材路径。独立 GitHub Pages 构建通过
-`VITE_ASSET_BASE_URL` 指向公共 R2 域名；嵌入到其他站点时，如果宿主站点不提供
-同路径素材，请在首次渲染前设置素材根地址：
+组件启动时从 `https://onmyoji-assets.fireschain.org/v1/catalog.json` 加载式神、御魂等
+素材目录，目录中的图片使用 `/assets/...` 路径。目录加载失败时组件不会初始化，并通过
+`error` 事件报告错误；没有打包在库内的本地 JSON 回退。
 
-```ts
-import { setAssetBaseUrl } from "@rookie4show/onmyoji-flow";
+独立 GitHub Pages 构建通过 `VITE_ASSET_BASE_URL` 指向公共 R2 域名。嵌入组件默认使用
+上述公共域名；也可以通过 `asset-base-url` 同时指定目录和图片的根地址：
 
-setAssetBaseUrl("https://onmyoji-assets.fireschain.org");
+```vue
+<YysEditorEmbed
+  asset-base-url="https://onmyoji-assets.fireschain.org"
+  @error="handleCatalogError"
+/>
 ```
+
+如需在组件挂载前主动加载，库也导出 `loadAssetCatalog()` 和
+`resolveAssetCatalogUrl()`；同一页面上的所有组件会共享一次请求。
 
 素材根地址只会替换以 `/assets/` 开头的内置路径，外部 URL、Data URL 和用户上传的
 图片不会被改写。若需要截图或导出包含跨域素材，R2 自定义域名必须保留允许宿主站点
