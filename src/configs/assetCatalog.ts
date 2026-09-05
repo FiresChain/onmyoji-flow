@@ -5,7 +5,7 @@ import {
 } from "@/utils/assetLibrary";
 
 export const DEFAULT_ASSET_BASE_URL = "https://onmyoji-assets.fireschain.org";
-const DEFAULT_CATALOG_URL = `${DEFAULT_ASSET_BASE_URL}/v1/catalog.json`;
+const DEFAULT_CATALOG_URL = `${DEFAULT_ASSET_BASE_URL}/assets/catalog.json`;
 const CATALOG_LIBRARY_IDS = [
   "shikigami",
   "yuhun",
@@ -64,7 +64,7 @@ export const resolveAssetCatalogUrl = (
   if (!baseUrl) {
     return DEFAULT_CATALOG_URL;
   }
-  return `${baseUrl.replace(/\/+$/, "")}/v1/catalog.json`;
+  return `${baseUrl.replace(/\/+$/, "")}/assets/catalog.json`;
 };
 
 export const loadAssetCatalog = (

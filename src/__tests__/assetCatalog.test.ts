@@ -58,6 +58,17 @@ describe("assetCatalog", () => {
     vi.restoreAllMocks();
   });
 
+  it("resolves the catalog from the assets directory", async () => {
+    const { resolveAssetCatalogUrl } = await loadModule();
+
+    expect(resolveAssetCatalogUrl()).toBe(
+      "https://onmyoji-assets.fireschain.org/assets/catalog.json",
+    );
+    expect(resolveAssetCatalogUrl("https://assets.example/")).toBe(
+      "https://assets.example/assets/catalog.json",
+    );
+  });
+
   it("throws when data is requested before the remote catalog is loaded", async () => {
     const { getAssetDataSource } = await loadModule();
     expect(() => getAssetDataSource("shikigami", "zh")).toThrow(

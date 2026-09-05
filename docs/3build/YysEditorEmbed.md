@@ -61,7 +61,7 @@ const flowData = ref({
 
 ## 素材地址
 
-组件启动时从 `https://onmyoji-assets.fireschain.org/v1/catalog.json` 加载式神、御魂等
+组件启动时从 `https://onmyoji-assets.fireschain.org/assets/catalog.json` 加载式神、御魂等
 素材目录，目录中的图片使用 `/assets/...` 路径。目录加载失败时组件不会初始化，并通过
 `error` 事件报告错误；没有打包在库内的本地 JSON 回退。
 

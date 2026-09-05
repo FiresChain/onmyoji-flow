@@ -6,7 +6,9 @@ vi.mock("@/configs/assetCatalog", () => ({
   DEFAULT_ASSET_BASE_URL: "https://assets.example",
   isAssetCatalogLoaded: vi.fn(() => false),
   loadAssetCatalog: vi.fn().mockRejectedValue(new Error("catalog unavailable")),
-  resolveAssetCatalogUrl: vi.fn(() => "https://assets.example/v1/catalog.json"),
+  resolveAssetCatalogUrl: vi.fn(
+    () => "https://assets.example/assets/catalog.json",
+  ),
 }));
 
 describe("YysEditorEmbed asset catalog startup", () => {
