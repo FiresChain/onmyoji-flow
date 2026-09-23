@@ -93,6 +93,7 @@ const buildShikigamiPreset = (
       labelField: "name",
     },
     itemKeyField: "id",
+    searchFields: ["name", "rarity"],
   };
 };
 
