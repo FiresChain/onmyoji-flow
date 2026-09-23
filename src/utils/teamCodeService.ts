@@ -1,4 +1,5 @@
 import jsQR from "jsqr";
+import { projectTeamCodeFormation } from "@/utils/teamCodeProjection";
 
 const DEFAULT_TEAM_CODE_SERVICE_URL =
   "http://127.0.0.1:8787/onmyoji/v1/team-code/decode";
@@ -90,7 +91,7 @@ export const decodeTeamCodeFromQrImage = async (
   throw new Error("未识别到有效二维码，请确认图片清晰且仅包含一个阵容码二维码");
 };
 
-// 阵容码字符串 -> RootDocument 由后端服务完成
+// Worker 解码阵容码；Flow 使用 R2 素材目录生成 RootDocument。
 export const convertTeamCodeToRootDocument = async (
   teamCode: string,
   options?: TeamCodeConvertOptions,
@@ -126,6 +127,14 @@ export const convertTeamCodeToRootDocument = async (
   if (!response.ok) {
     const errorMessage = readErrorMessageFromPayload(payload);
     throw new Error(errorMessage || "阵容码解析失败");
+  }
+
+  const decoded = (payload as UnknownRecord | null)?.data;
+  if (decoded && typeof decoded === "object" && "formation" in decoded) {
+    return projectTeamCodeFormation(
+      decoded,
+      options,
+    ) as unknown as UnknownRecord;
   }
 
   const root = pickRootDocument(payload);

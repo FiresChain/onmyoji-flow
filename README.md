@@ -14,6 +14,8 @@ npm install
 npm run dev
 ```
 
+阵容码由 `team-code/decode` 服务解码为成员、技能和御魂 ID。Flow 使用运行时从 R2 加载的素材目录解析名称与头像，并在客户端生成画布。旧服务返回的 `fileList` 在迁移期间仍可导入。
+
 ## Build
 
 ```bash
