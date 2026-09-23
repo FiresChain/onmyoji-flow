@@ -92,7 +92,11 @@ ElMessageBox.defaults = {
 };
 
 const startApp = async () => {
-  await loadAssetCatalog(resolveAssetCatalogUrl(assetBaseUrl));
+  const catalogUrl = resolveAssetCatalogUrl(assetBaseUrl);
+  // Localhost has its own CDN cache variant because the catalog varies by Origin.
+  await loadAssetCatalog(
+    import.meta.env.DEV ? `${catalogUrl}?dev=${Date.now()}` : catalogUrl,
+  );
 
   const app = createApp(App);
   for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
