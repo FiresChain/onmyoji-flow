@@ -1,5 +1,27 @@
 [
   {
+    "id": "608",
+    "library": "shikigami",
+    "avatar": "/assets/Shikigami/ssr/608.png",
+    "names": {
+      "zh": "石长姬",
+      "ja": "石长姬",
+      "en": "石长姬"
+    },
+    "rarity": "SSR"
+  },
+  {
+    "id": "607",
+    "library": "shikigami",
+    "avatar": "/assets/Shikigami/sp/607.png",
+    "names": {
+      "zh": "百羽凤凰火",
+      "ja": "百羽凤凰火",
+      "en": "百羽凤凰火"
+    },
+    "rarity": "SP"
+  },
+  {
     "id": "606",
     "library": "shikigami",
     "avatar": "/assets/Shikigami/l/606.png",
