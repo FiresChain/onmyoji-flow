@@ -1,9 +1,9 @@
 {
   "version": 2,
-  "generatedAt": "2026-08-20T04:17:58.895Z",
+  "generatedAt": "2026-10-15T08:27:36.270Z",
   "libraries": {
     "shikigami": {
-      "count": 273,
+      "count": 276,
       "source": "official",
       "syncMode": "json-sync"
     },
