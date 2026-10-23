@@ -163,7 +163,7 @@ watch(
 </script>
 
 <template>
-  <div class="container">
+  <div class="container onmyoji-flow-app">
     <!-- 工具栏 -->
     <Toolbar title="onmyoji-flow" username="示例用户" />
     <!-- 侧边栏和工作区 -->

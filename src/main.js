@@ -9,6 +9,7 @@ import {
 
 import ElementPlus, { ElMessageBox } from "element-plus";
 import "element-plus/dist/index.css";
+import "./assets/tools-theme.css";
 import * as ElementPlusIconsVue from "@element-plus/icons-vue";
 
 import Vue3DraggableResizable from "vue3-draggable-resizable";

@@ -7,6 +7,7 @@
   />
 
   <el-dialog
+    class="onmyoji-flow-dialog"
     v-model="show"
     :visable.sync="show"
     :title="t('yys.property.dialogTitle')"
@@ -40,6 +41,7 @@
           style="display: flex; flex-direction: row; width: 100%"
         >
           <el-select
+            popper-class="onmyoji-flow-popper"
             v-for="(value, key, index) in shikigami.skillRequired"
             :placeholder="value"
             style="margin-bottom: 10px"
@@ -81,7 +83,7 @@
             </el-button>
           </el-form-item>
           <el-form-item :label="t('yuhunTarget')">
-            <el-select v-model="yuhunTarget">
+            <el-select popper-class="onmyoji-flow-popper" v-model="yuhunTarget">
               <el-option
                 v-for="option in yuhunTargetOptions"
                 :key="option.value"
@@ -92,6 +94,7 @@
           </el-form-item>
           <el-form-item :label="t('yys.property.slot2Main')">
             <el-select
+              popper-class="onmyoji-flow-popper"
               multiple
               collapse-tags
               collapse-tags-tooltip
@@ -118,6 +121,7 @@
           </el-form-item>
           <el-form-item :label="t('yys.property.slot4Main')">
             <el-select
+              popper-class="onmyoji-flow-popper"
               multiple
               collapse-tags
               collapse-tags-tooltip
@@ -148,6 +152,7 @@
           </el-form-item>
           <el-form-item :label="t('yys.property.slot6Main')">
             <el-select
+              popper-class="onmyoji-flow-popper"
               multiple
               collapse-tags
               collapse-tags-tooltip

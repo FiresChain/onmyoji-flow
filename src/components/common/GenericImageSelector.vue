@@ -1,5 +1,5 @@
 <template>
-  <el-dialog v-model="show" :title="config.title">
+  <el-dialog class="onmyoji-flow-dialog" v-model="show" :title="config.title">
     <span v-if="config.currentItem">
       {{ t("selector.currentSelection") }}：{{
         config.currentItem[config.itemRender.labelField]

@@ -94,6 +94,7 @@ const applyGroupMeta = () => {
     <div class="property-item">
       <div class="property-label">分组类型</div>
       <el-select
+        popper-class="onmyoji-flow-popper"
         v-model="form.groupKind"
         style="width: 100%"
         @change="applyGroupMeta"

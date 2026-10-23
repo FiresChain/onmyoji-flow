@@ -12,7 +12,7 @@
         <div class="custom-tree-node">
           <span>{{ node.label }}</span>
           <div>
-            <el-dropdown>
+            <el-dropdown popper-class="onmyoji-flow-popper">
               <el-button style="margin-left: 4px" icon="MoreFilled" link />
               <template #dropdown>
                 <el-dropdown-menu>

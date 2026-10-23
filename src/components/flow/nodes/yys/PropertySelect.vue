@@ -6,13 +6,22 @@
     @updateYuhun="updateYuhunSelect"
   />
 
-  <el-dialog v-model="show" :title="t('yys.selector.dialogTitle')" width="80%">
+  <el-dialog
+    class="onmyoji-flow-dialog"
+    v-model="show"
+    :title="t('yys.selector.dialogTitle')"
+    width="80%"
+  >
     <el-form :model="property" label-width="120px">
       <el-tabs v-model="activeTab">
         <!-- 基础属性选项卡 -->
         <el-tab-pane :label="t('yys.selector.tab.basic')" name="basic">
           <el-form-item :label="t('yys.selector.propertyType')">
-            <el-select v-model="property.type" @change="handleTypeChange">
+            <el-select
+              popper-class="onmyoji-flow-popper"
+              v-model="property.type"
+              @change="handleTypeChange"
+            >
               <el-option
                 v-for="type in propertyTypes"
                 :key="type.value"
@@ -148,7 +157,10 @@
 
           <!-- 所有属性都显示的字段 -->
           <el-form-item :label="t('yys.selector.priority')">
-            <el-select v-model="property.priority">
+            <el-select
+              popper-class="onmyoji-flow-popper"
+              v-model="property.priority"
+            >
               <el-option
                 :label="t('yys.selector.priority.required')"
                 value="required"
@@ -191,6 +203,7 @@
               style="display: flex; flex-direction: row; gap: 10px; width: 100%"
             >
               <el-select
+                popper-class="onmyoji-flow-popper"
                 v-for="(value, index) in property.skillRequired"
                 :key="index"
                 :placeholder="value"
@@ -240,6 +253,7 @@
 
               <el-form-item :label="t('yys.selector.yuhunTarget')">
                 <el-select
+                  popper-class="onmyoji-flow-popper"
                   v-model="yuhunTarget"
                   @change="handleYuhunTargetChange"
                 >
@@ -256,6 +270,7 @@
             <div style="display: flex; flex-direction: column; width: 50%">
               <el-form-item :label="t('yys.property.slot2Main')">
                 <el-select
+                  popper-class="onmyoji-flow-popper"
                   multiple
                   collapse-tags
                   collapse-tags-tooltip
@@ -283,6 +298,7 @@
 
               <el-form-item :label="t('yys.property.slot4Main')">
                 <el-select
+                  popper-class="onmyoji-flow-popper"
                   multiple
                   collapse-tags
                   collapse-tags-tooltip
@@ -314,6 +330,7 @@
 
               <el-form-item :label="t('yys.property.slot6Main')">
                 <el-select
+                  popper-class="onmyoji-flow-popper"
                   multiple
                   collapse-tags
                   collapse-tags-tooltip
@@ -365,7 +382,10 @@
           </el-form-item>
 
           <el-form-item :label="t('yys.selector.damageType')">
-            <el-select v-model="property.damageType">
+            <el-select
+              popper-class="onmyoji-flow-popper"
+              v-model="property.damageType"
+            >
               <el-option
                 :label="t('yys.selector.damageType.normal')"
                 value="normal"

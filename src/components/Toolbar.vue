@@ -1,7 +1,10 @@
 <template>
-  <div class="toolbar" :class="{ 'toolbar--embed': props.isEmbed }">
+  <div
+    class="toolbar onmyoji-flow-toolbar"
+    :class="{ 'toolbar--embed': props.isEmbed }"
+  >
     <div class="toolbar-actions">
-      <el-dropdown trigger="click">
+      <el-dropdown popper-class="onmyoji-flow-popper" trigger="click">
         <el-button type="primary" icon="FolderOpened">
           {{ t("toolbar.menu.file") }}
         </el-button>
@@ -26,7 +29,7 @@
         </template>
       </el-dropdown>
 
-      <el-dropdown trigger="click">
+      <el-dropdown popper-class="onmyoji-flow-popper" trigger="click">
         <el-button type="primary" icon="Setting">
           {{ t("toolbar.menu.settings") }}
         </el-button>
@@ -48,7 +51,11 @@
         </template>
       </el-dropdown>
 
-      <el-dropdown v-if="!props.isEmbed" trigger="click">
+      <el-dropdown
+        popper-class="onmyoji-flow-popper"
+        v-if="!props.isEmbed"
+        trigger="click"
+      >
         <el-button type="info" icon="QuestionFilled">
           {{ t("toolbar.menu.help") }}
         </el-button>
@@ -115,6 +122,7 @@
         :inactive-text="t('switch.snapline.off')"
       />
       <el-select
+        popper-class="onmyoji-flow-popper"
         v-model="currentLanguage"
         size="small"
         class="locale-select"
@@ -131,6 +139,7 @@
 
     <!-- 更新日志对话框 -->
     <el-dialog
+      class="onmyoji-flow-dialog"
       v-if="!props.isEmbed"
       v-model="state.showUpdateLogDialog"
       :title="t('updateLog')"
@@ -153,6 +162,7 @@
 
     <!-- 问题反馈对话框 -->
     <el-dialog
+      class="onmyoji-flow-dialog"
       v-if="!props.isEmbed"
       v-model="state.showFeedbackFormDialog"
       :title="t('feedback')"
@@ -174,6 +184,7 @@
 
     <!-- 预览弹窗 -->
     <el-dialog
+      class="onmyoji-flow-dialog"
       id="preview-container"
       v-model="state.previewVisible"
       width="80%"
@@ -200,6 +211,7 @@
 
     <!-- 水印设置弹窗 -->
     <el-dialog
+      class="onmyoji-flow-dialog"
       v-model="state.showWatermarkDialog"
       :title="t('setWatermark')"
       width="30%"
@@ -216,7 +228,10 @@
           ></el-input-number>
         </el-form-item>
         <el-form-item :label="t('watermark.color')">
-          <el-color-picker v-model="watermark.color"></el-color-picker>
+          <el-color-picker
+            popper-class="onmyoji-flow-popper"
+            v-model="watermark.color"
+          ></el-color-picker>
         </el-form-item>
         <el-form-item :label="t('watermark.rows')">
           <el-input-number
@@ -253,6 +268,7 @@
     </el-dialog>
 
     <el-dialog
+      class="onmyoji-flow-dialog"
       v-model="showNodeSizeDialog"
       :title="t('nodeSize.title')"
       width="640px"
@@ -356,6 +372,7 @@
     </el-dialog>
 
     <el-dialog
+      class="onmyoji-flow-dialog"
       v-model="showThemeDetailDialog"
       :title="themeDetailDialogTitle"
       width="620px"
@@ -369,6 +386,7 @@
           <span class="node-size-label">{{ t("flow.style.fill") }}</span>
           <div class="node-theme-inline">
             <el-color-picker
+              popper-class="onmyoji-flow-popper"
               v-model="themeDetailDraft.nodeStyle.fill"
               show-alpha
               @change="(val) => handleThemeFillColorChange(String(val || ''))"
@@ -383,7 +401,10 @@
         </div>
         <div class="node-theme-item">
           <span class="node-size-label">{{ t("flow.style.stroke") }}</span>
-          <el-color-picker v-model="themeDetailDraft.nodeStyle.stroke" />
+          <el-color-picker
+            popper-class="onmyoji-flow-popper"
+            v-model="themeDetailDraft.nodeStyle.stroke"
+          />
         </div>
         <div class="node-theme-item">
           <span class="node-size-label">{{ t("flow.style.stroke") }} px</span>
@@ -464,7 +485,10 @@
         </div>
         <div class="node-theme-item">
           <span class="node-size-label">{{ t("nodeSize.textColor") }}</span>
-          <el-color-picker v-model="themeDetailDraft.name.textStyle.color" />
+          <el-color-picker
+            popper-class="onmyoji-flow-popper"
+            v-model="themeDetailDraft.name.textStyle.color"
+          />
         </div>
         <div class="node-theme-item">
           <span class="node-size-label">{{ t("nodeSize.fontSize") }}</span>
@@ -479,6 +503,7 @@
         <div class="node-theme-item">
           <span class="node-size-label">{{ t("nodeSize.fontWeight") }}</span>
           <el-select
+            popper-class="onmyoji-flow-popper"
             v-model="themeDetailDraft.name.textStyle.fontWeight"
             size="small"
           >
@@ -503,6 +528,7 @@
         <div class="node-theme-item">
           <span class="node-size-label">{{ t("flow.style.textAlign") }}</span>
           <el-select
+            popper-class="onmyoji-flow-popper"
             v-model="themeDetailDraft.name.textStyle.align"
             size="small"
           >
@@ -523,12 +549,14 @@
 
     <!-- 数据预览对话框 -->
     <el-dialog
+      class="onmyoji-flow-dialog"
       v-model="state.showDataPreviewDialog"
       :title="t('previewData')"
       width="70%"
     >
       <div style="max-height: 600px; overflow-y: auto">
         <pre
+          class="onmyoji-flow-data-preview"
           style="
             background: #f5f5f5;
             padding: 16px;
@@ -551,7 +579,12 @@
       </template>
     </el-dialog>
 
-    <el-dialog v-model="state.showImportDialog" title="导入数据" width="560px">
+    <el-dialog
+      class="onmyoji-flow-dialog"
+      v-model="state.showImportDialog"
+      title="导入数据"
+      width="560px"
+    >
       <el-form label-width="88px" class="import-form">
         <el-form-item :label="t('importDialog.source')">
           <el-radio-group v-model="importSource">
@@ -639,6 +672,7 @@
 
     <!-- 素材管理对话框 -->
     <el-dialog
+      class="onmyoji-flow-dialog"
       v-model="state.showAssetManagerDialog"
       :title="t('assetManager')"
       width="70%"
@@ -700,6 +734,7 @@
 
     <!-- 规则管理对话框 -->
     <el-dialog
+      class="onmyoji-flow-dialog"
       v-model="state.showRuleManagerDialog"
       :title="t('ruleManager')"
       width="80%"
@@ -768,6 +803,7 @@
               >
                 <template #default="{ row }">
                   <el-select
+                    popper-class="onmyoji-flow-popper"
                     v-model="row.severity"
                     size="small"
                     :class="[
@@ -792,6 +828,7 @@
               >
                 <template #default="{ row }">
                   <el-select
+                    popper-class="onmyoji-flow-popper"
                     v-model="row.scopeKind"
                     size="small"
                     class="rule-inline-select"
@@ -915,6 +952,7 @@
     </el-dialog>
 
     <el-dialog
+      class="onmyoji-flow-dialog"
       v-model="ruleEditorVisible"
       :title="t('ruleEditor.title')"
       width="56%"
@@ -935,6 +973,7 @@
         </el-form-item>
         <el-form-item :label="t('ruleEditor.severity')">
           <el-select
+            popper-class="onmyoji-flow-popper"
             v-model="ruleEditorDraft.severity"
             :class="[
               'severity-select',
@@ -948,7 +987,11 @@
           </el-select>
         </el-form-item>
         <el-form-item :label="t('ruleEditor.scope')">
-          <el-select v-model="ruleEditorDraft.scopeKind" style="width: 100%">
+          <el-select
+            popper-class="onmyoji-flow-popper"
+            v-model="ruleEditorDraft.scopeKind"
+            style="width: 100%"
+          >
             <el-option :label="t('ruleScope.team')" value="team" />
             <el-option :label="t('ruleScope.shikigami')" value="shikigami" />
           </el-select>

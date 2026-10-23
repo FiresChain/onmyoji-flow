@@ -119,7 +119,7 @@ onBeforeUnmount(() => {
 
 <template>
   <div
-    class="property-panel"
+    class="property-panel onmyoji-flow-properties"
     :class="{ 'is-resizing': isResizing }"
     :style="panelStyle"
   >
@@ -178,6 +178,7 @@ onBeforeUnmount(() => {
                 {{ t("flow.property.label.assetType") }}
               </div>
               <el-select
+                popper-class="onmyoji-flow-popper"
                 v-model="currentAssetLibrary"
                 :placeholder="t('flow.property.placeholder.assetType')"
                 style="width: 100%"

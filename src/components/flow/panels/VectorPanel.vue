@@ -63,6 +63,7 @@ const kindOptions = computed(() => [
       <div class="property-label">{{ t("flow.vector.kind") }}</div>
       <div class="property-value">
         <el-select
+          popper-class="onmyoji-flow-popper"
           v-model="form.kind"
           size="small"
           @change="() => applyChanges({ kind: form.kind })"
@@ -104,6 +105,7 @@ const kindOptions = computed(() => [
       <div class="property-label">{{ t("flow.vector.fill") }}</div>
       <div class="property-value">
         <el-color-picker
+          popper-class="onmyoji-flow-popper"
           v-model="form.fill"
           size="small"
           @change="() => applyChanges({ fill: form.fill })"
@@ -116,6 +118,7 @@ const kindOptions = computed(() => [
       <div class="property-label">{{ t("flow.vector.stroke") }}</div>
       <div class="property-value">
         <el-color-picker
+          popper-class="onmyoji-flow-popper"
           v-model="form.stroke"
           size="small"
           @change="() => applyChanges({ stroke: form.stroke })"

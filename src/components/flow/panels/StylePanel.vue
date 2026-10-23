@@ -165,6 +165,7 @@ const handleFillTransparentChange = (checked: boolean) => {
       <div class="property-label">{{ t("flow.style.fill") }}</div>
       <div class="property-value row">
         <el-color-picker
+          popper-class="onmyoji-flow-popper"
           v-model="form.fill"
           show-alpha
           size="small"
@@ -183,6 +184,7 @@ const handleFillTransparentChange = (checked: boolean) => {
       <div class="property-label">{{ t("flow.style.stroke") }}</div>
       <div class="property-value row">
         <el-color-picker
+          popper-class="onmyoji-flow-popper"
           v-model="form.stroke"
           size="small"
           @change="(val: string) => applyStyle({ stroke: val })"
@@ -219,6 +221,7 @@ const handleFillTransparentChange = (checked: boolean) => {
       <div class="property-label">{{ t("flow.style.shadow") }}</div>
       <div class="property-value shadow-grid">
         <el-color-picker
+          popper-class="onmyoji-flow-popper"
           v-model="form.shadowColor"
           size="small"
           @change="(val: string) => applyShadow({ color: val })"
@@ -269,6 +272,7 @@ const handleFillTransparentChange = (checked: boolean) => {
       <div class="property-label">{{ t("flow.style.textAlign") }}</div>
       <div class="property-value">
         <el-select
+          popper-class="onmyoji-flow-popper"
           v-model="form.textAlign"
           size="small"
           style="width: 100%"
@@ -296,6 +300,7 @@ const handleFillTransparentChange = (checked: boolean) => {
           @change="(val) => applyTextStyle({ lineHeight: Number(val) || 1 })"
         />
         <el-select
+          popper-class="onmyoji-flow-popper"
           v-model="form.fontWeight"
           size="small"
           style="flex: 1"

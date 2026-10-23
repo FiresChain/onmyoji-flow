@@ -1,0 +1,523 @@
+/* Shared Tools palette. Original mode leaves the editor's existing styles intact. */
+:root:not([data-tools-theme="original"]) {
+  --fc-bg: #f5f7fa;
+  --fc-surface: #fff;
+  --fc-soft: #edf1f6;
+  --fc-ink: #202938;
+  --fc-muted: #606c7d;
+  --fc-border: #dfe5ee;
+  --fc-accent: #315edb;
+  --fc-tint: #edf2ff;
+  --fc-on-accent: #fff;
+  --fc-danger: #b64444;
+  --fc-danger-soft: #fff0ef;
+  --fc-warning: #8d671f;
+  --fc-warning-soft: #fff7df;
+  --fc-success: #247454;
+  --fc-success-soft: #eaf6ef;
+}
+
+html:root[data-tools-theme="dark"] {
+  --fc-bg: #15181e;
+  --fc-surface: #1e232c;
+  --fc-soft: #272e3a;
+  --fc-ink: #e9edf5;
+  --fc-muted: #a5b0c2;
+  --fc-border: #394353;
+  --fc-accent: #9bb6ff;
+  --fc-tint: #2b3858;
+  --fc-on-accent: #172343;
+  --fc-danger: #ffaaa4;
+  --fc-danger-soft: #412b2e;
+  --fc-warning: #efd08d;
+  --fc-warning-soft: #3e3521;
+  --fc-success: #96d6b2;
+  --fc-success-soft: #233d32;
+}
+
+/* Element Plus variables belong only to editor UI and explicitly marked poppers.
+   Do not place them on html/body, the embed root, or the LogicFlow canvas. */
+html:root:not([data-tools-theme="original"])
+  :is(
+    .onmyoji-flow-toolbar,
+    .onmyoji-flow-components,
+    .onmyoji-flow-properties,
+    .onmyoji-flow-dialog,
+    .onmyoji-flow-popper,
+    html:has(.onmyoji-flow-app) .el-message,
+    html:has(.onmyoji-flow-app) .my-message-box,
+    .onmyoji-flow-app .workspace > .demo-tabs
+  ) {
+  --el-color-primary: var(--fc-accent);
+  --el-color-primary-light-3: color-mix(
+    in srgb,
+    var(--fc-accent) 75%,
+    var(--fc-surface)
+  );
+  --el-color-primary-light-5: color-mix(
+    in srgb,
+    var(--fc-accent) 55%,
+    var(--fc-surface)
+  );
+  --el-color-primary-light-7: color-mix(
+    in srgb,
+    var(--fc-accent) 35%,
+    var(--fc-surface)
+  );
+  --el-color-primary-light-8: var(--fc-tint);
+  --el-color-primary-light-9: var(--fc-tint);
+  --el-color-primary-dark-2: color-mix(
+    in srgb,
+    var(--fc-accent) 85%,
+    var(--fc-ink)
+  );
+  --el-color-success: var(--fc-success);
+  --el-color-success-light-3: var(--fc-success);
+  --el-color-success-light-5: var(--fc-success);
+  --el-color-success-light-7: var(--fc-success-soft);
+  --el-color-success-light-8: var(--fc-success-soft);
+  --el-color-success-light-9: var(--fc-success-soft);
+  --el-color-success-dark-2: var(--fc-success);
+  --el-color-warning: var(--fc-warning);
+  --el-color-warning-light-3: var(--fc-warning);
+  --el-color-warning-light-5: var(--fc-warning);
+  --el-color-warning-light-7: var(--fc-warning-soft);
+  --el-color-warning-light-8: var(--fc-warning-soft);
+  --el-color-warning-light-9: var(--fc-warning-soft);
+  --el-color-warning-dark-2: var(--fc-warning);
+  --el-color-danger: var(--fc-danger);
+  --el-color-danger-light-3: var(--fc-danger);
+  --el-color-danger-light-5: var(--fc-danger);
+  --el-color-danger-light-7: var(--fc-danger-soft);
+  --el-color-danger-light-8: var(--fc-danger-soft);
+  --el-color-danger-light-9: var(--fc-danger-soft);
+  --el-color-danger-dark-2: var(--fc-danger);
+  --el-color-error: var(--fc-danger);
+  --el-color-error-light-8: var(--fc-danger-soft);
+  --el-color-error-light-9: var(--fc-danger-soft);
+  --el-color-info: var(--fc-muted);
+  --el-color-info-light-3: var(--fc-muted);
+  --el-color-info-light-5: var(--fc-muted);
+  --el-color-info-light-7: var(--fc-soft);
+  --el-color-info-light-8: var(--fc-soft);
+  --el-color-info-light-9: var(--fc-soft);
+  --el-color-info-dark-2: var(--fc-muted);
+  --el-bg-color: var(--fc-surface);
+  --el-bg-color-page: var(--fc-bg);
+  --el-bg-color-overlay: var(--fc-surface);
+  --el-text-color-primary: var(--fc-ink);
+  --el-text-color-regular: var(--fc-ink);
+  --el-text-color-secondary: var(--fc-muted);
+  --el-text-color-placeholder: var(--fc-muted);
+  --el-text-color-disabled: var(--fc-muted);
+  --el-border-color: var(--fc-border);
+  --el-border-color-light: var(--fc-border);
+  --el-border-color-lighter: var(--fc-border);
+  --el-border-color-extra-light: var(--fc-border);
+  --el-border-color-dark: var(--fc-muted);
+  --el-border-color-darker: var(--fc-muted);
+  --el-border-color-hover: var(--fc-accent);
+  --el-fill-color: var(--fc-soft);
+  --el-fill-color-light: var(--fc-soft);
+  --el-fill-color-lighter: var(--fc-bg);
+  --el-fill-color-extra-light: var(--fc-bg);
+  --el-fill-color-dark: var(--fc-border);
+  --el-fill-color-darker: var(--fc-muted);
+  --el-fill-color-blank: var(--fc-surface);
+  --el-disabled-bg-color: var(--fc-soft);
+  --el-disabled-text-color: var(--fc-muted);
+  --el-disabled-border-color: var(--fc-border);
+  --el-mask-color: color-mix(in srgb, var(--fc-surface) 90%, transparent);
+}
+
+html:root:not([data-tools-theme="original"])
+  :is(
+    .onmyoji-flow-toolbar,
+    .onmyoji-flow-components,
+    .onmyoji-flow-properties,
+    .onmyoji-flow-dialog,
+    .onmyoji-flow-popper,
+    .onmyoji-flow-editor .flow-controls,
+    .onmyoji-flow-editor .problems-dock,
+    .onmyoji-flow-editor .context-menu
+  ) {
+  color: var(--fc-ink);
+}
+
+html:root:not([data-tools-theme="original"])
+  :is(
+    .onmyoji-flow-toolbar,
+    .onmyoji-flow-components,
+    .onmyoji-flow-properties,
+    .onmyoji-flow-app .workspace > .demo-tabs,
+    .yys-editor-embed:not(.preview-mode)
+  ) {
+  background-color: var(--fc-bg);
+  border-color: var(--fc-border);
+}
+
+html:root:not([data-tools-theme="original"])
+  :is(
+    .onmyoji-flow-components .component-item,
+    .onmyoji-flow-properties .property-section,
+    .onmyoji-flow-editor .flow-controls,
+    .onmyoji-flow-editor .flow-controls .control-button,
+    .onmyoji-flow-editor .problems-dock .problems-tab,
+    .onmyoji-flow-editor .problems-dock .problems-panel,
+    .onmyoji-flow-editor .context-menu,
+    .yys-editor-embed .team-code-copy-button,
+    .onmyoji-flow-dialog .template-choice,
+    .onmyoji-flow-dialog .template-model-panel,
+    .onmyoji-flow-dialog .template-right-panel,
+    .onmyoji-flow-dialog .template-inspector-panel,
+    .onmyoji-flow-dialog .template-bound-nodes button
+  ) {
+  background-color: var(--fc-surface);
+  border-color: var(--fc-border);
+}
+
+html:root:not([data-tools-theme="original"])
+  :is(
+    .onmyoji-flow-properties .panel-header,
+    .onmyoji-flow-editor .problems-dock .problems-dock-bar,
+    .onmyoji-flow-dialog .variable-item,
+    .onmyoji-flow-dialog .rule-docs pre,
+    .onmyoji-flow-properties .image-preview
+  ) {
+  background-color: var(--fc-soft);
+  border-color: var(--fc-border);
+}
+
+html:root:not([data-tools-theme="original"])
+  :is(
+    .onmyoji-flow-properties .property-item,
+    .onmyoji-flow-properties .section-header,
+    .onmyoji-flow-properties .editor-wrapper,
+    .onmyoji-flow-editor .problems-dock .problems-header,
+    .onmyoji-flow-editor .problems-dock .problem-item,
+    .onmyoji-flow-dialog .asset-manager-item,
+    .onmyoji-flow-dialog .image,
+    .onmyoji-flow-dialog .template-tree-children,
+    .onmyoji-flow-dialog .template-node-editor,
+    .onmyoji-flow-dialog .variable-item
+  ) {
+  border-color: var(--fc-border);
+}
+
+html:root:not([data-tools-theme="original"])
+  .onmyoji-flow-dialog
+  .onmyoji-flow-data-preview {
+  background-color: var(--fc-soft) !important;
+  color: var(--fc-ink);
+}
+
+html:root:not([data-tools-theme="original"])
+  :is(
+    .onmyoji-flow-components .component-icon,
+    .onmyoji-flow-properties .section-header,
+    .onmyoji-flow-components .component-item:hover,
+    .onmyoji-flow-editor .flow-controls .control-button:hover:enabled,
+    .onmyoji-flow-editor .problems-dock .problems-tab:hover,
+    .onmyoji-flow-editor .problems-dock .problem-item:hover,
+    .onmyoji-flow-editor .problems-dock .problem-item:focus,
+    .onmyoji-flow-editor .menu-item:hover,
+    .onmyoji-flow-dialog .template-tree button:hover,
+    .onmyoji-flow-dialog .template-tree button.active,
+    .onmyoji-flow-dialog .template-choice.active,
+    .onmyoji-flow-dialog .template-bound-nodes button.active
+  ) {
+  background-color: var(--fc-tint);
+}
+
+html:root:not([data-tools-theme="original"])
+  :is(
+    .onmyoji-flow-components .component-item:hover,
+    .yys-editor-embed .team-code-copy-button:hover,
+    .yys-editor-embed .team-code-copy-button:focus-visible,
+    .onmyoji-flow-dialog .template-choice.active,
+    .onmyoji-flow-dialog .template-bound-nodes button.active
+  ) {
+  border-color: var(--fc-accent);
+}
+
+html:root:not([data-tools-theme="original"])
+  :is(
+    .onmyoji-flow-components .group-title,
+    .onmyoji-flow-properties .panel-header h3,
+    .onmyoji-flow-editor .flow-controls .control-label,
+    .onmyoji-flow-editor .flow-controls .control-button,
+    .onmyoji-flow-editor .problems-dock .problems-tab,
+    .onmyoji-flow-editor .problems-dock .problem-message,
+    .yys-editor-embed .team-code-copy-button,
+    .onmyoji-flow-dialog .asset-manager-name,
+    .onmyoji-flow-dialog .rule-docs h4,
+    .onmyoji-flow-dialog .node-size-label,
+    .onmyoji-flow-dialog .template-model-panel h4,
+    .onmyoji-flow-dialog .template-right-panel h4,
+    .onmyoji-flow-dialog .template-inspector-panel h4,
+    .onmyoji-flow-dialog .template-tree-branch > strong,
+    .onmyoji-flow-dialog .template-field-label
+  ) {
+  color: var(--fc-ink);
+}
+
+html:root:not([data-tools-theme="original"])
+  :is(
+    .onmyoji-flow-properties .no-selection,
+    .onmyoji-flow-properties .no-selection-tip,
+    .onmyoji-flow-properties .property-label,
+    .onmyoji-flow-properties .upload-hint,
+    .onmyoji-flow-properties .size-divider,
+    .onmyoji-flow-editor .flow-controls .control-toggle,
+    .onmyoji-flow-editor .flow-controls .control-hint,
+    .onmyoji-flow-editor .problems-dock .problems-header,
+    .onmyoji-flow-editor .problems-dock .problems-empty,
+    .onmyoji-flow-editor .problems-dock .problem-meta,
+    .onmyoji-flow-editor .menu-item,
+    .onmyoji-flow-dialog .team-code-qr-tip,
+    .onmyoji-flow-dialog .rule-docs pre,
+    .onmyoji-flow-dialog .node-size-dimension,
+    .onmyoji-flow-dialog .node-size-placeholder,
+    .onmyoji-flow-dialog .template-hint,
+    .onmyoji-flow-dialog .template-choice span,
+    .onmyoji-flow-dialog .template-model-panel > p,
+    .onmyoji-flow-dialog .template-panel-heading p,
+    .onmyoji-flow-dialog .template-field-help,
+    .onmyoji-flow-dialog .template-inspector-empty,
+    .onmyoji-flow-dialog .template-tree button,
+    .onmyoji-flow-dialog .template-bound-nodes button
+  ) {
+  color: var(--fc-muted);
+}
+
+html:root:not([data-tools-theme="original"])
+  :is(
+    .onmyoji-flow-editor .menu-item:hover,
+    .onmyoji-flow-dialog .template-tree button.active,
+    .onmyoji-flow-dialog .template-bound-nodes button.active
+  ) {
+  color: var(--fc-accent);
+}
+
+html:root:not([data-tools-theme="original"])
+  :is(
+    .onmyoji-flow-components:hover,
+    .onmyoji-flow-components.is-resizing,
+    .onmyoji-flow-properties:hover,
+    .onmyoji-flow-properties.is-resizing
+  )
+  .resize-handle::before {
+  background-color: var(--fc-accent);
+}
+
+html:root:not([data-tools-theme="original"])
+  .onmyoji-flow-dialog
+  .template-tree
+  button::before {
+  color: var(--fc-muted);
+}
+
+html:root:not([data-tools-theme="original"])
+  .onmyoji-flow-editor
+  .problems-dock
+  .problem-item:focus {
+  box-shadow: inset 0 0 0 1px var(--fc-accent);
+}
+
+html:root:not([data-tools-theme="original"])
+  :is(
+    .onmyoji-flow-editor .problems-dock .problems-badge,
+    .onmyoji-flow-editor .problems-dock .problem-severity,
+    .onmyoji-flow-dialog .severity-select--warning .el-input__wrapper
+  ) {
+  background-color: var(--fc-warning-soft);
+  border-color: var(--fc-warning);
+  color: var(--fc-warning);
+}
+
+html:root:not([data-tools-theme="original"])
+  .onmyoji-flow-dialog
+  .severity-select--warning
+  .el-input__wrapper {
+  box-shadow: inset 0 0 0 1px var(--fc-warning);
+}
+
+html:root:not([data-tools-theme="original"])
+  .onmyoji-flow-dialog
+  .severity-select--warning
+  .el-input__inner {
+  color: var(--fc-warning);
+}
+
+html:root:not([data-tools-theme="original"])
+  .onmyoji-flow-dialog
+  .severity-select--error
+  .el-input__wrapper {
+  background-color: var(--fc-danger-soft);
+  box-shadow: inset 0 0 0 1px var(--fc-danger);
+}
+
+html:root:not([data-tools-theme="original"])
+  .onmyoji-flow-dialog
+  .severity-select--error
+  .el-input__inner {
+  color: var(--fc-danger);
+}
+
+html:root:not([data-tools-theme="original"])
+  .onmyoji-flow-dialog
+  .severity-select--info
+  .el-input__wrapper {
+  background-color: var(--fc-tint);
+  box-shadow: inset 0 0 0 1px var(--fc-accent);
+}
+
+html:root:not([data-tools-theme="original"])
+  .onmyoji-flow-dialog
+  .severity-select--info
+  .el-input__inner {
+  color: var(--fc-accent);
+}
+
+/* Filled buttons keep their existing types and use a readable foreground in both palettes. */
+html:root:not([data-tools-theme="original"])
+  .onmyoji-flow-dialog
+  .severity-select--warning {
+  --el-fill-color-blank: var(--fc-warning-soft);
+  --el-border-color: var(--fc-warning);
+  --el-text-color-regular: var(--fc-warning);
+}
+
+html:root:not([data-tools-theme="original"])
+  .onmyoji-flow-dialog
+  .severity-select--error {
+  --el-fill-color-blank: var(--fc-danger-soft);
+  --el-border-color: var(--fc-danger);
+  --el-text-color-regular: var(--fc-danger);
+}
+
+html:root:not([data-tools-theme="original"])
+  .onmyoji-flow-dialog
+  .severity-select--info {
+  --el-fill-color-blank: var(--fc-tint);
+  --el-border-color: var(--fc-accent);
+  --el-text-color-regular: var(--fc-accent);
+}
+
+html:root:not([data-tools-theme="original"])
+  :is(
+    .onmyoji-flow-toolbar,
+    .onmyoji-flow-properties,
+    .onmyoji-flow-dialog,
+    .onmyoji-flow-popper
+  )
+  .el-button--primary:not(.is-plain, .is-text, .is-link) {
+  --el-button-text-color: var(--fc-on-accent);
+  --el-button-hover-text-color: var(--fc-on-accent);
+  --el-button-active-text-color: var(--fc-on-accent);
+  --el-button-disabled-text-color: var(--fc-on-accent);
+}
+
+html:root:not([data-tools-theme="original"])
+  :is(
+    .onmyoji-flow-toolbar,
+    .onmyoji-flow-components,
+    .onmyoji-flow-properties,
+    .onmyoji-flow-dialog,
+    .onmyoji-flow-popper
+  )
+  :is(
+    .el-button--danger,
+    .el-button--success,
+    .el-button--warning,
+    .el-button--info
+  ):not(.is-plain, .is-text, .is-link) {
+  --el-button-text-color: var(--fc-surface);
+  --el-button-hover-text-color: var(--fc-surface);
+  --el-button-active-text-color: var(--fc-surface);
+  --el-button-disabled-text-color: var(--fc-surface);
+}
+
+/* Plain controls fill on hover; their foreground must follow that filled state. */
+html:root:not([data-tools-theme="original"])
+  :is(
+    .onmyoji-flow-toolbar,
+    .onmyoji-flow-components,
+    .onmyoji-flow-properties,
+    .onmyoji-flow-dialog,
+    .onmyoji-flow-popper
+  )
+  .el-button--primary.is-plain {
+  --el-button-hover-text-color: var(--fc-on-accent);
+  --el-button-active-text-color: var(--fc-on-accent);
+}
+
+html:root:not([data-tools-theme="original"])
+  :is(
+    .onmyoji-flow-toolbar,
+    .onmyoji-flow-components,
+    .onmyoji-flow-properties,
+    .onmyoji-flow-dialog,
+    .onmyoji-flow-popper
+  )
+  :is(
+    .el-button--danger,
+    .el-button--success,
+    .el-button--warning,
+    .el-button--info
+  ).is-plain {
+  --el-button-hover-text-color: var(--fc-surface);
+  --el-button-active-text-color: var(--fc-surface);
+}
+
+/* Preserve readable marks on the light accent used by the dark palette. */
+html:root:not([data-tools-theme="original"])
+  :is(
+    .onmyoji-flow-toolbar,
+    .onmyoji-flow-components,
+    .onmyoji-flow-properties,
+    .onmyoji-flow-dialog,
+    .onmyoji-flow-popper
+  )
+  .el-checkbox {
+  --el-checkbox-checked-icon-color: var(--fc-on-accent);
+}
+
+html:root:not([data-tools-theme="original"])
+  :is(
+    .onmyoji-flow-toolbar,
+    .onmyoji-flow-components,
+    .onmyoji-flow-properties,
+    .onmyoji-flow-dialog,
+    .onmyoji-flow-popper
+  )
+  .el-radio-button {
+  --el-radio-button-checked-text-color: var(--fc-on-accent);
+}
+
+html:root:not([data-tools-theme="original"])
+  :is(
+    .onmyoji-flow-toolbar,
+    .onmyoji-flow-components,
+    .onmyoji-flow-properties,
+    .onmyoji-flow-dialog,
+    .onmyoji-flow-popper
+  )
+  .el-radio__input.is-checked:not(.is-disabled)
+  .el-radio__inner::after {
+  background-color: var(--fc-on-accent);
+}
+
+html:root:not([data-tools-theme="original"])
+  :is(
+    .onmyoji-flow-toolbar,
+    .onmyoji-flow-components,
+    .onmyoji-flow-properties,
+    .onmyoji-flow-dialog,
+    .onmyoji-flow-popper
+  )
+  .el-switch.is-checked
+  .el-switch__core
+  .el-switch__action {
+  background-color: var(--fc-on-accent);
+}

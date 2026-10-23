@@ -1,5 +1,5 @@
 <template>
-  <div class="editor-layout" :style="{ height }">
+  <div class="editor-layout onmyoji-flow-editor" :style="{ height }">
     <!-- 中间流程图区域 -->
     <div
       ref="flowHostRef"

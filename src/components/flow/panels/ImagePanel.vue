@@ -160,6 +160,7 @@ const handleFitChange = (val: FitMode) => {
       <div class="property-label">{{ t("flow.image.fit") }}</div>
       <div class="property-value">
         <el-select
+          popper-class="onmyoji-flow-popper"
           v-model="imageForm.fit"
           size="small"
           style="width: 100%"

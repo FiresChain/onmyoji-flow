@@ -322,7 +322,7 @@ onBeforeUnmount(() => {
 
 <template>
   <div
-    class="components-panel"
+    class="components-panel onmyoji-flow-components"
     :class="{ 'is-resizing': isResizing }"
     :style="panelStyle"
   >
